@@ -22,7 +22,10 @@ reviewed them, and every screen of D0.1's index
 ([`baseline/index.md`](baseline/index.md)); its findings are U-039 to
 U-058, under "Second pass" below. The third pass, the hig-review of
 2026-10-23 ([`hig-review-2026-10-23.md`](hig-review-2026-10-23.md)), added
-U-060 to U-129, under "Third pass" below, and reopened U-036.
+U-060 to U-129, under "Third pass" below, and reopened U-036. The fourth pass,
+the red-team review of 2026-10-26
+([`hig-review-2026-10-26.md`](hig-review-2026-10-26.md)), added U-130 to
+U-151, under "Fourth pass" below.
 
 ## Summary
 
@@ -916,7 +919,8 @@ for the result. WCAG 4.1.3 (AA). Severity 1 because it is the core task,
 on every send, for everyone who uses a screen reader: the way round it is
 to go looking. Confirmed in source; no screen reader was run.
 Evidence: `response-viewer/response-viewer.html:11-16, 25-62`.
-**Status:** Open, D4-e (plan D4.11). Review row W-2; U-055 is the same
+**Status:** Open, D4-e (plan D4.11). Review row W-2; U-055 is the same Confirmed at runtime on 2026-10-26: after a send every `role=status`
+in the page is empty (fourth pass, review section 2).
 moment seen.
 
 **U-062. Errors that appear after an action are not announced.**
@@ -1446,6 +1450,230 @@ Evidence: [`hig-review/1440-dark-03-response-json.png`](hig-review/1440-dark-03-
 maintainer) and D3.6 (the hierarchy). Closed when D5.1's logo-off and
 competitor-swap tests find the chosen element. Review rows W-21 and DS-18.
 
+## Fourth pass: the red-team review, 2026-10-26
+
+A second hig-review of the whole app
+([`hig-review-2026-10-26.md`](hig-review-2026-10-26.md)), on
+`docs/hig-review-red-team` from `main` at `5b8c7a79`, whose app code is
+the tree the third pass read. It researched the category first (six
+products), walked five flows from a fresh browser context with step
+counts, attacked the third pass as a draft, and measured the typefaces in
+three engines. Chromium 156 only for the app; a screen reader, Firefox
+and WebKit captures and the Local Bridge were not run. The screenshots it
+cites are in [`hig-review/`](hig-review/) as `1440-light-rt-NN-*.png`.
+
+Its rows keep their own IDs (N-n red team, P8-n distinctiveness, T-n
+type), and each finding below names its row. Severity follows the third
+pass's mapping. Rows that confirm or extend an earlier finding have no ID
+of their own: U-061 is now confirmed at runtime, and U-011, U-020, U-024,
+U-026, U-044, U-051, U-054, U-082, U-085, U-086 and U-093 have a note in
+the review's section 2. Its three reworks and its theming sketch are not
+findings: they were the plan's DQ8 to DQ11 (rows 1.49 and 1.51), which
+the maintainer answered yes on 2026-10-26 (row 1.52).
+
+All 22 below are open. The plan's row 1.48 puts U-130, U-135 to U-137, U-141
+and U-145 first, in D4.11. Rows are grouped by theme, not by number.
+
+### Credentials, secrets and storage
+
+**U-130. The app names the wrong source for the credential it sends.**
+Severity 2. H1, H2. SD, PE, QA, TP.
+"Inherit bearer" was sent with the vault secret `token` of environment
+Local, which shadows the collection's `col-token`; the Auth tab says
+"Bearer token is sent, from collection "Shop"", because `inheritedLine`
+names where the auth is set and not where its value comes from. The
+variable chips skip variables used in Auth, and the status line says only
+"Direct". On success nothing says a vault secret went.
+Evidence: `composer/auth-editor/auth-editor.ts:59-66`;
+`composer/variable-chips.html`;
+[`hig-review/1440-light-rt-19-auth-tab.png`](hig-review/1440-light-rt-19-auth-tab.png);
+the request's headers in the network log.
+**Status:** Open, D4-e (D4.11). Review row N1.
+
+**U-135. "Mark as secret" is dropped when it triggers vault creation.**
+Severity 2. H1, H5. PE, SD.
+With no vault, the lock opens Create vault; after it the row is still
+plain text, because `protectVariable` emits `requestUnlock` and returns
+with nothing pending, so Save changes stores the token as an ordinary
+variable. A row with no name or value ignores the lock with only a
+`console.debug`.
+Evidence: `environments/environments-manager.ts:246-262`;
+[`hig-review/1440-light-rt-14-env-secret.png`](hig-review/1440-light-rt-14-env-secret.png),
+[`hig-review/1440-light-rt-15-env-after-vault.png`](hig-review/1440-light-rt-15-env-after-vault.png),
+[`hig-review/1440-light-rt-16-secret-marked.png`](hig-review/1440-light-rt-16-secret-marked.png).
+**Status:** Open, D4-e (D4.11). Review row N6.
+
+**U-136. "Secret stored" appears before the environment is saved, and
+Save changes says nothing.** Severity 2. H1, H5, H9. PE, SD.
+`saveSecret` writes to the vault when the lock is clicked; the reference
+lives only in the unsaved draft, so closing the dialog (U-060) leaves an
+orphan secret. Save changes is always enabled, confirms nothing and has
+no catch; rows with a value and no key are dropped.
+Evidence: `environments-manager.ts:263-271, 331-351`;
+`environments-manager.html:237`;
+[`hig-review/1440-light-rt-17-env-saved.png`](hig-review/1440-light-rt-17-env-saved.png).
+Not seen: a listing of the vault after closing.
+**Status:** Open, D4-e (D4.11; its autosave, row 1.52, removes the cause).
+Review row N7.
+
+**U-137. Data can disappear while the status bar says "Saved in this browser only".**
+Severity 2. H1, H5. OC, SD.
+`navigator.storage.persisted()` returned false after a save and an
+import; the status bar's text never changes. The persistence state and
+Safari's seven-day eviction are stated only in Settings › Data and
+storage, and the backup reminder waits 14 days, so a Safari user who has
+not installed the app can lose everything before the first reminder.
+Evidence: `services/storage-persistence.ts:5-21`;
+`services/workspace-backup.ts:22`; `settings.html:272-279`;
+`app-shell.html:368`. Seen in Chromium only.
+**Status:** Open, D4-e (D4.11). Review row N8.
+
+**U-145. Add variable does not focus the new row.** Severity 3. H7. All.
+From the keyboard, focus stays on Add variable.
+Evidence: `environments-manager.html` (Add variable).
+**Status:** Open, D4-e (D4.11). Review row N16.
+
+**U-143. The unlock prompt during a send does not say what wants the
+vault.** Severity 3. H1, H2. PE.
+"Enter your passphrase to unlock encrypted secrets for this session."
+names no request or secret.
+Evidence: [`hig-review/1440-light-rt-27-send-vault-locked.png`](hig-review/1440-light-rt-27-send-vault-locked.png).
+**Status:** Open, D4-g (D4.5). Review row N14.
+
+### The send, the route and the bridge
+
+**U-131. "Route: Auto" misstates the route on an unpaired device.**
+Severity 2. H1. SD, PE.
+The bridge README says Auto without a paired bridge behaves like Direct;
+the status bar prints the configured route, not what the app will do,
+and after a CORS failure the status line has no route word.
+Evidence: `app-shell.html:337`; `packages/bridge/README.md:55`;
+[`hig-review/1440-light-rt-05-cors-first-run.png`](hig-review/1440-light-rt-05-cors-first-run.png).
+**Status:** Open, D4-l (D4.12). Review row N2.
+
+**U-138. No in-app path to the Local Bridge from the failure it fixes.**
+Severity 2. H9, H10. SD, PE, OC.
+The failure body ends "for CORS, the Local Bridge can relay the request"
+with no action; no template shows `npx wayfarer-bridge`; U-051's planned
+button assumes a paired bridge.
+Evidence: `settings/bridge-pane.html:148-162`;
+`packages/core/src/send/exchange.ts:127`;
+[`hig-review/1440-light-rt-06-bridge-settings.png`](hig-review/1440-light-rt-06-bridge-settings.png).
+**Status:** Open, D4-l (D4.12, row 1.52). Review row N9.
+
+**U-134. The send refusal blames the address when a variable is
+missing.** Severity 2. H9, H2. All.
+With `{{base}}` unresolved, Send says "The address is not a URL a request
+can go to. Write it as https://host/path."; three messages stack for one
+cause; "URL" breaks voice.md's glossary.
+Evidence: `state/workspace-store.ts:483-491`; `composer.html:57`;
+[`hig-review/1440-light-rt-11-send-missing-base.png`](hig-review/1440-light-rt-11-send-missing-base.png).
+**Status:** Open, D4-e (D4.3). Review row N5.
+
+**U-132. Variable chips do nothing for a missing, collection, secret or
+dynamic variable.** Severity 2. H3, H6. All.
+`handleVariableChipClick` acts only for environment variables and sets a
+signal no template reads; the red "Missing" chip is dead. A development
+build; may be unfinished.
+Evidence: `composer/variable-chips.ts:17-23`;
+[`hig-review/1440-light-rt-10-missing-chip-click.png`](hig-review/1440-light-rt-10-missing-chip-click.png).
+**Status:** Open, D4-g (D4.5). Review row N3.
+
+### Import
+
+**U-133. The import review does not say that every request uses an
+undefined variable.** Severity 2. H1, H5. TP, QA.
+All six requests of `shop.postman_collection.json` use `{{base}}`, which
+nothing imported defines; the first send fails.
+Evidence: [`hig-review/1440-light-rt-07-import-review.png`](hig-review/1440-light-rt-07-import-review.png),
+[`hig-review/1440-light-rt-09-imported-request.png`](hig-review/1440-light-rt-09-imported-request.png).
+**Status:** Open, D4-h (D4.7). Review row N4.
+
+**U-139. Disabled Postman query parameters are lost on save, and the
+import note contradicts the app.** Severity 2. H4, H5. TP.
+The note says "the composer has no switch for a parameter"; every param
+row has a "Send parameter N" checkbox bound to `param.enabled`.
+Evidence: `packages/core/src/import/postman.ts:234`;
+`composer/params-panel.html:11-14`.
+**Status:** Open, D4-h (D4.7). Review row N10.
+
+**U-141. The import review's buttons are named "Confirm import" and
+"Cancel import".** Severity 3. H4. All.
+The visible "Import" and "Cancel" are not at the start of the names
+(passes 2.5.3 by containment; D4.11's planned e2e fails on it); focus
+opens on × Close.
+Evidence: the import dialog's footer;
+[`hig-review/1440-light-rt-07-import-review.png`](hig-review/1440-light-rt-07-import-review.png).
+**Status:** Open, D4-e (D4.11's e2e). Review row N12.
+
+### Tabs and history
+
+**U-140. Closing a scratch tab asks to discard changes history already
+keeps.** Severity 3. H3, H8. SD, QA.
+Every ad-hoc send leaves an unsaved dot, so the dot stops meaning
+anything.
+Evidence: [`hig-review/1440-light-rt-24-close-scratch-tab.png`](hig-review/1440-light-rt-24-close-scratch-tab.png).
+**Status:** Open, D4-f (D4.4). Review row N11.
+
+**U-142. The fifth tab is cut under the tab actions at 1,440 px with no
+overflow cue.** Severity 3. H1. SD, QA.
+Evidence: [`hig-review/1440-light-rt-23-after-history-load.png`](hig-review/1440-light-rt-23-after-history-load.png).
+**Status:** Open, D4-f (D4.4). Review row N13.
+
+**U-144. Opening a request from history replaces the current clean tab
+with no cue, and the tree keeps the old selection.** Severity 3. H1, H3.
+SD, QA.
+Evidence: [`hig-review/1440-light-rt-23-after-history-load.png`](hig-review/1440-light-rt-23-after-history-load.png).
+**Status:** Open, D4-f (D4.4). Review row N15.
+
+### Visual system and type
+
+**U-147. The accent has five jobs and sits beside GET and success
+green.** Severity 3. H4. All.
+ΔE_ok 0.063 from GET and success in dark; on the primary screen three
+near-greens mean Send, GET and 200 OK.
+Evidence: `src/design-system/tokens.css:95-101`, `:108`, `:125`, `:126`,
+`:139`. Extends U-128.
+**Status:** Open, D3-b (D3.6), with DQ11. Review row P8-1.
+
+**U-148. Wayfarer's own placeholder words are drawn in the wire face.**
+Severity 3. H4. All.
+Placeholders inherit `font-mono` from their fields (`ui/input.css:40-43`
+sets no family), breaking the provenance rule on the first-run screen.
+Evidence: `address-row.html:33,41`; `params-panel.html:18-22,29`;
+`rows-editor.html:28`. Extends U-051.
+**Status:** Open, D4-e (D4.3). Review row P8-2.
+
+**U-149. Colour is written in OKLCH but not derived.** Severity 3. H4.
+All.
+73 (dark) and 74 (light) hand-set literals; light tertiary is darker
+than secondary; an increased-contrast theme would be a third list.
+Corrects the third pass's "parametric OKLCH theme kept". Extends U-110
+and U-119.
+Evidence: `packages/tokens/{dark,light}.tokens.json`; `tokens.mjs:111-122`.
+**Status:** Open, D3-b (D3.6). Review row P8-3.
+
+**U-150. In Inter, capital I and lowercase l render identically at 12
+and 13 px.** Severity 3. H4, H6. All.
+Measured with the hig-review's `type-eval.js` in Chromium and Firefox
+(pixel distance 0, no device pixel differs; WebKit at 13 px, 2 pixels).
+Request, collection, folder and variable names are set in Inter. Inter's
+character variants (`cv05`, `cv08`) have no effect in the
+`@fontsource-variable/inter` build the app ships.
+Evidence: `tokens.css:32`; `src/styles.css:3-4`; the review's section 6.
+**Status:** Open, D3-b (D3.6), with DQ11. Review row T-1.
+
+**U-151. JetBrains Mono's zero and capital O differ by one device pixel
+at 12 px on a 1× display.** Severity 4. H4. SD, QA.
+`slashed-zero` and `zero` change nothing in this build. Wire values at
+13 px differ by 4 to 6 pixels.
+Evidence: `tokens.css:33, 64`; the review's section 6.
+**Status:** Open, D3-b (D3.6). Review row T-2.
+
+**U-146. The Environments list's "+" sticks out of its card border.**
+Severity 4. H8. All.
+**Status:** Open, D4-g (D4.5). Review row N17.
+
 ## Every screen of D0.1, and its findings
 
 Each screen of [`baseline/index.md`](baseline/index.md), with the open or
@@ -1454,6 +1682,9 @@ screen shows (Chromium only). "No finding" means the second pass read its
 Chromium captures at 1,440 px, in both themes, and at 390 px, and its
 Firefox and WebKit captures by the comparison above, and found nothing a
 finding does not already say.
+The fourth pass's rows (U-130 to U-151) are not mapped here: it walked
+flows rather than D0.1's screens, and each of its rows names its own
+screenshot.
 
 | Screen | Findings |
 |---|---|
@@ -1506,4 +1737,3 @@ finding does not already say.
 | `settings-diagnostics` | No finding |
 | `settings-about` | No finding |
 | `settings-danger` | No finding |
-

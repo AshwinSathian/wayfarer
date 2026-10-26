@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design audit has a fourth pass: a red-team review that compares
+  Wayfarer with the API clients people already use.** A new page gives the
+  review in full, with the screenshots it cites. It walked five everyday
+  tasks from a fresh browser and found 22 new problems, among them a
+  token's source named wrongly on the Auth tab, a variable marked secret
+  that was saved in plain text, and "Saved in this browser only" shown while the
+  browser had not promised to keep the data. The plan now fixes those
+  first, asks the maintainer about three larger reworks and a new theme,
+  and measures the app's fonts, one of which draws capital I and
+  lowercase l the same at the app's working size.
 - **The design audit has a third pass, against Apple's Human Interface
   Guidelines and WCAG 2.2, with its findings placed in the plan's
   sessions.** A new page, hig-review, gives the review in full, with the

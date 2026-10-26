@@ -133,6 +133,25 @@ type, colour or shape traces to Wayfarer's subject or to a finding. What
 identity the product has is spent on its subject: what was sent, where it
 went, what was kept and what left the browser (D2.5, D4.12).
 
+**What row 1.52 adds** (the maintainer's answers to DQ8 to DQ11, after the
+review of 2026-10-26, [`docs/design/hig-review-2026-10-26.md`](docs/design/hig-review-2026-10-26.md)):
+
+- **The exchange record is the core object and the signature element.**
+  One record per send says what left the browser: the address as
+  resolved, each variable and the scope it came from, secrets masked and
+  named, the Auth source and its value's source, the route taken, the
+  host, what the redactor masked and what history kept. Before Send it is
+  a preview; after Send it is the rail; history and runs store it.
+  "Local-first, no account" is not an identity any more: five rivals claim
+  it. No rival shows this record.
+- **Ink for chrome and actions; hue only for protocol.** Send, focus and
+  selection are ink; colour means a method or a status and nothing else,
+  so the accent stops colliding with GET and success green.
+- **Atkinson Hyperlegible Next for Wayfarer's words**, the site's face
+  already, because its I, l and 1 differ at 12 px where Inter's do not;
+  Inter stays as the fallback for Greek, Cyrillic and Vietnamese;
+  JetBrains Mono stays for the wire.
+
 ## 2. Background
 
 What exists, measured 2026-10-14 and re-measured 2026-10-16 (details in the
@@ -337,6 +356,15 @@ architectural decisions made.
     D2.5's and D5.1's competitor-swap tests read them. The rivals' half
     is the maintainer's owner step (DQ3); until it runs, the swap rests on
     reviewer knowledge and says so.
+  - AC (row 1.50): an input event is an action (a click, a key, a text
+    entry counted once), as the rivals' documentation counts it;
+    `docs/design/baseline.md`'s counts, which count characters, are
+    restated that way beside the old ones. The task "find why a request
+    failed" ends when the person names the cause, not when the error
+    appears. `docs/design/research-2026.md` sections 2, 4 and 8 are
+    brought up to date from the fourth pass's landscape
+    (`docs/design/hig-review-2026-10-26.md`, section 4), or marked stale
+    where it disagrees.
 - [x] **D1.5** Decide the widget layer. Build a tree with drag and
   keyboard reorder, a select with a null option, and a context menu in
   Angular Material (as today), Angular Aria and the platform primitives;
@@ -368,6 +396,23 @@ architectural decisions made.
     the audit; the screen-reader and the U-060 items are done in D4-e, the
     rest before D5.1. NVDA and the installed app on Windows and iOS are
     the maintainer's owner step where the session has no such machine.
+
+- [ ] **D1.9** The fourth pass's smallest experiments (rows 1.49 and 1.52):
+  DQ8 to DQ10 are answered, so these tune the designs rather than decide
+  them, and run before the session that builds each: for R1, a static prototype of the
+  exchange record for one send whose vault secret shadows a collection's
+  token, shown to five daily users beside today's screen ("which token
+  was sent, and by which route?"); for R2, environment-as-tab with
+  autosave for one environment, re-running baseline tasks 3 and 4; for
+  R3, three people timed from a CORS failure to a 200 through the bridge,
+  today's screens against a clickable mock. Throwaway prototypes, not
+  product code.
+  - AC: `docs/design/hig-review-2026-10-26.md` gains a results table per
+    experiment (people, inputs, seconds, the answer given); a result that
+    goes against the rework gets a section 14 row before its session
+    starts. Recruiting the five users is the maintainer's owner step,
+    before D4-e for R2 and before D4-l for R1 and R3; a session does not
+    wait for it.
 
 **Exit criteria:** the audit's findings are triaged (fix, accept with a
 reason, or out of scope); D1.5 to D1.7 are decided.
@@ -425,6 +470,10 @@ called.
     or `ia.md` (for 2) with the test that holds it (for 1, a test that
     fails when a string the app writes is drawn in a server's slot in
     monospace); D5.1's logo-off test names it on the primary screen.
+  - Chosen (row 1.52, DQ8): element 2, grown into the exchange record of
+    D4.12, because element 1 cannot be seen and so cannot pass section
+    1's logo-off measure; element 1 stays as a `voice.md` rule under it,
+    with its test. The moment stays (a), Send shows its speed (DQ7).
 
 ### Phase D3: Foundations (2 sessions, and D3-b of row 1.43)
 
@@ -495,6 +544,26 @@ views.
     field and select takes its height from a control-height token.
   - AC: the catalogue passes axe in both themes and three engines; the
     captures of D0.1 that the change moves are read in the PR.
+  - AC (row 1.51): the hig-review's `scripts/type-eval.js`, run on the
+    text and mono faces in Chromium, Firefox and WebKit at the working
+    sizes, finds no confusable pair that renders identically (0 device
+    pixels apart) among I/l/1 and 0/O, in the face set DQ11 settles
+    (U-150), and no mono role is set below 13 px unless its 0 and O are
+    at least 3 device pixels apart at that size on a 1× display (U-151); its output is kept in `docs/design/`. The label,
+    boundary and state tokens are generated from a few inputs (neutral
+    hue and chroma, appearance, contrast level) against the contrast
+    gate's targets, so the increased-contrast theme is the same inputs at
+    a higher level (U-149).
+  - AC (row 1.52, DQ11): Send's fill, the focus ring and the selected
+    row's mark are ink (the label colour on the canvas, and the reverse
+    in dark), and no token outside method and status carries hue; a test
+    fails on a hue in a chrome or action token (U-147). The text role
+    uses Atkinson Hyperlegible Next with Inter Variable as the per-glyph
+    fallback, after `type-eval.js` and screenshots of the app's own
+    screens at 12 and 13 px in three engines show no confusable pair and
+    no visible jump on mixed Latin and Cyrillic names (U-150); if the
+    measurement fails, a section 14 row says what replaces it. The site
+    (W5.1) takes the same faces and colours.
 - [ ] **D3.7** Motion corrections on Send (row 1.44; session D4-e): the
   most frequent action gets the least motion. No indicator for a reply
   under about a second, then "Sending" and the time so far; the response,
@@ -514,17 +583,19 @@ views.
     `transitionstart`); `motion.md` records each change against the rule
     it changes.
 
-### Phase D4: Flows rebuilt (12 sessions, split in 1.35, added to in 1.42 to 1.45)
+### Phase D4: Flows rebuilt (12 sessions, split in 1.35, added to in 1.42 to 1.45, 1.48 and 1.52)
 
 **Goal:** every view rebuilt on the foundations, in the order the
 benchmark says matters most.
 
-**Order from D4-e** (rows 1.42 to 1.45): **D4-e** D4.11 first (the
-hig-review's Blockers and the save path), then D4.3's response with D3.7
-and the density decision; **D3-b** D3.6; **D4-l** D4.12, the inspector
-rail; **D4-f**; **D4-g**; **D4-h**, with D4.13; **D4-i**. D4-j and D4-k
+**Order from D4-e** (rows 1.42 to 1.45, 1.48 and 1.52): **D4-e** D4.11 first
+(the hig-review's Blockers, the save path and the fourth pass's trust
+rows), then D4.3's response with D3.7 and the density decision; **D4-l**
+D4.12, the exchange record; **D3-b** D3.6, with the ink theme and the
+text face; **D4-f**; **D4-g**; **D4-h**, with D4.13; **D4-i**. D4-j and D4-k
 wait for their decisions. Each view session takes the open findings the
-audit's status lines give it, the hig-review's (U-060 to U-129) among them.
+audit's status lines give it, the hig-review's (U-060 to U-129) and the
+fourth pass's (U-130 to U-151, row 1.48) among them.
 
 - [x] **D4.1** Information architecture: what the shell holds, where each
   thing lives, how the command palette, the sidebar and tabs share work.
@@ -533,9 +604,19 @@ audit's status lines give it, the hig-review's (U-060 to U-129) among them.
 - [x] **D4.2** First run: from an empty app to a first response in the
   fewest steps D1.4 measured among the rivals, or fewer.
   - AC: the benchmark task "first request from nothing" re-measured.
+  - Note (row 1.50): ticked before D1.4 ran, so its comparison is with
+    the rivals' documentation only: 2 actions, tied with Hoppscotch's
+    documented 2, a count the review marks unverified (fourth pass,
+    section 9). D1.4 re-checks it.
 - [ ] **D4.3** The composer and the response. (AC below.)
 - [ ] **D4.4** Collections, folders, tabs and history. (AC below.)
-- [ ] **D4.5** Environments, variables and the vault. (AC below.)
+- [ ] **D4.5** Environments, variables and the vault. (AC below.) Row
+  1.52 (DQ9): an environment opens as a document in a tab, like a
+  request, with the autosaving editor of D4.11, new environments as an
+  inline row and "Removed {name}. Undo" instead of confirms; `ia.md`
+  moves it out of the toolbar's dialogs, and `scripts/ia.test.mjs`
+  follows. A missing variable's chip offers "Add {name} to" an
+  environment or the collection, in place (U-132).
 - [ ] **D4.6** The runner and its reports. (AC below.)
 - [ ] **D4.7** Settings, the Local Bridge and routes, import and export. (AC below.)
 - [ ] **D4.8** Team flows designed, not built: share, receive, see who
@@ -557,19 +638,21 @@ audit's status lines give it, the hig-review's (U-060 to U-129) among them.
     when the session has no Windows machine); every live region of the
     view is in the page from its first render.
 - [ ] **D4.11** The hig-review's Blockers and the save path (row 1.42;
-  session D4-e, first, before its response work): U-060 (the Environments
-  dialog loses edits), U-061 and U-062 (a send and an error are not
+  session D4-e, first, before its response work), and the fourth pass's
+  trust rows (row 1.48: U-130, U-135 to U-137, U-141, U-145): U-060 (the
+  Environments dialog loses edits), U-061 and U-062 (a send and an error are not
   announced, WCAG 4.1.3), U-075 (live regions made with their message),
   U-063 (visible label not in the name, 2.5.3), U-064 (the splitter needs
   a drag, 2.5.7), U-065 (reflow at 320 px, 1.4.10), U-106 to U-108 (the
   checkbox, the select's option and a label on the warning fill, 1.4.11
   and 1.4.3), U-066 and U-068 (a failed save is silent; Save drops focus).
-  - AC: with unsaved edits, × or Escape on the Environments dialog and a
-    click on another environment ask "Save the changes to {name}?" with
-    Save, Discard and Cancel, focus on Cancel; an e2e edits a value and,
-    for each of ×, Escape and choosing another environment, finds the
-    question, then that Cancel keeps the edit, Discard drops it and Save
-    stores it.
+  - AC (row 1.52, DQ9; replaces the guard question of row 1.42): the
+    environment editor writes each row on blur through
+    `changeEnvironment` and has no Save changes button; an e2e edits a
+    value and, for each of ×, Escape and choosing another environment,
+    finds the edit stored when the environment is opened again. A row
+    with a key and no value, or a value and no key, says so in place
+    instead of being dropped.
   - AC: the response pane holds one `role="status"` element from its first
     render, whose text is "Sending…" during a send and then the status
     line's words ("200 OK, 16 ms, Direct", or the failure's first line);
@@ -590,8 +673,26 @@ audit's status lines give it, the hig-review's (U-060 to U-129) among them.
     on Save while it saves (it is `aria-disabled`, not `disabled`).
   - AC: D1.8's screen-reader items for send, unlock and one banner are
     done and recorded.
-- [ ] **D4.12** The inspector rail: the account of where it went (row
-  1.45; session D4-l, after D3-b and before D4-f). Direction C's rail
+  - AC (row 1.48): an e2e sends a request whose inherited bearer token is
+    a vault secret of the environment shadowing the collection's value,
+    and finds the Auth tab naming both: where the auth is set and where
+    its value came from (environment, vault secret); Auth's variables
+    have chips (U-130).
+  - AC (row 1.48): with no vault, marking a variable secret and creating
+    the vault ends with the row a secret reference, and the stored
+    environment holds no plain value (e2e); a row that cannot be marked
+    says why (U-135). Creating the vault from a row happens in that row,
+    not in a second dialog, and with autosave no secret is stored for an
+    environment that is not (U-136); Add variable focuses the new row's
+    key (U-145).
+  - AC (row 1.48): the status bar's storage item says what
+    `navigator.storage.persisted()` answers, linking to Data and storage
+    when the answer is no (a test for both answers); when storage is not
+    persistent, the first backup reminder comes on the first save and
+    then at most every 5 days while it stays so, not after 14 days
+    (U-137).
+- [ ] **D4.12** The exchange record (rows 1.45 and 1.52; session D4-l,
+  after D4-e and before D3-b; it was "the inspector rail"). Direction C's rail
   (`docs/design/ia.md`, the shell's regions), which no session had: beside
   the response, collapsible, it states for each exchange the route taken,
   the host, the secrets filled (by name, masked), what history kept and
@@ -608,6 +709,25 @@ audit's status lines give it, the hig-review's (U-060 to U-129) among them.
     on a success it does not open by itself; its words reach the status
     region of D4.11; `ia.md` places it and its actions; the AC above for
     D4.3 to D4.10 holds for it.
+  - AC (row 1.49, DQ10's default): on a failed send with no paired
+    bridge, the failure states the route taken ("Direct, no bridge
+    paired"), the command `npx wayfarer-bridge` with Copy, the pairing
+    field in place, and Send again once paired (e2e with the bridge's
+    test double); the status bar's route item says what the app will do,
+    not what is configured (U-131, U-138).
+  - AC (row 1.52, DQ8): before Send, the same record is a preview in the
+    composer: the address as resolved, each variable with the scope it
+    came from (secrets masked and named), the Auth source and its
+    value's source, and missing or shadowed variables, whose chips act
+    (U-130, U-132, U-133, U-134); an e2e finds, for a request whose vault
+    secret shadows a collection value, the preview and the sent record
+    naming the environment's secret. History entries and run rows store
+    the record and open into it (U-024, U-076); entries saved before
+    this change say they have no record. The status line and D4.11's
+    status region speak the record's first line.
+  - AC (row 1.52): `ia.md` and `voice.md` name the record as the
+    signature element (D2.5); D5.1's logo-off test finds it on the
+    primary screen.
 - [ ] **D4.13** The installed app (row 1.41; with D4-h): the page's
   `theme-color` and the manifest's colours from the canvas tokens,
   following the app's theme, the manifest's `id` and `description`,
@@ -780,8 +900,12 @@ Each has a default; a session goes ahead on the default and says so.
 | DQ3 | Where does the rival benchmark's Postman run: the free plan of one user, or a trial of Team for the sharing task? | Free plan; the sharing task is measured on Team's trial if one is available | Maintainer | D1.4 |
 | DQ4 | Does a renamed product keep `wayfarer.ashwinsathian.com` as a redirect? | Yes, permanently | Maintainer | D2.3 |
 | DQ5 | Can the self-hosted server of T4 be a paid product, or is everything MIT? | Everything MIT | Maintainer | T0 |
-| DQ6 | Which signature element (D2.5): provenance in the type split, or the account of where it went? | Provenance in the type split: it costs no new surface, it is the structural fix for U-051, and the rail of D4.12 is built either way | Maintainer | D4-e (the response's strings) |
+| DQ6 | Which signature element (D2.5): provenance in the type split, or the account of where it went? | **Answered 2026-10-26 by DQ8: the account of where it went, grown into the exchange record.** Provenance in the type split stays as a `voice.md` rule under it (row 1.52) | Maintainer | D4-e (the response's strings) |
 | DQ7 | Which behavioural moment (D2.5): Send shows its speed, or a failure says where it went? | Send shows its speed, built in D4-e with D3.7 and U-061; the failure's moment follows in D4.12 if the maintainer wants both | Maintainer | D4-e |
+| DQ8 | Does the exchange record (the fourth pass's R1) become the core object and D2.5's element: one record per send, a preview before Send, D4.12's rail after it, stored in history and runs, with D4-l moved ahead of D3-b? | **Answered 2026-10-26: yes** (row 1.52). D4.12 becomes the exchange record and D4-l runs before D3-b | Maintainer | D4-e (the response's strings) |
+| DQ9 | Do environments become a document with per-field autosave and the vault created in place (R2), replacing D4.11's guard question? | **Answered 2026-10-26: yes** (row 1.52). D4.11 makes the editor autosave instead of asking; D4.5 moves it into a tab | Maintainer | D4-e (D4.11) |
+| DQ10 | Does a failed send set up the bridge in place (R3)? | **Answered 2026-10-26: yes** (row 1.52), as D4.12's AC | Maintainer | D4-l |
+| DQ11 | Does the theme take the fourth pass's sketch: ink for chrome and actions with hue for protocol only, and Atkinson Hyperlegible Next (the site's face) for Wayfarer's text with Inter as the fallback for other scripts, JetBrains Mono kept? | **Answered 2026-10-26: yes** (row 1.52). D3.6 builds the ink theme and takes Atkinson Hyperlegible Next for the text role after measuring it in the app | Maintainer | D3-b |
 
 ## 13. Appendix
 
@@ -842,3 +966,9 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-10-23 | 1.44 | **D3.7 added, in D4-e: motion corrections on Send.** The hig-review timed a local send at 16 to 38 ms, followed by a button that scales to 0.96, shimmer bars, a 300 ms fade of the response and a 240 ms fade of each tab's pane (U-078): the answer is at part opacity for eight times the network's time. `motion.md` (D3.4) said a response fades; that rule now gives way to "the answer to ⌘↵ arrives in one frame", which is the speed of direction A made visible (row 1.45). No indicator under about a second, then "Sending" and the elapsed time, which closes U-055's words with U-061's announcement. With it go the sidebar's slide (U-079), the chips' spring lift (U-121), the transitions a theme change fires (U-122) and the one `transition-all` (U-123). D3.4 stays done; D3.7 changes its spec in `motion.md` with the reason for each rule it changes. |
 | 2026-10-23 | 1.45 | **Direction A amended: keep Linear's mechanism, not its look; D2.5, DQ6, DQ7 and D4.12 added.** This amends the reasoning of row 1.9, which chose A, which `docs/design/directions/directions.html` describes as "closest to Yaak and Linear"; row 1.9 stands as written. The hig-review found that the app kept Linear's and Yaak's surface (warm near-black, one muted green, hairlines, Inter, ⌘K keycaps) and lost Linear's mechanism: the label tiers collapse, 12 px is the working size and controls are as faint as separators (U-077). Section 1 gains "Direction (D2.1)": keep Linear's hierarchy discipline, speed made visible and keyboard first; do not copy its look; spend identity on the subject (what was sent, where it went, what was kept). **D2.5**, a decision for the maintainer, from the review's section 4: one signature element, (1) provenance in the type split, **recommended**, or (2) the account of where it went; and a behavioural moment, (a) Send shows its speed, **recommended**, or (b) a failure says where it went. DQ6 and DQ7 hold the defaults (1 and a), so D4-e goes ahead on them unless the maintainer says otherwise. **D4.12**, the C inspector rail as "the account of where it went", gets the session row 1.35 never gave it, **D4-l**, after D3-b and before D4-f, so that history (D4-f) and a run's rows (D4-i, U-076) open into it. The review's gate holds: these come after the Blockers of D4.11 and U-051's fix in D4-e. Section 1's measures gain the logo-off and competitor-swap test of D5.1. |
 | 2026-10-23 | 1.46 | **What the plan measures, after the hig-review: 320 px, a screen reader, the rivals' screens.** Section 1's accessibility measure adds that nothing is wider than a 320 px window: WCAG 1.4.10 names 320 CSS px, and "WCAG 2.2 AA everywhere" is the maintainer's decision; the phones' rule ("nothing wider than 360 px", no flows of their own) is unchanged otherwise. It adds a screen reader's check of a send, an unlock and the banners, which axe cannot make and the review could not run (U-061, U-062, U-075 rest on source). The shared AC of D4.3 to D4.10 gains both, and that every live region is in the page from its first render. **D1.4** gains captures of each rival's main screens and Linear's: the review's competitor-swap test rested on knowledge because the rivals' half of D1.4 has not run (DQ3, the maintainer's owner step), and D2.5 and D5.1 need it. **D1.8** is added: verify each item of the review's section 6 (Firefox and WebKit, VoiceOver and NVDA, the installed app, target sizes without ancestors, U-060 at runtime), the screen-reader and U-060 items in D4-e, the rest before D5.1. **D5.1** repeats the hig-review with D1.2 and D1.4. |
+| 2026-10-26 | 1.47 | **The fourth pass: a red-team review, recorded.** Read against `main` at `5b8c7a79` (branch `docs/hig-review-red-team`), whose app code is the tree of row 1.41. The maintainer asked for the hig-review skill to be rerun after it gained a red-team pass, research of the category, reworks held to a bar, theming proposals and a type evaluation, and for the work to be folded into this plan. The review is [`docs/design/hig-review-2026-10-26.md`](docs/design/hig-review-2026-10-26.md), with the 17 screenshots its rows cite in `docs/design/hig-review/`. It studied six products (Postman, Yaak, Bruno, Hoppscotch, Insomnia, and Chrome DevTools' Network panel), walked five flows with step counts from a fresh browser, and attacked the review of row 1.41 as a draft. The audit gains a fourth pass, U-130 to U-151 (22 open), and lists the twelve earlier rows the review confirms or extends; U-061 is now confirmed at runtime, with a dated note on its status line. Its main finding about the product: "local-first, no account" no longer sets Wayfarer apart (five rivals claim it), and what no rival shows is what left the browser on each send. Its main finding about the earlier review: it met the rework bar and gave no rework, walked no flow, and declined the model layer it blamed (section 10). `research-2026.md` sections 2, 4 and 8 are stale against the landscape (D1.4's added AC, row 1.50). Chromium only; a screen reader, the bridge, Firefox and WebKit captures of the app were not run (its section 11). |
+| 2026-10-26 | 1.48 | **D4.11 takes the fourth pass's trust rows.** U-130 (the Auth tab names the collection as a token's source when the environment's vault secret was sent), U-135 and U-136 (a secret marked while creating the vault is saved in plain text; "Secret stored" before the environment is saved), U-137 (the status bar says "Saved in this browser only" while the browser's storage is not persistent, and the first backup reminder comes after Safari's seven-day eviction), with U-141 and U-145. **Why first:** they break the profile's promised feeling ("sure what was sent, where it went and that nothing left the browser") on the product's own axis, and most share D4.11's dialog and save path; U-130 and U-137 are in the shell D4.11 already touches. They are Major, not Blockers: none is a dark pattern and each has a way round. The other sixteen rows go to the sessions of the review's section 12 by their status lines. |
+| 2026-10-26 | 1.49 | **Three reworks proposed, as DQ8 to DQ10, with D1.9 to test them first.** R1: the exchange record as the core object (a preview before Send, D4.12's rail after it, stored in history and runs), clearing 12 rows and giving D2.5 an element that can be seen; it argues against DQ6's default and for moving D4-l ahead of D3-b. R2: environments as a document with per-field autosave and the vault created in place, clearing 13 rows and replacing D4.11's guard question, which would be a fourth modal layer. R3: a failed send sets up the bridge in place. **Why questions, not changes:** R1 and R2 contradict decisions of rows 1.42 and 1.45 and `ia.md`, which are the maintainer's; this plan's rule is that each question has a default and sessions go ahead on it. The defaults keep the plan as written until D1.9's experiments report, except DQ10, which extends D4.12 and contradicts nothing, so D4.12 gains its AC now. D2.5 and D4.12 gain notes pointing at DQ8. |
+| 2026-10-26 | 1.50 | **What the benchmark counts.** `docs/design/baseline.md` counts characters as inputs (task 1 is 35) while the rivals' documentation counts actions (Hoppscotch's 2), so section 1's measure compared numbers that do not match. D1.4 gains an AC: an input event is an action, the baseline is restated that way beside the old counts, and "find why a request failed" ends when the person names the cause, not when the error appears (0.13 s today). D4.2 stays ticked for what it built, with a note that its comparison so far is with the rivals' documentation (2 actions, tied with Hoppscotch) and that D1.4 re-checks it. |
+| 2026-10-26 | 1.51 | **D3.6 gains the type evaluation and a generated colour system; DQ11 asks about the theme.** The review measured the faces with the skill's new `scripts/type-eval.js` in three engines: Inter's capital I and lowercase l render identically at 12 and 13 px (U-150), and its character variants do nothing in the `@fontsource-variable/inter` build; JetBrains Mono's 0 and O differ by one device pixel at 12 px on a 1× display (U-151); Atkinson Hyperlegible Next, already the site's face, has no confusable pair at those sizes and has tabular figures, but no Greek, Cyrillic or Vietnamese. The colours are 147 hand-set OKLCH values, not derived (U-149), and the accent sits beside GET and success green (U-147). D3.6 gains an AC for both. DQ11 asks whether to take the review's theming sketch (ink for chrome and actions, hue only for method and status, Atkinson for Wayfarer's text with Inter as the fallback, JetBrains Mono kept); its default keeps today's colours and settles the text face by measurement. |
+| 2026-10-26 | 1.52 | **The maintainer answered DQ8 to DQ11: yes to all four** ("Accept all recommendations", 2026-10-26). **DQ8:** the exchange record is the core object and D2.5's element; D4.12 becomes it (a preview before Send, the record after it, stored in history and runs) and session D4-l runs after D4-e and before D3-b, so D4.11's status region and D4.3's response build toward it; DQ6 is answered by it, and provenance in the type split stays as a `voice.md` rule. **DQ9:** the environment editor autosaves each row and loses Save changes; D4.11's guard question (row 1.42) is replaced by an e2e that finds an edit stored after ×, Escape and choosing another environment; creating the vault happens in the row that asked; D4.5 moves environments into a tab as documents, which changes `ia.md`'s placement. **DQ10:** the bridge is set up from a failed send (D4.12's AC of row 1.49). **DQ11:** the ink theme and Atkinson Hyperlegible Next for the text role, measured in the app before it lands (D3.6's AC); section 1's "Direction (D2.1)" says what this adds. D1.9's experiments now tune these designs rather than decide them; a result against a rework gets a row before its session. |

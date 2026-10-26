@@ -243,6 +243,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   run together in one editor, each under a comment line, with no mark on
   any of them.
 
+- **The editors are set in the app's monospace, with plain brackets.** A
+  response's JSON, a body, the scripts and the review of scripts were drawn
+  in a proportional face (Inter), because the app gave every element its
+  own face and Monaco's lines took it instead of the editor's; brackets were
+  in Monaco's blue, green and brown by depth, and a focused editor drew
+  its own thin blue line beside the app's focus ring. Now the editor's text
+  is JetBrains Mono at the app's size, its brackets are the text's colour,
+  and only the app's ring shows focus.
+
 - **OAuth 2.0's redirect URI and Get token come first.** With the
   authorization code grant, the redirect URI to register with the identity
   provider and the token's state, with Get token, are right under the

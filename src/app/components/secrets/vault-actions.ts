@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiInput } from "../../ui/input";
 import { readImportText } from "@wayfarer/core";
-import { SecretsVault } from "../../services/secrets-vault";
+import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
 import { Icon } from "../../shared/icon/icon";
 import { UiFile } from "../../ui/file";
 
@@ -88,10 +88,9 @@ export class VaultActions {
   private async changePassphrase(): Promise<void> {
     // Used exactly as typed, like the passphrase it replaces.
     const next = this.next();
-    if (next !== this.confirm()) {
-      this.error.set("Passphrases do not match.");
-    } else if (next.length < 8) {
-      this.error.set("Passphrase must be at least 8 characters.");
+    const problem = passphraseProblem(next, this.confirm());
+    if (problem) {
+      this.error.set(problem);
     } else if (await this.vault.changePassphrase(this.current(), next)) {
       this.finish("Passphrase changed. The old one no longer opens the vault.");
     } else {

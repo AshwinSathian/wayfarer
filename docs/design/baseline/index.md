@@ -100,7 +100,7 @@ row below.
 | `environments-rows` | The environments dialog, an environment of four variables open. |
 | `history` | History after three sends. |
 | `history-empty` | History before any send. |
-| `vault-create` | The dialog that makes the vault's passphrase. |
+| `vault-create` | A variable's row asking for the vault's passphrase, with no vault yet (U-136). |
 | `vault-unlock` | The dialog that unlocks the vault after a reload. |
 | `secrets-manager` | The secrets manager, the vault not made yet. |
 | `confirm-dialog` | A confirmation: deleting a request from the tree. |

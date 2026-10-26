@@ -136,7 +136,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     for (const name of [
       "Delete A much longer environment name that has to be cut somewhere",
       "Import environments",
-      "Save changes",
+      "Add variable",
     ]) {
       // Polled: the page is laid out again a frame or two after the window changes.
       await expect

@@ -82,7 +82,6 @@
               class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
               role="button"
               tabindex="0"
-              [attr.aria-label]="'Load request ' + request.sent.url + ' into composer'"
               (click)="load(request)"
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"

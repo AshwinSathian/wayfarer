@@ -102,7 +102,7 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
   );
   expect(await stored(page)).toBe(before);
 
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   const after = await dumpIdb(page);
   expect(after["collections"]).toMatchObject([
@@ -201,7 +201,7 @@ test("@claim:C-059 an Insomnia format 4 export in JSON imports: a workspace as a
     "will add 1 collection, 1 folder, 1 request and 1 environment.",
   );
   await expect(report.locator(".import-warnings")).toHaveCount(0);
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
 
   const after = await dumpIdb(page);
@@ -247,8 +247,8 @@ test("a YAML file written to grow without end as it is read is refused with a me
   await expect(refused.getByRole("alert")).toContainText(
     "The YAML file repeats parts of itself through aliases 100 times or more and is refused: a file written that way grows without end as it is read.",
   );
-  await expect(refused.getByRole("button", { name: "Confirm import" })).toBeDisabled();
-  await refused.getByRole("button", { name: "Cancel import" }).click();
+  await expect(refused.getByRole("button", { name: "Import", exact: true })).toBeDisabled();
+  await refused.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(refused).toHaveCount(0);
   expect(await stored(page)).toBe(before);
 

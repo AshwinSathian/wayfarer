@@ -46,7 +46,7 @@ export const SCREENS_INDEX = [
   { id: "environments-rows", shows: "The environments dialog, an environment of four variables open." },
   { id: "history", shows: "History after three sends." },
   { id: "history-empty", shows: "History before any send." },
-  { id: "vault-create", shows: "The dialog that makes the vault's passphrase." },
+  { id: "vault-create", shows: "A variable's row asking for the vault's passphrase, with no vault yet (U-136)." },
   { id: "vault-unlock", shows: "The dialog that unlocks the vault after a reload." },
   { id: "secrets-manager", shows: "The secrets manager, the vault not made yet." },
   { id: "confirm-dialog", shows: "A confirmation: deleting a request from the tree." },

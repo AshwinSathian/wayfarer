@@ -1508,8 +1508,8 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
     expect(await css(one, "width")).toBe("16px");
     expect(await css(one, "border-top-style")).toBe("solid");
   }
-  // Unchecked: an edge and no fill; checked: the accent, and the tick shows only then.
-  expect(await css(off, "border-top-color")).toBe(await token("--separator"));
+  // Unchecked: an edge of 3:1 (U-106) and no fill; checked: the accent, and the tick shows only then.
+  expect(await css(off, "border-top-color")).toBe(await token("--label-tertiary"));
   expect(await css(off, "background-color")).toBe("rgba(0, 0, 0, 0)");
   expect(await css(off, "opacity", "::before")).toBe("0");
   expect(await css(on, "background-color")).toBe(await token("--accent"));
@@ -1534,7 +1534,7 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   // Disabled: the box and its text dimmed, and no pointer.
   const disabled = box("Stop on the first failure");
   expect(await css(disabled, "cursor")).toBe("default");
-  expect(await css(disabled, "border-top-color")).not.toBe(await token("--separator"));
+  expect(await css(disabled, "border-top-color")).not.toBe(await token("--label-tertiary"));
   expect(await css(box("With history"), "background-color")).not.toBe(await token("--accent"));
   const text = (name: string) => page.getByText(name, { exact: true }).evaluate((el) => getComputedStyle(el).color);
   expect(await text("Stop on the first failure")).not.toBe(await text("Follow redirects"));

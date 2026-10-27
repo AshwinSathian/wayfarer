@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design guide names the exchange record as Wayfarer's signature
+  element.** The information architecture says where the record is (the
+  preview under the address, the record under the response's status line,
+  history and a run's rows) and the voice guide how it speaks: one sentence
+  per field, only what the app sent or received, the wire's values in
+  monospace and the app's words in its own face. Finding why a request
+  failed was measured again: for CORS, a name that does not resolve and a
+  401, the screen now names the cause.
 - **History keeps each send's record, and a run's rows open into theirs.**
   A request loaded from History opens with its exchange record (where it
   went, the vault secrets filled by name, what was masked and kept), and a

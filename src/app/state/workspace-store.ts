@@ -345,8 +345,8 @@ export class WorkspaceStore {
   }
 
   /** Shows the response a history entry recorded, in the open tab. */
-  showRecorded(entry: PastRequest): void {
-    this.tabs.active().showRecorded(entry);
+  showRecorded(entry: PastRequest, open = false): void {
+    this.tabs.active().showRecorded(entry, open);
   }
 
   /** A new request. Scripts, tests and the response on screen stay. */

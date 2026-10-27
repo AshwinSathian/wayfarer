@@ -25,6 +25,7 @@ export class CollectionRunner {
     const controller = new AbortController();
     run.controller = controller;
     run.exchanges = [];
+    run.records.set([]);
     run.results.set([]);
     run.report.set(null);
     run.scriptsSkipped.set(false);
@@ -38,6 +39,8 @@ export class CollectionRunner {
           const doc = docs.find((entry) => entry.id === request.id) ?? docs[0];
           const { outcome, exchange, scriptsSkipped } = await this.store.sendForRun(doc, iteration, signal, shared);
           if (exchange) run.exchanges.push(exchange);
+          // Each send is one result, in order: the record of a request that was not sent is none.
+          run.records.update((records) => [...records, exchange?.record]);
           if (scriptsSkipped) run.scriptsSkipped.set(true);
           return outcome;
         },

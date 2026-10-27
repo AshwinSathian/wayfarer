@@ -176,6 +176,18 @@
         <td class="break-words">
           {{ result.name }} @for (problem of problems(result); track $index) {
           <p class="type-footnote text-status-error break-words">{{ problem }}</p>
+          } @if (row.record) {
+          <!-- The row opens into its exchange record (D4.12, U-076). -->
+          <button
+            uiButton
+            class="btn-plain btn-sm run-record-toggle"
+            type="button"
+            [attr.aria-label]="'Record of ' + result.name"
+            [attr.aria-expanded]="openRecord() === row.number"
+            [attr.aria-controls]="'run-record-' + row.number"
+            (click)="openRecord.set(openRecord() === row.number ? null : row.number)"
+            >Record</button
+          >
           }
         </td>
         <td
@@ -185,7 +197,19 @@
         <td>{{ result.durationMs === undefined ? "—" : result.durationMs + " ms" }}</td>
         <td>{{ testsOf(result) }}</td>
       </tr>
-      }
+      @if (row.record && openRecord() === row.number) {
+      <tr class="run-record-row">
+        <td colspan="6">
+          <section
+            [id]="'run-record-' + row.number"
+            class="type-footnote"
+            [attr.aria-label]="'Exchange record of ' + result.name"
+          >
+            <app-exchange-record [record]="row.record" keeper="run" [actions]="false" />
+          </section>
+        </td>
+      </tr>
+      } }
     </tbody>
   </table>
 </div>

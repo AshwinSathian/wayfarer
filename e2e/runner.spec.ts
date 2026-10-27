@@ -706,3 +706,33 @@ test("a run's report counts passed and failed, says a shared error once, and can
   // Each row keeps its number in the run.
   await expect(resultRows(view).first().locator("td").first()).toHaveText("2");
 });
+
+test("a run's row opens into its exchange record: where the request went, and that the run kept it (D4.12, U-076)", async ({
+  page,
+}) => {
+  await seedCollection(page, [
+    { name: "Fine", url: `${ECHO}/status/200` },
+    { name: "Gone", url: "http://127.0.0.1:9/a" },
+  ]);
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+
+  const gone = view.getByRole("button", { name: "Record of Gone" });
+  await expect(gone).toHaveAttribute("aria-expanded", "false");
+  await gone.click();
+  await expect(gone).toHaveAttribute("aria-expanded", "true");
+  const record = view.getByRole("region", { name: "Exchange record of Gone" });
+  await expect(record.locator(".record-route")).toHaveText(
+    "Sent from this page to 127.0.0.1:9. No Local Bridge is paired.",
+  );
+  await expect(record.locator(".record-kept")).toHaveText("The run kept the request. No response came.");
+  // A run's row sends nothing again: no action in it.
+  await expect(record.getByRole("button")).toHaveCount(0);
+
+  await view.getByRole("button", { name: "Record of Fine" }).click();
+  await expect(view.getByRole("region", { name: "Exchange record of Fine" }).locator(".record-route")).toHaveText(
+    "Sent from this page to 127.0.0.1:4300.",
+  );
+  await expect(record).toHaveCount(0);
+});

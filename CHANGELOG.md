@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History keeps each send's record, and a run's rows open into theirs.**
+  A request loaded from History opens with its exchange record (where it
+  went, the vault secrets filled by name, what was masked and kept), and a
+  tab reloaded later shows it again. Each row of a collection run has
+  Record, which opens the same account of that request under the row.
+  A workspace backup carries the records, and a restore refuses a record
+  with a field the app does not write. Before, history kept no account of
+  where a request went or what was masked, and a run's rows led nowhere.
 - **Before Send, the composer shows what will go.** Under the address: the
   address with its variables filled (a vault secret as ***), the auth and
   where it is set, and for each variable where its value comes from

@@ -72,6 +72,8 @@ export interface PastRequest {
   durationMs?: number;
   route: "direct" | "bridge";
   error?: string;
+  /** What the send did (D4.12), made from this entry after the redactor: it holds nothing the entry does not. */
+  record?: ExchangeRecord;
 }
 
 /**
@@ -651,26 +653,29 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   }
 
   const nextRequest = lastNext(runs);
+  // Read off what history keeps, masked already; then kept with it.
+  const record = recordOf(history, {
+    sentHeaders: withJarCookies(request.headers, sentCookies ?? []),
+    sentUrl: request.url,
+    sentPreview: preview,
+    received: outcome instanceof TransportError ? undefined : { headers: shaped.headerList, body: shaped.bodyText },
+    vaulted: (request.vaulted ?? []).map((secret) => ({
+      ...secret,
+      ...(secret.scope && { holder: holderOf(secret.scope, ports, spec) }),
+    })),
+    unpaired: outcome instanceof TransportError && history.route === "direct" && policy.unpaired === true,
+    failure:
+      outcome instanceof TransportError
+        ? {
+            kind: outcome.kind,
+            reported: redactor.text(outcome.message),
+            summary: redactor.text(firstSentence(shaped.response.errorText)),
+          }
+        : undefined,
+  });
+  history.record = record;
   return {
-    record: recordOf(history, {
-      sentHeaders: withJarCookies(request.headers, sentCookies ?? []),
-      sentUrl: request.url,
-      sentPreview: preview,
-      received: outcome instanceof TransportError ? undefined : { headers: shaped.headerList, body: shaped.bodyText },
-      vaulted: (request.vaulted ?? []).map((secret) => ({
-        ...secret,
-        ...(secret.scope && { holder: holderOf(secret.scope, ports, spec) }),
-      })),
-      unpaired: outcome instanceof TransportError && history.route === "direct" && policy.unpaired === true,
-      failure:
-        outcome instanceof TransportError
-          ? {
-              kind: outcome.kind,
-              reported: redactor.text(outcome.message),
-              summary: firstSentence(shaped.response.errorText),
-            }
-          : undefined,
-    }),
+    record,
     durationMs,
     timings,
     ...(!(outcome instanceof TransportError) && outcome.timings && { relayTimings: outcome.timings }),

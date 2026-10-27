@@ -54,7 +54,8 @@ export class ComposerView {
     this.requestSave.bind(null);
     this.trust.openedFromHistory(request.template);
     this.load(request.template);
-    this.store.showRecorded(request);
+    // Opened from history: the entry's record is what was asked for (D4.12, U-024).
+    this.store.showRecorded(request, true);
     this.tabs.active().historyKey.set(request.id);
   }
 

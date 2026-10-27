@@ -1,5 +1,6 @@
 import { COLLECTION_FORMAT, ENVIRONMENTS_FORMAT } from "../model/collection";
 import { validateRequestContent, validateRows } from "../model/validate";
+import { recordProblems } from "../send/record";
 import { VAULT_FILE_FORMAT, validateVaultFile } from "../vault/vault-crypto";
 import { validateCollection } from "./wayfarer-collection";
 import { validateEnvironmentExport } from "./wayfarer-environments";
@@ -127,6 +128,8 @@ export function validateWorkspaceFile(value: unknown): string[] {
           (issue) => `${issue.path}: ${issue.message}`,
         ),
       );
+      // The exchange record (D4.12): every field as the app writes it, and none it does not.
+      if (Object.hasOwn(entry, "record")) errors.push(...recordProblems(entry["record"], `${path}.record`));
     });
   }
   return errors;

@@ -326,7 +326,7 @@ The search field touches the drawer's edges; URLs are cut at about 20
 characters in a 432 px drawer; each row's checkbox is always visible and
 "Select all" is the first action.
 Evidence: `baseline/1440-light-05-history.png`.
-**Status:** Open, D4-f.
+**Status:** Open, D4-f. Since D4-l (D4.12, 2026-10-27) each entry keeps its exchange record, and an entry loaded from History opens into it; the drawer's layout is D4-f's.
 
 **U-025. Settings opens on one row.** Severity 3. H8.
 The dialog is 920 × 720 px; General holds one control (the theme). A
@@ -1108,7 +1108,7 @@ the run's data.
 Evidence: `runner/run-view.html:158-191`;
 [`hig-review/1440-dark-34-run.png`](hig-review/1440-dark-34-run.png).
 **Status:** Open, D4-i (each row opens its exchange; plan D4.12's rail
-holds it). Review row W-20.
+holds it). Since D4-l (D4.12, 2026-10-27) each row that was sent opens into its exchange record (Record, under the row); opening its request, its response and the failing test is D4-i's. Review row W-20.
 
 **U-096. A run's setup stays above its results.** Severity 3. H8. QA.
 After a run the form (Iterations, Delay, Stop on first failure, Data

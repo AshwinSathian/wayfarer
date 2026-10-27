@@ -333,10 +333,17 @@ describe("exchange", () => {
       expect((await send()).record).not.toHaveProperty("unpaired");
     });
 
-    it("masks a secret in what was reported", async () => {
+    it("masks a secret in what was reported, and in the app's sentence that repeats it", async () => {
       transport.setResponse(new TransportError("bridge", "The bridge refused plain-secret."));
       const { record } = await send({ secrets: ["plain-secret"] });
       expect(record.failure?.reported).toBe("The bridge refused ***.");
+      expect(record.failure?.summary).toBe("The bridge refused ***.");
+    });
+
+    it("is kept with the history entry it was read from (D4.12, approved 2026-10-27)", async () => {
+      const { record, history } = await send({ headers: [["Authorization", "Bearer typed"]] });
+      expect(history.record).toBe(record);
+      expect(JSON.stringify(history.record)).not.toContain("typed");
     });
 
     it("keeps no body when history keeps none, and an address that is no URL stands for itself", async () => {

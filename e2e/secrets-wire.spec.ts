@@ -235,9 +235,19 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   await expect(page.locator(".test-result-fail")).toHaveCount(2);
   const scriptOutput = (await page.locator(".script-console, .test-result-fail").allInnerTexts()).join("\n");
 
+  // The exchange record (D4.12), as the page shows it and as history keeps it.
+  if ((await page.locator(".record-toggle").getAttribute("aria-expanded")) !== "true")
+    await page.locator(".record-toggle").click();
+  const recordShown = await page.getByRole("region", { name: "Exchange record" }).innerText();
+  expect(recordShown).toContain("Filled from the vault: API_TOKEN");
+
   const stores = await dumpIdb(page);
+  const records = JSON.stringify((stores["history"] as { record?: unknown }[]).map((entry) => entry.record));
+  expect(records).toContain('"name":"API_TOKEN"');
   const web = await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }]));
   const searched: Record<string, string> = {
+    "the exchange record on the page": recordShown,
+    "the exchange record history keeps": records,
     ...Object.fromEntries(
       Object.entries(stores).map(([name, records]) => [`IndexedDB ${name}`, JSON.stringify(records)]),
     ),

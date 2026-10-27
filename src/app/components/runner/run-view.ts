@@ -18,6 +18,7 @@ import { historyExchange, type HarSource } from "../../shared/inspect/har-export
 import { saveFile } from "../../shared/save-file";
 import { RunState } from "../../state/run-state";
 import { HarExportDialog } from "../har-export/har-export-dialog";
+import { ExchangeRecordView } from "../exchange-record/exchange-record";
 
 /**
  * A collection run (P5.2): how it is to run, a table of its results as they
@@ -26,7 +27,7 @@ import { HarExportDialog } from "../har-export/har-export-dialog";
  */
 @Component({
   selector: "app-run-view",
-  imports: [Icon, UiButton, UiCheckbox, UiInput, UiSpinner, HarExportDialog],
+  imports: [ExchangeRecordView, Icon, UiButton, UiCheckbox, UiInput, UiSpinner, HarExportDialog],
   templateUrl: "./run-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -75,11 +76,13 @@ export class RunView {
       .map(([error, count]) => ({ error, count }));
   });
   protected readonly failedOnly = signal(false);
+  /** The row whose exchange record is open under it, by its number in the run (U-076). */
+  protected readonly openRecord = signal<number | null>(null);
   /** The rows of the table, each with its number in the run. */
   protected readonly rows = computed(() =>
     this.run()
       .results()
-      .map((result, index) => ({ result, number: index + 1 }))
+      .map((result, index) => ({ result, number: index + 1, record: this.run().records()[index] }))
       .filter(({ result }) => !this.failedOnly() || runFailed(result)),
   );
   protected readonly tests = computed(() =>

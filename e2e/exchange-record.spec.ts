@@ -222,3 +222,29 @@ for (const theme of ["light", "dark"] as const) {
     expect(record.violations.map((violation) => violation.id)).toEqual([]);
   });
 }
+
+test("a history entry keeps its record: loaded from History it opens into it, and a reload shows it again", async ({
+  page,
+}) => {
+  const plaintext = "history-record-secret-77de";
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, headers: { "X-Api-Key": "{{apiKey}}" } });
+  await protectVariable(page, "apiKey", plaintext);
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  const sent = await openRecord(page);
+  await page.locator(".record-toggle").click();
+
+  await page.getByRole("button", { name: "Request history", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await drawer.getByRole("button", { name: `${ECHO}/echo`, exact: true }).click();
+  await drawer.getByRole("button", { name: "Close history" }).click();
+  await expect(drawer).toBeHidden();
+  await expect(page.locator(".record-toggle")).toHaveAttribute("aria-expanded", "true");
+  expect(await readRecord(page)).toEqual(sent);
+
+  // A reload shows the tab's response from history again, its record with it, closed.
+  await page.reload();
+  await expect(page.locator(".record-toggle")).toHaveText(`Direct to ${HOST}`);
+  expect(await openRecord(page)).toEqual(sent);
+  await expect(page.getByRole("region", { name: "Exchange record" })).not.toContainText(plaintext);
+});

@@ -80,8 +80,21 @@ jobs:
           github-token: ${{ github.token }}
       # Firefox's and WebKit's system packages come from apt, whose mirror hung for 50 minutes at a time
       # (2026-10-26): ten minutes a try, three tries, and a try cut off leaves dpkg half done (exit 100 next).
+      # `timeout` stops npx and not the apt-get it started, which kept dpkg's lock: the next try's
+      # `dpkg --configure -a` failed and ended the step (runs 40477165099 and 40480550964). That apt-get is
+      # stopped and its lock waited for, at most a minute, before dpkg finishes what it began.
       - name: Install ${{ matrix.browser }} and its system packages
-        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; sudo dpkg --configure -a; done; exit 1
+        run: |
+          for try in 1 2 3; do
+            timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0
+            sudo pkill -x apt-get || true
+            for wait in $(seq 12); do
+              sudo fuser /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock > /dev/null 2>&1 || break
+              sleep 5
+            done
+            sudo dpkg --configure -a || true
+          done
+          exit 1
       # Serves the downloaded build through prod-server.mjs (production
       # headers). claims-<browser> runs the @claim tests with retries off.
       # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).

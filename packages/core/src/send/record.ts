@@ -1,4 +1,4 @@
-import type { VariableScope } from "../variables/resolver";
+import { VARIABLE_SCOPES, type VariableScope } from "../variables/resolver";
 
 /** A vault secret placed into a request: the variable that held it, and where that variable is set. */
 export interface FilledSecret {
@@ -154,4 +154,82 @@ export function recordLines(record: ExchangeRecord, keeper: "history" | "run" = 
       ? [{ field: "failure" as const, parts: ["What was reported: ", { wire: record.failure.reported }] }]
       : []),
   ];
+}
+
+type Fields = Record<string, unknown>;
+const isFields = (value: unknown): value is Fields =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const SCOPE_NAMES: readonly string[] = VARIABLE_SCOPES;
+const FAILURE_KINDS: readonly string[] = ["network", "timeout", "aborted", "bridge"];
+
+/**
+ * What is wrong with `value` as an exchange record a file holds (a
+ * workspace backup's history): every field is checked against what the app
+ * writes, and a field the app does not write is refused. A file is
+ * untrusted; the record is shown as text, and nothing else may ride in it.
+ */
+export function recordProblems(value: unknown, path: string): string[] {
+  const problems: string[] = [];
+  const object = (at: string, held: unknown, fields: Record<string, (field: unknown, where: string) => boolean>) => {
+    if (!isFields(held)) {
+      problems.push(`${at}: Value must be an object.`);
+      return;
+    }
+    for (const key of Object.keys(held))
+      if (!Object.hasOwn(fields, key)) problems.push(`${at}.${key}: The app writes no such field.`);
+    for (const [key, check] of Object.entries(fields)) {
+      const field = Object.hasOwn(held, key) ? held[key] : undefined;
+      if (!check(field, `${at}.${key}`)) problems.push(`${at}.${key}: Value is not one the app writes.`);
+    }
+  };
+  const optional = (check: (field: unknown, where: string) => boolean) => (field: unknown, where: string) =>
+    field === undefined || check(field, where);
+  const text = (field: unknown) => typeof field === "string";
+  const yes = (field: unknown) => field === true;
+  const flag = (field: unknown) => typeof field === "boolean";
+  const texts = (field: unknown) => Array.isArray(field) && field.every(text);
+  const nested = (fields: Parameters<typeof object>[2]) => (field: unknown, where: string) => {
+    // The nested object says what is wrong with it itself.
+    object(where, field, fields);
+    return true;
+  };
+  object(path, value, {
+    status: optional(
+      nested({
+        code: (field) => Number.isInteger(field) && (field as number) >= 0 && (field as number) <= 999,
+        text,
+      }),
+    ),
+    durationMs: (field) => typeof field === "number" && Number.isFinite(field) && field >= 0,
+    route: (field) => field === "direct" || field === "bridge",
+    unpaired: optional(yes),
+    host: text,
+    secrets: (field, where) => {
+      if (!Array.isArray(field)) return false;
+      field.forEach((secret, index) =>
+        object(`${where}[${index}]`, secret, {
+          name: text,
+          scope: optional((scope) => typeof scope === "string" && SCOPE_NAMES.includes(scope)),
+          holder: optional(text),
+        }),
+      );
+      return true;
+    },
+    masked: nested({
+      address: optional(yes),
+      headers: texts,
+      body: optional(yes),
+      responseHeaders: texts,
+      responseBody: optional(yes),
+    }),
+    kept: nested({ response: flag, body: flag }),
+    failure: optional(
+      nested({
+        kind: (field) => typeof field === "string" && FAILURE_KINDS.includes(field),
+        reported: text,
+        summary: text,
+      }),
+    ),
+  });
+  return problems;
 }

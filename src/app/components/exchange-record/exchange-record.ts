@@ -20,6 +20,8 @@ export class ExchangeRecordView {
   readonly record = input.required<ExchangeRecord>();
   /** What keeps the exchange: history for a send, the run for a run's request. */
   readonly keeper = input<"history" | "run">("history");
+  /** Whether what to do after a failure is offered: not in a run's row, which sends nothing again. */
+  readonly actions = input(true);
   /** Offered on a failure the page could not explain, when the request went from the page. */
   readonly sendThroughBridge = output<void>();
 
@@ -30,7 +32,7 @@ export class ExchangeRecordView {
    */
   protected readonly offer = computed((): "bridge" | "setup" | null => {
     const record = this.record();
-    if (record.failure?.kind !== "network" || record.route !== "direct") return null;
+    if (!this.actions() || record.failure?.kind !== "network" || record.route !== "direct") return null;
     return record.unpaired ? "setup" : "bridge";
   });
 

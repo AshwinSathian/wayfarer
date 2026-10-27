@@ -146,8 +146,11 @@ export class TabState {
     this.baseline.set(JSON.stringify(contentOf(this.draft())));
   }
 
-  /** Shows the response a history entry recorded, as it is stored: masked, and without a body when none was kept. */
-  showRecorded(entry: PastRequest): void {
+  /**
+   * Shows the response a history entry recorded, as it is stored: masked, and without a body when none was kept,
+   * with its exchange record (D4.12), open when the person asked for the entry.
+   */
+  showRecorded(entry: PastRequest, open = false): void {
     this.resetResponse();
     this.lastTestResults.set([]);
     this.lastScriptLogs.set([]);
@@ -163,6 +166,9 @@ export class TabState {
     this.responseBodyIsJson.set(!!text && parseJson(text).ok);
     this.responseData.set(isError ? "" : text);
     this.responseError.set(isError ? text || entry.error || "" : "");
+    this.responseRoute.set(entry.route);
+    this.record.set(entry.record ?? null);
+    this.recordOpen.set(open && !!entry.record);
   }
 
   resetResponse(): void {

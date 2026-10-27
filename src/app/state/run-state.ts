@@ -1,5 +1,5 @@
 import { signal } from "@angular/core";
-import type { Row, RunReport, RunResult } from "@wayfarer/core";
+import type { ExchangeRecord, Row, RunReport, RunResult } from "@wayfarer/core";
 import { PastRequest } from "@wayfarer/core";
 
 /** What a run sends: a collection, or one of its folders. `name` is what the tab and the reports call it. */
@@ -34,6 +34,8 @@ export class RunState {
   readonly scriptsSkipped = signal(false);
   /** Each exchange as history would have kept it, masked: the run's HAR. A run writes none of them to history. */
   exchanges: PastRequest[] = [];
+  /** The exchange record of each result, in the order of `results` (D4.12, U-076): none for a request that was not sent. */
+  readonly records = signal<(ExchangeRecord | undefined)[]>([]);
   /** Aborts the run. */
   controller: AbortController | null = null;
 

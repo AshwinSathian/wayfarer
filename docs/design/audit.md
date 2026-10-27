@@ -25,7 +25,8 @@ U-058, under "Second pass" below. The third pass, the hig-review of
 U-060 to U-129, under "Third pass" below, and reopened U-036. The fourth pass,
 the red-team review of 2026-10-26
 ([`hig-review-2026-10-26.md`](hig-review-2026-10-26.md)), added U-130 to
-U-151, under "Fourth pass" below.
+U-151, under "Fourth pass" below. Session D4-l (2026-10-27) found U-152
+while measuring task 5, at the end of the fourth pass.
 
 ## Summary
 
@@ -1626,6 +1627,18 @@ at 12 px on a 1× display.** Severity 4. H4. SD, QA.
 13 px differ by 4 to 6 pixels.
 Evidence: `tokens.css:33, 64`; the review's section 6.
 **Status:** Open, D3-b (D3.6). Review row T-2.
+
+**U-152. The Local Bridge's own error status is drawn as the server's.**
+Severity 3. H1. SD, OC.
+When the bridge cannot reach the server (a name that does not resolve),
+it answers the page with its own 502 and message; the status line draws
+"502" as a status badge and the Body tab shows the bridge's message in
+the server's slot, though no server sent either. The exchange record says
+"No response came" and quotes the bridge's words, so the two disagree.
+Evidence: task 5b of `docs/design/baseline.md` (D4-l);
+`packages/core/src/send/exchange.ts` (`shapeFailure`, `statusCode` of a
+`bridge` failure).
+**Status:** Open, D4-h (D4.7, the Local Bridge), found in D4-l.
 
 **U-146. The Environments list's "+" sticks out of its card border.**
 Severity 4. H8. All.

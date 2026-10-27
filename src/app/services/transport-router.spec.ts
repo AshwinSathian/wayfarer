@@ -164,16 +164,33 @@ describe("TransportRouter", () => {
       fetchMock.verify();
     });
 
-    it("with no bridge token anywhere, shows the page's failure and asks nothing", async () => {
+    it("with no bridge token anywhere, shows the page's failure, asks nothing, and says no bridge is paired", async () => {
       TestBed.inject(BridgeSettings).update({ token: "" });
       const ask = vi.fn(() => Promise.resolve(true));
-      const pending = router.send(form, open(), { route: "auto", ask });
+      const policy = { route: "auto" as const, ask };
+      const pending = router.send(form, open(), policy);
 
       fetchMock.expectOne("https://api.example.com/items").fail();
 
       await expect(pending).rejects.toMatchObject({ kind: "network" });
       expect(ask).not.toHaveBeenCalled();
+      expect(policy).toMatchObject({ took: "direct", unpaired: true });
       fetchMock.verify();
+    });
+
+    it("says no bridge is paired for a request whose own route is direct, and not when one is (U-131)", async () => {
+      const paired = { route: "direct" as const };
+      const first = router.send(json, open(), paired);
+      fetchMock.expectOne("https://api.example.com/items").fail();
+      await expect(first).rejects.toMatchObject({ kind: "network" });
+      expect(paired).not.toHaveProperty("unpaired");
+
+      TestBed.inject(BridgeSettings).update({ token: "" });
+      const unpaired = { route: "direct" as const };
+      const second = router.send(json, open(), unpaired);
+      fetchMock.expectOne("https://api.example.com/items").fail();
+      await expect(second).rejects.toMatchObject({ kind: "network" });
+      expect(unpaired).toMatchObject({ unpaired: true });
     });
 
     it("a request's own route wins over the device's: direct is never retried", async () => {

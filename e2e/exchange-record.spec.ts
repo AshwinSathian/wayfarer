@@ -95,23 +95,24 @@ test("with a masked header: a credential typed by hand is listed as masked", asy
   expect(record.masked).toBe("Masked with *** in what is kept: Authorization and the response body.");
 });
 
-test("a failed send opens the record with what the browser reported and one action", async ({ page }) => {
+test("a failed send opens the record with what the browser reported and what to do", async ({ page }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
   await expect(page.locator(".response-announcement")).toHaveText(
-    "The request got no response. Direct to 127.0.0.1:9.",
+    "The request got no response. Direct to 127.0.0.1:9, no bridge paired.",
   );
   await expect(page.locator(".record-toggle")).toHaveAttribute("aria-expanded", "true");
   const record = await readRecord(page);
-  expect(record.route).toBe("Sent from this page to 127.0.0.1:9.");
+  expect(record.route).toBe("Sent from this page to 127.0.0.1:9. No Local Bridge is paired.");
   expect(record.kept).toBe("History kept the request. No response came.");
   expect(record.failure).toMatch(
     /^What was reported: (Failed to fetch|NetworkError when attempting to fetch resource\.|Load failed)$/,
   );
   const region = page.getByRole("region", { name: "Exchange record" });
-  await expect(region.getByRole("button")).toHaveCount(1);
-  await expect(region.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
+  // No bridge is paired in a new browser: it is set up in place (bridge-setup.spec.ts has the paired case).
+  await expect(region.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
+  await expect(region.getByLabel("Pairing code", { exact: true })).toBeVisible();
 });
 
 for (const theme of ["light", "dark"] as const) {

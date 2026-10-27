@@ -29,7 +29,7 @@ At 1,200 px and wider, with the sidebar pinned:
 │              │ Params Headers Body Auth Scripts Settings │ Body Headers Timings │ composer │ response
 │ tree         │                                  │                            │
 ├──────────────┴──────────────────────────────────┴────────────────────────────┤
-│ Route: Auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
+│ Route: auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -229,7 +229,7 @@ it is.
 | `app-shell.html: Back up now` | Banner, backup reminder | Banner | — |
 | `app-shell.html: Not now` | Banner, backup reminder | Banner | — |
 | `app-shell.html: Dismiss` | Banner, storage state | Banner | — |
-| `app-shell.html: Local Bridge settings` | Status bar, the route | Status bar | — |
+| `app-shell.html: Local Bridge settings` | Status bar, the route: what the app will do, not what is chosen ("Route: direct" for Auto with no bridge paired; D4-l, U-131) | Status bar | — |
 | `app-shell.html: Data and storage settings` | Status bar, "Saved in this browser, which may delete it" while the browser has not promised to keep the data (D4-e, U-137) | Status bar | — |
 | `app-shell.html: Manage the vault's secrets` | Status bar, "Secrets" (one button with its words since D4-e, U-072) | Status bar | — |
 | `app-shell.html: Theme:` | Status bar, "Theme: system / light / dark", in turn (D4-e, U-087); Settings, General | Same | — |
@@ -454,7 +454,11 @@ it is.
 | `response-viewer.html: Next search match` | Response | Response | D4-e |
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
 | `response-viewer.html: Exchange record` | — (new in D4-l, D4.12): the end of the status line, "Direct to {host}"; opens and closes the record under it | Response, status line | D4-l |
-| `exchange-record.html: Send through the Local Bridge` | Exchange record, after a send that got no response from the page (D4-e, U-051; moved into the record in D4-l) | Response, exchange record; D4.12 adds pairing in place (DQ10) | D4-l |
+| `exchange-record.html: Send through the Local Bridge` | Exchange record, after a send that got no response from the page, with a bridge paired (D4-e, U-051; moved into the record in D4-l) | Response, exchange record | D4-l |
+| `bridge-setup.html: Copy the command` | — (new in D4-l, DQ10, U-138): the exchange record, after a send that got no response with no bridge paired; copies `npx wayfarer-bridge` | Response, exchange record | D4-l |
+| `bridge-setup.html: Pair` | The same: pairs with the code the bridge printed, as Settings › Local Bridge does | Response, exchange record | D4-l |
+| `bridge-setup.html: pairOnEnter()` | The same, Enter in the pairing code | Response, exchange record | D4-l |
+| `bridge-setup.html: Send again` | The same, once paired: sends the request again through the bridge | Response, exchange record | D4-l |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
 | `socket-view.html: Check it is JSON before sending` | WebSocket view (was "Must be JSON", U-103) | Response, WebSocket view | D4-e |
 | `socket-view.html: Messages to show` | — (new in D4-e, U-048): All, Received, Sent | Response, WebSocket view, above the log | D4-e |

@@ -167,7 +167,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
   for (const opener of [
     "Request history",
     "Settings",
-    "Route: auto",
+    "Route: direct",
     "Secrets",
     "Environments",
     "New collection",

@@ -243,11 +243,11 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
       const status = page.getByRole("contentinfo", { name: "Status" });
       await expect(status).toBeVisible();
-      await expect(status).toContainText("Route: auto");
+      await expect(status).toContainText("Route: direct");
       await expect(status).toContainText("Vault locked");
       await expect(status).toContainText(/Saved in this browser|Kept in this browser/);
       // Each is one button, named by its words (U-072).
-      for (const name of [/^Secrets$/, /^Route: auto$/, /^Theme: system$/, /^Vault locked$/]) {
+      for (const name of [/^Secrets$/, /^Route: direct$/, /^Theme: system$/, /^Vault locked$/]) {
         await expect(status.getByRole("button", { name })).toBeVisible();
         await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
       }

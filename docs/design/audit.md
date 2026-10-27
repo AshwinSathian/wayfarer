@@ -1506,7 +1506,7 @@ the status bar prints the configured route, not what the app will do,
 and after a CORS failure the status line has no route word.
 Evidence: `app-shell.html:337`; `packages/bridge/README.md:55`;
 [`hig-review/1440-light-rt-05-cors-first-run.png`](hig-review/1440-light-rt-05-cors-first-run.png).
-**Status:** Open, D4-l (D4.12). Review row N2.
+**Status:** Fixed in D4-l (D4.12, #470). The status bar says what the app will do: "Route: direct" for Auto with no bridge paired, and for a Local Bridge with no address; a failed send's record and status line say "Direct to {host}, no bridge paired". Review row N2.
 
 **U-138. No in-app path to the Local Bridge from the failure it fixes.**
 Severity 2. H9, H10. SD, PE, OC.
@@ -1516,7 +1516,7 @@ button assumes a paired bridge.
 Evidence: `settings/bridge-pane.html:148-162`;
 `packages/core/src/send/exchange.ts:127`;
 [`hig-review/1440-light-rt-06-bridge-settings.png`](hig-review/1440-light-rt-06-bridge-settings.png).
-**Status:** Open, D4-l (D4.12, row 1.52). Review row N9.
+**Status:** Fixed in D4-l (D4.12, row 1.52, #470). A send that got no response with no bridge paired opens its record with `npx wayfarer-bridge` and Copy, the pairing code in place, and Send again once paired (`e2e/bridge-setup.spec.ts`, with the bridge's test double). Review row N9.
 
 **U-134. The send refusal blames the address when a variable is
 missing.** Severity 2. H9, H2. All.

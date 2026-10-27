@@ -661,6 +661,7 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
         ...secret,
         ...(secret.scope && { holder: holderOf(secret.scope, ports, spec) }),
       })),
+      unpaired: outcome instanceof TransportError && history.route === "direct" && policy.unpaired === true,
       failure:
         outcome instanceof TransportError
           ? {
@@ -712,6 +713,7 @@ function recordOf(
     received: { headers: [string, string][]; body: string | undefined } | undefined;
     vaulted: ExchangeRecord["secrets"];
     failure: ExchangeRecord["failure"];
+    unpaired: boolean;
   },
 ): ExchangeRecord {
   const changed = (kept: [string, string][], sent: [string, string][]) =>
@@ -735,6 +737,7 @@ function recordOf(
         response.body.text !== raw.received.body.slice(0, HISTORY_BODY_LIMIT) && { responseBody: true as const }),
     },
     kept: { response: response !== undefined, body: response?.body !== undefined },
+    ...(raw.unpaired && { unpaired: true as const }),
     ...(raw.failure && { failure: raw.failure }),
   };
 }

@@ -39,20 +39,21 @@ export class TransportRouter implements Transport {
   ): Promise<ResponseEnvelope> {
     policy.took = this.first(policy.route);
     if (policy.took === "bridge") return this.viaBridge(request, options);
-    if (policy.route !== "auto") return new FetchTransport().send(request, options);
     try {
       return await new FetchTransport().send(request, options);
     } catch (error) {
-      if (!(error instanceof TransportError) || error.kind !== "network" || !(await this.retryable(request, policy)))
-        throw error;
+      if (!(error instanceof TransportError) || error.kind !== "network") throw error;
+      // The page got no response. With no bridge paired, that is said (U-131); `auto` has nothing to try.
+      const paired = !!this.bridge.config().url && (await this.bridge.hasToken());
+      if (!paired) policy.unpaired = true;
+      if (policy.route !== "auto" || !paired || !(await this.retryable(request, policy))) throw error;
       policy.took = "bridge";
       return this.viaBridge(request, options);
     }
   }
 
-  /** D7, for a request the page sent and got no response to. With no bridge to send it to, nothing is asked. */
+  /** D7, for a request the page sent and got no response to, with a bridge to send it to. */
   private async retryable(request: ResolvedRequest, policy: RoutePolicy): Promise<boolean> {
-    if (!this.bridge.config().url || !(await this.bridge.hasToken())) return false;
     const next = afterDirectSend(request, location.origin, true);
     return next === "retry" || (next === "ask" && !!policy.ask && (await policy.ask()));
   }

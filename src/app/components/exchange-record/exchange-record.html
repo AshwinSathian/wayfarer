@@ -9,8 +9,10 @@
   </li>
   }
 </ul>
-@if (offerBridge()) {
+@if (offer() === 'bridge') {
 <button uiButton="outlined" class="btn-secondary btn-sm mt-3" type="button" (click)="sendThroughBridge.emit()"
   >Send through the Local Bridge</button
 >
+} @else if (offer() === 'setup') {
+<app-bridge-setup class="mt-3" (sendAgain)="sendThroughBridge.emit()" />
 }

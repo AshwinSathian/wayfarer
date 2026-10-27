@@ -45,6 +45,9 @@ describe("the record's first line", () => {
       ),
     ).toBe("The request got no response. Direct to api.example.com.");
     expect(recordHeadline(record({ status: undefined }))).toBe("No response. Direct to api.example.com.");
+    expect(recordHeadline(record({ status: undefined, unpaired: true }))).toBe(
+      "No response. Direct to api.example.com, no bridge paired.",
+    );
   });
 });
 
@@ -106,5 +109,8 @@ describe("the record's sentences", () => {
       { wire: "Load failed" },
     ]);
     expect(lines[0].parts).toEqual(["Sent from this page to ", { wire: "api.example.com" }, "."]);
+    expect(texts({ ...failed, unpaired: true }).route).toBe(
+      "Sent from this page to api.example.com. No Local Bridge is paired.",
+    );
   });
 });

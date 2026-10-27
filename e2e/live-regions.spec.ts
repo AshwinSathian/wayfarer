@@ -25,7 +25,7 @@ test("a send that got no response is said by its first sentence and the route", 
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
   // The failure's first sentence, not the paragraph the pane shows, then where it went (D4.12).
-  await expect(region).toHaveText("The request got no response. Direct to 127.0.0.1:9.");
+  await expect(region).toHaveText("The request got no response. Direct to 127.0.0.1:9, no bridge paired.");
 });
 
 test("the address's error is an alert there from the first render, and the field points to it", async ({ page }) => {

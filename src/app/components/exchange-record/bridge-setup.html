@@ -1,0 +1,39 @@
+<p class="text-label-secondary"
+  >The Local Bridge sends a request from this computer, where CORS does not apply, and says why one failed. Start it,
+  then type the code it prints.</p
+>
+<div class="mt-2 flex flex-wrap items-center gap-2">
+  <code class="bridge-command font-mono text-label-primary">{{ command }}</code>
+  <button uiButton class="btn-sm" type="button" aria-label="Copy the command" (click)="copy()">Copy</button>
+</div>
+@if (paired()) {
+<button uiButton="filled" class="btn-sm mt-3" type="button" (click)="sendAgain.emit()">Send again</button>
+} @else {
+<div class="mt-3 flex flex-wrap items-center gap-2">
+  <label for="record-pairing-input" class="text-label-secondary">Pairing code</label>
+  <input
+    class="font-mono min-w-0 flex-1 basis-32 placeholder-mono"
+    uiInput
+    id="record-pairing-input"
+    type="text"
+    autocomplete="off"
+    spellcheck="false"
+    autocapitalize="characters"
+    placeholder="ABCD-2345"
+    [ngModel]="code()"
+    (ngModelChange)="code.set($event); said.set('')"
+    (keydown.enter)="pairOnEnter()"
+  />
+  <button
+    uiButton="outlined"
+    class="btn-secondary btn-sm"
+    type="button"
+    [disabled]="!code().trim() || pairing()"
+    (click)="pair()"
+  >
+    @if (pairing()) { <ui-spinner /> } Pair
+  </button>
+</div>
+}
+<!-- There from the first render: what a copy or a pairing did (U-075). -->
+<p class="bridge-setup-said mt-2 text-label-secondary" role="status">{{ said() }}</p>

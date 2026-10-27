@@ -3,6 +3,7 @@ import { protectVariable, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
+import { settled } from "./support/settled";
 
 // D4.12: the exchange record says what a send did, one sentence per field, from what the app sent and received.
 // Each test sends one request and finds each sentence equal to what that exchange did.
@@ -196,6 +197,14 @@ test("the preview's chip for a variable with no value adds it to the environment
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText("Sends to http://127.0.0.1:4300/echo");
 });
 
+/** Each violation with the nodes it found and why, so that a failure says which element. */
+const found = (violations: { id: string; nodes: { target: unknown[]; failureSummary?: string }[] }[]) =>
+  violations.flatMap((violation) =>
+    violation.nodes.map(
+      (node) => `${violation.id}: ${node.target.join(" ")} (${node.failureSummary?.split("\n")[1]?.trim() ?? ""})`,
+    ),
+  );
+
 for (const theme of ["light", "dark"] as const) {
   test(`the preview and the open record have no WCAG 2.2 AA violation in the ${theme} theme`, async ({ page }) => {
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
@@ -211,15 +220,19 @@ for (const theme of ["light", "dark"] as const) {
     );
     await expect(page.locator("app-variable-chips .var-chip-shadows")).toBeVisible();
     await page.mouse.move(5, 5);
+    // The missing chip pulses twice as it appears: axe reads its colours once it has stopped (a slow runner was
+    // still in the pulse).
+    await settled(page);
     const preview = await axe(page).include("app-variable-chips").analyze();
-    expect(preview.violations.map((violation) => violation.id)).toEqual([]);
+    expect(found(preview.violations)).toEqual([]);
 
     await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
     await send(page);
     await expect(page.getByRole("region", { name: "Exchange record" })).toBeVisible();
     await page.mouse.move(5, 5);
+    await settled(page);
     const record = await axe(page).include("#exchange-record").include(".response-status").analyze();
-    expect(record.violations.map((violation) => violation.id)).toEqual([]);
+    expect(found(record.violations)).toEqual([]);
   });
 }
 

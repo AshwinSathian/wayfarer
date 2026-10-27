@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what session D4-l built.** The plan's row 1.54
+  lists the exchange record's pull requests, what is done and what is left
+  (the screen-reader checks are the maintainer's), and the audit has a new
+  finding: when the Local Bridge cannot reach a server, the status line
+  shows the bridge's own 502 as if the server had sent it.
 - **The design guide names the exchange record as Wayfarer's signature
   element.** The information architecture says where the record is (the
   preview under the address, the record under the response's status line,

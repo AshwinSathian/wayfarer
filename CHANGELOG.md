@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Each send now says what it did, under the response's status line.** The
+  status line ends with where the request went ("Direct to
+  api.example.com"); choose it and the exchange record opens: whether the
+  request left from this page or through the Local Bridge, the host, each
+  vault secret filled (by its variable's name and where it is set, never
+  its value), what was masked with *** in what is kept, and what history
+  kept. A screen reader hears the same first line when a send ends. Before,
+  nothing said whether a vault secret went with a request, or what history
+  had masked. After a success the record stays closed; after a send that
+  got no response it opens with what the browser reported and Send through
+  the Local Bridge, which used to sit in the body.
 - **The design audit has a fourth pass: a red-team review that compares
   Wayfarer with the API clients people already use.** A new page gives the
   review in full, with the screenshots it cites. It walked five everyday

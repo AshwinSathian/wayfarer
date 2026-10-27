@@ -47,7 +47,7 @@ test.describe("through a Local Bridge", () => {
       await expect(page.locator(".status-badge")).toHaveText("200", {
         timeout: 15_000,
       });
-      await expect(page.locator(".route-badge")).toHaveText("Via bridge");
+      await expect(page.locator(".record-toggle")).toHaveText("Local Bridge to 127.0.0.1:4300");
       await expect(page.getByRole("alertdialog")).toHaveCount(0);
       // The browser's preflight got no answer it could use, so it sent no POST: the one that arrived is the bridge's.
       expect(await seen(page, path)).toEqual({ OPTIONS: 1, POST: 1 });
@@ -86,7 +86,8 @@ test.describe("through a Local Bridge", () => {
       expect(await seen(page, path)).toEqual({ POST: 1 });
       await question.getByRole("button", { name: "Don't send" }).click();
       await expect(page.locator("app-response-viewer")).toContainText("The request got no response.");
-      await expect(page.locator(".route-badge")).toHaveCount(0);
+      // The answer was no: the request went from the page alone.
+      await expect(page.locator(".record-toggle")).toHaveText("Direct to 127.0.0.1:4300");
       expect(await seen(page, path)).toEqual({ POST: 1 });
 
       await send(page);
@@ -94,7 +95,7 @@ test.describe("through a Local Bridge", () => {
       await expect(page.locator(".status-badge")).toHaveText("200", {
         timeout: 15_000,
       });
-      await expect(page.locator(".route-badge")).toHaveText("Via bridge");
+      await expect(page.locator(".record-toggle")).toHaveText("Local Bridge to 127.0.0.1:4300");
       expect(await seen(page, path)).toEqual({ POST: 3 });
     } finally {
       bridge.stop();
@@ -107,7 +108,7 @@ test("a response from the page says Direct", async ({ page }) => {
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect(page.locator(".route-badge")).toHaveText("Direct");
+  await expect(page.locator(".record-toggle")).toHaveText("Direct to 127.0.0.1:4300");
 });
 
 for (const theme of ["light", "dark"] as const) {
@@ -119,7 +120,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
     await send(page);
-    await expect(page.locator(".route-badge")).toHaveText("Direct");
+    await expect(page.locator(".record-toggle")).toHaveText("Direct to 127.0.0.1:4300");
     const scan = async (state: string) => {
       await page.mouse.move(640, 880);
       await settled(page);
@@ -161,7 +162,7 @@ for (const theme of ["light", "dark"] as const) {
     await fits(
       "the composer",
       { locator: page.getByRole("combobox", { name: "Route" }), pane: "Request" },
-      { locator: page.locator(".route-badge"), pane: "Response" },
+      { locator: page.locator(".record-toggle"), pane: "Response" },
     );
 
     const settings = await openSettings(page, "Local Bridge");

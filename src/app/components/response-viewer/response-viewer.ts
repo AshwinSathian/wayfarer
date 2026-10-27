@@ -1,4 +1,4 @@
-import { buildCurl, copyNote, redactExport } from "@wayfarer/core";
+import { buildCurl, copyNote, formatMs, recordRoute, redactExport, type ExchangeRecord } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -14,6 +14,7 @@ import {
 } from "@angular/core";
 import type { ShownEvent } from "../../state/tab-state";
 import { EventList } from "./event-list";
+import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
 import { MenuTrigger } from "@angular/aria/menu";
@@ -52,7 +53,6 @@ import {
   TimingBar,
   WATERFALL_TOOLTIP,
   formatBytes,
-  formatMs,
   getFallbackBars,
   getTimingBars,
 } from "../../shared/inspect/timing-bars";
@@ -80,6 +80,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
   imports: [
     UiInput,
     EventList,
+    ExchangeRecordView,
     HarExportDialog,
     JsonPipe,
     Icon,
@@ -138,8 +139,6 @@ export class ResponseViewer {
   readonly responseStatusCode = input<number>();
   readonly responseStatusText = input<string>();
   readonly isError = input(false);
-  /** No response arrived: what the browser reported, quoted as it came, beside the Local Bridge (U-051). */
-  readonly noResponse = input("");
   readonly sendThroughBridge = output<void>();
   readonly inspection = input<Signal<ResponseInspection | null> | null>();
   readonly responseContentLength = input<number>();
@@ -173,6 +172,11 @@ export class ResponseViewer {
   readonly tlsInsecure = input(false);
   /** Where the response came from (P6.4): the page, or the Local Bridge. */
   readonly route = input<"direct" | "bridge" | null>(null);
+  /** What the send did (D4.12), shown under the status line while open. */
+  readonly record = input<ExchangeRecord | null>(null);
+  readonly recordOpen = input(false);
+  readonly recordOpenChange = output<boolean>();
+  protected readonly recordRoute = recordRoute;
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
     const redirects = this.redirects();

@@ -343,6 +343,11 @@ export function assemble(
     body: sent?.data,
     // An OAuth 2.0 token is kept like a vault secret and masked like one: in history, in every export, and in what a script is shown.
     secrets: [...resolver.taint, ...(extra.token ? [extra.token] : [])],
+    // By name only, for the exchange record (D4.12): the variables that brought a vault secret in, and the token.
+    vaulted: [
+      ...[...resolver.vaulted].map(([name, scope]) => ({ name, ...(scope && { scope }) })),
+      ...(extra.token ? [{ name: "OAuth 2.0 token" }] : []),
+    ],
     // Also what a credential header carries, typed by hand or built from the Auth tab: a server may send it back.
     credentials: [
       ...credentialsOf(auth),

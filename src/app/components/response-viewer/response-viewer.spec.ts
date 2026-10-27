@@ -1,4 +1,4 @@
-import { BinaryBody, parseJson } from "@wayfarer/core";
+import { BinaryBody, parseJson, type ExchangeRecord } from "@wayfarer/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { ResponseViewer } from "./response-viewer";
@@ -53,6 +53,73 @@ describe("ResponseViewer", () => {
     fixture.componentRef.setInput("route", "bridge");
     fixture.detectChanges();
     expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Via bridge");
+  });
+
+  describe("the exchange record (D4.12)", () => {
+    const record: ExchangeRecord = {
+      durationMs: 3,
+      route: "direct",
+      host: "api.example.com",
+      secrets: [{ name: "token", scope: "environment", holder: 'environment "Local"' }],
+      masked: { headers: ["Authorization"], responseHeaders: [] },
+      kept: { response: false, body: false },
+      failure: { kind: "network", reported: "Failed to fetch", summary: "The request got no response." },
+    };
+
+    it("ends the status line with where the request went, as a button that opens and closes the record", () => {
+      fixture.componentRef.setInput("isError", true);
+      fixture.componentRef.setInput("record", record);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      const toggle = element.querySelector<HTMLButtonElement>(".record-toggle");
+      expect(toggle?.textContent?.trim()).toBe("Direct to api.example.com");
+      expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+      expect(element.querySelector("#exchange-record")).toBeNull();
+      const asked: boolean[] = [];
+      component.recordOpenChange.subscribe((open) => asked.push(open));
+      toggle?.click();
+      expect(asked).toEqual([true]);
+    });
+
+    it("open, says each field in a sentence, the wire's values in monospace, and offers the Local Bridge once", () => {
+      fixture.componentRef.setInput("isError", true);
+      fixture.componentRef.setInput("record", record);
+      fixture.componentRef.setInput("recordOpen", true);
+      fixture.detectChanges();
+      const region = (fixture.nativeElement as HTMLElement).querySelector("#exchange-record");
+      expect(region?.getAttribute("aria-label")).toBe("Exchange record");
+      const lines = [...(region?.querySelectorAll("li") ?? [])].map((line) => line.textContent);
+      expect(lines).toEqual([
+        "Sent from this page to api.example.com.",
+        'Filled from the vault: token, from environment "Local". Each is *** in what is kept.',
+        "Masked with *** in what is kept: Authorization.",
+        "History kept the request. No response came.",
+        "What was reported: Failed to fetch",
+      ]);
+      expect([...(region?.querySelectorAll(".font-mono") ?? [])].map((part) => part.textContent)).toEqual([
+        "api.example.com",
+        "token",
+        "Authorization",
+        "Failed to fetch",
+      ]);
+      const sent = vi.fn();
+      component.sendThroughBridge.subscribe(sent);
+      const buttons = region?.querySelectorAll("button") ?? [];
+      expect(buttons).toHaveLength(1);
+      buttons[0].click();
+      expect(sent).toHaveBeenCalledOnce();
+    });
+
+    it("offers nothing when the request went through the bridge, or got a response", () => {
+      fixture.componentRef.setInput("recordOpen", true);
+      fixture.componentRef.setInput("record", { ...record, route: "bridge" });
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      expect(element.querySelector("#exchange-record button")).toBeNull();
+      fixture.componentRef.setInput("record", { ...record, failure: undefined, status: { code: 200, text: "OK" } });
+      fixture.detectChanges();
+      expect(element.querySelector("#exchange-record button")).toBeNull();
+    });
   });
 
   describe("redirects (P5.4)", () => {

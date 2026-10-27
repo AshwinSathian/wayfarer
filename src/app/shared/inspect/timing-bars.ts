@@ -94,19 +94,6 @@ export function getFallbackBars(inspection: ResponseInspection | null): TimingBa
   ];
 }
 
-export function formatMs(value: number | undefined | null): string {
-  if (!value || value <= 0) {
-    return "—";
-  }
-  if (value < 1) {
-    return `${value.toFixed(2)} ms`;
-  }
-  if (value < 100) {
-    return `${value.toFixed(1)} ms`;
-  }
-  return `${Math.round(value)} ms`;
-}
-
 export function formatBytes(value: number | undefined): string {
   if (!value || value <= 0) {
     return "—";

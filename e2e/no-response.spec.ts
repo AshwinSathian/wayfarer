@@ -4,7 +4,7 @@ import { ECHO } from "./support/echo";
 
 // U-051 (D4-e): when no response arrives, the app says so in its own words and puts nothing in the server's place.
 // The browser reports the same words for a refused connection, a name that does not resolve and CORS, so the pane
-// says what it cannot tell, quotes what the browser reported, and offers the Local Bridge, which can tell.
+// says what it cannot tell; its record quotes what the browser reported and offers the Local Bridge, which can tell.
 
 const BROWSER_SAYS: Record<string, RegExp> = {
   chromium: /^Failed to fetch$/,
@@ -27,8 +27,10 @@ test("a refused connection: No response, the app's words, the browser's own, and
   await expect(failure).toContainText(
     "The request got no response. The browser does not say why: the name may not resolve, the server may have refused the connection, or it does not allow requests from this page (CORS). Send it through the Local Bridge to see which.",
   );
-  await expect(failure.locator(".response-reported code")).toHaveText(BROWSER_SAYS[browserName]);
-  await expect(failure.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
+  // What the browser reported and the action are in the exchange record, open after a failure (D4.12).
+  const record = page.getByRole("region", { name: "Exchange record" });
+  await expect(record.locator(".record-failure .font-mono")).toHaveText(BROWSER_SAYS[browserName]);
+  await expect(record.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
   // Nothing in the server's place: no body in a server's face.
   await expect(page.locator("app-response-viewer pre")).toHaveCount(0);
 });

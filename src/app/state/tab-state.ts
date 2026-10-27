@@ -14,7 +14,7 @@ import {
 import { RequestDoc } from "../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { TestResult } from "@wayfarer/core";
-import type { SendTimings } from "@wayfarer/core";
+import type { ExchangeRecord, SendTimings } from "@wayfarer/core";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
@@ -90,8 +90,6 @@ export class TabState {
   readonly responseStatusCode = signal<number | undefined>(undefined);
   readonly responseStatusText = signal<string | undefined>(undefined);
   readonly responseIsError = signal(false);
-  /** No response arrived: what the browser reported, which the pane quotes beside the Local Bridge (U-051). */
-  readonly responseNoResponse = signal("");
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests" | "events">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
@@ -102,6 +100,10 @@ export class TabState {
   readonly responseTlsInsecure = signal(false);
   /** Where the response came from (P6.4's badge); null with no response. */
   readonly responseRoute = signal<"direct" | "bridge" | null>(null);
+  /** What the last send did (D4.12): the route, the host, the secrets filled, what was masked and kept. */
+  readonly record = signal<ExchangeRecord | null>(null);
+  /** The record is shown beside the response: opened by a failure or by the person, never by a success. */
+  readonly recordOpen = signal(false);
   readonly responseContentType = signal("");
   readonly responseHeadersLimited = signal(false);
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
@@ -171,13 +173,14 @@ export class TabState {
     this.responseStatusCode.set(undefined);
     this.responseStatusText.set(undefined);
     this.responseIsError.set(false);
-    this.responseNoResponse.set("");
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);
     this.responseRedirects.set(undefined);
     this.responseTlsInsecure.set(false);
     this.responseRoute.set(null);
+    this.record.set(null);
+    this.recordOpen.set(false);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");

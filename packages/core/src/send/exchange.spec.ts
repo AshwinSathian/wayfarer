@@ -220,6 +220,125 @@ describe("exchange", () => {
     service = { execute: (spec) => exchange(spec, ports()) };
   });
 
+  describe("the exchange record (D4.12)", () => {
+    const send = (built: Partial<BuiltRequest> = {}, spec: Partial<RequestExecutionSpec> = {}) =>
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(built),
+        ...spec,
+      });
+
+    it("says the route, the host, the status and the time, read off what history keeps", async () => {
+      const { record, history } = await send({ url: "https://api.example.com:8443/pets?x=1" });
+      expect(record).toEqual({
+        status: { code: 200, text: "OK" },
+        durationMs: history.durationMs,
+        route: "direct",
+        host: "api.example.com:8443",
+        secrets: [],
+        masked: { headers: [], responseHeaders: [] },
+        kept: { response: true, body: true },
+      });
+    });
+
+    it("says the Local Bridge when the request went through it", async () => {
+      transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge" });
+      const { record } = await send({}, { route: "bridge" });
+      expect(record.route).toBe("bridge");
+    });
+
+    it("names each vault secret filled, with where its variable is set, and never its value", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ token: "{{$secret.s1}}" }));
+      const { record } = await send(
+        {
+          url: "https://example.com/data?key=plain-key",
+          headers: [["X-Token", "plain-token"]],
+          secrets: ["plain-token", "plain-key"],
+          vaulted: [{ name: "token", scope: "environment" }, { name: "key", scope: "collection" }, { name: "raw" }],
+        },
+        { inherited: [{ name: 'collection "Shop"', scripts: { pre: "", post: "" } }] },
+      );
+      expect(record.secrets).toEqual([
+        { name: "token", scope: "environment", holder: 'environment "Test env"' },
+        { name: "key", scope: "collection", holder: 'collection "Shop"' },
+        { name: "raw" },
+      ]);
+      expect(record.masked).toEqual({ address: true, headers: ["X-Token"], responseHeaders: [] });
+      expect(JSON.stringify(record)).not.toMatch(/plain-/);
+    });
+
+    it("has no holder for a scope with none named: no environment, no collection, a folder", async () => {
+      const { record } = await send({
+        vaulted: [
+          { name: "a", scope: "environment" },
+          { name: "b", scope: "collection" },
+          { name: "c", scope: "folder" },
+        ],
+      });
+      expect(record.secrets).toEqual([
+        { name: "a", scope: "environment" },
+        { name: "b", scope: "collection" },
+        { name: "c", scope: "folder" },
+      ]);
+    });
+
+    it("lists a credential header masked whole, and a body and a response that held a secret", async () => {
+      transport.setResponse({
+        ...envelope(200, "OK", "echo plain-secret"),
+        headers: [
+          ["content-type", "text/plain"],
+          ["x-echo", "plain-secret"],
+          ["set-cookie", "a=1"],
+        ],
+      });
+      const { record } = await send({
+        method: "POST",
+        headers: [
+          ["Authorization", "Bearer typed"],
+          ["Accept", "*/*"],
+        ],
+        body: '{"s":"plain-secret"}',
+        secrets: ["plain-secret"],
+      });
+      expect(record.masked).toEqual({
+        headers: ["Authorization"],
+        body: true,
+        responseHeaders: ["x-echo", "set-cookie"],
+        responseBody: true,
+      });
+    });
+
+    it("says no response came and what the browser reported, in the app's words first", async () => {
+      page = "https://wayfarer.example/app/";
+      transport.setResponse(new TransportError("network", "Failed to fetch"));
+      const { record } = await send();
+      expect(record.status).toBeUndefined();
+      expect(record.kept).toEqual({ response: false, body: false });
+      expect(record.failure).toEqual({
+        kind: "network",
+        reported: "Failed to fetch",
+        summary: "The request got no response.",
+      });
+    });
+
+    it("masks a secret in what was reported", async () => {
+      transport.setResponse(new TransportError("bridge", "The bridge refused plain-secret."));
+      const { record } = await send({ secrets: ["plain-secret"] });
+      expect(record.failure?.reported).toBe("The bridge refused ***.");
+    });
+
+    it("keeps no body when history keeps none, and an address that is no URL stands for itself", async () => {
+      transport.setResponse(envelope(204, "No Content"));
+      const { record } = await send({ url: "not a url" });
+      expect(record.host).toBe("not a url");
+      expect(record.kept).toEqual({ response: true, body: false });
+    });
+  });
+
   describe("the cookie jar (P5.3)", () => {
     const cookie = (name: string, value: string): Cookie => ({
       name,
@@ -417,8 +536,8 @@ describe("exchange", () => {
     expect(result.response.statusCode).toBeUndefined();
     expect(result.response.statusText).toBe("");
     expect(result.history.error).toBe("No response. The browser does not say why.");
-    // The browser's own words, for the pane to quote (C-010: the real network error).
-    expect(result.response.noResponse).toBe("Failed to fetch");
+    // The browser's own words, for the record to quote (C-010: the real network error).
+    expect(result.record.failure?.reported).toBe("Failed to fetch");
   });
 
   it("an offline browser is said so, the one cause a page can tell (U-051)", async () => {

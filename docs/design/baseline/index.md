@@ -73,7 +73,8 @@ row below.
 | `response-tests` | The response's Tests tab: an assertion and a script's test. |
 | `response-html` | An HTML response in its sandboxed preview. |
 | `response-loading` | A request on its way, past its first second: Sending… and the time so far. |
-| `response-error` | A request that failed before any response (a refused port). |
+| `response-error` | A request that failed before any response (a refused port), its record open. |
+| `response-record` | A GET sent, its exchange record open under the status line (D4.12). |
 | `composer-params` | The composer's Params tab. |
 | `composer-headers` | The composer's Headers tab with a row. |
 | `composer-body` | The composer's Body tab, raw JSON. |

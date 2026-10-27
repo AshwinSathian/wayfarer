@@ -227,6 +227,18 @@ export {
 } from "./send/build";
 export { runOutcome } from "./send/run";
 export {
+  formatMs,
+  lineText,
+  recordHeadline,
+  recordLines,
+  recordRoute,
+  type ExchangeRecord,
+  type FilledSecret,
+  type MaskedParts,
+  type RecordLine,
+  type RecordPart,
+} from "./send/record";
+export {
   META_GLOBALS_KEY,
   META_STATE_KEY,
   META_VAULT_KEY,

@@ -158,7 +158,6 @@ export class WorkspaceStore {
   readonly responseStatusCode = this.ofTab((tab) => tab.responseStatusCode);
   readonly responseStatusText = this.ofTab((tab) => tab.responseStatusText);
   readonly responseIsError = this.ofTab((tab) => tab.responseIsError);
-  readonly responseNoResponse = this.ofTab((tab) => tab.responseNoResponse);
   readonly responseTab = this.ofTab((tab) => tab.responseTab);
   readonly responseContentLength = this.ofTab((tab) => tab.responseContentLength);
   readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
@@ -166,6 +165,8 @@ export class WorkspaceStore {
   readonly responseRedirects = this.ofTab((tab) => tab.responseRedirects);
   readonly responseTlsInsecure = this.ofTab((tab) => tab.responseTlsInsecure);
   readonly responseRoute = this.ofTab((tab) => tab.responseRoute);
+  readonly responseRecord = this.ofTab((tab) => tab.record);
+  readonly recordOpen = this.ofTab((tab) => tab.recordOpen);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
   readonly responseInspection = this.ofTab((tab) => tab.inspection);
@@ -477,6 +478,9 @@ export class WorkspaceStore {
     tab.inspection.set(result.inspection);
     this.applyExecutionResponse(tab, result.response);
     this.applyStream(tab, result);
+    // The record opens by itself only on a failure, with what was reported and what to do (D4.12).
+    tab.record.set(result.record);
+    tab.recordOpen.set(result.record.failure !== undefined);
     // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
     if (result.cookieValues.length)
       tab.responseExportContext.update(
@@ -954,7 +958,6 @@ export class WorkspaceStore {
 
   private applyExecutionResponse(tab: TabState, response: RequestExecutionResponse): void {
     tab.responseIsError.set(response.isError);
-    tab.responseNoResponse.set(response.noResponse ?? "");
     tab.responseStatusCode.set(response.statusCode);
     tab.responseStatusText.set(response.statusText);
     tab.responseBodyIsJson.set(response.bodyIsJson);

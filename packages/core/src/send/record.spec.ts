@@ -109,7 +109,7 @@ describe("the record's sentences", () => {
       { wire: "Load failed" },
     ]);
     expect(lines[0].parts).toEqual(["Sent from this page to ", { wire: "api.example.com" }, "."]);
-    expect(texts({ ...failed, unpaired: true }).route).toBe(
+    expect(texts({ ...failed, unpaired: true })["route"]).toBe(
       "Sent from this page to api.example.com. No Local Bridge is paired.",
     );
   });

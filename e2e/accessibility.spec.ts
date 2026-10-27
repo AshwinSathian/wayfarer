@@ -207,7 +207,7 @@ test.describe("Accessibility (primary flows)", () => {
       for (const opener of [
         "Request history",
         "Settings",
-        "Route: auto",
+        "Route: direct",
         "Secrets",
         "Environments",
         "New collection",

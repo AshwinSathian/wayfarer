@@ -1,4 +1,4 @@
-import { Injectable, effect, inject, signal, untracked } from "@angular/core";
+import { Injectable, computed, effect, inject, signal, untracked } from "@angular/core";
 import { bridgeHealthProblem, parseJson, type Route } from "@wayfarer/core";
 import { IdbCore } from "../data/idb-core";
 import { Diagnostics } from "./diagnostics";
@@ -37,6 +37,15 @@ export class BridgeSettings {
   private readonly diagnostics = inject(Diagnostics);
   private readonly vault = inject(SecretsVault);
   readonly config = signal<BridgeConfig>(DEFAULT_CONFIG);
+  /**
+   * The vault holds a token under the bridge's name, locked or not. Read again at start, when this tab
+   * keeps a token, when another tab changes the secrets and at each `hasToken`.
+   * ponytail: a secret deleted in the Secrets dialog of this tab is seen at the next send; a signal of the
+   * vault's names would see it at once.
+   */
+  private readonly tokenStored = signal(false);
+  /** A bridge is paired: it has an address and a token, in this tab or in the vault (U-131). What the status bar says reads this. */
+  readonly paired = computed(() => !!this.config().url && (!!this.config().token || this.tokenStored()));
   private pending = Promise.resolve();
 
   constructor() {
@@ -46,9 +55,11 @@ export class BridgeSettings {
       if (this.vault.isUnlocked())
         untracked(() => this.inBackground(() => (this.config().token ? this.store(this.config().token) : this.read())));
     });
+    this.inBackground(() => this.hasToken().then(() => undefined));
     // Another tab saved a token.
     inject(IdbCore).onChangeElsewhere((stores) => {
-      if (stores.includes("secrets") && this.vault.isUnlocked()) this.inBackground(() => this.read());
+      if (!stores.includes("secrets")) return;
+      this.inBackground(() => (this.vault.isUnlocked() ? this.read() : this.hasToken().then(() => undefined)));
     });
   }
 
@@ -71,7 +82,9 @@ export class BridgeSettings {
 
   /** A token is in this tab or in the vault, locked or not: `auto` has a bridge to send to. */
   async hasToken(): Promise<boolean> {
-    return !!this.config().token || !!(await this.stored());
+    const stored = !!(await this.stored());
+    this.tokenStored.set(stored);
+    return !!this.config().token || stored;
   }
 
   private async stored() {
@@ -85,10 +98,12 @@ export class BridgeSettings {
     } else if (!secret || !(await this.vault.replaceSecret(secret.id, token))) {
       await this.vault.saveSecret({ name: SECRET_NAME, plaintext: token });
     }
+    this.tokenStored.set(!!token);
   }
 
   private async read(): Promise<void> {
     const secret = await this.stored();
+    this.tokenStored.set(!!secret);
     const token = secret && (await this.vault.readSecret(secret.id));
     if (token) this.config.update((config) => ({ ...config, token }));
   }

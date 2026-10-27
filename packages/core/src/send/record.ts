@@ -36,6 +36,8 @@ export interface ExchangeRecord {
   durationMs: number;
   /** Where the request went last: from the page, or through the Local Bridge. */
   route: "direct" | "bridge";
+  /** It went from the page, got no response, and no Local Bridge is paired to try (DQ10, U-131). */
+  unpaired?: true;
   /** The host it was sent to, its port when that is not the scheme's own; an address that is no URL stands for itself. */
   host: string;
   secrets: FilledSecret[];
@@ -74,7 +76,8 @@ export function recordRoute(record: ExchangeRecord): string {
  * response. Direct to 127.0.0.1:9."
  */
 export function recordHeadline(record: ExchangeRecord): string {
-  if (!record.status) return `${record.failure?.summary ?? "No response."} ${recordRoute(record)}.`;
+  if (!record.status)
+    return `${record.failure?.summary ?? "No response."} ${recordRoute(record)}${record.unpaired ? ", no bridge paired" : ""}.`;
   const parts = [[record.status.code, record.status.text].filter(Boolean).join(" ")];
   if (record.durationMs > 0) parts.push(formatMs(record.durationMs));
   parts.push(recordRoute(record));
@@ -112,7 +115,7 @@ export function recordLines(record: ExchangeRecord, keeper: "history" | "run" = 
   const route: RecordPart[] =
     record.route === "bridge"
       ? ["Sent through the Local Bridge to ", { wire: record.host }, "."]
-      : ["Sent from this page to ", { wire: record.host }, "."];
+      : ["Sent from this page to ", { wire: record.host }, record.unpaired ? ". No Local Bridge is paired." : "."];
   const secrets: RecordPart[] = record.secrets.length
     ? [
         "Filled from the vault: ",

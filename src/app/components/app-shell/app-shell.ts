@@ -98,6 +98,13 @@ export class AppShell implements OnInit {
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
   protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
+  /** What the app will do with a request of no other route, not what is chosen (U-131): Auto with no paired bridge sends from the page. */
+  protected readonly routeNow = computed(() => {
+    const { route, url } = this.bridgeService.config();
+    if (route === "auto" && !this.bridgeService.paired()) return this.routeNames.direct;
+    if (route === "bridge" && !url) return this.routeNames.direct;
+    return this.routeNames[route];
+  });
   protected readonly themeNames = { system: "system", light: "light", dark: "dark" } as const;
   private static readonly THEME_ORDER = ["system", "light", "dark"] as const;
   /** The choice the status bar's theme button makes next: system, light and dark in turn (U-087). */

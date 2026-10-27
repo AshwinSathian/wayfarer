@@ -9,6 +9,8 @@ export interface RoutePolicy {
   ask?: () => Promise<boolean>;
   /** Set by the sender: where the request went last, the route of a failure too. */
   took?: "direct" | "bridge";
+  /** Set by the sender when the page got no response and no Local Bridge is paired to try (U-131). */
+  unpaired?: true;
 }
 
 /** The route a request is sent by: its own, else its collection's, else the device's. Absent is "inherit". */

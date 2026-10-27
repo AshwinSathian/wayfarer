@@ -139,6 +139,25 @@ describe("BridgeSettings", () => {
       await expect(given).resolves.toBe("asked-for-at-send");
     });
 
+    it("is paired with a token in this tab, or one in the vault, locked or not; and with an address (U-131)", async () => {
+      expect(service.paired()).toBe(false);
+      service.update({ token: "held-in-this-tab" });
+      expect(service.paired()).toBe(true);
+      service.update({ url: "" });
+      expect(service.paired()).toBe(false);
+      service.update({ url: "http://127.0.0.1:7717", token: "" });
+      expect(service.paired()).toBe(false);
+
+      await vault.create("correct horse");
+      service.update({ token: "kept-in-the-vault" });
+      await vi.waitFor(async () => expect(await inVault()).toBe("kept-in-the-vault"));
+      vault.lock();
+      // A reload: the token is in the locked vault only, and the bridge is paired all the same.
+      const reloaded = TestBed.runInInjectionContext(() => new BridgeSettings());
+      expect(reloaded.config().token).toBe("");
+      await vi.waitFor(() => expect(reloaded.paired()).toBe(true));
+    });
+
     it("for a send with no token anywhere, nobody is asked for a passphrase", async () => {
       await vault.create("correct horse");
       vault.lock();

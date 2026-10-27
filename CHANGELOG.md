@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A send that got no response, with no Local Bridge paired, sets the bridge
+  up where it failed.** The record says the request went "Direct, no bridge
+  paired", shows `npx wayfarer-bridge` with Copy and a field for the
+  pairing code the bridge prints, and once paired offers Send again through
+  it. Before, the failure named the Local Bridge and gave no way to it but
+  Settings, and its button assumed a bridge was already paired.
+- **The status bar's route says what the app will do.** With Auto chosen and
+  no bridge paired, it reads "Route: direct", since that is where a request
+  goes; it reads "Route: auto" once a bridge is paired. Before, it said
+  "Route: auto" either way.
 - **Each send now says what it did, under the response's status line.** The
   status line ends with where the request went ("Direct to
   api.example.com"); choose it and the exchange record opens: whether the

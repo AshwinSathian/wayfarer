@@ -27,10 +27,11 @@ test("a refused connection: No response, the app's words, the browser's own, and
   await expect(failure).toContainText(
     "The request got no response. The browser does not say why: the name may not resolve, the server may have refused the connection, or it does not allow requests from this page (CORS). Send it through the Local Bridge to see which.",
   );
-  // What the browser reported and the action are in the exchange record, open after a failure (D4.12).
+  // What the browser reported and the action are in the exchange record, open after a failure (D4.12). No bridge
+  // is paired in a new browser: the action is to set one up (bridge-setup.spec.ts).
   const record = page.getByRole("region", { name: "Exchange record" });
   await expect(record.locator(".record-failure .font-mono")).toHaveText(BROWSER_SAYS[browserName]);
-  await expect(record.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
+  await expect(record.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
   // Nothing in the server's place: no body in a server's face.
   await expect(page.locator("app-response-viewer pre")).toHaveCount(0);
 });

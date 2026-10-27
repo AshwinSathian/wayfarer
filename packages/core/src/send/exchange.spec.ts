@@ -325,6 +325,14 @@ describe("exchange", () => {
       });
     });
 
+    it("says no bridge is paired when the sender says so of a request that went from the page (U-131)", async () => {
+      transport.setResponse(new TransportError("network", "Failed to fetch"));
+      transport.during = () => void (transport.policy!.unpaired = true);
+      expect((await send()).record.unpaired).toBe(true);
+      transport.during = undefined;
+      expect((await send()).record).not.toHaveProperty("unpaired");
+    });
+
     it("masks a secret in what was reported", async () => {
       transport.setResponse(new TransportError("bridge", "The bridge refused plain-secret."));
       const { record } = await send({ secrets: ["plain-secret"] });

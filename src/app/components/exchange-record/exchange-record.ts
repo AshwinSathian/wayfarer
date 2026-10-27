@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
 import { recordLines, type ExchangeRecord, type RecordPart } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
+import { BridgeSetup } from "./bridge-setup";
 
 /**
  * The exchange record (D4.12): what one send did, one sentence per field,
@@ -9,7 +10,7 @@ import { UiButton } from "../../ui/button";
  */
 @Component({
   selector: "app-exchange-record",
-  imports: [UiButton],
+  imports: [BridgeSetup, UiButton],
   templateUrl: "./exchange-record.html",
   styleUrl: "./exchange-record.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,10 +24,14 @@ export class ExchangeRecordView {
   readonly sendThroughBridge = output<void>();
 
   protected readonly lines = computed(() => recordLines(this.record(), this.keeper()));
-  /** The browser gave no response and hides why: the Local Bridge can tell. */
-  protected readonly offerBridge = computed(() => {
+  /**
+   * The browser gave no response and hides why: the Local Bridge can tell. With one paired it is offered; with
+   * none, it is set up here (DQ10).
+   */
+  protected readonly offer = computed((): "bridge" | "setup" | null => {
     const record = this.record();
-    return record.failure?.kind === "network" && record.route === "direct";
+    if (record.failure?.kind !== "network" || record.route !== "direct") return null;
+    return record.unpaired ? "setup" : "bridge";
   });
 
   protected wire(part: RecordPart): string | null {

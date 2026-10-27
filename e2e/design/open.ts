@@ -274,6 +274,12 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await address(page).fill("http://127.0.0.1:9/nothing");
     await send(page);
     await expect(page.locator(".response-failure")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("region", { name: "Exchange record" })).toBeVisible();
+  },
+  "response-record": async (page) => {
+    await OPEN["response-json"](page);
+    await page.locator(".record-toggle").click();
+    await expect(page.getByRole("region", { name: "Exchange record" })).toBeVisible();
   },
   "composer-params": async (page) => {
     await seed(page);

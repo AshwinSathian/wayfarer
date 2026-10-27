@@ -636,7 +636,7 @@ some apart (a `no-cors` probe reaches a server that has no CORS header; a
 name that does not resolve fails it too). A 401 shows its status and
 nothing about the request's auth.
 Evidence: D0.2's task 5 (`docs/design/baseline.md`).
-**Status:** Fixed in #444 (D4-e). No response is said in the app's words, with what the browser reported quoted as it reported it, no status code and no invented body, and Send through the Local Bridge offered in place. D4.12 (D4-l) builds the record on it.
+**Status:** Fixed in #444 (D4-e). No response is said in the app's words, with what the browser reported quoted as it reported it, no status code and no invented body, and Send through the Local Bridge offered in place. D4.12 (D4-l) builds the record on it: since D4-l (2026-10-27) what was reported and the action are in the exchange record, which a failure opens under the status line.
 
 ### Across the three engines
 

@@ -58,6 +58,14 @@ describe("buildRequest", () => {
     expect(readSecrets).toHaveBeenCalledExactlyOnceWith(["abc"]);
     expect(result.url).toBe("https://api.test/?k=plain-abc");
     expect(result.secrets).toEqual(["plain-abc"]);
+    expect(result.vaulted).toEqual([{ name: "{{$secret.abc}}" }]);
+  });
+
+  it("names, for the exchange record, the variables that brought a vault secret in, with their scope (D4.12)", async () => {
+    const result = await built(requestContent({ url: "https://api.test/?k={{key}}" }), {
+      scopes: () => ({ environment: rowsOf({ key: "{{$secret.abc}}" }) }),
+    });
+    expect(result.vaulted).toEqual([{ name: "key", scope: "environment" }]);
   });
 
   it("holds a request with a variable without a value back when asked to, and names it", () => {
@@ -220,6 +228,7 @@ describe("buildRequest", () => {
       expect(oauthToken).toHaveBeenCalledWith(oauth, expect.any(String), true);
       expect(result.headers).toEqual([["Authorization", "Bearer tok-{{host}}"]]);
       expect(result.secrets).toEqual(["tok-{{host}}"]);
+      expect(result.vaulted).toEqual([{ name: "OAuth 2.0 token" }]);
     });
 
     it("OAuth 2.0: no token without the means to get one, or with a variable without a value, and a failure says why", async () => {

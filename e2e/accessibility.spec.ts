@@ -178,6 +178,10 @@ test.describe("Accessibility (primary flows)", () => {
       const button = (name: string) => page.getByRole("button", { name, exact: true });
 
       await scan("composer and response");
+      await page.locator(".record-toggle").click();
+      await expect(page.getByRole("region", { name: "Exchange record" })).toBeVisible();
+      await scan("exchange record");
+      await page.locator(".record-toggle").click();
       await button("Common methods").click();
       await scan("method list");
       await page.keyboard.press("Escape");

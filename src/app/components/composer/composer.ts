@@ -14,7 +14,7 @@ import {
 import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest } from "@wayfarer/core";
+import { PastRequest, recordHeadline } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
@@ -28,7 +28,6 @@ import { RunView } from "../runner/run-view";
 import { SocketView } from "../socket/socket-view";
 import { SocketClient } from "../../services/socket-client";
 import { ResponseViewer } from "../response-viewer/response-viewer";
-import { statusLine } from "../response-viewer/status-line";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
 import { RequestWarnings, warningsText } from "./request-warnings";
@@ -116,18 +115,12 @@ export class Composer {
   protected readonly breadcrumb = this.requestSave.breadcrumb;
   /** What the live regions above the request say (U-075). */
   protected readonly warningsText = computed(() => warningsText(this.store.browserLimits()));
-  protected readonly announcement = computed(() =>
-    this.store.loadingState()
-      ? "Sending…"
-      : statusLine({
-          statusCode: this.store.responseStatusCode(),
-          statusText: this.store.responseStatusText(),
-          isError: this.store.responseIsError(),
-          errorText: this.store.responseError(),
-          durationMs: this.store.responseInspection()?.duration,
-          route: this.store.responseRoute(),
-        }),
-  );
+  /** "Sending…", then the record's first line (D4.11, D4.12). */
+  protected readonly announcement = computed(() => {
+    if (this.store.loadingState()) return "Sending…";
+    const record = this.store.responseRecord();
+    return record ? recordHeadline(record) : "";
+  });
   protected readonly pasteNotesText = computed(() => {
     const notes = this.store.pasteNotes();
     return notes.length ? `From the pasted cURL command: ${notes.join(" ")}` : "";

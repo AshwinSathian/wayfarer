@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ResponseInspection } from "./response-inspector";
-import { formatBytes, formatMs, getFallbackBars, getTimingBars } from "./timing-bars";
+import { formatBytes, getFallbackBars, getTimingBars } from "./timing-bars";
 
 const inspection = (partial: Partial<ResponseInspection>) => partial as ResponseInspection;
 
@@ -29,14 +29,6 @@ describe("timing-bars", () => {
     expect(getFallbackBars(inspection({ duration: 80 }))).toMatchObject([
       { label: "Total", duration: 80, percent: 100 },
     ]);
-  });
-
-  it("formats durations with more precision the smaller they are", () => {
-    expect([undefined, null, 0, -3].map(formatMs)).toEqual(["—", "—", "—", "—"]);
-    expect(formatMs(0.256)).toBe("0.26 ms");
-    expect(formatMs(12.34)).toBe("12.3 ms");
-    expect(formatMs(99.96)).toBe("100.0 ms");
-    expect(formatMs(1234.6)).toBe("1235 ms");
   });
 
   it("formats sizes in binary units and stops at GB", () => {

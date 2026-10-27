@@ -53,12 +53,26 @@
       } @let inspData = inspectionValue;
 
       <!-- The facts wrap as one line, not one by one. -->
-      <span class="inline-flex flex-wrap items-center gap-x-2.5">
+      <span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
         @if (inspData && inspData.duration) {
         <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
         } @if (responseContentLength()) {
         <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
-        } @if (route(); as route) {
+        } @if (record(); as rec) {
+        <!-- The record's first line ends here: where the request went. It opens the record (D4.12). -->
+        <button
+          type="button"
+          uiButton
+          class="btn-plain btn-sm record-toggle"
+          uiTooltip="Exchange record"
+          aria-controls="exchange-record"
+          [attr.aria-expanded]="recordOpen()"
+          (click)="recordOpenChange.emit(!recordOpen())"
+          >{{ recordRoute(rec) }}<app-icon
+            [name]="recordOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+            class="icon-xs"
+        /></button>
+        } @else if (route(); as route) {
         <span class="response-fact route-badge" uiTooltip="Route"
           >{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span
         >
@@ -96,7 +110,16 @@
       </div>
       }
     </div>
-    } @if (redirects(); as hops) { @if (hops.chain.length || redirectNote()) {
+    } @if (record(); as rec) { @if (recordOpen()) {
+    <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
+    <section
+      id="exchange-record"
+      class="exchange-record border-b border-separator px-4 py-3 type-footnote"
+      aria-label="Exchange record"
+    >
+      <app-exchange-record [record]="rec" (sendThroughBridge)="sendThroughBridge.emit()" />
+    </section>
+    } } @if (redirects(); as hops) { @if (hops.chain.length || redirectNote()) {
     <!-- The redirects followed through the Local Bridge (P5.4). A direct request has none to show: the browser follows them unseen. -->
     <section
       class="redirect-chain space-y-2 border-b border-separator px-5 py-3 type-footnote text-label-secondary"
@@ -251,18 +274,7 @@
                 <!-- No response (U-051): the app's words, in its own face; nothing in the server's place. -->
                 <div class="response-failure space-y-3">
                   <p class="type-callout text-label-primary">{{ bodyText() }}</p>
-                  @if (noResponse(); as reported) {
-                  <p class="response-reported type-footnote text-label-secondary"
-                    >What the browser reported: <code class="font-mono">{{ reported }}</code></p
-                  >
-                  <button
-                    uiButton="outlined"
-                    class="btn-secondary btn-sm"
-                    type="button"
-                    (click)="sendThroughBridge.emit()"
-                    >Send through the Local Bridge</button
-                  >
-                  }
+                  <!-- What was reported, and the action, are in the exchange record under the status line (D4.12). -->
                 </div>
                 } @else if (!bodyText() && !responseBinary()) {
                 <p class="type-callout text-label-secondary">No body returned.</p>

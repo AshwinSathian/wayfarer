@@ -99,10 +99,11 @@ export interface VariableToken {
  * - `{{$guid}}` and the other dynamic variables give a new value each use.
  * - `{{$secret.<id>}}` is asked of `secret`. Its plaintext is recorded in
  *   `taint` and is used as it is: a secret that reads `{{token}}` is that text.
+ *   The variable that held the reference is recorded in `vaulted`.
  * - What has no value stays as written, and is listed in `unresolved` or
  *   `lockedSecrets`.
  *
- * One resolver is used for every text of one request, so the three sets
+ * One resolver is used for every text of one request, so the four sets
  * describe the whole request.
  */
 export class VariableResolver {
@@ -112,6 +113,12 @@ export class VariableResolver {
   readonly unresolved = new Set<string>();
   /** Ids of secrets that were referenced and not given. */
   readonly lockedSecrets = new Set<string>();
+  /**
+   * Each variable whose value was a secret that was given, by name, with the
+   * scope it was found in. A reference written into a text itself is named
+   * as written, with no scope.
+   */
+  readonly vaulted = new Map<string, VariableScope | undefined>();
 
   private readonly scopes: [VariableScope, Map<string, string>][];
 
@@ -184,6 +191,8 @@ export class VariableResolver {
           return written;
         }
         this.taint.add(plaintext);
+        const holder = chain.at(-1);
+        this.vaulted.set(holder ?? written, holder === undefined ? undefined : this.find(holder)?.scope);
         return plaintext;
       }
       const dynamic = DYNAMIC.get(name);

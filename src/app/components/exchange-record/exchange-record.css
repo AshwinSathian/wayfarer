@@ -1,0 +1,13 @@
+.exchange-record-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  color: var(--label-secondary);
+}
+
+/* A host or a header name may be one long word. */
+.exchange-record-lines .font-mono {
+  overflow-wrap: anywhere;
+}

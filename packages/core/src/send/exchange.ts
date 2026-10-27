@@ -24,7 +24,9 @@ import {
   type StreamEvent,
   type TransportOptions,
 } from "../transport/transport";
+import type { VariableScope } from "../variables/resolver";
 import { runAssertions, type TestResult } from "./assertions";
+import type { ExchangeRecord } from "./record";
 import { containsSecretPlaceholder } from "./wire";
 
 /** A request as it is sent: every variable replaced, the vault read, the auth applied. */
@@ -39,6 +41,8 @@ export interface BuiltRequest {
   secrets: string[];
   /** The credentials of the Auth tab as they were sent. Masked too, unless the user asks for an export with credentials. */
   credentials: string[];
+  /** What brought each of `secrets` in, by name and never by value: the exchange record says it (D4.12). */
+  vaulted?: { name: string; scope?: VariableScope }[];
 }
 
 /** How much of a body history keeps, in characters. */
@@ -324,12 +328,6 @@ function scriptsToRun(spec: RequestExecutionSpec, kind: keyof Scripts): { name: 
 
 export interface RequestExecutionResponse {
   isError: boolean;
-  /**
-   * No response arrived, and this is what the browser (or the runtime) reported, as it reported it: the same
-   * words for a name that does not resolve, a refused connection and CORS (U-051). The Local Bridge can tell
-   * them apart. Not set for a timeout or a stop.
-   */
-  noResponse?: string;
   statusCode?: number;
   statusText?: string;
   bodyIsJson: boolean;
@@ -402,6 +400,8 @@ export interface ExchangeResult {
   nextRequest?: string | null;
   /** The values of the jar's cookies that went out with the request or with a hop of its redirects (P5.3): credentials, to whatever exports the exchange. */
   cookieValues: string[];
+  /** What the send did, told from `history`, after the redactor (D4.12). */
+  record: ExchangeRecord;
 }
 
 /**
@@ -652,6 +652,24 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
 
   const nextRequest = lastNext(runs);
   return {
+    record: recordOf(history, {
+      sentHeaders: withJarCookies(request.headers, sentCookies ?? []),
+      sentUrl: request.url,
+      sentPreview: preview,
+      received: outcome instanceof TransportError ? undefined : { headers: shaped.headerList, body: shaped.bodyText },
+      vaulted: (request.vaulted ?? []).map((secret) => ({
+        ...secret,
+        ...(secret.scope && { holder: holderOf(secret.scope, ports, spec) }),
+      })),
+      failure:
+        outcome instanceof TransportError
+          ? {
+              kind: outcome.kind,
+              reported: redactor.text(outcome.message),
+              summary: firstSentence(shaped.response.errorText),
+            }
+          : undefined,
+    }),
     durationMs,
     timings,
     ...(!(outcome instanceof TransportError) && outcome.timings && { relayTimings: outcome.timings }),
@@ -661,6 +679,63 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
     response: shaped.response,
     cookieValues: [...cookieValues],
     ...(nextRequest !== undefined && { nextRequest }),
+  };
+}
+
+/** The first sentence of the app's words. */
+function firstSentence(text: string): string {
+  const match = /^.*?[.!?](?=\s|$)/s.exec(text.trim());
+  return (match ? match[0] : text).trim();
+}
+
+/** How the app names a scope's holder, when one holds it: `environment "Local"`, the collection as its ancestors name it. */
+function holderOf(scope: VariableScope, ports: ExchangePorts, spec: RequestExecutionSpec): string | undefined {
+  if (scope === "environment") {
+    const name = ports.environment()?.name;
+    return name === undefined ? undefined : `environment "${name}"`;
+  }
+  if (scope === "collection") return spec.inherited?.[0]?.name;
+  return undefined;
+}
+
+/**
+ * The exchange record (D4.12), read off what history keeps, which is
+ * masked already: what it says was masked is where the kept text differs
+ * from what was sent and received. Nothing of `raw` is put in the record.
+ */
+function recordOf(
+  history: PastRequest,
+  raw: {
+    sentHeaders: [string, string][];
+    sentUrl: string;
+    sentPreview: string | undefined;
+    received: { headers: [string, string][]; body: string | undefined } | undefined;
+    vaulted: ExchangeRecord["secrets"];
+    failure: ExchangeRecord["failure"];
+  },
+): ExchangeRecord {
+  const changed = (kept: [string, string][], sent: [string, string][]) =>
+    kept.filter(([, value], index) => value !== sent[index]?.[1]).map(([name]) => name);
+  const response = history.response;
+  const keptUrl = history.sent.url;
+  return {
+    ...(response && { status: { code: response.status, text: response.statusText } }),
+    durationMs: history.durationMs ?? 0,
+    route: history.route,
+    host: URL.parse(keptUrl)?.host || keptUrl,
+    secrets: raw.vaulted,
+    masked: {
+      ...(keptUrl !== raw.sentUrl && { address: true as const }),
+      headers: [...new Set(changed(history.sent.headers, raw.sentHeaders))],
+      ...(raw.sentPreview !== undefined &&
+        history.sent.bodyPreview !== raw.sentPreview.slice(0, HISTORY_BODY_LIMIT) && { body: true as const }),
+      responseHeaders: response && raw.received ? [...new Set(changed(response.headers, raw.received.headers))] : [],
+      ...(response?.body &&
+        raw.received?.body !== undefined &&
+        response.body.text !== raw.received.body.slice(0, HISTORY_BODY_LIMIT) && { responseBody: true as const }),
+    },
+    kept: { response: response !== undefined, body: response?.body !== undefined },
+    ...(raw.failure && { failure: raw.failure }),
   };
 }
 
@@ -735,7 +810,6 @@ function shapeFailure(failure: TransportError, page: string | undefined, online:
       : failure.message,
     response: {
       isError: true,
-      ...(network && { noResponse: failure.message }),
       statusCode,
       statusText: "",
       bodyIsJson: false,

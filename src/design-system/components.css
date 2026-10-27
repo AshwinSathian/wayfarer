@@ -557,6 +557,15 @@ pre,
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* The status line's last words, where the request went, open the exchange record (D4.12). A long host wraps
+   inside the button, from its start, and does not widen the pane. */
+.ui-button.record-toggle {
+  max-width: 100%;
+  justify-content: flex-start;
+  font-size: var(--type-callout-size);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
 .response-fact + .response-fact::before {
   content: "·";
   /* Read as nothing: the dot only separates. */

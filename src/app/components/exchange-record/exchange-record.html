@@ -1,0 +1,16 @@
+<ul class="exchange-record-lines">
+  @for (line of lines(); track line.field) {
+  <li class="record-{{ line.field }}">
+    @for (part of line.parts; track $index) { @if (wire(part); as value) {
+    <span class="font-mono text-label-primary">{{ value }}</span>
+    } @else {
+    <span>{{ words(part) }}</span>
+    } }
+  </li>
+  }
+</ul>
+@if (offerBridge()) {
+<button uiButton="outlined" class="btn-secondary btn-sm mt-3" type="button" (click)="sendThroughBridge.emit()"
+  >Send through the Local Bridge</button
+>
+}

@@ -33,6 +33,14 @@ const result = (fields: Partial<ExchangeResult> = {}): ExchangeResult => ({
     route: "direct",
   },
   cookieValues: [],
+  record: {
+    durationMs: 12,
+    route: "direct",
+    host: "u",
+    secrets: [],
+    masked: { headers: [], responseHeaders: [] },
+    kept: { response: false, body: false },
+  },
   ...fields,
 });
 

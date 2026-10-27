@@ -51,7 +51,12 @@ Each region holds one kind of thing:
   delete). Its header has two menu buttons; each row has a context menu.
 - **Tab strip.** What is open: switch, open, duplicate, close.
 - **Composer.** The open request: its parts, and send, save and copy.
-- **Response.** What came back, and copying or exporting the exchange.
+- **Response.** What came back, and copying or exporting the exchange. Under
+  its status line, the exchange record (D4.12): what the send did, one
+  sentence per field (the route and the host, the vault secrets filled by
+  name, what was masked, what history kept, and on a failure what was
+  reported with the one action). The status line's last words, "Direct to
+  {host}", open and close it; it opens by itself only on a failure.
 - **Palette.** A second road, from the keyboard, to every command, and the
   way to find a request, a collection, an environment or a past request by
   typing.
@@ -63,8 +68,10 @@ A dialog or a drawer belongs to the region that opens it: the Environments
 dialog to the toolbar, the Secrets dialog to the status bar, a collection's
 Settings dialog to the sidebar. Row 1.9 also chose Direction C's rail, an
 inspector beside the response for why a request failed, where it went and
-which secrets it used. Row 1.35 gives it no session, and no action of
-today's app moves there.
+which secrets it used. Row 1.45 gave it session D4-l (D4.12), which built
+it as the exchange record under the response's status line: in a pane as
+narrow as 391 px a column beside the body would leave neither room, so it
+is a band the status line opens. The failure's action moved into it.
 
 ## How the palette, the sidebar and the tabs share work
 
@@ -446,7 +453,8 @@ it is.
 | `response-viewer.html: Previous search match` | Response | Response | D4-e |
 | `response-viewer.html: Next search match` | Response | Response | D4-e |
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
-| `response-viewer.html: Send through the Local Bridge` | — (new in D4-e, U-051): under a send that got no response | Response; D4.12 adds pairing in place (DQ10) | D4-e |
+| `response-viewer.html: Exchange record` | — (new in D4-l, D4.12): the end of the status line, "Direct to {host}"; opens and closes the record under it | Response, status line | D4-l |
+| `exchange-record.html: Send through the Local Bridge` | Exchange record, after a send that got no response from the page (D4-e, U-051; moved into the record in D4-l) | Response, exchange record; D4.12 adds pairing in place (DQ10) | D4-l |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
 | `socket-view.html: Check it is JSON before sending` | WebSocket view (was "Must be JSON", U-103) | Response, WebSocket view | D4-e |
 | `socket-view.html: Messages to show` | — (new in D4-e, U-048): All, Received, Sent | Response, WebSocket view, above the log | D4-e |

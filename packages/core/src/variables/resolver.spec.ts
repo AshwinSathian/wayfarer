@@ -295,6 +295,28 @@ describe("VariableResolver", () => {
       expect([...resolver.lockedSecrets]).toEqual(["abc"]);
       expect(resolver.taint.size).toBe(0);
     });
+
+    it("records the variable that held each secret given, with the scope it was found in (D4.12)", () => {
+      const resolver = new VariableResolver(
+        {
+          environment: rowsOf({ token: "{{$secret.env}}" }),
+          collection: rowsOf({ token: "shadowed", outer: "{{inner}}", inner: "{{$secret.col}}" }),
+        },
+        (id) => `plain-${id}`,
+      );
+      expect(resolver.resolve("{{token}} {{outer}} {{$secret.raw}}")).toBe("plain-env plain-col plain-raw");
+      expect([...resolver.vaulted]).toEqual([
+        ["token", "environment"],
+        ["inner", "collection"],
+        ["{{$secret.raw}}", undefined],
+      ]);
+    });
+
+    it("records nothing for a secret that was not given", () => {
+      const resolver = new VariableResolver({ environment: rowsOf({ token: "{{$secret.gone}}" }) });
+      resolver.resolve("{{token}}");
+      expect(resolver.vaulted.size).toBe(0);
+    });
   });
 });
 

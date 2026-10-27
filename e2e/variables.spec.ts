@@ -75,9 +75,17 @@ test("a collection variable and a global reach the server, an environment's valu
 
   // The chips name where each value comes from.
   const chips = page.locator("app-variable-chips");
-  await expect(chips.getByRole("button", { name: "fromCollection collection" })).toContainText("c-1");
-  await expect(chips.getByRole("button", { name: "fromGlobal global" })).toContainText("g-1");
-  await expect(chips.getByRole("button", { name: "winner environment" })).toContainText("from-environment");
+  const chip = (name: string) =>
+    chips.locator(".var-chip").filter({ has: page.locator(".var-chip-name", { hasText: name }) });
+  await expect(chip("fromCollection")).toContainText('collection "Tripwire collection"');
+  await expect(chip("fromCollection")).toContainText("c-1");
+  await expect(chip("fromGlobal")).toContainText("the globals");
+  await expect(chip("fromGlobal")).toContainText("g-1");
+  // The environment's chip acts: it shows the variable in its environment. It hides the collection's value (D4.12).
+  await expect(chips.getByRole("button", { name: 'winner environment "Tripwire env"' })).toContainText(
+    "from-environment",
+  );
+  await expect(chip("winner")).toContainText('Hides the value in collection "Tripwire collection"');
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 
   const check = (echo: Echo) => {
@@ -108,8 +116,8 @@ test("F74: a variable whose name holds a slash or a space reaches the server, an
     },
   );
   const chips = page.locator("app-variable-chips");
-  await expect(chips.getByRole("button", { name: "api/key environment" })).toContainText("k-1");
-  await expect(chips.getByRole("button", { name: "first name environment" })).toContainText("Ada");
+  await expect(chips.getByRole("button", { name: 'api/key environment "Tripwire env"' })).toContainText("k-1");
+  await expect(chips.getByRole("button", { name: 'first name environment "Tripwire env"' })).toContainText("Ada");
   // What is between braces and is no plain name is not a missing variable: nothing asks for it.
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 

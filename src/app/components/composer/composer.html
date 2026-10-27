@@ -67,8 +67,10 @@
 
     <app-request-warnings class="block space-y-2 empty:hidden" />
 
-    @if (store.variableTokens().length) {
-    <app-variable-chips class="flex flex-wrap gap-2" />
+    <!-- The preview before Send (D4.12): shown while the address, a header, the body or the auth holds a variable, or
+         an auth is sent. -->
+    @if (store.variableTokens().length || store.sentAuthSource().auth.type !== 'none') {
+    <app-variable-chips />
     }
 
     <!-- ── Request config + response ────────────────────────── -->

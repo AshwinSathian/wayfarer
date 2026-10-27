@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Before Send, the composer shows what will go.** Under the address: the
+  address with its variables filled (a vault secret as ***), the auth and
+  where it is set, and for each variable where its value comes from
+  (`environment "Local"`, `collection "Shop"`), its value or *** for a
+  vault secret, and which value of the same name it hides. A variable with
+  no value has a chip that adds it to the environment in use. Before, the
+  chips said only "Environment" or "Collection", nothing said one value
+  hid another, and a missing variable's chip did nothing.
 - **A send that got no response, with no Local Bridge paired, sets the bridge
   up where it failed.** The record says the request went "Direct, no bridge
   paired", shows `npx wayfarer-bridge` with Copy and a field for the

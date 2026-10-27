@@ -1,20 +1,38 @@
-@for (token of store.variableTokens(); track token.field + token.key) {
-<div
-  class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
-  role="button"
-  tabindex="0"
-  [uiTooltip]="token.source === 'environment' ? 'Show ' + token.key + ' in its environment.' : ''"
-  (click)="handleVariableChipClick(token)"
-  (keydown.enter)="handleVariableChipClick(token)"
-  (keydown.space)="$event.preventDefault(); handleVariableChipClick(token)"
+<p class="preview-address type-footnote text-label-secondary min-w-0 break-all"
+  >Sends to <span class="font-mono text-label-primary">{{ store.previewAddress() }}</span></p
 >
-  <div class="flex items-center gap-1.5">
-    <span class="type-footnote font-semibold">{{ token.key }}</span>
-    <span class="type-footnote text-label-tertiary capitalize">{{ token.source }}</span>
-  </div>
-  <div class="type-footnote text-label-secondary mt-0.5">
-    {{ token.error ?? token.value ?? (token.source === 'dynamic' ? 'New value each send' : token.source === 'secret' ||
-    token.vaulted ? 'From the vault' : 'Not resolved') }}
-  </div>
-</div>
+@if (authLine(); as auth) {
+<p class="preview-auth type-footnote text-label-secondary">{{ auth }}</p>
 }
+<div class="flex flex-wrap gap-2">
+  @for (variable of store.previewVariables(); track variable.name) { @let does = action(variable);
+  <div
+    class="var-chip var-{{ variable.source === 'missing' ? 'missing' : variable.source === 'environment' ? 'environment' : 'request' }}"
+    [attr.role]="does ? 'button' : null"
+    [attr.tabindex]="does ? 0 : null"
+    [uiTooltip]="does"
+    (click)="act(variable)"
+    (keydown.enter)="act(variable)"
+    (keydown.space)="$event.preventDefault(); act(variable)"
+  >
+    <div class="flex items-center gap-1.5">
+      <span class="var-chip-name type-footnote font-semibold font-mono">{{ variable.name }}</span>
+      <span class="var-chip-source type-footnote text-label-tertiary"
+        >{{ variable.holder ?? (variable.source === 'dynamic' ? 'Dynamic' : variable.source === 'secret' ? 'Vault' :
+        'Missing') }}</span
+      >
+    </div>
+    <div class="var-chip-value type-footnote text-label-secondary mt-0.5">
+      @if (variable.error) { {{ variable.error }} } @else if (variable.vaulted || variable.source === 'secret') {
+      <span class="font-mono">***</span> from the vault } @else if (variable.value !== undefined) {
+      <span class="font-mono">{{ variable.value }}</span>
+      } @else if (variable.source === 'dynamic') { New value each send } @else { No value }
+    </div>
+    @if (variable.shadows.length) {
+    <div class="var-chip-shadows type-footnote text-label-tertiary mt-0.5"
+      >Hides the value in {{ hidden(variable) }}</div
+    >
+    }
+  </div>
+  }
+</div>

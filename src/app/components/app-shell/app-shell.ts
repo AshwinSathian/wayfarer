@@ -184,9 +184,10 @@ export class AppShell implements OnInit {
   /** The environments editor, a dialog: the page holds the request and its response only. */
   readonly environmentsVisible = signal(false);
   private readonly variableFocus = inject(VariableFocus);
-  /** A variable chip or the secrets list asks to see an environment's variable: the editor opens and shows it. */
+  /** A variable chip or the secrets list asks to see an environment's variable, or to add a missing one: the editor opens for it. */
   private readonly openForVariable = effect(() => {
-    if (this.variableFocus.pending()?.source === "environment") this.environmentsVisible.set(true);
+    const source = this.variableFocus.pending()?.source;
+    if (source === "environment" || source === "missing") this.environmentsVisible.set(true);
   });
   readonly settingsDialogVisible = signal(false);
 

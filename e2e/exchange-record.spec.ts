@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { protectVariable, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
+import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
 
 // D4.12: the exchange record says what a send did, one sentence per field, from what the app sent and received.
@@ -140,5 +141,84 @@ for (const theme of ["light", "dark"] as const) {
         `the page at ${width} px`,
       ).toBeLessThanOrEqual(width);
     }
+  });
+}
+
+test("before Send, the preview names the environment's secret that hides the collection's value; so does the record", async ({
+  page,
+}) => {
+  const plaintext = "preview-e2e-secret-91ab";
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: { type: "inherit" },
+      collection: { auth: { type: "bearer", token: "{{token}}" }, variables: { token: "collection-value" } },
+    },
+  );
+  await protectVariable(page, "token", plaintext);
+  const preview = page.locator("app-variable-chips");
+  await expect(preview.locator(".preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+  await expect(preview.locator(".preview-auth")).toHaveText(
+    'Auth: Bearer token, from collection "Tripwire collection". {{token}} comes from the environment Tripwire env, as a vault secret.',
+  );
+  const chip = preview.getByRole("button", { name: /^token environment "Tripwire env"/ });
+  await expect(chip).toContainText("*** from the vault");
+  await expect(chip).toContainText('Hides the value in collection "Tripwire collection"');
+  await expect(preview).not.toContainText(plaintext);
+  await expect(preview).not.toContainText("collection-value");
+
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  const record = await openRecord(page);
+  expect(record.secrets).toBe(
+    'Filled from the vault: token, from environment "Tripwire env". Each is *** in what is kept.',
+  );
+  await expect(page.getByRole("region", { name: "Exchange record" })).not.toContainText(plaintext);
+});
+
+test("the preview's chip for a variable with no value adds it to the environment, its value to type", async ({
+  page,
+}) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/{{nowhere}}` });
+  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/{{nowhere}}`);
+  const chip = page.getByRole("button", { name: /^nowhere Missing/ });
+  await expect(chip).toContainText("No value");
+  await chip.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByPlaceholder("KEY", { exact: true }).last()).toHaveValue("nowhere");
+  await dialog.getByPlaceholder("Value", { exact: true }).last().fill("echo");
+  await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("app-variable-chips .preview-address")).toHaveText("Sends to http://127.0.0.1:4300/echo");
+});
+
+for (const theme of ["light", "dark"] as const) {
+  test(`the preview and the open record have no WCAG 2.2 AA violation in the ${theme} theme`, async ({ page }) => {
+    await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
+    await seedAndOpen(
+      page,
+      { host: "127.0.0.1:4300" },
+      {
+        method: "GET",
+        url: "http://{{host}}/{{nowhere}}",
+        auth: { type: "inherit" },
+        collection: { auth: { type: "bearer", token: "{{host}}" }, variables: { host: "shadowed" } },
+      },
+    );
+    await expect(page.locator("app-variable-chips .var-chip-shadows")).toBeVisible();
+    await page.mouse.move(5, 5);
+    const preview = await axe(page).include("app-variable-chips").analyze();
+    expect(preview.violations.map((violation) => violation.id)).toEqual([]);
+
+    await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
+    await send(page);
+    await expect(page.getByRole("region", { name: "Exchange record" })).toBeVisible();
+    await page.mouse.move(5, 5);
+    const record = await axe(page).include("#exchange-record").include(".response-status").analyze();
+    expect(record.violations.map((violation) => violation.id)).toEqual([]);
   });
 }

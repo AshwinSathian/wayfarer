@@ -13,6 +13,8 @@ import {
   runOutcome,
   normalizeUrl,
   oauthOf,
+  previewAddress,
+  previewVariables,
   scriptsOf,
   sentAuth,
   sentHeaders,
@@ -204,6 +206,19 @@ export class WorkspaceStore {
   }
   /** What the draft's auth is when it inherits, and from where (P4.9). */
   readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
+  /**
+   * The preview before Send (D4.12, DQ8): each variable with where it comes from and what it hides, and the
+   * address as it would go. The vault is not read: a secret is *** and named.
+   */
+  readonly previewVariables = computed(() =>
+    previewVariables(this.variableTokens(), this.scopes(), {
+      environment: this.environments.activeEnvironment()?.name,
+      ancestors: this.saved.ancestors(),
+    }),
+  );
+  readonly previewAddress = computed(() => previewAddress(this.draft().url, this.scopes()));
+  /** The auth the draft is sent with, and who sets it: its own, or its collection's or a folder's. */
+  readonly sentAuthSource = computed(() => effectiveAuth(this.draft().auth, this.saved.ancestors()));
   /** Where the values of the auth's variables come from, said on the Auth tab (U-130). */
   readonly authValueSources = computed(() =>
     valueSources(this.variableTokens(), this.environments.activeEnvironment()?.name),

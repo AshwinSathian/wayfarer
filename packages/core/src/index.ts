@@ -226,6 +226,7 @@ export {
   type SentBody,
 } from "./send/build";
 export { runOutcome } from "./send/run";
+export { previewAddress, previewVariables, type PreviewHolders, type PreviewVariable } from "./send/preview";
 export {
   formatMs,
   lineText,

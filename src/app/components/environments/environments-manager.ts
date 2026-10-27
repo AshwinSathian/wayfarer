@@ -95,6 +95,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly persistence = inject(StoragePersistence);
   private readonly injector = inject(Injector);
   private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");
+  private readonly valueInputs = viewChildren<ElementRef<HTMLInputElement>>("valueInput");
   private readonly vaultPassphraseInput = viewChild<ElementRef<HTMLInputElement>>("vaultPassphraseField");
 
   readonly requestUnlock = output<void>();
@@ -171,13 +172,15 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
 
     effect(() => {
       const token = this.variableFocus.pending();
-      if (token?.source !== "environment") return;
+      if (token?.source !== "environment" && token?.source !== "missing") return;
       untracked(() => {
         this.variableFocus.pending.set(null);
         if (token.environmentId && token.environmentId !== this.selectedId()) {
           this.selectEnvironment(token.environmentId);
         }
         this.editorTab.set("pairs");
+        // A variable the request uses and nothing sets (D4.12's preview): a row of that name, its value to type.
+        if (token.source === "missing") this.addVariable(token.key);
         this.highlightVariable(token.key);
       });
     });
@@ -263,16 +266,19 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     await this.envService.setActiveEnvironment(env.meta.id);
   }
 
-  addVariable(): void {
+  /** A new row, named `key` when one is given: the keyboard goes on in its name, or in its value when it is named. */
+  addVariable(key = ""): void {
     const draft = this.draft();
     if (!draft) {
       return;
     }
-    draft.vars.push({ key: "", value: "", enabled: true });
+    draft.vars.push({ key, value: "", enabled: true });
     this.updateDraft(draft);
     this.syncJsonFromPairs();
     // The keyboard goes on in the new row (U-145).
-    afterNextRender(() => this.keyInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
+    afterNextRender(() => (key ? this.valueInputs() : this.keyInputs()).at(-1)?.nativeElement.focus(), {
+      injector: this.injector,
+    });
   }
 
   removeVariable(index: number): void {

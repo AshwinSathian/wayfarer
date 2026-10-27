@@ -50,7 +50,10 @@ Each region holds one kind of thing:
   done to them (create, import, rename, move, duplicate, run, export,
   delete). Its header has two menu buttons; each row has a context menu.
 - **Tab strip.** What is open: switch, open, duplicate, close.
-- **Composer.** The open request: its parts, and send, save and copy.
+- **Composer.** The open request: its parts, and send, save and copy. Under
+  the address, the exchange record's preview (D4.12, DQ8): the address as
+  it would go (a vault secret as ***), the auth and who sets it, and one
+  chip per variable with its holder, its value or *** and what it hides.
 - **Response.** What came back, and copying or exporting the exchange. Under
   its status line, the exchange record (D4.12): what the send did, one
   sentence per field (the route and the host, the vault secrets filled by
@@ -426,7 +429,7 @@ it is.
 | `tests-panel.html: Operator` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Remove test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Add test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
-| `variable-chips.html: Show` | Chips under the address, one per variable | Composer; opens Environments at the variable | D4-d |
+| `variable-chips.html: does` | The preview under the address (D4-l, D4.12): one chip per variable, with its holder, its value or *** and what it hides; an environment's chip shows the variable in its environment, a missing one's adds it to the active environment | Composer; opens Environments at the variable | D4-l |
 | `menu address-row.ts: Copy as cURL` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as cURL with credentials` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as JavaScript (fetch)` | Address row, Copy as cURL menu | Composer, same menu | D4-d |

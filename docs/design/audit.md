@@ -1534,7 +1534,7 @@ signal no template reads; the red "Missing" chip is dead. A development
 build; may be unfinished.
 Evidence: `composer/variable-chips.ts:17-23`;
 [`hig-review/1440-light-rt-10-missing-chip-click.png`](hig-review/1440-light-rt-10-missing-chip-click.png).
-**Status:** Open, D4-g (D4.5). Review row N3.
+**Status:** Open, D4-g (D4.5). Since D4-l (D4.12's preview, 2026-10-27) a missing chip adds the variable to the active environment and an environment's chip shows it there; a collection's, a folder's, a global's, a secret's and a dynamic chip still do nothing, and "Add {name} to" the collection is D4.5's. Review row N3.
 
 ### Import
 

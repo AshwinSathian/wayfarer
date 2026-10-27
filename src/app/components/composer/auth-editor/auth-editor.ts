@@ -9,7 +9,7 @@ import { Icon } from "../../../shared/icon/icon";
 import { UiSelect } from "../../../ui/select";
 
 type AuthType = AuthConfig["type"];
-const AUTH_TYPES: { label: string; value: AuthType }[] = [
+export const AUTH_TYPES: { label: string; value: AuthType }[] = [
   { label: "Inherit from parent", value: "inherit" },
   { label: "None", value: "none" },
   { label: "Bearer token", value: "bearer" },

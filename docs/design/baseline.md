@@ -42,6 +42,9 @@ way (three runs, the median), beside its row above.
 | 5a | Find why a request failed: CORS | D4-e (#444) | 33 | 2 | 0 | 31 | 0.12 | 0.12, 0.12, 0.15 |
 | 5b | Find why a request failed: DNS | D4-e (#444) | 30 | 2 | 0 | 28 | 0.13 | 0.13, 0.14, 0.13 |
 | 5c | Find why a request failed: 401 | D4-e (#444) | 34 | 2 | 0 | 32 | 0.15 | 0.15, 0.13, 0.15 |
+| 5a | Find why a request failed: CORS | D4-l (#469 to #472) | 46 (+2 in a terminal) | 6 | 0 | 40 | 0.34 | 0.34, 0.34, 0.32 |
+| 5b | Find why a request failed: DNS | D4-l (#469 to #472) | 43 (+2 in a terminal) | 6 | 0 | 37 | 0.31 | 0.34, 0.31, 0.30 |
+| 5c | Find why a request failed: 401 | D4-l (#469 to #472) | 35 | 3 | 0 | 32 | 0.25 | 0.25, 0.29, 0.20 |
 
 D4-d rebuilt the composer and left task 1 as D4-c made it: the caret
 still starts in the address, and the address and Enter are the task.
@@ -71,6 +74,26 @@ D4.12 (session D4-l, DQ10) sets the bridge up from this screen, and task
 is not named there either; the exchange record of D4.12 is what says which
 credential went and from where. Measured on `main` at `9d3edd9`, three
 runs in the Playwright Linux image.
+
+D4-l (D4.12, #469 to #472) measures task 5 as row 1.50 asks: an input
+event is an action, and the task ends when the screen names the cause.
+It now does, for all three. 5a and 5b start from a browser with no bridge
+paired, as a new visitor's is: the address and Send, then the record the
+failure opened, "The request got no response. Direct to {host}, no bridge
+paired.", with `npx wayfarer-bridge`, Copy and the pairing code in place.
+The count is Copy (1), the code the bridge printed (a click and 9
+characters), Pair (1) and Send again (1), 13 more; starting the bridge is
+two more actions in a terminal (paste the command, Enter), outside the
+app and not in the script's count, and the bridge is started before the
+clock in each run. For 5a the bridge's answer is the cause: "200 OK …
+Local Bridge to 127.0.0.1:4300", what the page could not get. For 5b the
+record quotes the bridge: "What was reported: getaddrinfo ENOTFOUND
+no-such-host.invalid", a name that does not resolve. For 5c one click
+opens the record of the 401: "No vault secret was filled. Nothing was
+masked.", so no credential went. Before D4-l none of the three was named.
+The status line of 5b shows the bridge's own 502, a status no server sent
+(noted for D4.12's follow-up). Measured on the branch of #472 (the tree
+`main` has after it), three runs in the Playwright Linux image.
 
 Task 1 is one input shorter: the caret starts in the address and Enter
 sends, so the address and one key are the whole task; before, a click

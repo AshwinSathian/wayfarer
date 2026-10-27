@@ -76,6 +76,40 @@ it as the exchange record under the response's status line: in a pane as
 narrow as 391 px a column beside the body would leave neither room, so it
 is a band the status line opens. The failure's action moved into it.
 
+## The signature element: the exchange record
+
+The exchange record is Wayfarer's signature element (D2.5, chosen in row
+1.52 by DQ8; built in D4-l, D4.12). One record per send says what left the
+browser and what was kept, always in the same places:
+
+- **Before Send, in the composer**, under the address: the preview. The
+  address as it would go (a vault secret as ***), the auth and who sets
+  it with where its values come from, and one chip per variable with its
+  holder, its value or ***, and what it hides. An environment's chip shows
+  the variable there; a missing one's adds it to the environment in use.
+- **After Send, in the response**, under the status line, whose last
+  words ("Direct to {host}") open and close it: the route taken and the
+  host, the vault secrets filled by name and where they are set, what was
+  masked with *** in what is kept, what history kept, and on a failure
+  what the browser or the bridge reported, with one thing to do (Send
+  through the Local Bridge, or with none paired, set it up in place:
+  `npx wayfarer-bridge`, the pairing code, Send again). It opens by
+  itself only on a failure. Its first line is what the status region says
+  when a send ends.
+- **In history and in a run**: a history entry keeps its record, and opens
+  into it when loaded from History; each row of a run that was sent has
+  Record, which opens it under the row.
+
+The record is built by `exchange` in `@wayfarer/core` from what history
+keeps, after the redactor, so the CLI has the same record, and it holds no
+value the app did not send or receive. Its sentences are
+`recordLines` (`packages/core/src/send/record.ts`), in `voice.md`'s words.
+`e2e/exchange-record.spec.ts` holds each field to what the exchange did
+(direct, through the bridge, with a vault secret, with a masked header),
+the preview and the sent record naming a vault secret that hides a
+collection's value, and the history entry's record; `e2e/bridge-setup.spec.ts`
+holds the setup in place; `e2e/runner.spec.ts` a run's row.
+
 ## How the palette, the sidebar and the tabs share work
 
 The sidebar holds what is saved and the tabs hold what is open. The

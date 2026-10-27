@@ -1,5 +1,6 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { startBridge, type TestBridge } from "../support/bridge";
 import { ECHO } from "../support/echo";
 
 // D0.2 of PLAN-design.md: the eight tasks of D1.4, done on today's app the shortest way it offers, each
@@ -107,6 +108,32 @@ interface Task {
   /** What has to be in place before the first input: not counted. */
   before?: (page: Page) => Promise<void>;
   do: (user: User) => Promise<void>;
+  /** What is put away after the run: not counted. */
+  after?: () => Promise<void> | void;
+}
+
+/**
+ * Task 5 since D4-l (D4.12, DQ10): the bridge the person starts from the failure, with `npx wayfarer-bridge`, on
+ * its address. Starting it is the person's, in a terminal, and is not counted here: two actions there (paste the
+ * command, Enter) beside the ones counted. A bridge prints its code once, so each run has one of its own.
+ */
+let bridge: TestBridge | undefined;
+async function bridgeStarted(page: Page): Promise<void> {
+  bridge = await startBridge();
+  await page.evaluate(
+    (url) => localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "auto", url })),
+    bridge.url,
+  );
+  await ready(page);
+}
+
+/** From the failure's record: Copy the command, the code the bridge printed, Pair, Send again. */
+async function pairInPlace(user: User): Promise<void> {
+  const record = user.page.getByRole("region", { name: "Exchange record" });
+  await user.click(button(record, "Copy the command"));
+  await user.type(record.getByLabel("Pairing code", { exact: true }), bridge?.pairingCode ?? "");
+  await user.click(button(record, "Pair"));
+  await user.click(button(record, "Send again"));
 }
 
 const TASKS: Task[] = [
@@ -183,20 +210,29 @@ const TASKS: Task[] = [
   {
     id: "5a",
     name: "Find why a request failed: CORS",
+    before: bridgeStarted,
+    // The cause is named when the bridge's answer arrives: what the page could not get, the bridge got.
     do: async (user) => {
       await user.type(address(user.page), `${ECHO}/cors/none`);
       await user.click(send(user.page));
-      await expect(user.page.locator("app-response-viewer")).toContainText("CORS", { timeout: 15_000 });
+      await pairInPlace(user);
+      await expect(user.page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+      await expect(user.page.locator(".record-toggle")).toHaveText(/^Local Bridge to /);
     },
+    after: () => bridge?.stop(),
   },
   {
     id: "5b",
     name: "Find why a request failed: DNS",
+    before: bridgeStarted,
+    // The cause is named by the bridge's own words in the record: the name does not resolve.
     do: async (user) => {
       await user.type(address(user.page), "http://no-such-host.invalid/");
       await user.click(send(user.page));
-      await expect(user.page.locator("app-response-viewer")).toContainText(/DNS|name|host/i, { timeout: 15_000 });
+      await pairInPlace(user);
+      await expect(user.page.locator(".record-failure")).toContainText("ENOTFOUND", { timeout: 15_000 });
     },
+    after: () => bridge?.stop(),
   },
   {
     id: "5c",
@@ -205,6 +241,9 @@ const TASKS: Task[] = [
       await user.type(address(user.page), `${ECHO}/status/401`);
       await user.click(send(user.page));
       await expect(user.page.locator(".status-badge")).toHaveText("401");
+      // The record says which credential went: none was filled, nothing was masked (D4.12).
+      await user.click(user.page.locator(".record-toggle"));
+      await expect(user.page.locator(".record-secrets")).toHaveText("No vault secret was filled.");
     },
   },
   {
@@ -295,6 +334,7 @@ for (const task of TASKS) {
       const start = performance.now();
       await task.do(user);
       seconds.push((performance.now() - start) / 1000);
+      await task.after?.();
       if (task.id.startsWith("5"))
         says = (await page.locator("app-response-viewer").innerText()).replace(/\s+/g, " ").trim();
       await context.close();

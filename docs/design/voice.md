@@ -11,6 +11,41 @@ The person reading is at work. They came to send a request, and every word
 between them and the response costs them a moment. The app says what is
 true, in the words they already use, and stops.
 
+## The exchange record
+
+The exchange record is Wayfarer's signature element (D2.5, row 1.52; its
+place is [`ia.md`](ia.md#the-signature-element-the-exchange-record)). It
+is the one place where the app gives an account of a send, so its words
+follow the rules below more strictly than any other string:
+
+- **One sentence per field, the same sentence every time.** "Sent from
+  this page to api.example.com." "Sent through the Local Bridge to
+  api.example.com." "Filled from the vault: token, from environment
+  "Local". Each is *** in what is kept." "Masked with *** in what is kept:
+  Authorization and the response body." "History kept the request and the
+  response." "What was reported: Failed to fetch". A field with nothing to
+  say says so ("No vault secret was filled.", "Nothing was masked."): an
+  absent line reads as a line not checked.
+- **Only what the app sent or received.** The host is the one the request
+  went to, as kept; a secret is named by its variable and where it is set,
+  never by its value; what was reported is quoted as the browser or the
+  bridge said it, masked like everything kept. The record never guesses a
+  cause the browser hid: it says what each route answered.
+- **Its first line is the status line's words.** "200 OK, 16.3 ms, Direct
+  to api.example.com"; with no response, the failure's first sentence and
+  the route: "The request got no response. Direct to 127.0.0.1:9, no
+  bridge paired." The status region says the same line.
+
+**Provenance in the type split** (D2.5's first candidate, kept as a rule
+under the record): monospace is a value of the wire or one the person
+typed, exactly as sent or received (a host, a header's name, a variable's
+name, what was reported); sans is Wayfarer speaking. The app never writes
+its own words in a server's slot, and never draws a server's words in its
+own face. In the record each sentence is pieces of the app's words and of
+the wire's (`RecordPart`), and only the wire's are monospace;
+`response-viewer.spec.ts` ("open, says each field in a sentence, the
+wire's values in monospace") holds it.
+
 ## Words
 
 **One name for each thing, the same everywhere.** A person who reads

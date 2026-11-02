@@ -279,3 +279,12 @@ export async function dumpIdb(page: Page): Promise<Record<string, unknown[]>> {
     return out;
   });
 }
+
+/** Chooses an item of the open tab's menu (right-click on the tab): Close tab, Duplicate tab, Rename (U-027). */
+export async function tabMenu(page: Page, item: string): Promise<void> {
+  await page
+    .getByRole("tablist", { name: "Open requests" })
+    .getByRole("tab", { selected: true })
+    .click({ button: "right" });
+  await page.getByRole("menuitem", { name: item, exact: true }).click();
+}

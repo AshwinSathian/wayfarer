@@ -568,7 +568,7 @@ test("a run goes on while another tab is open, stops at the first failure when a
   const view = await openRun(page);
   const strip = page.getByRole("tablist", { name: "Open requests" });
   await expect(strip.getByRole("tab")).toHaveCount(2);
-  await expect(strip.getByRole("tab").nth(1)).toContainText("RUN");
+  await expect(strip.getByRole("tab").nth(1)).toContainText("Run");
   await view.getByRole("checkbox", { name: "Stop on the first failure" }).check();
   await view.getByRole("button", { name: "Run", exact: true }).click();
   await expect(status(view)).toContainText("Running");

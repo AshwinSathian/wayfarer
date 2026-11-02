@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Each tab closes from its own ×, and a saved request is renamed on its
+  tab.** New sits right after the last tab instead of at the far end of
+  the strip, up to 1,000 px from the tab it acted on. A tab's menu
+  (right-click, or Shift+F10 on a focused tab) has Rename, Duplicate tab
+  and Close tab, and Delete closes a focused tab. A double click or F2 on
+  a saved request's tab renames it in place, and the sidebar takes the new
+  name; an unsaved tab is named where it is saved. Alt+T and Alt+W no
+  longer act inside a text area or an editor, where on a Mac Option+W
+  types "∑". Save to collection and the vault's passphrase dialog no
+  longer close on a stray click outside them, which lost what was typed.
+
 - **Text follows your text size, and names are easier to tell apart.**
   The app's text is set in Atkinson Hyperlegible Next, whose capital I,
   lowercase l and 1, and 0 and O, all differ at the app's small sizes; in

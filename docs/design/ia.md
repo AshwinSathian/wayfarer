@@ -181,6 +181,12 @@ menu (right-click, or Shift+F10 on a focused tab) and to the palette. The
 unsaved mark is D4-f's to draw in a colour other than the accent of the
 open tab's underline. Maintainer, 2026-10-22.
 
+Built in D4-f (2026-11-02): the menu also has Rename, and a double click
+or F2 renames a saved request over its tab (U-035); an unsaved tab is
+named where it is saved. The unsaved dot is the secondary label. Alt+T and
+Alt+W act in one-line fields, where focus usually is, and not in a text
+area or an editor, where Option+W types "∑" on a Mac (U-081).
+
 ### U-032: shortcuts shown where they work
 
 Every control with a shortcut shows it: in its tooltip ("New tab ⌥T"), in
@@ -379,10 +385,9 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `tab-strip.html: RUN / WS` | A tab | Tab strip; gains its own close button and a context menu (U-027) | D4-f |
-| `tab-strip.html: New tab` | End of the strip, +; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f |
-| `tab-strip.html: Duplicate tab` | End of the strip | A tab's context menu (right-click, Shift+F10) and the palette (U-027) | D4-f |
-| `tab-strip.html: Close tab` | End of the strip; Alt+W | Each tab's ×; Alt+W, and Delete on a focused tab (U-027) | D4-f |
+| `tab-strip.html: Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
+| `tab-strip.html: New tab` | + after the last tab; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f, done |
+| `tab-strip.html: closeFromPointer(tab, $event)` | Each tab's ×, for the pointer; Alt+W, Delete on a focused tab and the tab's menu from the keyboard | Tab strip (U-027) | D4-f, done |
 | `run-view.html: Cancel run` | A run's tab | A run's tab | D4-i |
 | `run-view.html: Run again / Run` | A run's tab | A run's tab | D4-i |
 | `run-view.html: setIterations($any($event.target).value)` | A run's tab | A run's tab | D4-i |

@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { tabMenu } from "./support/app";
 import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -141,7 +142,7 @@ test("a variable is replaced in the address and in a message, and a socket stays
   ]);
 
   // Closing the tab asks first, and closes the connection.
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   const dialog = page.getByRole("alertdialog", { name: "Close this tab?" });
   await expect(dialog).toContainText("has a WebSocket open");
   await dialog.getByRole("button", { name: "Close tab" }).click();

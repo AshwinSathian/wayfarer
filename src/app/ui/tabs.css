@@ -69,9 +69,47 @@
   margin-bottom: 8px;
 }
 
-.request-tab-strip .request-tabs {
+.request-tab-strip .request-tabs-row {
+  position: relative;
+  display: flex;
   flex: 1 1 0;
+  align-items: center;
   min-width: 0;
+}
+
+/* The bar is as wide as its tabs, so New follows the last one (U-027); past the row's room it scrolls. */
+.request-tab-strip .request-tabs {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The rename field, drawn over the tab it names. */
+.request-tab-rename {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  background: var(--canvas-elevated);
+}
+
+/* Each tab's × shows on the open tab and under the pointer; it keeps its room so a tab does not grow on hover. */
+.request-tab-close {
+  display: inline-flex;
+  margin-inline: 2px -6px;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  color: var(--label-secondary);
+  visibility: hidden;
+}
+
+.request-tabs [role="tab"]:hover .request-tab-close,
+.request-tabs [role="tab"][aria-selected="true"] .request-tab-close {
+  visibility: visible;
+}
+
+.request-tab-close:hover {
+  background: var(--fill-hover);
+  color: var(--label-primary);
 }
 
 .request-tabs [role="tab"] {
@@ -97,7 +135,8 @@
   height: 7px;
   flex: none;
   border-radius: 50%;
-  background: var(--ink);
+  /* Not the ink of the open tab's line (U-027): a mark of state, in the secondary label. */
+  background: var(--label-secondary);
 }
 
 /* The panes. Aria makes a pane that is not shown inert and leaves hiding it to us. */

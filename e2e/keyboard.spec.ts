@@ -455,14 +455,14 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
   await page.getByRole("button", { name: "Request history" }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  const entry = drawer.getByRole("button", { name: /confirm=1$/ });
+  const entry = drawer.getByRole("button", { name: /confirm=1/ });
   await expect(entry).toBeVisible();
 
   // The centred alert dialog.
-  const clear = drawer.getByRole("button", { name: "Clear all history" });
+  const clear = drawer.getByRole("button", { name: "Clear history…" });
   await clear.focus();
   await page.keyboard.press("Enter");
-  const alert = page.getByRole("alertdialog", { name: "Are you sure?" });
+  const alert = page.getByRole("alertdialog", { name: "Clear history?" });
   await expect(alert).toBeVisible();
   await expect(alert.getByRole("button", { name: "Cancel" })).toBeFocused();
   await expectFocusTrapped(page, alert, browserName, 3);
@@ -472,10 +472,10 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await expect(entry).toBeVisible();
 
   // The small popup under a history entry's Delete button.
-  const del = drawer.getByRole("button", { name: "Delete history entry" });
+  const del = drawer.getByRole("button", { name: "Delete from history" });
   await del.focus();
   await page.keyboard.press("Enter");
-  const popup = page.getByRole("alertdialog", { name: "Remove this request from history?" });
+  const popup = page.getByRole("alertdialog", { name: /^Delete .* from history\?$/ });
   await expect(popup).toBeVisible();
   await expect(popup.getByRole("button", { name: "Cancel" })).toBeFocused();
   await expectFocusTrapped(page, popup, browserName, 3);

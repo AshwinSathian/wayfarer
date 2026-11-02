@@ -332,6 +332,7 @@ characters in a 432 px drawer; each row's checkbox is always visible and
 "Select all" is the first action.
 Evidence: `baseline/1440-light-05-history.png`.
 **Status:** Open, D4-f. Since D4-l (D4.12, 2026-10-27) each entry keeps its exchange record, and an entry loaded from History opens into it; the drawer's layout is D4-f's.
+**2026-11-02:** Fixed in #PRNUM (D4-f): each entry is a row with the method and the address across the drawer (at 1,440 px over 300 px of address where it was about 20 characters), its status, time and age under it; the search has the list's margins; boxes and the HAR export are a Select… mode (`e2e/history.spec.ts`).
 
 **U-025. Settings opens on one row.** Severity 3. H8.
 The dialog is 920 × 720 px; General holds one control (the theme). A
@@ -761,6 +762,7 @@ go (`ui/confirm.ts:55-79`; `app-shell.ts:302, 308-312`;
 Evidence: [`hig-review/1440-dark-43-confirm-dialog.png`](hig-review/1440-dark-43-confirm-dialog.png).
 Open: the shared confirm and the tree's in D4-f, Delete secret in D4-g,
 Reset all data in D4-h.
+**2026-11-02:** History's confirms fixed in #PRNUM (D4-f): Clear history asks "Clear history? Every entry is deleted; collections are not touched. This cannot be undone." with Clear history and Cancel; an entry's Delete names the entry. The shared confirm's default and the tree's confirm are the next D4-f PR's.
 
 ### Found later
 
@@ -1080,6 +1082,7 @@ drawer's Close.
 Evidence: `app-shell.html:84-103`;
 [`hig-review/1440-dark-37-history.png`](hig-review/1440-dark-37-history.png).
 **Status:** Open, D4-f. Review row W-31.
+**2026-11-02:** Fixed in #PRNUM (D4-f): Clear history… is a worded button above the list, away from Close, and its confirm names the act; each row's Delete is grey at rest.
 
 **U-102. New request is in the drawer only.** Severity 4. H4. All.
 Below 1,200 px the drawer has a "New request" button; the pinned sidebar
@@ -1101,6 +1104,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **Status:** Open, D4-f (palette, history), D4-g (environments), D4-h
 (settings). Review row W-39; the remainder of U-004.
 **2026-11-02:** The palette's half fixed in #484 (D4-f): its rows are plain rows in one floating list, no boxes inside it.
+**2026-11-02:** History's skeleton fixed in #PRNUM (D4-f): rows to come are lines, not boxes.
 
 ### Environments, the vault and the runner
 
@@ -1167,6 +1171,7 @@ Evidence: `past-requests.html:38, 122, 189, 195`; `past-requests.ts:185-186`;
 `import-dialog.html:84, 120`; `app-shell.html:89-90`; `settings.html:152`.
 **Status:** Open: D4-f (history, tree), D4-g (secrets), D4-h (import,
 bridge, Settings). Review row W-28.
+**2026-11-02:** History's names fixed in #PRNUM (D4-f): one act, Delete from history; one Clear, Clear history; a row opens its entry. The secrets', import's, the bridge's and Settings' remain with D4-g and D4-h.
 
 **U-084. Empty places say what is missing, not what goes there.**
 Severity 3. H6, H10. OC.

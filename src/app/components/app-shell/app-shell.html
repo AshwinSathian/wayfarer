@@ -85,16 +85,6 @@
       </div>
       <div class="flex items-center gap-1">
         <button
-          uiButton="icon"
-          class="btn-danger btn-sm"
-          type="button"
-          [disabled]="historyLoading() || !pastRequests().length"
-          uiTooltip="Clear all history"
-          aria-label="Clear all history"
-          (click)="confirmClear()"
-          ><app-icon name="delete"
-        /></button>
-        <button
           type="button"
           uiButton="icon"
           class="btn-plain"
@@ -106,13 +96,14 @@
         </button>
       </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-2 py-2">
+    <div class="flex-1 overflow-y-auto py-2">
       <app-past-requests
         [pastRequests]="pastRequests()"
         [loading]="historyLoading()"
         [displayHeader]="false"
         (loadRequest)="handleLoadRequest($event)"
         (deleteRequest)="deleteRequest.emit($event)"
+        (clearAll)="confirmClear()"
       ></app-past-requests>
     </div>
   </div>

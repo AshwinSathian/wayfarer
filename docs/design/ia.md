@@ -260,7 +260,6 @@ it is.
 |---|---|---|---|
 | `app-shell.html: Close navigation` | Sidebar as a drawer (below 1,200 px) | Sidebar | — |
 | `app-shell.html: New request` | Sidebar as a drawer, above the tree; empties the open tab | Sidebar as a drawer; opens a new tab, as New tab does | D4-f |
-| `app-shell.html: Clear all history` | History drawer (toolbar) | Toolbar, History drawer | D4-f |
 | `app-shell.html: Close history` | History drawer (toolbar) | Toolbar, History drawer | — |
 | `app-shell.html: Toggle sidebar` | Toolbar | Toolbar | — |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
@@ -314,11 +313,11 @@ it is.
 | `past-requests.html: Select none / Select all` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: exportChosen()` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Select` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
-| `past-requests.html: Load request` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
-| `past-requests.html: details` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
-| `past-requests.html: Delete history entry` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
-| `past-requests.html: button` | History drawer, a group's header | Toolbar, History drawer | D4-f |
-| `past-requests.html: Delete request` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
+| `past-requests.html: Select…` | History drawer, above the list: the rows gain their boxes and the bar its HAR export (U-024) | Toolbar, History drawer | D4-f, done |
+| `past-requests.html: Done` | History drawer, while selecting: back to the rows without boxes | Toolbar, History drawer | D4-f, done |
+| `past-requests.html: Clear history…` | History drawer, above the list, in words, away from Close, asked first (U-086) | Toolbar, History drawer; Settings, History | D4-f, done |
+| `past-requests.html: details` | History drawer, a row: opens the entry with its exchange record; its card says the status, the time and when | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f, done |
+| `past-requests.html: Delete from history` | Each row's end, grey until its row is hovered or focused, asked first | Toolbar, History drawer | D4-f, done |
 | `variables-dialog.ts: Cancel` | Global variables dialog (Environments) | Toolbar, Environments dialog | D4-g |
 | `variables-dialog.ts: Save variables` | Global variables dialog (Environments) | Toolbar, Environments dialog | D4-g |
 

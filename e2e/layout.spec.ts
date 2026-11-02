@@ -151,7 +151,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // F82: on a phone a history row is a panel's header, and its URL was not cut short there:
   // a long one pushed the header's chevron to x = 1355 in a 390 px window, out of sight.
-  test("a long URL in a phone's history row is cut short, and the row's chevron stays inside a 390 px window", async ({
+  test("a long URL in a phone's history row is cut short, and the row's Delete stays inside a 390 px window", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 900 });
@@ -163,11 +163,14 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.locator(".status-badge")).toHaveText("200");
     await page.getByRole("button", { name: "Request history", exact: true }).click();
     const drawer = page.getByRole("dialog", { name: "Request history" });
-    const chevron = drawer.locator("app-past-requests .section-chevron").last();
-    await expect(chevron).toBeVisible();
+    const remove = drawer.getByRole("button", { name: "Delete from history" }).last();
+    await expect(remove).toBeVisible();
     await expect
-      .poll(async () => chevron.evaluate((icon) => icon.getBoundingClientRect().right))
+      .poll(async () => remove.evaluate((button) => button.getBoundingClientRect().right))
       .toBeLessThanOrEqual(390);
+    // The address is cut with an ellipsis inside its row, not pushed past the window.
+    const address = drawer.locator(".history-address").last();
+    expect(await address.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
   });
 
   // The 352 px sidebar was pinned from 768 px up. At 820 px that left the

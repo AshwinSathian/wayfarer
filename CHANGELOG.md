@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History shows the whole address, and clearing it is no longer one
+  slip from closing it.** Each entry is a row with its method and address
+  across the drawer's width, and its status, time and age under it; the
+  address was cut at about 20 characters. The boxes for choosing entries
+  to export as HAR appear only after Select…, and Done hides them. Clear
+  history… is a button in words above the list, away from the drawer's
+  Close, and asks "Clear history? Every entry is deleted; collections are
+  not touched." where it asked "Are you sure?". Each row's Delete is grey
+  until its row is under the pointer or has focus, and asks which entry it
+  will delete. The same act has one name throughout: Delete from history.
+
 - **⌘K finds what you work with, not only commands.** The palette now
   opens from a search field in the toolbar or ⌘K (Ctrl+K) anywhere, and
   finds saved requests by name, method or address, collections and

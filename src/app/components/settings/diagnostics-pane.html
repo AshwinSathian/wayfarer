@@ -56,7 +56,7 @@
       like a key or a token are left out.</p
     >
     @if (errors().length) {
-    <ul class="diagnostics-errors space-y-1 type-footnote font-mono text-label-secondary">
+    <ul class="diagnostics-errors space-y-1 type-mono-body font-mono text-label-secondary">
       @for (entry of errors(); track $index) {
       <li class="break-words">{{ entry.at | date: "HH:mm:ss" }} {{ entry.context }}: {{ entry.message }}</li>
       }
@@ -68,7 +68,7 @@
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary">Content-Security-Policy violations</p>
     @if (violations().length) {
-    <ul class="diagnostics-csp space-y-1 type-footnote font-mono text-label-secondary">
+    <ul class="diagnostics-csp space-y-1 type-mono-body font-mono text-label-secondary">
       @for (entry of violations(); track $index) {
       <li class="break-words">{{ entry.at | date: "HH:mm:ss" }} {{ entry.message }}</li>
       }

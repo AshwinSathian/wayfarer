@@ -14,15 +14,6 @@ html {
 /* ── Font stack ──────────────────────────────────────────── */
 * {
   font-family: var(--font-sans);
-  /* cv02 = single-story a, cv03 = single-story g, cv04 = simple i/l,
-     cv11 = single-story g (some builds). Together these give Inter
-     the clean geometric feel of SF Pro. */
-  font-feature-settings:
-    "cv02" 1,
-    "cv03" 1,
-    "cv04" 1,
-    "cv11" 1,
-    "kern" 1;
 }
 
 code,
@@ -181,7 +172,7 @@ pre,
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--type-mono-body-size);
   font-weight: 600;
   padding: 3px 11px;
   border-radius: var(--radius-full);
@@ -219,7 +210,7 @@ pre,
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--type-callout-size);
   font-weight: 600;
   padding: 3px 10px;
   border-radius: var(--radius-full);
@@ -258,10 +249,9 @@ pre,
 /* ── Form label ──────────────────────────────────────────── */
 .ds-form-label {
   display: block;
-  font-size: 12px;
+  font-size: var(--type-footnote-size);
   font-weight: 500;
   color: var(--label-secondary);
-  letter-spacing: -0.002em;
   margin-bottom: 6px;
 }
 
@@ -309,6 +299,8 @@ pre,
 .address-bar {
   display: flex;
   align-items: stretch;
+  /* As tall as Send beside it, its border inside the height. */
+  height: var(--ctl-height-lg);
   border: 1px solid var(--ctl-boundary);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -431,9 +423,8 @@ pre,
 
 .ds-table td {
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--type-callout-size);
   color: var(--label-primary);
-  letter-spacing: -0.002em;
 }
 
 /* A response's headers (U-058): a name or a value breaks between words, and inside one only when nothing else fits.
@@ -583,19 +574,19 @@ pre,
 }
 
 .icon-xs {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .icon-sm {
-  font-size: 16px;
+  font-size: 1rem;
 }
 .icon-md {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .icon-lg {
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .icon-xl {
-  font-size: 32px;
+  font-size: 2rem;
 }
 
 /* A shortcut's keys (docs/design/voice.md, Shortcuts): in a tooltip, a palette's row, Settings › Shortcuts. */

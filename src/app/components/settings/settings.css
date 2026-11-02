@@ -185,7 +185,7 @@
 .settings-subhead {
   margin: 24px 0 10px;
   color: var(--label-secondary);
-  font-size: 12px;
+  font-size: var(--type-footnote-size);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -241,7 +241,7 @@
 
   .settings-nav-item {
     padding: 12px 10px;
-    font-size: 15px;
+    font-size: var(--type-title-3-size);
   }
 
   .settings-nav-chevron {

@@ -15,10 +15,10 @@
   color: var(--label-primary);
   caret-color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  /* The working size of the compact density (U-111): a value is 13 px. */
+  font-size: var(--type-callout-size);
   font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.003em;
+  line-height: var(--type-callout-line);
   vertical-align: middle;
   transition:
     border-color var(--dur-quick) var(--ease-standard),
@@ -119,7 +119,7 @@ textarea.ui-input {
    the ring on the bar, which half had focus did not show (U-074). */
 .ui-input.address-field,
 .ui-input.method-field {
-  height: var(--ctl-height-lg);
+  height: 100%;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -145,7 +145,8 @@ textarea.ui-input {
   min-width: 76px;
   padding-inline: 14px 0;
   font-family: var(--font-mono);
-  font-size: 12px;
+  /* No mono role under 13 px: JetBrains Mono's 0 and O were a device pixel apart at 12 (U-151). */
+  font-size: var(--type-mono-body-size);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;

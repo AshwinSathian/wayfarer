@@ -10,9 +10,8 @@
   border-radius: var(--radius-sm);
   background: var(--canvas-elevated);
   color: var(--label-primary);
-  font-size: var(--type-body-size);
+  font-size: var(--type-callout-size);
   font-weight: 400;
-  letter-spacing: -0.003em;
   line-height: normal;
   cursor: pointer;
   user-select: none;
@@ -48,7 +47,7 @@
   justify-content: center;
   width: var(--ctl-height-lg);
   color: var(--ctl-chevron);
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 
 /* The list, as wide as the CDK's pane, which is as wide as the select. */
@@ -69,9 +68,8 @@
   background: var(--surface-overlay);
   box-shadow: var(--shadow-overlay);
   color: var(--label-primary);
-  font-size: var(--type-body-size);
+  font-size: var(--type-callout-size);
   font-weight: 400;
-  letter-spacing: -0.003em;
   line-height: normal;
   outline: none;
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
@@ -114,7 +112,7 @@
   flex: none;
   color: var(--ink);
   /* Under the text's line: a taller tick made each option a pixel taller. */
-  font-size: 16px;
+  font-size: 1rem;
   visibility: hidden;
 }
 

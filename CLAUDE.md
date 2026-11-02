@@ -335,6 +335,13 @@ code errors.
   (`var(--type-footnote-size)`). Nothing is under 12 px: the token test
   fails on a `font-size` under 12 px in any stylesheet or a Tailwind
   `text-[Npx]` under it, and `e2e/type-floor.spec.ts` on any drawn text.
+  Sizes are rem (U-073): no stylesheet writes a `font-size` in px, icons
+  included (the token test). Working text (values, rows, tabs, controls)
+  is 13 px, captions 12, prose and dialogs 14 (U-111).
+- The text face is Atkinson Hyperlegible Next, with Inter as the
+  per-glyph fallback for Greek, Cyrillic and Vietnamese; the wire's is
+  JetBrains Mono, never under 13 px (`type-mono-body`): its 0 and O are a
+  device pixel apart at 12 (`docs/design/type-eval.md`).
 - A value a user typed, or one a server sent or will read (an address, a
   header, a variable, a credential, a body field), is monospace; a name,
   prose, a passphrase or a number is not. Every text field (`uiInput`)

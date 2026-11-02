@@ -55,7 +55,7 @@ test("the app uses every token", () => {
 test("no text is under 12 px: the scale, every font-size in the stylesheets, and Tailwind sizes", () => {
   for (const [key, token] of theme("dark"))
     if (token.$type === "typography")
-      assert.ok(token.$value.fontSize.value >= 12, `${key} is ${token.$value.fontSize.value} px`);
+      assert.ok(token.$value.fontSize.value * 16 >= 12, `${key} is ${token.$value.fontSize.value} rem`);
   const small = [];
   for (const [file, text] of sources(/\.(css|scss)$/)) {
     for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1])) {
@@ -204,4 +204,30 @@ test("every corner is a radius token: no other radius, and none in px", () => {
       off.push(`${file}: ${m[0]}`);
   }
   assert.deepEqual(off, []);
+});
+
+// U-073: text follows the reader's text size. A font size in px stays put at 200% while the boxes in rem grow.
+test("no stylesheet writes a font size in px", () => {
+  const px = [];
+  for (const [file, text] of sources(/\.(css|scss)$/, (f) => f === "design-system/tokens.css"))
+    for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1]))
+      if (/font-size:\s*[\d.]+px/.test(line)) px.push(`${file}:${n}: ${line.trim()}`);
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/text-\[[\d.]+px\]/g)) px.push(`${file}: ${m[0]}`);
+  assert.deepEqual(px, []);
+});
+
+// U-151: JetBrains Mono's 0 and O are a device pixel apart at 12 px. No element is monospace and a 12 px type class.
+test("no monospace text is set under 13 px", () => {
+  const small = [];
+  for (const [file, text] of sources(/\.(html|ts)$/, (f) => f.endsWith(".spec.ts")))
+    for (const m of text.matchAll(/class(?:Name)?="([^"]*)"/g)) {
+      const classes = m[1].split(/\s+/);
+      if (classes.includes("font-mono") && classes.some((c) => /^type-(footnote|subhead|overline)$/.test(c)))
+        small.push(`${file}: ${m[1]}`);
+    }
+  for (const [key, token] of theme("dark"))
+    if (token.$type === "typography" && token.$value.fontFamily === "{font.font-mono}")
+      assert.ok(token.$value.fontSize.value * 16 >= 13, `${key} is under 13 px`);
+  assert.deepEqual(small, []);
 });

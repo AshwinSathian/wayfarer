@@ -9,6 +9,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Text follows your text size, and names are easier to tell apart.**
+  The app's text is set in Atkinson Hyperlegible Next, whose capital I,
+  lowercase l and 1, and 0 and O, all differ at the app's small sizes; in
+  Inter, the face before, I and l were drawn identically at 12 and 13 px,
+  so "Illinois" and "lllinois" could not be told apart in a request name.
+  Inter still draws the Greek, Cyrillic and Vietnamese letters Atkinson
+  does not have. Sizes are in rem, so a larger text size in the browser
+  now enlarges the text along with its boxes: before, at 200% the boxes
+  grew, the text did not, and the response's tabs were cut off. Values,
+  rows, tabs and controls are 13 px, captions 12 px and prose 14 px;
+  nothing in the wire's monospace face is under 13 px, where its 0 and O
+  were a single pixel apart. The address bar is as tall as Send.
+
 - **Controls can be found, and the colours carry one meaning each.** The
   green accent is gone: Send, the focus ring, the selected row's mark and
   a ticked box are drawn in ink (the text colour), and colour now means a

@@ -76,7 +76,8 @@
   }
 }
 .address-bar .ui-button-icon.method-menu {
-  align-self: center;
+  align-self: stretch;
+  min-height: 0;
   border-radius: 0;
 }
 

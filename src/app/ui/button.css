@@ -27,10 +27,9 @@
   background: var(--btn-bg);
   color: var(--btn-fg);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--type-callout-size);
   font-weight: 500;
   line-height: normal;
-  letter-spacing: -0.004em;
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
@@ -53,7 +52,7 @@
    are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
 .ui-button:not(.btn-plain) .app-icon {
   margin: -3px;
-  font-size: 22px;
+  font-size: 1.375rem;
 }
 
 .ui-button:not(:disabled):hover {
@@ -81,7 +80,7 @@
 }
 
 .ui-button.btn-sm .app-icon {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 .ui-button.btn-square,
@@ -89,7 +88,7 @@
   gap: 0;
   width: var(--ctl-height-lg);
   padding-inline: 0;
-  font-size: 14px;
+  font-size: var(--type-callout-size);
 }
 
 /* An icon alone reads as an icon, not a word: no label's weight or spacing,
@@ -230,7 +229,6 @@
   background: var(--ink);
   color: var(--on-ink);
   font-weight: 600;
-  letter-spacing: -0.006em;
 }
 
 /* No glow and no lift: the button the app is used for, all day (audit U-019). */

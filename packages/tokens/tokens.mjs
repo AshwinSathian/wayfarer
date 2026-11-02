@@ -125,13 +125,14 @@ export function cssValues(name, level = "normal") {
 /** A type style as the custom properties its class reads: `--type-body-size`, `-line`, `-weight`, `-tracking`. */
 function typeValues(key, token) {
   const { fontSize, lineHeight, fontWeight, letterSpacing } = token.$value;
-  if (fontSize.unit !== "px" || letterSpacing.unit !== "px") throw new Error(`${key}: sizes are in px`);
+  if (fontSize.unit !== "rem" || letterSpacing.unit !== "em")
+    throw new Error(`${key}: sizes are in rem, tracking in em`);
   return [
-    [`--${key}-size`, `${fontSize.value}px`],
-    // In px, as the scale was drawn: a ratio times the size can land a fraction of a pixel off.
-    [`--${key}-line`, `${Math.round(lineHeight * fontSize.value * 100) / 100}px`],
+    [`--${key}-size`, `${fontSize.value}rem`],
+    // A whole number of px at the default size, in rem: a ratio times the size can land a fraction of a pixel off.
+    [`--${key}-line`, `${Math.round(lineHeight * fontSize.value * 16) / 16}rem`],
     [`--${key}-weight`, String(fontWeight)],
-    [`--${key}-tracking`, letterSpacing.value ? `${letterSpacing.value}px` : "0"],
+    [`--${key}-tracking`, letterSpacing.value ? `${letterSpacing.value}em` : "0"],
   ];
 }
 

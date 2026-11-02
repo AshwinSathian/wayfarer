@@ -16,7 +16,7 @@
     (keydown.space)="$event.preventDefault(); act(variable)"
   >
     <div class="flex items-center gap-1.5">
-      <span class="var-chip-name type-footnote font-semibold font-mono">{{ variable.name }}</span>
+      <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>
       <span class="var-chip-source type-footnote text-label-tertiary"
         >{{ variable.holder ?? (variable.source === 'dynamic' ? 'Dynamic' : variable.source === 'secret' ? 'Vault' :
         'Missing') }}</span

@@ -164,10 +164,18 @@
     }
   },
   "font": {
-    "$description": "Font families.",
+    "$description": "Font families (DQ11). Atkinson Hyperlegible Next speaks for Wayfarer: its I, l and 1, and its 0 and O, differ at 12 and 13 px (U-150). It has Latin only; Inter is the per-glyph fallback for Greek, Cyrillic and Vietnamese. JetBrains Mono is the wire.",
     "font-sans": {
       "$type": "fontFamily",
-      "$value": ["Inter Variable", "Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"]
+      "$value": [
+        "Atkinson Hyperlegible Next",
+        "Inter Variable",
+        "Inter",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "sans-serif"
+      ]
     },
     "font-mono": {
       "$type": "fontFamily",
@@ -175,19 +183,19 @@
     }
   },
   "type": {
-    "$description": "The app's type scale (D3.2). Nothing is under 12 px; a font size anywhere in the stylesheets reads one of these or is 12 px or more (packages/tokens/tokens.test.mjs). Letter spacing is in px, as DTCG's dimension allows, at each style's own size.",
+    "$description": "The app's type scale (D3.2), in rem so that it follows the reader's text size (U-073). Nothing is under 12 px at the default size; no stylesheet writes a font size in px (packages/tokens/tokens.test.mjs). The compact density (U-111): working text (values, rows, tabs, the response) is callout or mono-body, 13 px; captions footnote, 12 px; prose and dialogs body, 14 px.",
     "type-title-2": {
       "$type": "typography",
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 18,
-          "unit": "px"
+          "value": 1.125,
+          "unit": "rem"
         },
         "fontWeight": 600,
         "letterSpacing": {
-          "value": -0.252,
-          "unit": "px"
+          "value": 0,
+          "unit": "em"
         },
         "lineHeight": 1.3333
       }
@@ -197,13 +205,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 15,
-          "unit": "px"
+          "value": 0.9375,
+          "unit": "rem"
         },
         "fontWeight": 600,
         "letterSpacing": {
-          "value": -0.15,
-          "unit": "px"
+          "value": 0,
+          "unit": "em"
         },
         "lineHeight": 1.3333
       }
@@ -213,13 +221,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 14,
-          "unit": "px"
+          "value": 0.875,
+          "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
-          "value": -0.042,
-          "unit": "px"
+          "value": 0,
+          "unit": "em"
         },
         "lineHeight": 1.4286
       }
@@ -229,13 +237,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 13,
-          "unit": "px"
+          "value": 0.8125,
+          "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
-          "value": -0.026,
-          "unit": "px"
+          "value": 0,
+          "unit": "em"
         },
         "lineHeight": 1.3846
       }
@@ -245,13 +253,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 12,
-          "unit": "px"
+          "value": 0.75,
+          "unit": "rem"
         },
         "fontWeight": 500,
         "letterSpacing": {
           "value": 0,
-          "unit": "px"
+          "unit": "em"
         },
         "lineHeight": 1.3333
       }
@@ -261,13 +269,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 12,
-          "unit": "px"
+          "value": 0.75,
+          "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
-          "value": 0.024,
-          "unit": "px"
+          "value": 0,
+          "unit": "em"
         },
         "lineHeight": 1.3333
       }
@@ -277,13 +285,13 @@
       "$value": {
         "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 12,
-          "unit": "px"
+          "value": 0.75,
+          "unit": "rem"
         },
         "fontWeight": 600,
         "letterSpacing": {
-          "value": 0.72,
-          "unit": "px"
+          "value": 0.06,
+          "unit": "em"
         },
         "lineHeight": 1.3333
       },
@@ -298,13 +306,13 @@
       "$value": {
         "fontFamily": "{font.font-mono}",
         "fontSize": {
-          "value": 13,
-          "unit": "px"
+          "value": 0.8125,
+          "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
           "value": 0,
-          "unit": "px"
+          "unit": "em"
         },
         "lineHeight": 1.5385
       }

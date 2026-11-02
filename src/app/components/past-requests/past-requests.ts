@@ -2,8 +2,6 @@ import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { UiInput } from "../../ui/input";
 import { UiCheckbox } from "../../ui/checkbox";
-import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
-import { UiAccordion, UiAccordionPanel } from "../../ui/accordion";
 import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
@@ -31,20 +29,7 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [
-    UiButton,
-    UiInput,
-    DatePipe,
-    Icon,
-    UiTooltip,
-    AccordionContent,
-    AccordionPanel,
-    AccordionTrigger,
-    UiAccordion,
-    UiAccordionPanel,
-    UiCheckbox,
-    HarExportDialog,
-  ],
+  imports: [UiButton, UiInput, DatePipe, Icon, UiTooltip, UiCheckbox, HarExportDialog],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +40,11 @@ export class PastRequests {
   readonly displayHeader = input(true);
   readonly loadRequest = output<PastRequest>();
   readonly deleteRequest = output<number>();
+  /** Clear history… was chosen: the shell asks, then clears. */
+  readonly clearAll = output<void>();
+
+  /** Rows have their boxes, and the bar its export, only while choosing (U-024). */
+  readonly selecting = signal(false);
 
   private readonly confirm = inject(Confirm);
 
@@ -90,6 +80,11 @@ export class PastRequests {
     if (on) next.add(request.id);
     else next.delete(request.id);
     this.ticked.set(next);
+  }
+
+  protected stopSelecting(): void {
+    this.selecting.set(false);
+    this.ticked.set(new Set());
   }
 
   /** Ticks every entry the search shows, or unticks them when all are ticked. */
@@ -182,7 +177,7 @@ export class PastRequests {
     const id = req.id;
     if (typeof id === "undefined") return;
     const confirmed = await this.confirm.confirm({
-      message: "Remove this request from history?",
+      message: `Delete ${req.sent.method} ${req.sent.url} from history?`,
       acceptLabel: "Delete",
       anchor: event.currentTarget as HTMLElement,
     });

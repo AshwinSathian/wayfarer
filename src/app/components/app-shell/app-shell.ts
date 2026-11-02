@@ -443,7 +443,13 @@ export class AppShell implements OnInit {
   }
 
   async confirmClear(): Promise<void> {
-    if (await this.confirm.confirm({ title: "Are you sure?", message: "Your entire history will be cleared" })) {
+    const confirmed = await this.confirm.confirm({
+      title: "Clear history?",
+      message: "Every entry is deleted; collections are not touched. This cannot be undone.",
+      acceptLabel: "Clear history",
+      rejectLabel: "Cancel",
+    });
+    if (confirmed) {
       this.clearHistory.emit();
     }
   }

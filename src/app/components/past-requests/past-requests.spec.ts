@@ -52,7 +52,7 @@ describe("PastRequests", () => {
     confirmService.confirm.mockResolvedValueOnce(true);
     await component.confirmDelete(request, new Event("click"));
     expect(confirmService.confirm.mock.lastCall![0]).toMatchObject({
-      message: "Remove this request from history?",
+      message: expect.stringMatching(/^Delete .* from history\?$/),
       acceptLabel: "Delete",
     });
     expect(deleteSpy).toHaveBeenCalledWith(1);
@@ -98,7 +98,9 @@ describe("PastRequests", () => {
       { id: 1, ...historyEntry({ url: "https://other.test/a", createdAt: 1000, status: 200 }) },
     ];
     const boxes = () => [
-      ...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>('.md\\:flex input[type="checkbox"]'),
+      ...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+        '.history-row input[type="checkbox"]',
+      ),
     ];
     const button = (text: RegExp) =>
       [...(fixture.nativeElement as HTMLElement).querySelectorAll("button")].find((candidate) =>
@@ -117,6 +119,8 @@ describe("PastRequests", () => {
 
     beforeEach(() => {
       fixture.componentRef.setInput("pastRequests", entries);
+      // Choosing is a mode: Select… gives the rows their boxes (U-024).
+      component.selecting.set(true);
       fixture.detectChanges();
     });
 

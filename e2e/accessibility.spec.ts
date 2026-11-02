@@ -99,13 +99,15 @@ test.describe("Accessibility (primary flows)", () => {
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
     await page.getByRole("button", { name: "Request history" }).click();
-    await page.getByRole("button", { name: "Clear all history" }).click();
+    await page.getByRole("button", { name: "Clear history…" }).click();
 
     // The open confirmation is an alert dialog named by its heading and
     // described by its message, and nothing else on the page claims that role.
-    const confirm = page.getByRole("alertdialog", { name: "Are you sure?" });
+    const confirm = page.getByRole("alertdialog", { name: "Clear history?" });
     await expect(confirm).toBeVisible();
-    await expect(confirm).toHaveAccessibleDescription("Your entire history will be cleared");
+    await expect(confirm).toHaveAccessibleDescription(
+      "Every entry is deleted; collections are not touched. This cannot be undone.",
+    );
     await expect(page.getByRole("alertdialog")).toHaveCount(1);
 
     await settled(page);
@@ -128,7 +130,7 @@ test.describe("Accessibility (primary flows)", () => {
     for (const theme of ["dark", "light"]) {
       await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
       await page.getByRole("button", { name: "Request history" }).click();
-      await page.getByRole("button", { name: "Delete history entry" }).first().click();
+      await page.getByRole("button", { name: "Delete from history" }).first().click();
       await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeVisible();
 
       await settled(page);

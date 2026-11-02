@@ -1,1 +1,76 @@
-/* Delete button fades in on row hover via Tailwind group-hover */
+/* History's rows (U-024): the address has the row's width, on its own line; the status, time and age under it. */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 6px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.history-row:hover,
+.history-row:focus-within {
+  background: var(--fill-hover);
+}
+
+.history-tick {
+  flex: none;
+}
+
+.history-open {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.history-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.history-address {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--label-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-facts {
+  display: flex;
+  gap: 10px;
+  color: var(--label-secondary);
+}
+
+/* Grey until its row is hovered or focused; red only under the pointer (U-086). */
+.history-delete {
+  flex: none;
+  opacity: 0.6;
+}
+
+.history-row:hover .history-delete,
+.history-row:focus-within .history-delete {
+  opacity: 1;
+}
+
+.history-delete:hover {
+  color: var(--status-error-text);
+}

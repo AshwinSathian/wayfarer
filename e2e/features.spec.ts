@@ -166,15 +166,15 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByText("Today", { exact: true })).toBeVisible();
 
-  await drawer.getByRole("button", { name: `${ECHO}/content/json?c029=1`, exact: true }).click();
+  await drawer.getByRole("button", { name: /c029=1\b/ }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?c029=1`);
 
   if (!(await drawer.isVisible())) await page.getByRole("button", { name: "Request history", exact: true }).click();
   const entries = drawer.getByRole("button", { name: /c029=/ });
   await expect(entries).toHaveCount(2);
-  await drawer.getByRole("button", { name: "Delete history entry" }).first().click();
+  await drawer.getByRole("button", { name: "Delete from history" }).first().click();
   // One confirmation, not one per history entry stacked on top of each other.
-  const popup = page.getByRole("alertdialog", { name: "Remove this request from history?" });
+  const popup = page.getByRole("alertdialog", { name: /^Delete .* from history\?$/ });
   await expect(popup).toHaveCount(1);
   await popup.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(entries).toHaveCount(1);
@@ -437,13 +437,13 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await page.getByRole("button", { name: "Request history", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByRole("button", { name: /c029clear=1/ })).toBeVisible();
-  await page.getByRole("button", { name: "Clear all history" }).click();
+  await page.getByRole("button", { name: "Clear history…" }).click();
   const confirm = page
     .getByRole("alertdialog")
     .or(page.getByRole("dialog"))
-    .filter({ hasText: "Your entire history will be cleared" });
-  await confirm.getByRole("button", { name: "Proceed", exact: true }).click();
-  await expect(drawer.getByRole("button", { name: /^https?:\/\// })).toHaveCount(0);
+    .filter({ hasText: "Every entry is deleted" });
+  await confirm.getByRole("button", { name: "Clear history", exact: true }).click();
+  await expect(drawer.getByRole("button", { name: /https?:\/\// })).toHaveCount(0);
 });
 
 // U-050: a copy says what it copied, and whether the redactor masked anything in it, and no more.
@@ -530,9 +530,8 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // Reach the entry with the keyboard: focus that scripts or clicks set does
   // not open the card. Safari tabs to non-inputs with Option+Tab.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  const entry = page.getByRole("button", { name: /details=1$/ });
-  // The drawer takes focus when it opens; walk on from there. Since P4.6 (c) two more stops come
-  // before the entry: "Select all" and the entry's own box.
+  const entry = page.getByRole("button", { name: /details=1/ }).first();
+  // The drawer takes focus when it opens; walk on from there: the search, Select… and Clear history… come first.
   const tabToEntry = async () => {
     for (let i = 0; i < 6 && !(await entry.evaluate((el) => el === document.activeElement)); i++)
       await page.keyboard.press(tab);

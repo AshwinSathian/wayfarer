@@ -305,7 +305,13 @@ test("@claim:C-039 the Body tab is there for every method, offers none, raw, for
 });
 
 async function createCollection(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: "New collection" }).first().click();
+  // The empty sidebar's button, else the header's New menu (U-010).
+  const empty = page.getByRole("button", { name: "New collection", exact: true });
+  if (await empty.count()) await empty.first().click();
+  else {
+    await page.locator("app-collections-sidebar").getByRole("button", { name: "New", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Collection" }).click();
+  }
   await page.locator("#creation-name-input").fill(name);
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();

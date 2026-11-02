@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { inCollection, inFolder, requestContent } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
 import { Confirm } from "../../ui/confirm";
-import { CollectionsSidebar, PaletteAction } from "./collections-sidebar";
+import { CollectionsSidebar } from "./collections-sidebar";
 import { CollectionsStore, CollectionTree } from "../../services/collections-store";
 import { Collection, Folder, Meta, RequestDoc } from "../../models/collections";
 import { describe, it, beforeEach, expect, vi } from "vitest";
@@ -425,46 +425,22 @@ describe("CollectionsSidebar", () => {
     });
   });
 
-  describe("command palette", () => {
-    it("always includes the built-in New Collection action plus any externally-supplied actions", () => {
-      const externalAction: PaletteAction = { id: "ext-1", label: "External Action", run: () => {} };
-      fixture.componentRef.setInput("externalActions", [externalAction]);
-
-      const labels = component.filteredPaletteActions.map((a) => a.label);
-      expect(labels).toContain("New Collection");
-      expect(labels).toContain("External Action");
+  describe("palette commands", () => {
+    it("always offers New collection", () => {
+      expect(component.commands().map((a) => a.label)).toEqual(["New collection"]);
     });
 
-    it("filters actions case-insensitively by the palette query", () => {
-      component.openCommandPalette();
-      component.commandPaletteQuery.set("COLLECTION");
-
-      const labels = component.filteredPaletteActions.map((a) => a.label);
-      expect(labels).toEqual(["New Collection"]);
-    });
-
-    it("adds per-node actions (New Folder/New Request/Duplicate/Export/Delete) once a collection node is selected", () => {
+    it("adds what can be done to the selected collection", () => {
       const collection = makeCollection("c1", "My Collection");
       collectionsService.setTree([{ collection, folders: [], requests: [] }]);
       component.handleNodeSelect(component.nodes()[0]);
 
-      const labels = component.filteredPaletteActions.map((a) => a.label);
-      expect(labels).toContain("New Folder in My Collection");
-      expect(labels).toContain("New Request in My Collection");
+      const labels = component.commands().map((a) => a.label);
+      expect(labels).toContain("New folder in My Collection");
+      expect(labels).toContain("New request in My Collection");
       expect(labels).toContain("Duplicate My Collection");
-      expect(labels).toContain("Export My Collection");
+      expect(labels).toContain("Export My Collection…");
       expect(labels).toContain("Delete My Collection");
-    });
-
-    it("executePaletteAction runs the action and closes the palette", async () => {
-      component.openCommandPalette();
-      expect(component.commandPaletteVisible()).toBe(true);
-      const action: PaletteAction = { id: "x", label: "X", run: vi.fn() };
-
-      await component.executePaletteAction(action);
-
-      expect(action.run).toHaveBeenCalled();
-      expect(component.commandPaletteVisible()).toBe(false);
     });
   });
 
@@ -495,16 +471,6 @@ describe("CollectionsSidebar", () => {
   });
 
   describe("keyboard shortcuts", () => {
-    it("@claim:C-030 Cmd+K opens the command palette and prevents the browser default", () => {
-      const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });
-      vi.spyOn(event, "preventDefault");
-
-      component.handleGlobalKeydown(event);
-
-      expect(event.preventDefault).toHaveBeenCalled();
-      expect(component.commandPaletteVisible()).toBe(true);
-    });
-
     it("runs the single-key shortcut C only while focus is inside the panel", () => {
       const press = (target: Element) => {
         const event = new KeyboardEvent("keydown", { key: "c" });
@@ -519,17 +485,12 @@ describe("CollectionsSidebar", () => {
       expect(component.creationDialogVisible()).toBe(true);
     });
 
-    it("opens the palette from a form field (U-049), and ignores the single-key shortcuts there", () => {
+    it("ignores the single-key shortcuts in a form field", () => {
       const input = document.createElement("input");
       const typed = new KeyboardEvent("keydown", { key: "c" });
       Object.defineProperty(typed, "target", { value: input });
       component.handleGlobalKeydown(typed);
       expect(component.creationDialogVisible()).toBe(false);
-
-      const palette = new KeyboardEvent("keydown", { key: "k", metaKey: true });
-      Object.defineProperty(palette, "target", { value: input });
-      component.handleGlobalKeydown(palette);
-      expect(component.commandPaletteVisible()).toBe(true);
     });
   });
 });

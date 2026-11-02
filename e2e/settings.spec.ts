@@ -132,10 +132,10 @@ test.describe("Settings surface", () => {
 
   test("@claim:C-030 opens from the command palette", async ({ page }) => {
     await page.goto("/app/");
-    await page.keyboard.press("Meta+K");
-    await page.getByPlaceholder("Type a command").fill("Settings");
-    await page.getByRole("dialog", { name: "Command palette" }).getByText("Settings", { exact: true }).click();
-    await expect(page.getByPlaceholder("Type a command")).toBeHidden();
+    await page.keyboard.press("ControlOrMeta+K");
+    await page.getByPlaceholder("Search or run a command").fill("Settings");
+    await page.getByRole("option", { name: "Settings", exact: true }).click();
+    await expect(page.getByPlaceholder("Search or run a command")).toBeHidden();
     await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
   });
 
@@ -148,7 +148,7 @@ test.describe("Settings surface", () => {
     // A command's keys come from the palette's list (U-032).
     const send = dialog.locator(".settings-row").filter({ hasText: "Send request" });
     await expect(send.locator("kbd")).toHaveText(/^(⌘↵|Ctrl\+Enter)$/);
-    await expect(dialog.getByText("Local Bridge Settings", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("Local Bridge settings", { exact: true })).toBeVisible();
   });
 
   test("@claim:C-033 Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {

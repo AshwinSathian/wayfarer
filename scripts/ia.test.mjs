@@ -112,8 +112,8 @@ function inventory() {
   }
   // The palette's commands, by id: the shell's and the sidebar's.
   for (const [file, from] of [
-    ["components/app-shell/app-shell.ts", "get sidebarPaletteActions"],
-    ["components/collections/collections-sidebar.ts", "private buildPaletteActions"],
+    ["components/app-shell/app-shell.ts", "get paletteCommands"],
+    ["components/collections/collections-sidebar.ts", "commands(): PaletteAction"],
   ]) {
     const source = readFileSync(join(app, file), "utf8");
     const body = source.slice(source.indexOf(from)).split(/\n  }\n/)[0];

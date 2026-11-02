@@ -79,8 +79,9 @@ async function ready(page: Page): Promise<void> {
 /** Imports the Postman collection and trusts its scripts: what task 2 does, and task 7 starts from. */
 async function importAndTrust(user: User): Promise<void> {
   const { page } = user;
+  await user.click(button(page.locator("app-collections-sidebar"), "Import"));
   await user.pick(
-    button(page, "Import collection"),
+    page.getByRole("menuitem", { name: "File…", exact: true }),
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });

@@ -187,6 +187,7 @@ Evidence: `baseline/1440-light-01b-first-run-full.png`.
 **Status:** Open, D4-f, placed by
 [`ia.md`](ia.md#u-010-the-sidebars-header): the header keeps two named menu
 buttons, New and Import, and the palette moves to the toolbar.
+**2026-11-02:** Fixed in #PRNUM (D4-f): the header has the title and two named menus, New and Import; the palette is the toolbar's field.
 
 **U-016. Three Export entries in one menu.** Severity 3. H8.
 "Export", "Export with credentials" and "Export for Postman…" sit
@@ -298,6 +299,7 @@ Evidence: `baseline/1440-light-p-22-palette.png`.
 **Status:** Open, D4-f, placed by [`ia.md`](ia.md#u-011-the-palette): the
 palette is the shell's, finds requests, collections, environments and
 history as well as commands, and shows each shortcut as a keycap.
+**2026-11-02:** Fixed in #PRNUM (D4-f): `app-palette` is the shell's (⌘K anywhere, the toolbar's field), a combobox over a grouped listbox with no title or close button; it finds commands, requests by name, method and address, collections and folders (Enter selects the row in the sidebar), environments (Enter makes one active) and past requests, each command's shortcut as keycaps (`e2e/palette.spec.ts`).
 
 ### Environments and the vault
 
@@ -408,6 +410,7 @@ no drawn text is under 12 px (#397, `e2e/type-floor.spec.ts`). The sidebar's
 and tracked.
 2026-10-23 (hig-review): confirmed; both are still uppercase. The
 hierarchy they stood for is U-119's.
+**2026-11-02:** The sidebar's title fixed in #PRNUM (D4-f): "Collections" is a sentence-case heading in the secondary label. The environments list's is D4-g's.
 
 **U-021. Three blues and a stray grey.** Severity 3. H4.
 The Send fill, the link colour (`rgb(79,70,229)`) and the focus ring
@@ -1086,6 +1089,7 @@ Evidence: `app-shell.html:27-33`;
 against [`hig-review/1440-dark-26-tree.png`](hig-review/1440-dark-26-tree.png).
 **Status:** Open, D4-f (the New menu of ia.md at every width). Review row
 W-42b.
+**2026-11-02:** Fixed in #PRNUM (D4-f): the sidebar's New menu, at every width, has Request in the selected collection or folder.
 
 **U-093. Cards are back inside overlays.** Severity 3. H8. All.
 The palette's rows, the environments list, Settings › General's theme box
@@ -1096,6 +1100,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 `past-requests.html:5`.
 **Status:** Open, D4-f (palette, history), D4-g (environments), D4-h
 (settings). Review row W-39; the remainder of U-004.
+**2026-11-02:** The palette's half fixed in #PRNUM (D4-f): its rows are plain rows in one floating list, no boxes inside it.
 
 ### Environments, the vault and the runner
 

@@ -58,3 +58,8 @@
 .ui-menu-separator {
   border-top: 1px solid var(--ctl-surface-border);
 }
+
+/* A shortcut at the item's right (the sidebar's New menu: C, N). */
+.ui-menu-keys {
+  margin-inline-start: auto;
+}

@@ -1,10 +1,14 @@
-import { SHORTCUTS } from "../../shared/shortcuts";
+import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
+import { Palette, PaletteItem } from "../palette/palette";
+import { CollectionsStore } from "../../services/collections-store";
 import { ImportDialog } from "../import/import-dialog";
 import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  Injector,
   OnInit,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -62,12 +66,17 @@ import { UiSelect } from "../../ui/select";
     EnvironmentsManager,
     SecretsManager,
     Settings,
+    Palette,
   ],
   templateUrl: "./app-shell.html",
   styleUrl: "./app-shell.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { "(window:keydown)": "paletteKey($event)" },
 })
 export class AppShell implements OnInit {
+  protected readonly shortcuts = SHORTCUTS;
+  protected readonly keys = keysOf;
+  protected readonly ariaKeys = ariaKeysOf;
   private readonly diagnostics = inject(Diagnostics);
   protected readonly swUpdate = inject(SwUpdate);
   readonly pastRequests = input<PastRequest[]>([]);
@@ -194,17 +203,12 @@ export class AppShell implements OnInit {
   /** The pane Settings opens at. */
   readonly settingsSection = signal<SettingsSection>("general");
 
-  /**
-   * Cross-cutting app commands the command palette (hosted inside
-   * app-collections-sidebar, where ⌘K is wired) can't build itself since it
-   * has no access to the composer, theme, history drawer, or bridge state —
-   * those all live here. Passed down as data via [externalActions].
-   */
-  get sidebarPaletteActions(): PaletteAction[] {
+  /** The shell's commands for the palette; the sidebar adds New collection and what can be done to its selected row. */
+  get paletteCommands(): PaletteAction[] {
     return [
       {
         id: "new-request",
-        label: "New Request",
+        label: "New request",
         run: () => this.handleNewRequest(),
       },
       {
@@ -215,7 +219,7 @@ export class AppShell implements OnInit {
       },
       {
         id: "duplicate-tab",
-        label: "Duplicate Tab",
+        label: "Duplicate tab",
         run: () => this.composer().duplicateTab(),
       },
       {
@@ -243,42 +247,42 @@ export class AppShell implements OnInit {
       },
       {
         id: "focus-address-bar",
-        label: "Focus Address Bar",
+        label: "Go to the address",
         run: () => this.composer().focusUrl(),
       },
       {
         id: "toggle-theme",
-        label: this.themeService.theme() === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode",
+        label: this.themeService.theme() === "dark" ? "Switch to the light theme" : "Switch to the dark theme",
         run: () => this.themeService.toggle(),
       },
       {
         id: "toggle-sidebar",
-        label: "Toggle Collections Sidebar",
+        label: "Show or hide the sidebar",
         run: () => this.toggleNavigation(),
       },
       {
         id: "open-history",
-        label: "Open Request History",
+        label: "History",
         run: () => this.openHistory(),
       },
       {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
-        label: this.secretsUnlocked ? "Lock Secrets" : "Unlock Secrets",
+        label: this.secretsUnlocked ? "Lock the vault" : "Unlock the vault",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
       {
         id: "open-secrets-manager",
-        label: "Manage Secrets",
+        label: "Secrets",
         run: () => this.secretsDialogVisible.set(true),
       },
       {
         id: "open-local-bridge-settings",
-        label: "Local Bridge Settings",
+        label: "Local Bridge settings",
         run: () => this.openBridgeSettings(),
       },
       {
         id: "reset-all-data",
-        label: "Reset All Data…",
+        label: "Reset all data…",
         run: () => this.confirmResetAllData(),
       },
       {
@@ -287,6 +291,84 @@ export class AppShell implements OnInit {
         run: () => this.openSettings(),
       },
     ];
+  }
+
+  /** The palette is open (⌘K anywhere, or the toolbar's search, U-011). */
+  readonly paletteOpen = signal(false);
+  private readonly sidebar = viewChild(CollectionsSidebar);
+  private readonly collections = inject(CollectionsStore);
+  private readonly injector = inject(Injector);
+
+  /** What the palette finds: commands, requests, collections and folders, environments and past requests (U-011). */
+  get paletteItems(): PaletteItem[] {
+    const commands: PaletteItem[] = [...this.paletteCommands, ...(this.sidebar()?.commands() ?? [])].map((action) => ({
+      ...action,
+      group: "Commands",
+    }));
+    const requests: PaletteItem[] = [];
+    const places: PaletteItem[] = [];
+    for (const { collection, folders, requests: docs } of this.collections.tree()) {
+      places.push({
+        id: `collection:${collection.meta.id}`,
+        group: "Collections and folders",
+        label: collection.name,
+        run: () => this.revealInSidebar(`collection:${collection.meta.id}`),
+      });
+      for (const folder of folders)
+        places.push({
+          id: `folder:${folder.meta.id}`,
+          group: "Collections and folders",
+          label: folder.name,
+          detail: collection.name,
+          run: () => this.revealInSidebar(`folder:${folder.meta.id}`),
+        });
+      for (const doc of docs)
+        requests.push({
+          id: doc.meta.id,
+          group: "Requests",
+          label: doc.name || doc.url,
+          detail: doc.url,
+          method: doc.method,
+          run: () => this.handleLoadCollectionRequest(doc),
+        });
+    }
+    const active = this.environmentsService.activeEnvironment()?.meta.id;
+    const environments: PaletteItem[] = this.environmentsService.environments().map((environment) => ({
+      id: environment.meta.id,
+      group: "Environments",
+      label: environment.name,
+      detail: environment.meta.id === active ? "In use" : undefined,
+      run: () => this.handleEnvironmentChange(environment.meta.id),
+    }));
+    const history: PaletteItem[] = [...this.pastRequests()]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((entry) => ({
+        id: String(entry.id ?? entry.createdAt),
+        group: "History",
+        label: entry.sent.url,
+        method: entry.sent.method,
+        run: () => this.handleLoadRequest(entry),
+      }));
+    return [...commands, ...requests, ...places, ...environments, ...history];
+  }
+
+  /** The sidebar is shown (a drawer below 1,200 px), then the row selected in it. */
+  private revealInSidebar(key: string): void {
+    if (this.sidebarOverlay() || !this.drawerVisible()) this.toggleNavigation();
+    afterNextRender(() => this.sidebar()?.reveal(key), { injector: this.injector });
+  }
+
+  /** The drawer's search row: the drawer closes first, so the palette opens over the page. */
+  protected searchFromDrawer(): void {
+    this.closeNavigation();
+    this.paletteOpen.set(true);
+  }
+
+  /** ⌘K anywhere, from a field too (U-049), unless a dialog has the keyboard. */
+  protected paletteKey(event: KeyboardEvent): void {
+    if (!matches(event, SHORTCUTS.palette) || document.querySelector("dialog:modal")) return;
+    event.preventDefault();
+    this.paletteOpen.set(true);
   }
 
   get historyBadge(): string | undefined {

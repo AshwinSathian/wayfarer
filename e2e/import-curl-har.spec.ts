@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { test, expect, type Page } from "@playwright/test";
-import { dumpIdb, send } from "./support/app";
+import { dumpIdb, send, importMenu } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P4.5: a cURL command becomes a request, pasted into the address field or
@@ -103,7 +103,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
-  await page.getByRole("button", { name: "Import a cURL command", exact: true }).click();
+  await importMenu(page, "cURL command…");
   const dialog = page.getByRole("dialog", { name: /^Import/ });
   // In the form Chrome writes for cmd.
   await dialog
@@ -136,7 +136,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await expect(page.getByRole("treeitem", { name: /POST api\.example\.test\/users/ })).toBeVisible();
 
   // A command that cannot be read is refused in the dialog, and nothing more is stored.
-  await page.getByRole("button", { name: "Import a cURL command", exact: true }).click();
+  await importMenu(page, "cURL command…");
   await dialog.getByLabel("A cURL command").fill("curl -H 'A: 1'");
   await dialog.getByRole("button", { name: "Read the command" }).click();
   await expect(dialog.getByRole("alert")).toContainText("The cURL command has no address.");

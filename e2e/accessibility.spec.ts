@@ -77,9 +77,8 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
 
     await page.keyboard.press("Escape");
-    await page.locator("span.type-overline", { hasText: "Collections" }).click();
-    await page.keyboard.press("Meta+K");
-    await expect(page.getByPlaceholder("Type a command")).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+K");
+    await expect(page.getByPlaceholder("Search or run a command")).toBeVisible();
 
     const paletteResults = await analyze(page);
     const paletteViolations = paletteResults.violations;
@@ -325,7 +324,8 @@ test.describe("Accessibility (primary flows)", () => {
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
       // The box for a pasted cURL command (P4.5).
-      await button("Import a cURL command").click();
+      await button("Import").click();
+      await page.getByRole("menuitem", { name: "cURL command…", exact: true }).click();
       await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
       await scan("import, paste a cURL command");
       await page.keyboard.press("Escape");

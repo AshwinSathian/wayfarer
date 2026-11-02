@@ -1,46 +1,28 @@
 <div class="collections-sidebar flex h-full flex-col gap-3">
-  <!-- Header -->
+  <!-- Header: the title and two named menus (U-010, ia.md). The palette is the toolbar's. -->
   <div class="flex items-center justify-between gap-2">
-    <span class="type-overline text-label-tertiary">Collections</span>
-    <div class="flex items-center gap-0.5">
+    <h2 class="type-subhead text-label-secondary m-0">Collections</h2>
+    <div class="flex items-center gap-1">
       <button
         type="button"
-        uiButton="icon"
-        class="btn-plain"
-        (click)="openCommandPalette()"
-        uiTooltip="Command palette"
-        [uiTooltipKeys]="shortcuts.palette"
-        aria-label="Open command palette"
-      >
-        <app-icon name="bolt" class="icon-sm" />
-      </button>
-      <button
-        type="button"
-        uiButton="icon"
-        class="btn-plain"
-        (click)="fileInput.click()"
-        uiTooltip="Import collection"
-        aria-label="Import collection"
-      >
-        <app-icon name="upload" class="icon-sm" />
-      </button>
-      <button
-        type="button"
-        uiButton="icon"
-        class="btn-plain"
-        (click)="importPipeline.openPaste()"
-        uiTooltip="Import a cURL command"
-        aria-label="Import a cURL command"
-      >
-        <app-icon name="terminal" class="icon-sm" />
-      </button>
-      <button
-        uiButton="filled"
-        class="btn-secondary btn-sm btn-square"
-        aria-label="New collection"
-        (click)="handleCreateCollection()"
-        ><app-icon name="add"
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        ngMenuTrigger
+        #importTrigger="ngMenuTrigger"
+        [menu]="importMenu.menu()"
+        >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
       /></button>
+      <ui-menu #importMenu [trigger]="importTrigger" [items]="importItems" />
+      <button
+        type="button"
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        ngMenuTrigger
+        #newTrigger="ngMenuTrigger"
+        [menu]="newMenu.menu()"
+        ><app-icon name="add" class="icon-xs" />New</button
+      >
+      <ui-menu #newMenu [trigger]="newTrigger" [items]="newItems()" />
     </div>
   </div>
 
@@ -172,46 +154,6 @@
       <button uiButton="filled" aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()"
         >Create</button
       >
-    </div>
-  </div>
-</ui-dialog>
-
-<!-- Command palette -->
-<ui-dialog
-  header="Command palette"
-  [visible]="commandPaletteVisible()"
-  (visibleChange)="commandPaletteVisible.set($event)"
-  width="440px"
-  (hide)="closeCommandPalette()"
->
-  <div class="flex flex-col gap-3">
-    <input
-      class="font-sans w-full"
-      uiInput
-      cdkFocusInitial
-      placeholder="Type a command…"
-      [ngModel]="commandPaletteQuery()"
-      (ngModelChange)="commandPaletteQuery.set($event)"
-      [ngModelOptions]="{ standalone: true }"
-      (keydown.enter)="executeFirstPaletteAction()"
-    />
-    <div class="max-h-64 space-y-1 overflow-y-auto">
-      @if (filteredPaletteActions.length) { @for (action of filteredPaletteActions; track action.id) {
-      <button
-        type="button"
-        class="flex w-full items-center justify-between gap-3 rounded-lg bg-canvas-elevated border border-separator px-4 py-3 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
-        [attr.aria-keyshortcuts]="action.keys ? ariaKeysOf(action.keys) : null"
-        (click)="executePaletteAction(action)"
-        ><span class="min-w-0">{{ action.label }}</span>@if (action.keys) {<kbd class="keycap" aria-hidden="true"
-          >{{ keysOf(action.keys) }}</kbd
-        >}</button
-      >
-      } } @else {
-      <div class="ds-empty-state py-6">
-        <app-icon name="search_off" class="icon-md text-label-tertiary" />
-        <p class="type-callout text-label-tertiary">No matching commands.</p>
-      </div>
-      }
     </div>
   </div>
 </ui-dialog>

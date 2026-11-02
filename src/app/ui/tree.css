@@ -66,6 +66,15 @@
     border-inline-start: 4px solid Highlight;
     padding-inline-start: 4px;
   }
+
+  /* A shadow is taken away too: the drop line is a border (U-116). */
+  .ui-tree-row--drop-before {
+    border-top: 2px solid Highlight;
+  }
+
+  .ui-tree-row--drop-after {
+    border-bottom: 2px solid Highlight;
+  }
 }
 
 .ui-tree-toggle {

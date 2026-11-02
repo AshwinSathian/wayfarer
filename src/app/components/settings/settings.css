@@ -292,3 +292,16 @@
     margin: 0 0 10px -10px;
   }
 }
+
+/* Forced colours paint every background as the canvas: the meter keeps an edge and its fill in the text's colour
+   (U-116). */
+@media (forced-colors: active) {
+  .settings .settings-meter {
+    border: 1px solid CanvasText;
+  }
+
+  .settings .settings-meter > span {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

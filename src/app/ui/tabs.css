@@ -116,3 +116,11 @@
   outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
+
+/* Forced colours paint every background as the canvas: the unsaved dot keeps its fill in the text's colour (U-116). */
+@media (forced-colors: active) {
+  .request-tab-unsaved {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

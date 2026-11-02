@@ -1,4 +1,10 @@
 import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
+import { UndoNotice } from "../../services/undo-notice";
+
+/** Where a key types text, and ⌘Z undoes typing. */
+const typingIn = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || !!target.closest("input, textarea, select, .monaco-editor"));
 import { Palette, PaletteItem } from "../palette/palette";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportDialog } from "../import/import-dialog";
@@ -302,6 +308,7 @@ export class AppShell implements OnInit {
   private readonly sidebar = viewChild(CollectionsSidebar);
   private readonly collections = inject(CollectionsStore);
   private readonly injector = inject(Injector);
+  protected readonly undo = inject(UndoNotice);
 
   /** What the palette finds: commands, requests, collections and folders, environments and past requests (U-011). */
   get paletteItems(): PaletteItem[] {
@@ -376,11 +383,19 @@ export class AppShell implements OnInit {
     this.paletteOpen.set(true);
   }
 
-  /** ⌘K anywhere, from a field too (U-049), unless a dialog has the keyboard. */
+  /**
+   * ⌘K anywhere, from a field too (U-049), unless a dialog has the keyboard. ⌘Z or Ctrl+Z, while an Undo is offered
+   * and focus is not where text is typed (there the key undoes typing), undoes the delete (U-080).
+   */
   protected paletteKey(event: KeyboardEvent): void {
-    if (!matches(event, SHORTCUTS.palette) || document.querySelector("dialog:modal")) return;
-    event.preventDefault();
-    this.paletteOpen.set(true);
+    if (document.querySelector("dialog:modal")) return;
+    if (matches(event, SHORTCUTS.palette)) {
+      event.preventDefault();
+      this.paletteOpen.set(true);
+    } else if (matches(event, SHORTCUTS.undo) && this.undo.current() && !typingIn(event.target)) {
+      event.preventDefault();
+      void this.undo.undo();
+    }
   }
 
   get historyBadge(): string | undefined {
@@ -474,7 +489,8 @@ export class AppShell implements OnInit {
     const confirmed = await this.confirm.confirm({
       title: "Reset all data?",
       message:
-        "This will delete every collection, request, environment, secret, history item, and preference stored in your browser. This cannot be undone.",
+        "Every collection, request, environment, secret, history entry and setting in this browser is deleted. This cannot be undone.",
+      acceptLabel: "Reset all data",
     });
     if (confirmed) await this.performResetAllData();
   }

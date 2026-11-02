@@ -14,7 +14,10 @@ async function createCollection(page: Page, name: string): Promise<void> {
 async function resetAllData(page: Page): Promise<void> {
   await openSettings(page, "Danger zone");
   await page.getByRole("button", { name: "Reset all data" }).click();
-  await page.getByRole("button", { name: "Proceed", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Reset all data?" })
+    .getByRole("button", { name: "Reset all data" })
+    .click();
 }
 
 test("@claim:C-013 Reset All Data in one tab deletes the data and tells the other tab to reload", async ({

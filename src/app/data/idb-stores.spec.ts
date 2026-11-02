@@ -402,6 +402,45 @@ describe("collections, folders and requests (real IndexedDB)", () => {
       expect(collection.meta.id).toBeTruthy();
     });
 
+    // U-080: Undo puts back what a delete took, as it was: the records, their order and the files of their bodies.
+    it("restores a deleted collection, folder or request exactly as it was, with its files", async () => {
+      const { collection, folder, inFolder, atRoot } = await seed();
+      await requests.updateRequest(
+        inFolder.meta.id,
+        { body: binary("in-folder") },
+        new Map([["in-folder", blob("a")]]),
+      );
+      await requests.updateRequest(atRoot.meta.id, { body: binary("at-root") }, new Map([["at-root", blob("b")]]));
+      const before = {
+        collections: await collections.listCollections(),
+        folders: await folders.listFolders(collection.meta.id),
+        requests: await requests.listRequests(collection.meta.id),
+      };
+
+      await collections.restore(await requests.deleteRequest(atRoot.meta.id));
+      await collections.restore(await folders.deleteFolder(folder.meta.id));
+      expect(await requests.listRequests(collection.meta.id)).toEqual(before.requests);
+      expect(await folders.listFolders(collection.meta.id)).toEqual(before.folders);
+      expect(await fileIds()).toEqual(["at-root", "in-folder"]);
+
+      const removed = await collections.deleteCollection(collection.meta.id);
+      expect(await fileIds()).toEqual([]);
+      await collections.restore(removed);
+      expect(await collections.listCollections()).toEqual(before.collections);
+      expect(await folders.listFolders(collection.meta.id)).toEqual(before.folders);
+      expect(await requests.listRequests(collection.meta.id)).toEqual(before.requests);
+      expect(await (await requests.readFile("in-folder"))?.text()).toBe("a");
+    });
+
+    it("does not put back a folder or a request whose collection is gone", async () => {
+      const { collection, folder } = await seed();
+      const removed = await folders.deleteFolder(folder.meta.id);
+      await collections.deleteCollection(collection.meta.id);
+      await collections.restore(removed);
+      expect(await folders.listFolders(collection.meta.id)).toEqual([]);
+      expect(await requests.listRequests(collection.meta.id)).toEqual([]);
+    });
+
     it("deletes the files of the requests that go with a folder or a collection", async () => {
       const { collection, folder, inFolder, atRoot } = await seed();
       await requests.updateRequest(

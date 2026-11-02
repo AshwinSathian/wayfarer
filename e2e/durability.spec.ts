@@ -67,7 +67,10 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
     .getByRole("button", { name: "Danger zone", exact: true })
     .click();
   await page.getByRole("button", { name: "Reset all data" }).click();
-  await page.getByRole("button", { name: "Proceed", exact: true }).click();
+  await page
+    .getByRole("alertdialog", { name: "Reset all data?" })
+    .getByRole("button", { name: "Reset all data" })
+    .click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toHaveCount(0);
   await expect
     .poll(

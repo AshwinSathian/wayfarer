@@ -504,3 +504,29 @@
 ></app-settings>
 
 <app-palette [(open)]="paletteOpen" [items]="paletteItems" />
+
+<!-- Undo (U-080): in the page from the first render, so a screen reader hears each line it says (U-075). The pointer
+     or focus on it keeps it there (WCAG 2.2.1). -->
+<div
+  class="undo-bar"
+  role="status"
+  (pointerenter)="undo.hold(true)"
+  (pointerleave)="undo.hold(false)"
+  (focusin)="undo.hold(true)"
+  (focusout)="undo.hold(false)"
+>
+  @if (undo.current(); as current) {
+  <span class="type-callout">{{ current.message }}</span>
+  <button
+    uiButton
+    class="btn-sm"
+    type="button"
+    [attr.aria-keyshortcuts]="ariaKeys(shortcuts.undo)"
+    (click)="undo.undo()"
+    >Undo</button
+  >
+  <button uiButton="icon" class="btn-plain" type="button" aria-label="Dismiss" (click)="undo.dismiss()"
+    ><app-icon name="close" class="icon-sm"
+  /></button>
+  }
+</div>

@@ -150,6 +150,8 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Type evaluation, 2026-11-02](docs/design/type-eval.md): the app's three typefaces measured for confusable letters in three browsers, and why Atkinson Hyperlegible Next speaks for Wayfarer
 - [Git, decided](docs/design/git.md): how a collection gets into a team's repository and back, the options argued against, and what Wayfarer does not do
 - [AI, decided](docs/design/ai.md): what AI does in Wayfarer, which models it may use, and how every byte sent to one is shown first
+- [Team flows](docs/design/teams/README.md): sharing a collection by file and link, a folder in Git, peer to peer and a team server, designed and not built, with the principles each way keeps and the open questions
+  - [Share](docs/design/teams/share.md), [Receive](docs/design/teams/receive.md), [See who changed what](docs/design/teams/history.md), [Resolve a conflict](docs/design/teams/conflict.md) and [Review before taking a change](docs/design/teams/review.md): one spec per flow, each with a clickable prototype
 
 ## Security
 

@@ -170,7 +170,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   expect(file).not.toContain(PASSPHRASE);
 
   await secrets.getByRole("button", { name: "Delete API_TOKEN" }).click();
-  await page.getByRole("button", { name: "Proceed", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete", exact: true }).click();
   await expect(secrets.getByText("No secrets yet")).toBeVisible();
   // The deleted row's button is gone: focus stays in the dialog.
   await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();

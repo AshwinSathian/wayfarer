@@ -1,3 +1,4 @@
+import type { Removed } from "../data/removed";
 import { Injectable, Signal, computed, signal, inject } from "@angular/core";
 import {
   Collection,
@@ -185,8 +186,16 @@ export class CollectionsStore {
     return result;
   }
 
-  async deleteCollection(id: string): Promise<void> {
-    await this.collectionsRepository.deleteCollection(id);
+  /** Each delete gives back what went, which `restore` puts back (U-080). */
+  async deleteCollection(id: string): Promise<Removed> {
+    const removed = await this.collectionsRepository.deleteCollection(id);
+    await this.refresh();
+    return removed;
+  }
+
+  /** Undo of a delete in the tree (U-080). */
+  async restore(removed: Removed): Promise<void> {
+    await this.collectionsRepository.restore(removed);
     await this.refresh();
   }
 
@@ -217,14 +226,15 @@ export class CollectionsStore {
     return folder;
   }
 
-  async deleteFolder(id: string): Promise<void> {
+  async deleteFolder(id: string): Promise<Removed> {
     const collectionId = this.findFolderCollectionId(id);
-    await this.foldersRepository.deleteFolder(id);
+    const removed = await this.foldersRepository.deleteFolder(id);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
       await this.refresh();
     }
+    return removed;
   }
 
   /** The new places of a parent's folders and requests, which share one order. */
@@ -270,14 +280,15 @@ export class CollectionsStore {
     return doc;
   }
 
-  async deleteRequest(id: string): Promise<void> {
+  async deleteRequest(id: string): Promise<Removed> {
     const collectionId = this.findRequestCollectionId(id);
-    await this.requestsRepository.deleteRequest(id);
+    const removed = await this.requestsRepository.deleteRequest(id);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
       await this.refresh();
     }
+    return removed;
   }
 
   getCollection(id: string): Collection | undefined {

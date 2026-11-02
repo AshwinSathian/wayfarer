@@ -9,6 +9,7 @@ import {
 } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
+import { filesOf, putBack, Removed } from "./removed";
 import { applyVariableChanges, newId, type VariableChange } from "@wayfarer/core";
 
 /**
@@ -212,23 +213,32 @@ export class CollectionsRepository {
     });
   }
 
-  async deleteCollection(id: string): Promise<void> {
+  /** Deletes a collection with everything in it, and gives back what went, for Undo (U-080). */
+  async deleteCollection(id: string): Promise<Removed> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
     const collectionStore = tx.objectStore("collections");
     const folderStore = tx.objectStore("folders");
     const requestStore = tx.objectStore("requests");
 
-    await this.core.commitOrRollback(tx, async () => {
+    return this.core.commitOrRollback(tx, async () => {
+      const collection = await collectionStore.get(id);
+      const folders = await folderStore.index("by-collectionId").getAll(id);
+      const requests = await requestStore.index("by-collectionId").getAll(id);
+      const files = await filesOf(tx, requests);
       await collectionStore.delete(id);
-      const folderIndex = folderStore.index("by-collectionId");
-      const requestIndex = requestStore.index("by-collectionId");
-      const folders = await folderIndex.getAll(id);
-      const requests = await requestIndex.getAll(id);
       await Promise.all(folders.map((folder) => folderStore.delete(folder.meta.id)));
       await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
       await sweepFiles(tx);
+      return { collections: collection ? [collection] : [], folders, requests, files };
     });
+  }
+
+  /** Undo (U-080): puts back what a delete in the tree removed, as it was. */
+  async restore(removed: Removed): Promise<void> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
+    await this.core.commitOrRollback(tx, () => putBack(tx, removed));
   }
 
   async reorderCollections(order: { id: string; order: number }[]): Promise<void> {

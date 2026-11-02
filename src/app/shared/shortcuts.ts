@@ -15,6 +15,7 @@ export const SHORTCUTS = {
   save: { key: "S", mod: true },
   newTab: { key: "T", alt: true },
   closeTab: { key: "W", alt: true },
+  undo: { key: "Z", mod: true },
 } satisfies Record<string, Shortcut>;
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);

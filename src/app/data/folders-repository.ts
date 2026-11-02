@@ -3,6 +3,7 @@ import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
 import { Folder, InheritedPatch, RequestDoc } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
+import { filesOf, Removed } from "./removed";
 
 /**
  * Folder-level CRUD, split out of `CollectionsRepository` (which used to
@@ -154,24 +155,29 @@ export class FoldersRepository {
     });
   }
 
-  /** A folder is deleted with everything in it: the folders inside it are not moved up. */
-  async deleteFolder(id: string): Promise<void> {
+  /**
+   * A folder is deleted with everything in it: the folders inside it are not moved up. Gives back what went, for
+   * Undo (U-080).
+   */
+  async deleteFolder(id: string): Promise<Removed> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests", "files"]);
     const folderStore = tx.objectStore("folders");
     const requestStore = tx.objectStore("requests");
 
-    await this.core.commitOrRollback(tx, async () => {
-      for (const folderId of [
-        id,
-        ...(await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id)).map(
-          (folder) => folder.meta.id,
-        ),
-      ]) {
-        await folderStore.delete(folderId);
-        for (const key of await requestStore.index("by-folderId").getAllKeys(folderId)) await requestStore.delete(key);
-      }
+    return this.core.commitOrRollback(tx, async () => {
+      const top = await folderStore.get(id);
+      const folders = [
+        ...(top ? [top] : []),
+        ...(await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id)),
+      ];
+      const requests: RequestDoc[] = [];
+      for (const folder of folders) requests.push(...(await requestStore.index("by-folderId").getAll(folder.meta.id)));
+      const files = await filesOf(tx, requests);
+      for (const folder of folders) await folderStore.delete(folder.meta.id);
+      for (const request of requests) await requestStore.delete(request.meta.id);
       await sweepFiles(tx);
+      return { collections: [], folders, requests, files };
     });
   }
 

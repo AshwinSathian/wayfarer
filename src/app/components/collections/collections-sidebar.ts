@@ -37,8 +37,7 @@ import {
 import { CollectionNodeAction, buildContextItems } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
-import { PostmanExportDialog } from "./postman-export-dialog";
-import { saveJsonFile } from "../../shared/save-file";
+import { ExportDialog } from "./export-dialog";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
@@ -68,7 +67,7 @@ export interface PaletteAction {
     UiTooltip,
     UiSelect,
     InheritedSettingsDialog,
-    PostmanExportDialog,
+    ExportDialog,
   ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
@@ -109,8 +108,8 @@ export class CollectionsSidebar implements OnInit {
   readonly contextItems = signal<UiMenuItem[]>([]);
   /** The collection or the folder whose settings are open. */
   readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
-  /** The collection whose Postman export dialog is open. */
-  readonly postmanExportOf = signal<{ id: string; name: string } | null>(null);
+  /** The collection whose Export… dialog is open (U-016). */
+  readonly exportOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -272,13 +271,8 @@ export class CollectionsSidebar implements OnInit {
   }
 
   private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {
-    if (action === "export" || action === "export-credentials") {
-      void this.exportCollection(node, action === "export-credentials");
-      return;
-    }
-    if (action === "export-postman") {
-      const data = node.data as NodeData;
-      if (data.type === "collection") this.postmanExportOf.set({ id: data.ref.meta.id, name: data.ref.name });
+    if (action === "export") {
+      this.exportCollection(node);
       return;
     }
     if (action === "run") {
@@ -425,7 +419,7 @@ export class CollectionsSidebar implements OnInit {
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "export-postman" | "settings" | "run">,
+    action: Exclude<CollectionNodeAction, "export" | "settings" | "run">,
     node: UiTreeNode<NodeData>,
   ): Promise<void> {
     const data = node.data as NodeData;
@@ -502,28 +496,22 @@ export class CollectionsSidebar implements OnInit {
     return `Folder "${folder.name}" is deleted with the ${parts.join(" and ")} in it. `;
   }
 
-  private async exportCollection(node: UiTreeNode<NodeData>, credentials = false): Promise<void> {
+  /** Opens the one Export… dialog, which asks the format and whether to include credentials (U-016). */
+  private exportCollection(node: UiTreeNode<NodeData>): void {
     const data = node.data as NodeData;
-    if (data.type !== "collection") {
-      return;
-    }
-    const json = await this.collectionsService.exportCollectionJson(data.ref.meta.id, { credentials });
-    if (!json) {
-      return;
-    }
-    saveJsonFile(`${data.ref.name.replace(/\s+/g, "-").toLowerCase()}-collection.json`, json);
+    if (data.type === "collection") this.exportOf.set({ id: data.ref.meta.id, name: data.ref.name });
   }
 
   get creationTitle(): string {
     switch (this.creationContext()?.type) {
       case "collection":
-        return "New Collection";
+        return "New collection";
       case "folder":
-        return "New Folder";
+        return "New folder";
       case "request":
-        return "New Request";
+        return "New request";
       default:
-        return "New Item";
+        return "New request";
     }
   }
 

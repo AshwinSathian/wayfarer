@@ -47,10 +47,6 @@ export class AddressRow {
   protected readonly curlItems: UiMenuItem[] = [
     { label: "Copy as cURL", command: () => this.copied(this.store.copyAsCurl()) },
     {
-      label: "Copy as cURL with credentials",
-      command: () => this.copied(this.store.copyAsCurl({ credentials: true })),
-    },
-    {
       label: "Copy as JavaScript (fetch)",
       command: () => this.copied(this.store.copyAsCode("fetch", "JavaScript (fetch)")),
     },
@@ -59,6 +55,12 @@ export class AddressRow {
       command: () => this.copied(this.store.copyAsCode("python-requests", "Python (requests)")),
     },
     { label: "Copy as HTTPie", command: () => this.copied(this.store.copyAsCode("httpie", "HTTPie")) },
+    // Apart from the masked copies, after a line: one slip no longer copies every token (U-016, W-38).
+    { separator: true },
+    {
+      label: "Copy as cURL with credentials",
+      command: () => this.copied(this.store.copyAsCurl({ credentials: true })),
+    },
   ];
   /** What the last copy did, under the row for a few seconds (U-050). */
   protected readonly copyStatus = transientNote();

@@ -42,5 +42,5 @@ test("the empty response offers a cURL command and an import, and the empty side
   const sidebar = page.locator("app-collections-sidebar");
   await expect(sidebar).toContainText("Requests you save are kept here, in collections.");
   await sidebar.getByRole("button", { name: "New collection", exact: true }).last().click();
-  await expect(page.getByRole("dialog", { name: "New Collection" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "New collection" })).toBeVisible();
 });

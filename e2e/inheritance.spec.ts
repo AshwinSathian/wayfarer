@@ -99,7 +99,7 @@ test("a request made in a collection starts with inherit; a collection's setting
 
   // A request made in the collection inherits from the start.
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "New Request" }).click();
+  await page.getByRole("menuitem", { name: "New request" }).click();
   await page.locator("#creation-name-input").fill("Made here");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("tree").getByText("Made here", { exact: true }).click();

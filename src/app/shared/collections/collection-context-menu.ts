@@ -4,22 +4,15 @@ import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
 export type CollectionNodeAction =
-  | "new-folder"
-  | "new-request"
-  | "rename"
-  | "duplicate"
-  | "delete"
-  | "export"
-  | "export-credentials"
-  | "export-postman"
-  | "settings"
-  | "run";
+  "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "settings" | "run";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
  * node. Pure given the node and a dispatcher — the sidebar component still
- * owns what each action actually does (`handleAction`/`exportCollection`),
- * this just decides which actions are offered for which node type.
+ * owns what each action actually does (`handleAction`), this just decides
+ * which actions are offered for which node type. Labels are in sentence case
+ * (voice.md); a collection has one Export…, whose dialog asks the format and
+ * whether to include credentials (U-016).
  */
 export function buildContextItems(
   node: UiTreeNode<CollectionNodeData>,
@@ -30,15 +23,13 @@ export function buildContextItems(
   if (data.type === "collection") {
     return [
       { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
-      { label: "New Folder", icon: "folder", command: () => dispatch("new-folder", node) },
-      { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
+      { label: "New folder", icon: "folder", command: () => dispatch("new-folder", node) },
+      { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
       { separator: true },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
-      { label: "Export", icon: "download", command: () => dispatch("export", node) },
-      { label: "Export with credentials", icon: "key", command: () => dispatch("export-credentials", node) },
-      { label: "Export for Postman…", icon: "download", command: () => dispatch("export-postman", node) },
+      { label: "Export…", icon: "download", command: () => dispatch("export", node) },
       { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
     ];
   }
@@ -46,7 +37,7 @@ export function buildContextItems(
   if (data.type === "folder") {
     return [
       { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
-      { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
+      { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },

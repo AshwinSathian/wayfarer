@@ -205,6 +205,7 @@ one Export… dialog, and the copy menu, take credentials only through an
 [`hig-review/1440-dark-27-tree-menu.png`](hig-review/1440-dark-27-tree-menu.png),
 [`hig-review/1440-dark-24-copy-menu.png`](hig-review/1440-dark-24-copy-menu.png).
 Still open, D4-f.
+**2026-11-02:** Fixed in #486 (D4-f): one Export… opens `export-dialog`, with the format and an Include credentials box unticked at each opening (`e2e/export-postman.spec.ts`, `e2e/claims.spec.ts`'s C-014, `e2e/secrets-wire.spec.ts`). The copy menu's credentialed cURL is after a line at the menu's end (decided under row 1.55).
 
 **U-027. The tab strip's actions are far from the tabs.** Severity 3. H4.
 New, duplicate and close are at the strip's right end, up to 1,000 px
@@ -727,6 +728,7 @@ and the "RUN" tab badge (`app-shell.ts:145-219`;
 `tab-strip.html:10`). Each goes to its view's session: D4-f the palette,
 tree, dialogs and tab badge, D4-g the environments, D4-i the assertion
 builder.
+**2026-11-02:** The tree's menu, the create dialogs' titles and the palette's commands (#484) fixed in #486 (D4-f). The environments' (D4-g) and the assertion builder's (D4-i) remain.
 
 ### Found on the other screens
 
@@ -1172,6 +1174,7 @@ Evidence: `past-requests.html:38, 122, 189, 195`; `past-requests.ts:185-186`;
 **Status:** Open: D4-f (history, tree), D4-g (secrets), D4-h (import,
 bridge, Settings). Review row W-28.
 **2026-11-02:** History's names fixed in #485 (D4-f): one act, Delete from history; one Clear, Clear history; a row opens its entry. The secrets', import's, the bridge's and Settings' remain with D4-g and D4-h.
+**2026-11-02:** The tree's names fixed in #486 (D4-f): a request is never "New Item".
 
 **U-084. Empty places say what is missing, not what goes there.**
 Severity 3. H6, H10. OC.

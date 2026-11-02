@@ -172,6 +172,13 @@ credentials (masked, the default, or included) as its two choices. "Export
 with credentials" and "Export for Postman…" are no longer items of their
 own. The palette's command is the same Export…. Maintainer, 2026-10-22.
 
+Built in D4-f (2026-11-02): the dialog is `export-dialog`, titled with the
+collection's name; it starts at Wayfarer's format with credentials masked
+each time it opens. The composer's copy menu keeps "Copy as cURL with
+credentials", after a line at the menu's end, apart from the masked copies
+(decided under row 1.55: a copy is one request into the clipboard; the
+file was the slip that wrote a collection's every token).
+
 ### U-027: the tab strip
 
 Each tab has its own close button (×), which is not a stop of its own for
@@ -359,9 +366,10 @@ it is.
 | `inherited-settings-dialog.html: How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
 | `inherited-settings-dialog.html: Cancel` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
 | `inherited-settings-dialog.html: Save settings` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `postman-export-dialog.html: Include credentials` | Export for Postman dialog | Sidebar, Export… dialog, with the format beside it (U-016) | D4-f |
-| `postman-export-dialog.html: Cancel` | Export for Postman dialog (context menu) | Sidebar, the one Export… dialog (U-016) | D4-f |
-| `postman-export-dialog.html: Export file` | Export for Postman dialog (context menu) | Sidebar, the one Export… dialog (U-016) | D4-f |
+| `export-dialog.html: Format` | Export… dialog: Wayfarer or Postman v2.1 (U-016) | Sidebar, the one Export… dialog | D4-f, done |
+| `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
+| `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
+| `export-dialog.html: Export file` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
 | `import-dialog.html: Read the command` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
@@ -369,14 +377,12 @@ it is.
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
-| `menu collection-context-menu.ts: New Folder` | Context menu of a tree row | Sidebar, context menu | D4-f |
-| `menu collection-context-menu.ts: New Request` | Context menu of a tree row | Sidebar, context menu | D4-f |
+| `menu collection-context-menu.ts: New folder` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
+| `menu collection-context-menu.ts: New request` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
 | `menu collection-context-menu.ts: Settings` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Rename` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Duplicate` | Context menu of a tree row | Sidebar, context menu | D4-f |
-| `menu collection-context-menu.ts: Export` | Collection's menu | Sidebar, context menu, "Export…", one dialog with the format and the credentials (U-016) | D4-f |
-| `menu collection-context-menu.ts: Export with credentials` | Collection's menu | **Merged** into Export… (maintainer, 2026-10-22) | D4-f |
-| `menu collection-context-menu.ts: Export for Postman…` | Collection's menu | **Merged** into Export… (maintainer, 2026-10-22) | D4-f |
+| `menu collection-context-menu.ts: Export…` | Collection's menu | Sidebar, context menu, one dialog with the format and the credentials (U-016) | D4-f, done |
 | `menu collection-context-menu.ts: Delete` | Context menu of a tree row | Sidebar, context menu | D4-f |
 
 ### Tab strip

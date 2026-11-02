@@ -19,9 +19,10 @@ async function json(download: Download): Promise<Record<string, any>> {
 
 async function exportForPostman(page: Page, credentials = false): Promise<Download> {
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
-  const dialog = page.getByRole("dialog", { name: "Export for Postman" });
+  await page.getByRole("menuitem", { name: "Export…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Export Tripwire collection" });
   await expect(dialog).toBeVisible();
+  await dialog.getByRole("radio", { name: "Postman v2.1" }).check();
   if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
@@ -65,8 +66,9 @@ test("@claim:C-057 a collection exports as a Postman Collection v2.1 file: auth 
 
   // The dialog says what the file will not hold, before anything is written.
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
-  const dialog = page.getByRole("dialog", { name: "Export for Postman" });
+  await page.getByRole("menuitem", { name: "Export…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Export Tripwire collection" });
+  await dialog.getByRole("radio", { name: "Postman v2.1" }).check();
   await expect(dialog.locator(".export-notes")).toContainText("1 thing Postman's format has no place for");
   await expect(dialog.locator(".export-notes")).toContainText(
     'request "Tripwire request". Its assertion is left out: Postman has tests only as scripts.',

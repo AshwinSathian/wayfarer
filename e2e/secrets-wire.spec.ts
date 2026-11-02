@@ -1,5 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PASSPHRASE, dumpIdb, openSettings, protectVariable, seedAndOpen, send } from "./support/app";
+import {
+  PASSPHRASE,
+  dumpIdb,
+  openSettings,
+  protectVariable,
+  seedAndOpen,
+  send,
+  exportCollectionFile,
+} from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.5 with P2.8 and P2.9 (plan D21): a vault secret reaches the wire, and
@@ -64,31 +72,11 @@ function found(text: string, secret: string): string[] {
   return [...new Set(hits)];
 }
 
-async function downloadText(page: Page, menuItem: string): Promise<string> {
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    page.getByRole("menuitem", { name: menuItem, exact: true }).click(),
-  ]);
-  const chunks: Buffer[] = [];
-  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString("utf8");
-}
-
-/** The collection as a Postman file (P4.6 b), through its dialog. */
-async function postmanText(page: Page, credentials: boolean): Promise<string> {
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
-  const dialog = page.getByRole("dialog", { name: "Export for Postman" });
-  if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    dialog.getByRole("button", { name: "Export file" }).click(),
-  ]);
-  const chunks: Buffer[] = [];
-  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString("utf8");
-}
+/** The collection's file through its one Export… dialog (U-016): Wayfarer's format, or Postman v2.1 (P4.6 b). */
+const downloadText = (page: Page, credentials: boolean) =>
+  exportCollectionFile(page, "Tripwire collection", { credentials });
+const postmanText = (page: Page, credentials: boolean) =>
+  exportCollectionFile(page, "Tripwire collection", { format: "Postman v2.1", credentials });
 
 /** The HAR file the export dialog saves (P4.6 c): of the response on screen, or of every entry of history. */
 async function harText(page: Page, from: "response" | "history", credentials = false): Promise<string> {
@@ -221,7 +209,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   }
   await expect.poll(clipboard).toHaveLength(9);
   const copied = await clipboard();
-  const files = [await downloadText(page, "Export"), await downloadText(page, "Export with credentials")];
+  const files = [await downloadText(page, false), await downloadText(page, true)];
   const postman = [await postmanText(page, false), await postmanText(page, true)];
   // P4.6 (c): the HAR dialog's file and what it showed, for the response (with credentials too) and for history.
   const har = [await harText(page, "response"), await harText(page, "response", true), await harText(page, "history")];
@@ -496,8 +484,8 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
       JSON.stringify([{ ...localStorage }, { ...sessionStorage }]),
     ),
     ...Object.fromEntries(copied.map((text, index) => [`copy ${index + 1}`, text])),
-    "collection export": await downloadText(page, "Export"),
-    "collection export with credentials": await downloadText(page, "Export with credentials"),
+    "collection export": await downloadText(page, false),
+    "collection export with credentials": await downloadText(page, true),
     "what the script wrote on the page": await page.locator(".script-console").innerText(),
   };
   expect(Object.keys(stores).sort()).toEqual([

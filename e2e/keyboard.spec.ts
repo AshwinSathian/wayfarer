@@ -235,23 +235,21 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   const items = page.getByRole("menuitem");
   await expect(items).toHaveText([
     "Run…",
-    "New Folder",
-    "New Request",
+    "New folder",
+    "New request",
     "Settings",
     "Rename",
     "Duplicate",
-    "Export",
-    "Export with credentials",
-    "Export for Postman…",
+    "Export…",
     "Delete",
   ]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
-  await expect(page.getByRole("menuitem", { name: "Export for Postman…" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Export…" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
-  await expect(page.getByRole("menuitem", { name: "Export with credentials" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Duplicate" })).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
@@ -538,10 +536,10 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
   await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Tree Col");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await createUnder(page, "Tree Col", "New Folder", "Tree Folder");
-  await createUnder(page, "Tree Col", "New Request", "Tree Req 1");
-  await createUnder(page, "Tree Col", "New Request", "Tree Req 2");
-  await createUnder(page, "Tree Folder", "New Request", "Tree Inner");
+  await createUnder(page, "Tree Col", "New folder", "Tree Folder");
+  await createUnder(page, "Tree Col", "New request", "Tree Req 1");
+  await createUnder(page, "Tree Col", "New request", "Tree Req 2");
+  await createUnder(page, "Tree Folder", "New request", "Tree Inner");
   const item = (name: string) => treeRow(page, name);
   const order = async () =>
     (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? "")))

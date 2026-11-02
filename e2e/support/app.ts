@@ -302,3 +302,25 @@ export async function tabMenu(page: Page, item: string): Promise<void> {
     .click({ button: "right" });
   await page.getByRole("menuitem", { name: item, exact: true }).click();
 }
+
+/** Exports a collection through its one Export… dialog (U-016) and gives back the file's text. */
+export async function exportCollectionFile(
+  page: Page,
+  collection: string,
+  options: { format?: "Wayfarer" | "Postman v2.1"; credentials?: boolean } = {},
+): Promise<string> {
+  await page.getByRole("tree").getByText(collection, { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Export…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: `Export ${collection}` });
+  await expect(dialog).toBeVisible();
+  if (options.format) await dialog.getByRole("radio", { name: options.format }).check();
+  if (options.credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    dialog.getByRole("button", { name: "Export file" }).click(),
+  ]);
+  await expect(dialog).toBeHidden();
+  const chunks: Buffer[] = [];
+  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString("utf8");
+}

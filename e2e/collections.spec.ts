@@ -176,3 +176,33 @@ test("a click on the backdrop keeps Save to collection and the vault's dialog op
   await expect(vault).toBeVisible();
   await expect(vault.locator("input").first()).toHaveValue("typed");
 });
+
+// U-080, U-056: a delete in the tree asked "Delete item?", named nothing and could not be undone. It goes at once,
+// says what went, and Undo (or Ctrl+Z) puts it back as it was, its scripts' approval and its body's file included.
+test("a deleted folder comes back with what was in it, by Undo or by Ctrl+Z", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json`, folder: {} });
+  const tree = page.getByRole("tree");
+  await tree.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  const bar = page.locator(".undo-bar");
+  await expect(bar).toContainText("Deleted Tripwire folder. The 1 request in it went with it.");
+  await expect(tree.getByText("Tripwire folder", { exact: true })).toHaveCount(0);
+  await bar.getByRole("button", { name: "Undo" }).click();
+  await expect(tree.getByText("Tripwire folder", { exact: true })).toBeVisible();
+  await expect(bar).not.toContainText("Deleted");
+
+  // Again, and back by the key, from outside a field.
+  await tree.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await expect(tree.getByText("Tripwire folder", { exact: true })).toHaveCount(0);
+  await tree.focus();
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(tree.getByText("Tripwire folder", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("tree").getByText("Tripwire folder", { exact: true })).toBeVisible();
+  await page.getByRole("tree").getByText("Tripwire folder", { exact: true }).click();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tree").getByText("Tripwire request", { exact: true })).toBeVisible();
+});

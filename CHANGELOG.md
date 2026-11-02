@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A delete in the sidebar can be undone.** Deleting a collection, a
+  folder or a request no longer asks "Delete item? This action cannot be
+  undone. Continue?", which named nothing: it goes at once, a line under
+  the page says what went ("Deleted Pets. The 3 requests in it went with
+  it."), and Undo, or ⌘Z / Ctrl+Z outside a field, puts it back as it
+  was, with its files and its scripts' approval, for ten seconds (longer
+  while the pointer or focus is on the line). The questions the app still
+  asks, for Clear history, Reset all data and deleting a vault secret,
+  name what goes and their button says the act, where it said
+  "Proceed"; they no longer show a warning glyph over centred text.
+
 - **A collection has one Export…, and its credentials are masked unless
   you say otherwise.** Its menu had Export, Export with credentials and
   Export for Postman… side by side, and Export with credentials wrote

@@ -510,9 +510,10 @@ test("a folder is copied and deleted with the folders inside it: the copy holds 
 
   // The original goes with what is in it; the copy stays whole.
   await menu("Middle", "Delete");
-  const question = page.getByRole("alertdialog", { name: "Delete item?" });
-  await expect(question).toContainText('Folder "Middle" is deleted with the 1 folder and 3 requests in it.');
-  await question.getByRole("button", { name: "Proceed", exact: true }).click();
+  // Deleted at once; the line says what went with it, and offers Undo (U-080).
+  await expect(page.locator(".undo-bar")).toContainText(
+    "Deleted Middle. The 1 folder and 3 requests in it went with it.",
+  );
   await expect
     .poll(rows)
     .toEqual([

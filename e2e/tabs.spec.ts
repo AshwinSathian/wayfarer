@@ -453,11 +453,8 @@ test("a request renamed in the tree is renamed in its tab at once, and one delet
   await expect(strip(page).getByRole("tab", { selected: true })).not.toContainText("unsaved");
 
   await tree.getByText("Renamed in the tree", { exact: true }).click({ button: "right" });
+  // Deleted at once, with an Undo offered (U-080).
   await page.getByRole("menuitem", { name: "Delete" }).click();
-  await page
-    .getByRole("alertdialog", { name: "Delete item?" })
-    .getByRole("button", { name: "Proceed", exact: true })
-    .click();
   await expect(tree.getByText("Renamed in the tree", { exact: true })).toHaveCount(0);
   // The tab keeps what it held, as a request of no collection: its name is its address again.
   await expect(address(page)).toHaveValue(`${ECHO}/echo?kept=1`);

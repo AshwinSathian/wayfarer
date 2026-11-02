@@ -190,12 +190,13 @@ export class SecretsManager {
 
   async confirmDelete(row: SecretRow): Promise<void> {
     const confirmed = await this.confirm.confirm({
-      title: "Delete secret?",
+      title: `Delete the secret ${row.doc.name}?`,
       message: row.usages.length
         ? `"${row.doc.name}" is still referenced by ${row.usages.length} environment variable${
             row.usages.length === 1 ? "" : "s"
           } (${row.usages.map((u) => `${u.environmentName}.${u.variableKey}`).join(", ")}). Those variables will stop resolving. This cannot be undone.`
         : `This will permanently delete the encrypted secret "${row.doc.name}". This cannot be undone.`,
+      acceptLabel: "Delete",
     });
     if (confirmed) await this.deleteSecret(row.doc.id);
   }

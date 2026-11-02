@@ -4,17 +4,16 @@
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  height: 40px;
+  height: var(--ctl-height-lg);
   padding-inline-start: 12px;
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--ctl-boundary);
+  border-radius: var(--radius-sm);
   background: var(--canvas-elevated);
-  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
   color: var(--label-primary);
   font-size: var(--type-body-size);
   font-weight: 400;
   letter-spacing: -0.003em;
-  line-height: 38px;
+  line-height: normal;
   cursor: pointer;
   user-select: none;
   vertical-align: middle;
@@ -24,14 +23,14 @@
 }
 
 .ui-select:hover {
-  border-color: var(--fill-primary);
+  border-color: var(--label-tertiary);
 }
 
-/* The select draws its own focus state: border and glow. */
+/* The select draws its own focus: a 2 px edge in ink, as a field does (U-074). */
 .ui-select:focus,
 .ui-select[aria-expanded="true"] {
-  border-color: var(--accent-border);
-  box-shadow: var(--glow-accent);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
   outline: none;
 }
 
@@ -47,7 +46,7 @@
   display: flex;
   flex: none;
   justify-content: center;
-  width: 40px;
+  width: var(--ctl-height-lg);
   color: var(--ctl-chevron);
   font-size: 24px;
 }
@@ -107,13 +106,13 @@
 /* The fill alone was 1.08:1 in light and 1.19:1 in dark (U-107): the option the keys are on also has a mark at its
    start, which contrast.test.mjs holds to 3:1 on the list. */
 .ui-select-option[data-active="true"] {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 /* The chosen option is ticked. */
 .ui-select-check {
   flex: none;
-  color: var(--accent);
+  color: var(--ink);
   /* Under the text's line: a taller tick made each option a pixel taller. */
   font-size: 16px;
   visibility: hidden;
@@ -137,7 +136,7 @@
   flex: 0 1 160px;
   min-width: 80px;
   max-width: 200px;
-  height: 32px;
+  height: var(--ctl-height-md);
   padding-inline-start: 10px;
   border-radius: var(--radius-full);
   background: var(--fill-secondary);

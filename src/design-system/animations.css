@@ -1,7 +1,5 @@
-/* ============================================================
-   Animations — Wayfarer · "Obsidian" Design Language
-   Spring-based motion system, Apple-quality timing
-   ============================================================ */
+/* Keyframes and the classes that run them. Durations and easings are the motion tokens
+   (docs/design/motion.md); with reduced motion everything lasts --dur-none. */
 
 /* ── Keyframes ───────────────────────────────────────────── */
 

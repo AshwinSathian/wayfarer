@@ -159,11 +159,11 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
         // Line numbers are text: 4.5:1 on the editor, as every label is.
         "editorLineNumber.foreground": t["label-tertiary"],
         "editorLineNumber.activeForeground": t["label-secondary"],
-        "editor.selectionBackground": withAlpha(t["accent"], 0.25),
-        "editor.inactiveSelectionBackground": withAlpha(t["accent"], 0.12),
+        "editor.selectionBackground": t["selection-bg"],
+        "editor.inactiveSelectionBackground": withAlpha(t["ink"], 0.1),
         "editor.lineHighlightBackground":
           theme === "dark" ? withAlpha(t["canvas-elevated"], 0.5) : t["canvas-elevated"],
-        "editorCursor.foreground": theme === "dark" ? t["accent-text"] : t["accent"],
+        "editorCursor.foreground": t["ink"],
         "scrollbarSlider.background": t["scrollbar-thumb"],
         "scrollbarSlider.hoverBackground": t["scrollbar-thumb-hover"],
         "scrollbarSlider.activeBackground": t["scrollbar-thumb-hover"],

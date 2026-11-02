@@ -17,7 +17,7 @@ import { previewDocument } from "@wayfarer/core";
     #frame
     sandbox
     title="HTML preview"
-    class="html-preview block h-[300px] w-full rounded-xl border border-separator bg-white"
+    class="html-preview block h-[300px] w-full rounded-lg border border-separator bg-white"
   ></iframe>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

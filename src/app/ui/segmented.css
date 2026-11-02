@@ -7,9 +7,10 @@
   gap: 1px;
   max-width: 100%;
   padding: 3px;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--ctl-boundary);
   border-radius: var(--radius-sm);
-  background: var(--fill-secondary);
+  /* No fill of its own: the edges are the control's boundary on the surface it sits on, 3:1. */
+  background: transparent;
   vertical-align: bottom;
   white-space: nowrap;
   user-select: none;
@@ -20,7 +21,7 @@
   display: block;
   padding: 5px 14px;
   border-radius: calc(var(--radius-sm) - 2px);
-  color: var(--label-secondary-on-fill);
+  color: var(--label-secondary);
   font-size: var(--type-footnote-size);
   font-weight: 500;
   letter-spacing: -0.002em;
@@ -34,14 +35,14 @@
 }
 
 .segment + .segment {
-  border-inline-start: 1px solid var(--separator);
+  border-inline-start: 1px solid var(--border-strong);
 }
 
+/* The chosen option is raised above its track in both themes and edged in the control's boundary, 3:1 on the
+   track (U-117); it is painted here only (U-129). */
 .segment:has(> .segment-input:checked) {
-  background: var(--canvas-overlay);
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  background: var(--surface-overlay);
+  box-shadow: inset 0 0 0 1px var(--ctl-boundary);
   color: var(--label-primary);
 }
 
@@ -66,7 +67,7 @@
 }
 
 .segment-input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -77,15 +78,7 @@
   justify-content: center;
   gap: 6px;
   padding: 0.25rem 0.75rem;
-  border-radius: 6px;
   pointer-events: none;
-}
-
-.segment-input:checked + .segment-label {
-  background: var(--ctl-segment-checked);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.02),
-    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* Below 480 px a dialog is the window's width, and three options at their

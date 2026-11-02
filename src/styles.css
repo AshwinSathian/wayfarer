@@ -45,19 +45,15 @@
 
   --color-label-primary: var(--label-primary);
   --color-label-secondary: var(--label-secondary);
-  --color-label-secondary-on-fill: var(--label-secondary-on-fill);
   --color-label-tertiary: var(--label-tertiary);
-  --color-label-placeholder: var(--label-placeholder);
 
   --color-fill-primary: var(--fill-primary);
   --color-fill-secondary: var(--fill-secondary);
   --color-fill-hover: var(--fill-hover);
   --color-fill-active: var(--fill-active);
 
-  --color-accent: var(--accent);
-  --color-accent-fill: var(--accent-fill);
-  --color-accent-border: var(--accent-border);
-  --color-accent-text: var(--accent-text);
+  --color-ink: var(--ink);
+  --color-fill-selected: var(--fill-selected);
 
   --color-separator: var(--separator);
   --color-separator-opaque: var(--separator-opaque);
@@ -65,23 +61,12 @@
   --color-status-success: var(--status-success);
   --color-status-warning: var(--status-warning);
   --color-status-error: var(--status-error);
-  --color-status-info: var(--status-info);
   --color-status-success-fill: var(--status-success-fill);
   --color-status-success-border: var(--status-success-border);
   --color-status-warning-fill: var(--status-warning-fill);
   --color-status-warning-border: var(--status-warning-border);
   --color-status-error-fill: var(--status-error-fill);
   --color-status-error-border: var(--status-error-border);
-  --color-status-info-fill: var(--status-info-fill);
-  --color-status-info-border: var(--status-info-border);
-
-  --color-method-get: var(--method-get);
-  --color-method-post: var(--method-post);
-  --color-method-put: var(--method-put);
-  --color-method-patch: var(--method-patch);
-  --color-method-delete: var(--method-delete);
-  --color-method-head: var(--method-head);
-  --color-method-options: var(--method-options);
 }
 
 /* Status colours as text use their text shade (tokens.css). Tailwind's
@@ -95,9 +80,6 @@
 }
 .text-status-error {
   color: var(--status-error-text);
-}
-.text-status-info {
-  color: var(--status-info-text);
 }
 
 /* ── Global resets ──────────────────────────────────────── */
@@ -162,15 +144,14 @@ body {
 
 /* ── Focus visible ──────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
-  border-radius: var(--radius-xs);
 }
 
 /* Monaco takes focus in a hidden text area and draws no ring of its own:
    the editor shows one while it has focus (P7.1). */
 .monaco-editor.focused {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 

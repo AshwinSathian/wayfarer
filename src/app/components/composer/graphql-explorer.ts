@@ -11,7 +11,7 @@ import { Icon } from "../../shared/icon/icon";
   imports: [Icon],
   template: `
     <section
-      class="graphql-explorer max-h-60 overflow-y-auto rounded-xl border border-separator"
+      class="graphql-explorer max-h-60 overflow-y-auto rounded-lg border border-separator"
       aria-label="Schema"
       tabindex="0"
     >

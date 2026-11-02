@@ -14,7 +14,7 @@
   background: var(--canvas-overlay);
   box-shadow: var(--shadow-overlay);
   /* --label-secondary measures 4.27:1 on --canvas-overlay. */
-  color: var(--label-secondary-on-fill);
+  color: var(--label-secondary);
   font-family: var(--font-sans);
   font-size: var(--type-footnote-size);
   font-weight: var(--type-footnote-weight);

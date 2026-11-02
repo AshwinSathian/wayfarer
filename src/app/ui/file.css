@@ -7,8 +7,8 @@
   align-items: center;
   gap: 4px 8px;
   padding: 6px 8px 6px 10px;
-  border: 1px solid var(--ctl-surface-border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--ctl-boundary);
+  border-radius: var(--radius-sm);
   background: var(--ctl-surface);
   color: var(--ctl-surface-text);
   transition:
@@ -18,8 +18,8 @@
 
 :host(.ui-file-over) {
   border-style: dashed;
-  border-color: var(--accent);
-  background: var(--accent-fill);
+  border-color: var(--ink);
+  background: var(--fill-selected);
 }
 
 /* Disabled: its buttons say so; its text stays readable (4.5:1). */

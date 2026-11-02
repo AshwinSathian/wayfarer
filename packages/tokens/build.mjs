@@ -1,7 +1,7 @@
 // Writes src/design-system/tokens.css from the token files. `--check` fails
 // when the file in the tree is not what the tokens give (CI runs it).
 import { readFileSync, writeFileSync } from "node:fs";
-import { THEMES, cssValues, hexColours, sharedNames, theme, typeClasses } from "./tokens.mjs";
+import { THEMES, cssValues, derivedNames, hexColours, sharedNames, theme, typeClasses } from "./tokens.mjs";
 
 const target = new URL("../../src/design-system/tokens.css", import.meta.url);
 const SELECTORS = { dark: '[data-theme="dark"],\n:root', light: '[data-theme="light"]' };
@@ -28,11 +28,25 @@ function block(name) {
   return [...lines, "}"].join("\n");
 }
 
+/** The derived colours again at the `more` targets (U-110): the same inputs, solved for more contrast. */
+function moreBlock(name) {
+  const values = cssValues(name, "more");
+  return [
+    `  ${SELECTORS[name].replace("\n", "\n  ")} {`,
+    ...derivedNames(name).map((key) => `    --${key}: ${values[`--${key}`]};`),
+    "  }",
+  ].join("\n");
+}
+
 const css = [
   "/* Generated from packages/tokens (DTCG 2025.10) by `npm run gen:tokens`. Do not edit:",
   "   change the token files and run it again. What each group is for is in their $description. */",
   "",
   ...THEMES.map(block).join("\n\n").split("\n"),
+  "",
+  "@media (prefers-contrast: more) {",
+  ...THEMES.map(moreBlock).join("\n\n").split("\n"),
+  "}",
   "",
 ].join("\n");
 

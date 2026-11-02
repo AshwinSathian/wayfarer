@@ -14,17 +14,17 @@
 /* Rounded at the ends of the list, and all round while open, as Material's
    were (6px: no radius token is that size). */
 .sections-item:first-child {
-  border-start-start-radius: 6px;
-  border-start-end-radius: 6px;
+  border-start-start-radius: var(--radius-sm);
+  border-start-end-radius: var(--radius-sm);
 }
 
 .sections-item:last-child {
-  border-end-start-radius: 6px;
-  border-end-end-radius: 6px;
+  border-end-start-radius: var(--radius-sm);
+  border-end-end-radius: var(--radius-sm);
 }
 
 .sections-item:has(> [aria-expanded="true"]) {
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .section-header {
@@ -51,7 +51,7 @@
 }
 
 .section-header:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 

@@ -51,11 +51,11 @@
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 2px solid var(--ink);
 }
 
 .tab-bar [role="tab"]:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -97,7 +97,7 @@
   height: 7px;
   flex: none;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--ink);
 }
 
 /* The panes. Aria makes a pane that is not shown inert and leaves hiding it to us. */
@@ -113,6 +113,6 @@
 
 /* A pane with nothing to focus in it is a Tab stop (WAI-ARIA's pattern; uiTabList takes the others out, U-090). */
 [role="tabpanel"]:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }

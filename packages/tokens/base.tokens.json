@@ -1,7 +1,47 @@
 {
   "$description": "Wayfarer's tokens that both themes share. DTCG 2025.10.",
+  "$extensions": {
+    "com.wayfarer.contrast": {
+      "normal": {
+        "primary": 15,
+        "secondary": 7,
+        "tertiary": 4.5,
+        "boundary": 3,
+        "hairline": 1.25,
+        "edge": 1.12,
+        "fill-quiet": 1.08,
+        "fill": 1.16,
+        "hover": 1.22,
+        "press": 1.4,
+        "selected": 1.3,
+        "thumb": 1.6,
+        "thumb-hover": 2.4,
+        "selection": 1.7,
+        "ink-hover": 11,
+        "ink-press": 8
+      },
+      "more": {
+        "primary": 17.5,
+        "secondary": 10,
+        "tertiary": 7,
+        "boundary": 4.5,
+        "hairline": 1.5,
+        "edge": 1.25,
+        "fill-quiet": 1.12,
+        "fill": 1.25,
+        "hover": 1.35,
+        "press": 1.6,
+        "selected": 1.5,
+        "thumb": 2.2,
+        "thumb-hover": 3.2,
+        "selection": 2,
+        "ink-hover": 13,
+        "ink-press": 10
+      }
+    }
+  },
   "radius": {
-    "$description": "Corner radii.",
+    "$description": "Corner radii, three and a circle (U-126): -xs an inline mark or a keycap, -sm a control, -lg an overlay or a container, -full a pill.",
     "radius-xs": {
       "$type": "dimension",
       "$value": {
@@ -16,31 +56,10 @@
         "unit": "px"
       }
     },
-    "radius-md": {
-      "$type": "dimension",
-      "$value": {
-        "value": 7,
-        "unit": "px"
-      }
-    },
     "radius-lg": {
       "$type": "dimension",
       "$value": {
         "value": 9,
-        "unit": "px"
-      }
-    },
-    "radius-xl": {
-      "$type": "dimension",
-      "$value": {
-        "value": 12,
-        "unit": "px"
-      }
-    },
-    "radius-2xl": {
-      "$type": "dimension",
-      "$value": {
-        "value": 16,
         "unit": "px"
       }
     },
@@ -49,6 +68,30 @@
       "$value": {
         "value": 9999,
         "unit": "px"
+      }
+    }
+  },
+  "size": {
+    "$description": "Control heights (U-124), in rem so that they grow with the text: -sm a row's inline field or icon, -md a small button and the toolbar's controls, -lg a field, a select and a button.",
+    "ctl-height-sm": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1.75,
+        "unit": "rem"
+      }
+    },
+    "ctl-height-md": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2,
+        "unit": "rem"
+      }
+    },
+    "ctl-height-lg": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2.25,
+        "unit": "rem"
       }
     }
   },

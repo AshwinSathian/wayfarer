@@ -32,12 +32,19 @@
   transition: background var(--dur-micro) var(--ease-standard);
 }
 
-.ui-tree-row--selected {
-  background: var(--ctl-highlight);
-}
-
 .ui-tree-row:hover {
   background: var(--fill-hover);
+}
+
+/* The selected row: a fill, and an ink mark at its start that contrast.test.mjs holds to 3:1 (U-117). The fill
+   alone was 1.14:1, and hover replaced it; hovered, the selected row is a step stronger and keeps its mark. */
+.ui-tree-row--selected {
+  background: var(--fill-selected);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.ui-tree-row--selected:hover {
+  background: var(--fill-active);
 }
 
 .ui-tree-row:focus-visible {
@@ -45,11 +52,11 @@
 }
 
 .ui-tree-row--drop-before {
-  box-shadow: inset 0 2px 0 var(--accent);
+  box-shadow: inset 0 2px 0 var(--ink);
 }
 
 .ui-tree-row--drop-after {
-  box-shadow: inset 0 -2px 0 var(--accent);
+  box-shadow: inset 0 -2px 0 var(--ink);
 }
 
 /* Forced colours take every background away, and with it the only mark of

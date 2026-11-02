@@ -203,7 +203,7 @@
           type="button"
           uiButton="icon"
           class="btn-plain"
-          [class.bg-accent-fill]="historyDrawerVisible()"
+          [class.bg-fill-selected]="historyDrawerVisible()"
           (click)="openHistory()"
           uiTooltip="Request history"
           aria-label="Request history"
@@ -237,7 +237,7 @@
         <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
         <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
         @if (swUpdate.updateAvailable()) {
-        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
+        <div class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
           <button
             uiButton="filled"
@@ -249,7 +249,7 @@
           >
         </div>
         } @if (backup.reminderDue()) {
-        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
+        <div class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-canvas-elevated border border-separator">
           <p class="type-callout text-label-secondary" aria-hidden="true">{{ backupWords() }}</p>
           <button
             uiButton="filled"
@@ -265,7 +265,7 @@
         </div>
         } @if (dataResetElsewhere()) {
         <div
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
+          class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
         >
           <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.resetElsewhere }}</p>
           <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()"
@@ -273,12 +273,12 @@
           >
         </div>
         } @if (storageUnavailable()) {
-        <div class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+        <div class="rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border">
           <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.storage }}</p>
         </div>
         } @if (resetError()) {
         <div
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border"
+          class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-status-error-fill border border-status-error-border"
         >
           <p class="type-callout text-status-error" aria-hidden="true">{{ resetErrorText() }}</p>
           <button
@@ -374,7 +374,7 @@
   width="400px"
 >
   <div class="flex flex-col gap-4">
-    <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
+    <div class="flex items-start gap-3 rounded-lg bg-canvas-elevated p-3.5 border border-separator">
       <app-icon
         [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'"
         class="icon-md text-label-tertiary mt-0.5 shrink-0"

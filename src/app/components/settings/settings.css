@@ -47,18 +47,18 @@
 }
 
 .settings-nav-item:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
 .settings-nav-item[aria-current="page"] {
-  background: var(--accent-fill);
+  background: var(--fill-selected);
   color: var(--label-primary);
   font-weight: 600;
 }
 
 .settings-nav-item[aria-current="page"] .app-icon:first-child {
-  color: var(--accent-text);
+  color: var(--label-primary);
 }
 
 /* The last one stands apart, and says what it is by its colour. */
@@ -84,7 +84,7 @@
 }
 
 .settings-pane:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -103,7 +103,7 @@
   padding: 0;
   list-style: none;
   border: 1px solid var(--separator);
-  border-radius: var(--radius-lg, 12px);
+  border-radius: var(--radius-lg);
   background: var(--canvas-elevated);
 }
 
@@ -166,7 +166,7 @@
 }
 
 .settings-row-link:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -202,7 +202,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent-text);
+  color: var(--label-primary);
   font: inherit;
   text-decoration: underline;
   cursor: pointer;
@@ -216,7 +216,7 @@
 .settings-meter {
   height: 6px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--fill-secondary);
 }
 
@@ -224,7 +224,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--accent);
+  background: var(--ink);
 }
 
 /* A phone: the list is the dialog, and a section opens in its place. */

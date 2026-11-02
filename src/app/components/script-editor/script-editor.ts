@@ -44,7 +44,7 @@ const noop = () => {};
         <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
       } @placeholder {
         <div
-          class="flex h-full w-full items-center justify-center rounded-md bg-canvas-elevated type-callout text-label-tertiary"
+          class="flex h-full w-full items-center justify-center rounded-sm bg-canvas-elevated type-callout text-label-tertiary"
         >
           Loading editor…
         </div>

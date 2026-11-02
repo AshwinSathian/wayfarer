@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { closeEnvironments, dumpIdb, openEnvironments, seedAndOpen, send } from "./support/app";
+import { closeEnvironments, dumpIdb, openEnvironments, seedAndOpen, send, exportCollectionFile } from "./support/app";
 
 // Tests that back public claims in README.md and docs/trust-center.md
 // (ledger: docs/claims.md, gate: scripts/check-claims.mjs). Each title
@@ -111,26 +111,13 @@ test("@claim:C-014 a collection export masks credentials unless that export asks
       auth: { type: "bearer", token: "c014-token-value" },
     },
   );
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    page.getByRole("menuitem", { name: "Export", exact: true }).click(),
-  ]);
-  const text = async (file: typeof download) => {
-    const chunks: Buffer[] = [];
-    for await (const chunk of await file.createReadStream()) chunks.push(chunk as Buffer);
-    return Buffer.concat(chunks).toString("utf8");
-  };
-  const masked = await text(download);
+  // The one Export… (U-016): credentials masked unless "Include credentials" is ticked.
+  const masked = await exportCollectionFile(page, "Tripwire collection");
   expect(masked).not.toContain("c014-token-value");
   expect(masked).toContain('"token": "***"');
 
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  const [whole] = await Promise.all([
-    page.waitForEvent("download"),
-    page.getByRole("menuitem", { name: "Export with credentials" }).click(),
-  ]);
-  expect(await text(whole)).toContain("c014-token-value");
+  const whole = await exportCollectionFile(page, "Tripwire collection", { credentials: true });
+  expect(whole).toContain("c014-token-value");
 });
 
 test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injected inline script", async ({

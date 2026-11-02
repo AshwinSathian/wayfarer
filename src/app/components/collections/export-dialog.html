@@ -1,0 +1,51 @@
+<ui-dialog
+  [header]="'Export ' + (collection()?.name ?? '')"
+  [visible]="collection() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  width="520px"
+>
+  <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1.5">
+      <span id="export-format-label" class="ds-form-label">Format</span>
+      <ui-segmented
+        aria-labelledby="export-format-label"
+        [options]="formats"
+        [value]="format()"
+        (valueChange)="format.set($event)"
+      />
+      <p class="type-footnote text-label-secondary">
+        @if (format() === "postman") { A Postman Collection v2.1 file: its folders, variables, auth and scripts, and
+        every request with its body. } @else { Wayfarer's own file, which Import reads back as it was. }
+      </p>
+    </div>
+
+    @if (format() === "postman" && notes().length) {
+    <div class="export-notes rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+      <p class="type-subhead text-status-warning"
+        >{{ notes().length }} {{ notes().length === 1 ? "thing" : "things" }} Postman's format has no place for</p
+      >
+      <ul class="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-footnote text-label-primary">
+        @for (note of notes(); track $index) {
+        <li><span class="font-semibold">{{ note.item }}.</span> {{ note.message }}</li>
+        }
+      </ul>
+    </div>
+    }
+
+    <div class="flex flex-col gap-1">
+      <label class="ui-checkbox-label">
+        <input type="checkbox" uiCheckbox [ngModel]="credentials()" (ngModelChange)="credentials.set($event)" />Include
+        credentials</label
+      >
+      <p class="type-footnote text-label-secondary">
+        Unticked, a token, password or key you typed is written as ***. A vault secret is never written.
+      </p>
+    </div>
+  </div>
+  <div uiDialogFooter>
+    <div class="flex justify-end gap-2">
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button uiButton="filled" type="button" (click)="submit()"><app-icon name="download" /> Export file</button>
+    </div>
+  </div>
+</ui-dialog>

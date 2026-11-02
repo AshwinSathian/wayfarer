@@ -329,10 +329,9 @@ describe("CollectionsSidebar", () => {
       component.handleNodeSelect(node);
 
       const labels = component.contextItems().map((item) => ("label" in item ? item.label : undefined));
-      expect(labels).toContain("New Folder");
-      expect(labels).toContain("New Request");
-      expect(labels).toContain("Export");
-      expect(labels).toContain("Export for Postman…");
+      expect(labels).toContain("New folder");
+      expect(labels).toContain("New request");
+      expect(labels).toContain("Export…");
       expect(labels).toContain("Delete");
     });
 
@@ -421,7 +420,7 @@ describe("CollectionsSidebar", () => {
       await component.handleAction("new-folder", node);
 
       expect(component.creationDialogVisible()).toBe(true);
-      expect(component.creationTitle).toBe("New Folder");
+      expect(component.creationTitle).toBe("New folder");
     });
   });
 

@@ -9,6 +9,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A collection has one Export…, and its credentials are masked unless
+  you say otherwise.** Its menu had Export, Export with credentials and
+  Export for Postman… side by side, and Export with credentials wrote
+  every token and password of the collection into a file at one click.
+  Export… opens a dialog with the format (Wayfarer's own, or Postman
+  v2.1, which lists first what Postman's format has no place for) and an
+  Include credentials box that starts unticked each time. In the
+  composer's copy menu, Copy as cURL with credentials now sits after a
+  line at the menu's end, apart from the masked copies. The tree's menu
+  and the create dialogs are in sentence case ("New folder", "New
+  request"), and a new request is never called a "New Item".
+
 - **History shows the whole address, and clearing it is no longer one
   slip from closing it.** Each entry is a row with its method and address
   across the drawer's width, and its status, time and age under it; the

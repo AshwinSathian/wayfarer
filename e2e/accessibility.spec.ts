@@ -259,10 +259,10 @@ test.describe("Accessibility (primary flows)", () => {
 
       // The Postman export of a collection (P4.6 b).
       await page.getByText("Sweep", { exact: true }).click({ button: "right" });
-      await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
-      await expect(
-        page.getByRole("dialog", { name: "Export for Postman" }).getByRole("button", { name: "Export file" }),
-      ).toBeVisible();
+      await page.getByRole("menuitem", { name: "Export…" }).click();
+      const exportDialog = page.getByRole("dialog", { name: "Export Sweep" });
+      await exportDialog.getByRole("radio", { name: "Postman v2.1" }).check();
+      await expect(exportDialog.getByRole("button", { name: "Export file" })).toBeVisible();
       await scan("export for Postman");
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);

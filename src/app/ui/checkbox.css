@@ -12,7 +12,7 @@
   padding: 0;
   appearance: none;
   /* Its only mark while unchecked: the separator's hairline was 1.2:1 (U-106); contrast.test.mjs holds it to 3:1. */
-  border: 1px solid var(--label-tertiary);
+  border: 1px solid var(--ctl-boundary);
   background: transparent;
   color: inherit;
   vertical-align: middle;
@@ -38,28 +38,27 @@
 
 .ui-checkbox:hover,
 .ui-checkbox:focus {
-  border-color: var(--accent-border);
+  border-color: var(--label-secondary);
 }
 
 .ui-checkbox:checked {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--ink);
+  background: var(--ink);
 }
 
-/* The global :focus-visible rule comes later and sets a radius: the box keeps its own. */
-.ui-checkbox,
-.ui-checkbox:focus-visible {
+.ui-checkbox {
   border-radius: var(--radius-xs);
 }
 
-/* Disabled, as Material's: the box and its text at 38% of the text's colour. */
+/* Disabled: a hairline box, and its text the tertiary label. */
 .ui-checkbox:disabled {
-  border-color: color-mix(in srgb, var(--label-primary), transparent 62%);
-  cursor: default;
+  border-color: var(--border-strong);
+  cursor: not-allowed;
 }
 
 .ui-checkbox:disabled:checked {
-  background: color-mix(in srgb, var(--label-primary), transparent 62%);
+  border-color: var(--label-tertiary);
+  background: var(--label-tertiary);
 }
 
 .ui-checkbox:disabled::before {
@@ -83,8 +82,8 @@
 }
 
 .ui-checkbox-label:has(> .ui-checkbox:disabled) {
-  color: color-mix(in srgb, var(--label-primary), transparent 62%);
-  cursor: default;
+  color: var(--label-tertiary);
+  cursor: not-allowed;
 }
 
 /* Forced colours take the fill away: a checked box is painted in the

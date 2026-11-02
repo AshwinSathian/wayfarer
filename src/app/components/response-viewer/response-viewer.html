@@ -256,7 +256,7 @@
                   …{{ currentSearchExcerpt }}…
                 </div>
                 } @if (responseBinary(); as binary) {
-                <div class="flex flex-wrap items-center gap-3 rounded-xl bg-canvas-panel border border-separator p-4">
+                <div class="flex flex-wrap items-center gap-3 rounded-lg bg-canvas-panel border border-separator p-4">
                   <p class="type-callout text-label-secondary">
                     Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : ''
                     }})
@@ -279,7 +279,7 @@
                 } @else if (!bodyText() && !responseBinary()) {
                 <p class="type-callout text-label-secondary">No body returned.</p>
                 } @else { @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
-                <div class="overflow-auto rounded-xl bg-canvas-panel border border-separator p-4">
+                <div class="overflow-auto rounded-lg bg-canvas-panel border border-separator p-4">
                   <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
                 </div>
                 } } @case ('hex') { @if (responseBinary(); as binary) { @if (binary.byteLength > hexViewBytes) {
@@ -289,7 +289,7 @@
                 } }
                 <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
                 <pre
-                  class="hex-dump max-h-[300px] overflow-auto rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
+                  class="hex-dump max-h-[300px] overflow-auto rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
                   role="region"
                   aria-label="Response body as hex"
                   tabindex="0"
@@ -323,7 +323,7 @@
                 }
                 <!-- The server's words, as they came: monospace, in the text's own colour. -->
                 <pre
-                  class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
+                  class="min-h-[160px] whitespace-pre-wrap rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
                 >
 {{ bodyText() }}</pre>
                 } } }
@@ -347,7 +347,7 @@
                 </p>
                 }
                 <div
-                  class="response-headers max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden"
+                  class="response-headers max-h-72 overflow-y-auto rounded-lg border border-separator overflow-hidden"
                   role="region"
                   aria-label="Response headers"
                   tabindex="0"
@@ -381,7 +381,7 @@
             ><ng-template ngTabContent>
               @let inspectionData = inspectionValue; @if (!inspectionData) {
               <div
-                class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4"
+                class="flex items-center gap-2.5 rounded-lg bg-canvas-panel border border-dashed border-separator p-5 mb-4"
               >
                 <app-icon name="timer" class="icon-md text-label-tertiary" />
                 <p class="type-callout text-label-tertiary">Send the request and its timings show here.</p>
@@ -390,7 +390,7 @@
               <div class="space-y-5 pb-4">
                 <!-- Summary cards -->
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
                       <span class="ds-section-label">Duration</span>
                       <span
@@ -405,7 +405,7 @@
                     </div>
                     <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
                   </div>
-                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
                       <span class="ds-section-label">Transfer</span>
                       <span
@@ -422,7 +422,7 @@
                       >{{ formatBytes(inspectionData.sizes?.transferSize) }}</div
                     >
                   </div>
-                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
                       <span class="ds-section-label">Encoded</span>
                       <span
@@ -439,7 +439,7 @@
                       >{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div
                     >
                   </div>
-                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
                       <span class="ds-section-label">Decoded</span>
                       <span
@@ -555,13 +555,13 @@
               <div class="space-y-2 pb-4">
                 @if (scriptsSkipped()) {
                 <p
-                  class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
+                  class="scripts-skipped type-callout text-status-warning rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
                 >
                   This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.
                 </p>
                 } @if (!testResults().length) {
                 <div
-                  class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5"
+                  class="flex items-center gap-2.5 rounded-lg bg-canvas-panel border border-dashed border-separator p-5"
                 >
                   <app-icon name="rule" class="icon-md text-label-tertiary" />
                   <p class="type-callout text-label-secondary"
@@ -573,7 +573,7 @@
                 <div class="space-y-1.5">
                   @for (result of testResults(); track result.label + result.source) {
                   <div
-                    class="flex items-start gap-3 rounded-xl px-4 py-3"
+                    class="flex items-start gap-3 rounded-lg px-4 py-3"
                     [class.test-result-pass]="result.passed"
                     [class.test-result-fail]="!result.passed"
                   >
@@ -619,7 +619,7 @@
                 <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
                   <h3 class="ds-section-label">Console</h3>
                   <pre
-                    class="type-footnote font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
+                    class="type-footnote font-mono text-label-secondary rounded-lg bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
                   >
 {{ scriptLogs().join("\n") }}</pre>
                 </section>

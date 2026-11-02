@@ -39,7 +39,7 @@ function shown(text: string): string {
       max-height: 16rem;
       overflow: auto;
       padding: 10px 12px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       background: var(--canvas-panel);
       border: 1px solid var(--separator);
       font-family: var(--font-mono);

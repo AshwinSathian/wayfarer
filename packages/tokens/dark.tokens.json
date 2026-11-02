@@ -1,5 +1,11 @@
 {
-  "$description": "Wayfarer's dark theme (direction A, Workbench): warm graphite. DTCG 2025.10; colours in OKLCH.",
+  "$description": "Wayfarer's dark theme: warm graphite, ink for chrome and actions, hue for protocol only (DQ11). DTCG 2025.10; colours in OKLCH. The tokens with a com.wayfarer.derive extension have no hand-set value: packages/tokens/tokens.mjs solves them from this file's inputs and base's contrast targets.",
+  "$extensions": {
+    "com.wayfarer.inputs": {
+      "hue": 84,
+      "chroma": 0.01
+    }
+  },
   "canvas": {
     "$description": "Surfaces, darkest at the sidebar, lightest where a surface floats.",
     "canvas-app": {
@@ -38,76 +44,137 @@
       }
     }
   },
-  "fill": {
-    "$description": "Translucent fills over a surface: a control, a hover, a press.",
-    "fill-primary": {
+  "surface": {
+    "$description": "Surfaces that float (toolbar, menus, dialogs). Opaque: with no blur behind them, transparency let the page show through (audit U-025). A popup is a step above the dialog it opens in (U-115).",
+    "surface-toolbar": {
+      "$type": "color",
+      "$value": "{canvas.canvas-app}"
+    },
+    "surface-overlay": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.11
+        "components": [0.31, 0.006, 84]
       }
     },
-    "fill-secondary": {
+    "surface-dialog": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.06
-      }
-    },
-    "fill-hover": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.06
-      }
-    },
-    "fill-active": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.1
-      }
+      "$value": "{canvas.canvas-overlay}"
     }
   },
   "label": {
-    "$description": "Text. scripts/contrast.test.mjs holds each to 4.5:1 on every canvas; -on-fill is a step stronger for text on a fill.",
+    "$description": "Text, in three tiers solved against their contrast targets on every surface (primary on the app's canvas): each tier has less contrast than the one above (U-119).",
     "label-primary": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.937203, 0.007028, 88.6443]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "primary",
+          "against": ["canvas-app"]
+        }
       }
     },
     "label-secondary": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.70084, 0.014147, 82.3969]
-      }
-    },
-    "label-secondary-on-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.74277, 0.01395, 82.3983]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "secondary"
+        }
       }
     },
     "label-tertiary": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.671444, 0.014293, 82.3956]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "tertiary"
+        }
+      }
+    }
+  },
+  "ink": {
+    "$description": "Wayfarer acting: Send's fill, the focus ring, the selected row's mark, a checked box. The primary label, and what is written on it.",
+    "ink": {
+      "$type": "color",
+      "$value": "{label.label-primary}"
+    },
+    "on-ink": {
+      "$type": "color",
+      "$value": "{canvas.canvas-app}"
+    },
+    "ink-hover": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "ink-hover",
+          "against": ["on-ink"]
+        }
       }
     },
-    "label-placeholder": {
+    "ink-press": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.658276, 0.014362, 82.3949]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "ink-press",
+          "against": ["on-ink"]
+        }
+      }
+    }
+  },
+  "control": {
+    "$description": "A control's edge, kept apart from the separators: 3:1 on every surface (U-109).",
+    "ctl-boundary": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "boundary"
+        }
+      }
+    }
+  },
+  "fill": {
+    "$description": "The ink over a surface: a quiet control, a filled one, hover, press and a selected row.",
+    "fill-secondary": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "fill-quiet",
+          "alpha": "{ink.ink}"
+        }
+      }
+    },
+    "fill-primary": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "fill",
+          "alpha": "{ink.ink}"
+        }
+      }
+    },
+    "fill-hover": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hover",
+          "alpha": "{ink.ink}"
+        }
+      }
+    },
+    "fill-active": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "press",
+          "alpha": "{ink.ink}"
+        }
+      }
+    },
+    "fill-selected": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "selected",
+          "alpha": "{ink.ink}"
+        }
       }
     }
   },
@@ -115,131 +182,57 @@
     "$description": "Hairlines between areas.",
     "separator": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.08
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hairline",
+          "alpha": "{ink.ink}"
+        }
       }
     },
     "separator-opaque": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.28089, 0.005586, 91.5728]
-      }
-    }
-  },
-  "accent": {
-    "$description": "The one accent: plain for rings and borders, -text for words, -solid under white text.",
-    "accent": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.694926, 0.083139, 177.2047]
-      }
-    },
-    "accent-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.694926, 0.083139, 177.2047],
-        "alpha": 0.14
-      }
-    },
-    "accent-border": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.694926, 0.083139, 177.2047],
-        "alpha": 0.4
-      }
-    },
-    "accent-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.811502, 0.071303, 176.5218]
-      }
-    },
-    "accent-solid": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.495977, 0.069083, 177.9612]
-      }
-    },
-    "accent-solid-hover": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.540142, 0.074851, 178.4413]
-      }
-    },
-    "accent-solid-active": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.444958, 0.061157, 178.2963]
-      }
-    }
-  },
-  "surface": {
-    "$description": "Surfaces that float (toolbar, menus, dialogs). Opaque: with no blur behind them, transparency let the page show through (audit U-025).",
-    "surface-toolbar": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.196091, 0.004248, 84.5908]
-      }
-    },
-    "surface-overlay": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.28089, 0.005586, 91.5728]
-      }
-    },
-    "surface-dialog": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.28089, 0.005586, 91.5728]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hairline"
+        }
       }
     }
   },
   "border": {
-    "$description": "Edges of floating surfaces and controls: -subtle a top-edge highlight, -strong an outline.",
+    "$description": "Edges of floating surfaces: -subtle a top-edge highlight, -strong an outline.",
     "border-subtle": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.07
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "edge",
+          "alpha": "{ink.ink}"
+        }
       }
     },
     "border-strong": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.12
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hairline",
+          "alpha": "{ink.ink}"
+        }
       }
     }
   },
   "status": {
-    "$description": "Success, warning, error and information. The plain colour is for fills, borders and icons; -text is for words.",
+    "$description": "Success, warning and error, the product's own (U-036). The plain colour is for fills, borders and icons; -text is for words. Information has no hue: it is the secondary label with a glyph, which leaves blue to PUT (DQ11).",
     "status-success": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.693885, 0.131058, 154.4209]
+        "components": [0.72, 0.14, 150]
       }
     },
     "status-success-fill": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.693885, 0.131058, 154.4209],
+        "components": [0.72, 0.14, 150],
         "alpha": 0.14
       }
     },
@@ -247,7 +240,7 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.693885, 0.131058, 154.4209],
+        "components": [0.72, 0.14, 150],
         "alpha": 0.32
       }
     },
@@ -255,14 +248,14 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.782365, 0.171055, 67.2231]
+        "components": [0.78, 0.15, 70]
       }
     },
     "status-warning-fill": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.782365, 0.171055, 67.2231],
+        "components": [0.78, 0.15, 70],
         "alpha": 0.14
       }
     },
@@ -270,7 +263,7 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.782365, 0.171055, 67.2231],
+        "components": [0.78, 0.15, 70],
         "alpha": 0.32
       }
     },
@@ -278,14 +271,14 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.663303, 0.22361, 28.2919]
+        "components": [0.66, 0.18, 27]
       }
     },
     "status-error-fill": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.663303, 0.22361, 28.2919],
+        "components": [0.66, 0.18, 27],
         "alpha": 0.14
       }
     },
@@ -293,56 +286,42 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.663303, 0.22361, 28.2919],
+        "components": [0.66, 0.18, 27],
         "alpha": 0.32
-      }
-    },
-    "status-info": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.654536, 0.156207, 262.5018]
       }
     },
     "status-info-fill": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.654536, 0.156207, 262.5018],
-        "alpha": 0.14
-      }
+      "$value": "{fill.fill-secondary}"
     },
     "status-info-border": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.654536, 0.156207, 262.5018],
-        "alpha": 0.32
-      }
+      "$value": "{border.border-strong}"
     },
     "status-success-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.798795, 0.112998, 154.7546]
+        "components": [0.81, 0.12, 150]
       }
     },
     "status-warning-text": {
-      "$value": "{status.status-warning}"
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.84, 0.12, 75]
+      }
     },
     "status-error-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.732713, 0.164045, 26.2303]
+        "components": [0.77, 0.12, 27]
       }
     },
     "status-info-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.763874, 0.095282, 258.4836]
-      }
+      "$value": "{label.label-secondary}"
     }
   },
   "method": {
@@ -506,18 +485,20 @@
     "$description": "The scrollbar's thumb.",
     "scrollbar-thumb": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.12
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "thumb",
+          "alpha": "{ink.ink}"
+        }
       }
     },
     "scrollbar-thumb-hover": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.973929, 0.022517, 78.2215],
-        "alpha": 0.22
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "thumb-hover",
+          "alpha": "{ink.ink}"
+        }
       }
     }
   },
@@ -525,18 +506,16 @@
     "$description": "Selected text.",
     "selection-bg": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.694926, 0.083139, 177.2047],
-        "alpha": 0.32
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "selection",
+          "alpha": "{ink.ink}"
+        }
       }
     },
     "selection-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [1, 0, "none"]
-      }
+      "$value": "{label.label-primary}"
     }
   },
   "shadow": {
@@ -644,35 +623,15 @@
       ]
     }
   },
-  "glow": {
-    "$description": "The focus ring's glow.",
-    "glow-accent": {
-      "$type": "shadow",
-      "$value": [
-        {
-          "color": {
-            "colorSpace": "oklch",
-            "components": [0.694926, 0.083139, 177.2047],
-            "alpha": 0.32
-          },
-          "offsetX": {
-            "value": 0,
-            "unit": "px"
-          },
-          "offsetY": {
-            "value": 0,
-            "unit": "px"
-          },
-          "blur": {
-            "value": 0,
-            "unit": "px"
-          },
-          "spread": {
-            "value": 3,
-            "unit": "px"
-          }
-        }
-      ]
+  "scrim": {
+    "$description": "What dims the page under a modal dialog or a drawer.",
+    "scrim": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0, 0, "none"],
+        "alpha": 0.55
+      }
     }
   }
 }

@@ -1,7 +1,5 @@
-/* ============================================================
-   Component Design System — Wayfarer · "Obsidian"
-   Utility classes and canonical component patterns
-   ============================================================ */
+/* The app's shared component classes and the utilities Tailwind does not give,
+   all on the design tokens. A widget of src/app/ui has its own stylesheet there. */
 
 /* Font rendering and the font stacks: before the components, where typography.css
    had them (that file is now written from the tokens). */
@@ -61,8 +59,8 @@ pre,
 .bg-fill-hover {
   background-color: var(--fill-hover);
 }
-.bg-accent-fill {
-  background-color: var(--accent-fill);
+.bg-fill-selected {
+  background-color: var(--fill-selected);
 }
 
 /* ── Text utilities ──────────────────────────────────────── */
@@ -245,7 +243,7 @@ pre,
   background: var(--canvas-panel);
   border: 1px solid var(--separator);
   border-top-color: var(--border-subtle);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
 }
 
 /* ── Section label ───────────────────────────────────────── */
@@ -311,18 +309,13 @@ pre,
 .address-bar {
   display: flex;
   align-items: stretch;
-  border: 1px solid var(--separator);
+  border: 1px solid var(--ctl-boundary);
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--canvas-elevated);
   transition:
     border-color var(--dur-quick) var(--ease-standard),
     box-shadow var(--dur-quick) var(--ease-standard);
-}
-
-.address-bar:focus-within {
-  border-color: var(--accent-border);
-  box-shadow: var(--glow-accent);
 }
 
 .address-bar .address-method {
@@ -352,8 +345,8 @@ pre,
 }
 
 .var-chip.var-request {
-  background: var(--accent-fill);
-  border: 1px solid var(--accent-border);
+  background: var(--fill-selected);
+  border: 1px solid var(--ink);
   color: var(--label-primary);
 }
 
@@ -367,7 +360,7 @@ pre,
 
 /* ── Timing waterfall ────────────────────────────────────── */
 .timing-bar-fill {
-  background: var(--accent-solid);
+  background: var(--ink);
   border-radius: var(--radius-full);
 }
 
@@ -397,7 +390,9 @@ pre,
   gap: 4px;
   padding: 1px 8px;
   border-radius: var(--radius-full);
-  background: var(--status-success-fill);
+  /* On the panel's colour, not the row's: the row it sits on is the selected one, and its fill under the tag's own
+     took the text under 4.5:1. */
+  background: linear-gradient(var(--status-success-fill), var(--status-success-fill)), var(--canvas-panel);
   border: 1px solid var(--status-success-border);
   font-size: var(--type-footnote-size);
   font-weight: 600;
@@ -473,14 +468,14 @@ pre,
 .test-result-pass {
   background: var(--status-success-fill);
   border: 1px solid var(--status-success-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 10px 14px;
 }
 
 .test-result-fail {
   background: var(--status-error-fill);
   border: 1px solid var(--status-error-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 10px 14px;
 }
 
@@ -506,7 +501,7 @@ pre,
 .run-progress {
   width: 10rem;
   height: 0.375rem;
-  accent-color: var(--accent);
+  accent-color: var(--ink);
 }
 
 /* ── The response, filling its pane (S3b) ────────────────── */

@@ -14,7 +14,7 @@ dialog.ui-modal {
    dialog (the environments' export) two blurs of the whole window left
    WebKit without a GPU one frame in half a second. */
 dialog.ui-modal::backdrop {
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--scrim);
   animation: fade-in var(--dur-enter) var(--ease-enter) both;
 }
 
@@ -28,7 +28,7 @@ dialog.ui-dialog,
 dialog.ui-confirm {
   max-width: calc(100% - 32px);
   max-height: 90vh;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-dialog);
 }
 
@@ -58,7 +58,7 @@ dialog.ui-confirm[open] {
 
 .dialog-close.ui-button-icon {
   flex: none;
-  height: 40px;
+  height: var(--ctl-height-lg);
 }
 
 .dialog-content {
@@ -113,7 +113,7 @@ dialog.ui-confirm-popup::backdrop {
    confirmation was opened, so the default answer is visible before Enter. */
 dialog.ui-confirm .ui-button:focus,
 dialog.ui-confirm-popup .ui-button:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -128,18 +128,18 @@ dialog.ui-drawer {
   margin: 0;
   border: 0;
   border-right: 1px solid var(--separator);
-  box-shadow: 4px 0 32px var(--ctl-drawer-shadow);
+  box-shadow: var(--shadow-dialog);
 }
 
 dialog.ui-drawer-end {
   inset: 0 0 0 auto;
   border-right: 0;
   border-left: 1px solid var(--separator);
-  box-shadow: -4px 0 32px var(--ctl-drawer-shadow);
+  box-shadow: var(--shadow-dialog);
 }
 
 dialog.ui-drawer::backdrop {
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--scrim);
 }
 
 dialog.ui-drawer[open] {

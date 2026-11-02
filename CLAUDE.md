@@ -367,9 +367,26 @@ code errors.
 - A status or method colour used as text is its `-text` token
   (`--status-success-text`, `--method-get-text`): the plain token is for
   fills, borders and icons, and as small text on its own tint it is as low
-  as 1.85:1. White text sits on `--ctl-primary-fill`, not `--ctl-primary`.
-  `scripts/contrast.test.mjs` computes every such pair in both themes; the
-  e2e sweep in `accessibility.spec.ts` scans every view in both themes.
+  as 1.85:1. What sits on the ink (Send, a checked box) is `--on-ink`.
+  `scripts/contrast.test.mjs` computes every such pair in both themes and
+  at both contrast levels; the e2e sweep in `accessibility.spec.ts` scans
+  every view in both themes.
+- Chrome and actions are ink; hue means protocol (DQ11). The ink
+  (`--ink`, the primary label) is Send's fill, the focus ring, the
+  selected row's mark and a checked box; only a `method` or `status`
+  token carries a hue (the token test fails on chroma above 0.015
+  elsewhere). Information is the secondary label with a glyph, not blue.
+- The labels, `--ctl-boundary`, the state fills (`--fill-*`), the
+  separators and the ink's hover and press are not hand-set: each has a
+  `com.wayfarer.derive` extension and `packages/tokens/tokens.mjs` solves
+  it from the theme's inputs (hue, chroma) against a contrast target in
+  `base.tokens.json`. `prefers-contrast: more` is the same solve at the
+  `more` targets, written by the build. Change a target, not a colour.
+- A control's edge is `--ctl-boundary` (3:1 on every surface), never
+  `--separator`; hover takes it to `--label-tertiary`, focus to a 2 px
+  ink edge. Heights are `--ctl-height-sm`, `-md` and `-lg` (rem); radii
+  are `--radius-xs` (a mark, a keycap), `-sm` (a control), `-lg` (an
+  overlay or a container) and `-full`. The token test holds all three.
 - Widget colours are the `--ctl-*` variables in
   `src/design-system/controls.css`. In both themes they must come from the
   design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
@@ -591,10 +608,8 @@ code errors.
   and `disabled` are the element's own; the directive only names the
   variant in a class. A disabled one takes no pointer (a press goes
   through it), as Material's did: a tooltip that says why it is disabled
-  goes on a wrapper (`curl-btn-wrap` in `address-row.html`). The global
-  `:focus-visible` rule sets a radius of its own after `button.css`: a
-  rule there that shapes a button sets `--btn-radius`, which holds with
-  the ring. In forced colours a button keeps its border, Send gains one,
+  goes on a wrapper (`curl-btn-wrap` in `address-row.html`). The focus
+  ring follows the button's own corners (`--btn-radius`). In forced colours a button keeps its border, Send gains one,
   and `btn-plain` has none. Tested in `button.spec.ts` and the catalogue's
   e2e.
 - Text field: `<input uiInput class="font-mono w-full">` or `<textarea
@@ -604,14 +619,16 @@ code errors.
   `type-*` class or `font-mono` on it wins. The label is a `<label for>`
   beside it, or an `aria-label`. `field-inline` is a tree row's rename;
   `method-field` and `address-field` are the halves of the address bar,
-  which draws their box. Focus is its border and glow, no ring, and in
-  forced colours an outline (the glow is taken away there). Disabled, it
-  reads as an enabled one. A search field has no clear button, as
+  which draws their box; the half with focus is ringed inside it. Focus
+  is a 2 px ink edge, no ring, and in forced colours an outline. Disabled,
+  it looks it (a quiet fill, the secondary label, `not-allowed`);
+  read-only, its edge is dashed; `aria-invalid` makes its edge the error
+  colour. A search field has no clear button, as
   Material's had none. Tested in `input.spec.ts` and the catalogue's e2e.
 - Checkbox: `<input type="checkbox" uiCheckbox>` (`UiCheckbox`,
   `src/app/ui/checkbox.ts`, styles in `checkbox.css`, imported by
   `src/styles.css`), a 16 px box in a 22 px slot with Material's tick, drawn in
-  `--ctl-on-primary` (3:1 on `--accent` in both themes, `contrast.test.mjs`). Its
+  `--ctl-on-primary` (3:1 on `--ink` in both themes, `contrast.test.mjs`). Its
   text is a `<label class="ui-checkbox-label">` around it (the body type,
   and a click on the text checks it), or a `<label for>` that names its
   id; one with no text has an `aria-label` (bound, `[attr.aria-label]`). A

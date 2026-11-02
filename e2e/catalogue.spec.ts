@@ -1373,6 +1373,15 @@ test("text field: none of the browser's look; under the pointer, focused and dis
   const css = (locator: Locator, property: string) =>
     locator.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
   const field = (name: string) => page.getByLabel(name, { exact: true });
+  const token = (name: string) =>
+    page.evaluate((n) => {
+      const probe = document.createElement("i");
+      probe.style.color = `var(${n})`;
+      document.body.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    }, name);
   for (const name of ["Name", "Value", "Passphrase", "Timeout", "Search", "Subprotocols", "Message"]) {
     expect(await css(field(name), "appearance"), name).toBe("none");
     expect(await css(field(name), "border-top-style"), name).toBe("solid");
@@ -1386,17 +1395,18 @@ test("text field: none of the browser's look; under the pointer, focused and dis
   await name.hover();
   await expect.poll(() => css(name, "border-top-color")).not.toBe(rest);
 
-  // Focused, it draws its border and glow and keeps its corners: the global :focus-visible rule sets another radius.
+  // Focused, it draws a 2 px edge in ink (U-074) and keeps its corners.
   const radius = await css(name, "border-top-left-radius");
   await name.focus();
   await expect.poll(() => css(name, "box-shadow")).not.toBe("none");
   expect(await css(name, "border-top-left-radius")).toBe(radius);
   expect(await css(name, "outline-style")).toBe("none");
 
-  // Disabled, it reads as an enabled one, and the pointer changes nothing.
+  // Disabled, it looks it (U-113): its text the secondary label, readable, on a quiet fill; the pointer changes nothing.
   const disabled = field("Subprotocols");
-  expect(await css(disabled, "color")).toBe(await css(field("Value"), "color"));
-  expect(await css(disabled, "-webkit-text-fill-color")).toBe(await css(field("Value"), "color"));
+  expect(await css(disabled, "color")).toBe(await token("--label-secondary"));
+  expect(await css(disabled, "color")).not.toBe(await css(field("Value"), "color"));
+  expect(await css(disabled, "cursor")).toBe("not-allowed");
   const edge = await css(disabled, "border-top-color");
   await disabled.hover({ force: true });
   await page.waitForTimeout(200);
@@ -1510,15 +1520,15 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
     expect(await css(one, "width")).toBe("16px");
     expect(await css(one, "border-top-style")).toBe("solid");
   }
-  // Unchecked: an edge of 3:1 (U-106) and no fill; checked: the accent, and the tick shows only then.
-  expect(await css(off, "border-top-color")).toBe(await token("--label-tertiary"));
+  // Unchecked: the control boundary, 3:1 (U-106, U-109), and no fill; checked: the ink, and the tick shows only then.
+  expect(await css(off, "border-top-color")).toBe(await token("--ctl-boundary"));
   expect(await css(off, "background-color")).toBe("rgba(0, 0, 0, 0)");
   expect(await css(off, "opacity", "::before")).toBe("0");
-  expect(await css(on, "background-color")).toBe(await token("--accent"));
+  expect(await css(on, "background-color")).toBe(await token("--ink"));
   expect(await css(on, "opacity", "::before")).toBe("1");
 
   await off.hover();
-  await expect.poll(() => css(off, "border-top-color")).toBe(await token("--accent-border"));
+  await expect.poll(() => css(off, "border-top-color")).toBe(await token("--label-secondary"));
   await page.mouse.move(0, 0);
 
   // Focused from the keyboard: the ring, 2 px off the box, which keeps its corners.
@@ -1531,13 +1541,13 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   expect(await css(off, "outline-offset")).toBe("2px");
   expect(await css(off, "border-top-left-radius")).toBe(radius);
   // A transition, even reduced to nothing, ends at a frame: Linux WebKit had none to give at once.
-  await expect.poll(async () => css(off, "border-top-color")).toBe(await token("--accent-border"));
+  await expect.poll(async () => css(off, "border-top-color")).toBe(await token("--label-secondary"));
 
   // Disabled: the box and its text dimmed, and no pointer.
   const disabled = box("Stop on the first failure");
-  expect(await css(disabled, "cursor")).toBe("default");
-  expect(await css(disabled, "border-top-color")).not.toBe(await token("--label-tertiary"));
-  expect(await css(box("With history"), "background-color")).not.toBe(await token("--accent"));
+  expect(await css(disabled, "cursor")).toBe("not-allowed");
+  expect(await css(disabled, "border-top-color")).not.toBe(await token("--ctl-boundary"));
+  expect(await css(box("With history"), "background-color")).not.toBe(await token("--ink"));
   const text = (name: string) => page.getByText(name, { exact: true }).evaluate((el) => getComputedStyle(el).color);
   expect(await text("Stop on the first failure")).not.toBe(await text("Follow redirects"));
 });

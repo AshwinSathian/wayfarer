@@ -149,8 +149,8 @@
               <div class="flex flex-col gap-2">
                 @for (item of form.vars; track $index) {
                 <div
-                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5"
-                  [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
+                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-lg p-1.5"
+                  [class]="focusedVariableKey() === item.key ? 'ring-2 ring-ink bg-fill-selected' : ''"
                 >
                   <input
                     #keyInput
@@ -170,14 +170,14 @@
                     (ngModelChange)="onPairsChange()"
                   />
                   } @else {
-                  <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
+                  <div class="rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
                     <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
-                    <div class="type-footnote text-label-secondary-on-fill mt-0.5">
+                    <div class="type-footnote text-label-secondary mt-0.5">
                       @if (!secretsUnlocked) { Unlock to reveal } @else if (getSecretPreview(form.vars[$index].value)) {
                       {{ getSecretPreview(form.vars[$index].value) }} } @else {
                       <button
                         type="button"
-                        class="underline text-accent-text bg-transparent"
+                        class="underline text-label-primary bg-transparent"
                         (click)="revealSecret($index)"
                         >Reveal</button
                       >

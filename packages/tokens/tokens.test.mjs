@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { THEMES, cssValues, sharedNames, theme, toSrgb } from "./tokens.mjs";
+import { LEVELS, THEMES, cssValues, derivedNames, hexColours, sharedNames, theme, toSrgb } from "./tokens.mjs";
 
 const TYPES = new Set(["color", "dimension", "duration", "cubicBezier", "fontFamily", "shadow", "typography"]);
 
@@ -26,7 +26,7 @@ test("every token has a DTCG type this build writes, or is an alias", () => {
     for (const [key, token] of theme(name)) {
       const alias = typeof token.$value === "string" && /^\{[\w.-]+\}$/.test(token.$value);
       assert.ok(alias || TYPES.has(token.$type), `${key}: $type ${token.$type}`);
-      if (token.$type === "color") assert.equal(token.$value.colorSpace, "oklch", `${key} is not OKLCH`);
+      if (!alias && token.$type === "color") assert.equal(token.$value.colorSpace, "oklch", `${key} is not OKLCH`);
     }
     // Every colour is inside sRGB and every alias names a token: both would throw.
     assert.doesNotThrow(() => cssValues(name));
@@ -111,4 +111,97 @@ test("no stylesheet or template writes a duration or an easing of its own: they 
     for (const m of text.matchAll(/(?<![\w-])(duration|delay|ease)-(\d+|in|out|in-out|linear)(?![\w-])/g))
       own.push(`${file}: ${m[0]}`);
   assert.deepEqual(own, []);
+});
+
+// D3.6 (U-118): the design system's and the widgets' stylesheets take every colour and shadow from a token.
+test("no stylesheet in src/design-system or src/app/ui writes a colour or a shadow of its own", () => {
+  const own = [];
+  for (const [file, text] of sources(/^(design-system|app\/ui)\/[\w-]+\.css$/, (f) => f === "design-system/tokens.css"))
+    for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1])) {
+      // A data: URL's mask names its stroke colour, which the mask does not draw; forced colours are system names.
+      const code = line.replace(/url\("data:[^"]*"\)/g, "");
+      if (/#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch)\(/i.test(code))
+        own.push(`${file}:${n}: ${line.trim()}`);
+    }
+  assert.deepEqual(own, []);
+});
+
+// DQ11 (U-147): chrome and actions are ink; only a method or a status carries a hue.
+test("no colour token outside method and status carries a hue", () => {
+  for (const name of THEMES)
+    for (const level of LEVELS)
+      for (const [key, token] of theme(name, level)) {
+        if (token.group === "method" || token.group === "status") continue;
+        const colours =
+          token.$type === "color" && typeof token.$value === "object"
+            ? [token.$value]
+            : token.$type === "shadow"
+              ? token.$value.map((s) => s.color)
+              : [];
+        for (const colour of colours)
+          assert.ok(colour.components[1] <= 0.015, `${name} ${level}: ${key} has chroma ${colour.components[1]}`);
+      }
+});
+
+// U-036, U-128: the status colours are the product's own, and a method is not a status.
+test("no status colour is one of Apple's system colours, and GET is not success's colour", () => {
+  const apple = new Set(
+    [
+      "FF3B30",
+      "FF453A",
+      "FF9500",
+      "FF9F0A",
+      "FFCC00",
+      "FFD60A",
+      "34C759",
+      "30D158",
+      "007AFF",
+      "0A84FF",
+      "5856D6",
+      "5E5CE6",
+      "AF52DE",
+      "BF5AF2",
+    ].map((hex) => `#${hex}`),
+  );
+  for (const name of THEMES) {
+    const hex = hexColours(name);
+    for (const [key, value] of Object.entries(hex))
+      if (key.startsWith("status-")) assert.ok(!apple.has(value.slice(0, 7)), `${name}: ${key} is Apple's ${value}`);
+    assert.notEqual(hex["method-get"], hex["status-success"], `${name}: GET is success's colour`);
+    assert.notEqual(hex["method-get-text"], hex["status-success-text"], `${name}: GET's text is success's`);
+  }
+});
+
+// U-149: the increased-contrast theme is the same inputs at the higher targets, not a list of its own.
+test("prefers-contrast: more gives every derived colour more contrast, from the same inputs", () => {
+  for (const name of THEMES) {
+    const [normal, more] = LEVELS.map((level) => theme(name, level));
+    for (const key of derivedNames(name)) {
+      const [a, b] = [normal, more].map((t) => t.get(key).$value);
+      assert.equal(a.components[2], b.components[2], `${name}: ${key} changed its hue`);
+      assert.notDeepEqual(a, b, `${name}: ${key} is the same at both levels`);
+    }
+  }
+});
+
+// U-124: a button, a field and a select take their height from a control-height token.
+test("every button, field and select takes its height from a control-height token", () => {
+  const css = Object.fromEntries(sources(/^app\/ui\/(button|input|select)\.css$/));
+  const loose = [];
+  for (const [file, text] of Object.entries(css))
+    for (const m of text.matchAll(/(?<![\w-])(min-)?height:\s*([^;]+);/g))
+      if (!/^(var\(--ctl-height-(sm|md|lg)\)|auto|0|100%)$/.test(m[2].trim())) loose.push(`${file}: ${m[0]}`);
+  assert.deepEqual(loose, []);
+});
+
+// U-126: three radii and a circle; a corner is never written in px of its own.
+test("every corner is a radius token: no other radius, and none in px", () => {
+  const off = [];
+  for (const [file, text] of sources(/\.(css|html|ts)$/, (f) => /design-system\/tokens\.(css|ts)$/.test(f))) {
+    for (const m of text.matchAll(/border(?:-[a-z]+)*-radius:\s*([^;]+);/g))
+      if (/\d+(px|rem)/.test(m[1].replace(/calc\(.*\)/g, ""))) off.push(`${file}: ${m[0]}`);
+    for (const m of text.matchAll(/(?<![\w-])rounded(?:-[a-z]{1,2})?-(md|xl|2xl|3xl|4xl)(?![\w-])/g))
+      off.push(`${file}: ${m[0]}`);
+  }
+  assert.deepEqual(off, []);
 });

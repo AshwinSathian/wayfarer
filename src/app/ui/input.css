@@ -3,15 +3,17 @@
    utilities, so `font-mono`, a `type-*` class and a width on the element win. */
 .ui-input {
   min-width: 0;
-  height: 40px;
+  height: var(--ctl-height-lg);
+  border-radius: var(--radius-sm);
   margin: 0;
-  padding: 9px 12px;
+  padding-block: 0;
+  padding-inline: 12px;
   appearance: none;
-  border: 1px solid var(--separator);
+  /* A control's edge is its own token, 3:1 on every surface (U-109), not a separator's hairline. */
+  border: 1px solid var(--ctl-boundary);
   background: var(--canvas-elevated);
-  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
   color: var(--label-primary);
-  caret-color: var(--accent);
+  caret-color: var(--ink);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 400;
@@ -23,22 +25,16 @@
     box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-/* The global :focus-visible rule (styles.css) comes later and sets a radius
-   of its own: the field keeps its shape. */
-.ui-input,
-.ui-input:focus-visible {
-  border-radius: var(--radius-md);
-}
-
 textarea.ui-input {
   display: block;
   height: auto;
+  padding-block: 8px;
   overflow: auto;
   resize: vertical;
 }
 
 .ui-input::placeholder {
-  color: var(--label-placeholder);
+  color: var(--label-tertiary);
   opacity: 1;
   /* A placeholder is the app's own words, whatever the field holds (U-148): the wire's face is for what is
      typed or sent. One that shows an example of the value (an address, a region) says so with placeholder-mono. */
@@ -49,15 +45,25 @@ textarea.ui-input {
   font-family: var(--font-mono);
 }
 
-.ui-input:hover:not(:disabled) {
-  border-color: var(--fill-primary);
+.ui-input:hover:not(:disabled, :read-only) {
+  border-color: var(--label-tertiary);
 }
 
-/* The field draws its own focus: the border and the glow, no ring. */
+/* The field draws its own focus: a 2 px edge in ink (1 px border and 1 px shadow), no ring (U-074). */
 .ui-input:focus {
-  border-color: var(--accent-border);
-  box-shadow: var(--glow-accent);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
   outline: none;
+}
+
+/* Invalid says so on the field itself, with its message beside it (U-114). */
+.ui-input[aria-invalid="true"],
+.ui-input[aria-invalid="true"]:focus {
+  border-color: var(--status-error);
+}
+
+.ui-input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 1px var(--status-error);
 }
 
 /* Forced colours take the glow away: the focus is an outline, as Material's was. */
@@ -74,17 +80,26 @@ textarea.ui-input {
   }
 }
 
-/* A disabled field reads as before: the same text and border. */
+/* Disabled: no fill of its own and a hairline edge, its text still readable (U-113). Read-only: the text is the
+   field's, so it keeps its colour; a dashed edge says it cannot be typed into. */
 .ui-input:disabled {
   /* WebKit greys a disabled field's text through the fill colour. */
   -webkit-text-fill-color: currentColor;
-  color: var(--label-primary);
+  border-color: var(--border-strong);
+  background: var(--fill-secondary);
+  color: var(--label-secondary);
   caret-color: currentColor;
+  cursor: not-allowed;
   opacity: 1;
 }
 
+.ui-input:read-only:not(:disabled) {
+  border-style: dashed;
+  background: transparent;
+}
+
 .ui-input:disabled::placeholder {
-  color: color-mix(in srgb, var(--label-primary), transparent 62%);
+  color: var(--label-tertiary);
 }
 
 /* The browser's own parts that Material's field hid: a search field's clear
@@ -96,21 +111,24 @@ textarea.ui-input {
 
 /* A field inside a tree row, for renaming it in place. */
 .ui-input.field-inline {
-  height: 28px;
-  padding-block: 3px;
+  height: var(--ctl-height-sm);
   background: transparent;
 }
 
-/* The halves of the address bar, which draws the box. 41 px, as Material's
-   method field was, with the text where it was: the bar keeps its height. */
+/* The halves of the address bar, which draws the box. The half that has focus is ringed in ink inside the bar: with
+   the ring on the bar, which half had focus did not show (U-074). */
 .ui-input.address-field,
 .ui-input.method-field {
-  height: 41px;
-  padding-block: 10px 11px;
+  height: var(--ctl-height-lg);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.ui-input.address-field:focus,
+.ui-input.method-field:focus {
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
 
 .ui-input.address-field {
@@ -125,7 +143,6 @@ textarea.ui-input {
 .ui-input.method-field {
   flex: 0 0 76px;
   min-width: 76px;
-  padding-block: 11px 10px;
   padding-inline: 14px 0;
   font-family: var(--font-mono);
   font-size: 12px;

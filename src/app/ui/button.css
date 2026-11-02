@@ -6,20 +6,21 @@
 .ui-button {
   --btn-bg: var(--ctl-primary-fill);
   --btn-border: var(--ctl-primary-fill);
-  --btn-fg: #ffffff;
+  --btn-fg: var(--ctl-on-primary);
   --btn-bg-hover: var(--ctl-primary-fill-hover);
   --btn-border-hover: var(--ctl-primary-fill-hover);
   --btn-bg-active: var(--ctl-primary-fill-active);
   --btn-border-active: var(--ctl-primary-fill-active);
-  --btn-radius: var(--radius-md);
+  --btn-radius: var(--radius-sm);
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-width: 0;
+  min-height: var(--ctl-height-lg);
   margin: 0;
-  padding: 8px 12px;
+  padding: 0 12px;
   overflow: hidden;
   appearance: none;
   border: 1px solid var(--btn-border);
@@ -44,10 +45,7 @@
     opacity var(--dur-quick) var(--ease-standard);
 }
 
-/* The global :focus-visible rule (styles.css) comes later and sets a radius
-   of its own: the button keeps its shape with its ring. */
-.ui-button,
-.ui-button:focus-visible {
+.ui-button {
   border-radius: var(--btn-radius);
 }
 
@@ -78,7 +76,8 @@
 
 /* Sizes */
 .ui-button.btn-sm {
-  padding: 6px 10px;
+  min-height: var(--ctl-height-md);
+  padding: 0 10px;
 }
 
 .ui-button.btn-sm .app-icon {
@@ -88,7 +87,7 @@
 .ui-button.btn-square,
 .ui-button.ui-button-icon {
   gap: 0;
-  width: 40px;
+  width: var(--ctl-height-lg);
   padding-inline: 0;
   font-size: 14px;
 }
@@ -113,28 +112,29 @@
 
 .ui-button.btn-square.btn-sm,
 .ui-button-icon.btn-sm {
-  width: 32px;
+  width: var(--ctl-height-md);
 }
 
 /* Tones (filled) */
 .btn-secondary {
   --btn-bg: var(--fill-secondary);
-  --btn-border: var(--separator);
+  --btn-border: var(--ctl-boundary);
   --btn-fg: var(--label-primary);
   --btn-bg-hover: var(--fill-hover);
-  --btn-border-hover: var(--separator);
-  --btn-bg-active: var(--fill-hover);
-  --btn-border-active: var(--separator);
+  --btn-border-hover: var(--label-tertiary);
+  --btn-bg-active: var(--fill-active);
+  --btn-border-active: var(--label-tertiary);
 }
 
 .btn-danger {
   --btn-bg: var(--status-error-fill);
   --btn-border: var(--status-error-border);
   --btn-fg: var(--ctl-danger-on-fill);
+  /* Hover and press answer (U-112): a stronger edge, then a stronger fill. */
   --btn-bg-hover: var(--status-error-fill);
-  --btn-border-hover: var(--status-error-border);
-  --btn-bg-active: var(--status-error-fill);
-  --btn-border-active: var(--status-error-border);
+  --btn-border-hover: var(--status-error);
+  --btn-bg-active: var(--ctl-danger-tint-strong);
+  --btn-border-active: var(--status-error);
 }
 
 /* Outlined */
@@ -150,12 +150,12 @@
 
 .ui-button-outlined.btn-secondary {
   --btn-bg: transparent;
-  --btn-border: var(--separator);
+  --btn-border: var(--ctl-boundary);
   --btn-fg: var(--label-primary);
   --btn-bg-hover: var(--fill-hover);
-  --btn-border-hover: var(--fill-primary);
-  --btn-bg-active: var(--fill-hover);
-  --btn-border-active: var(--fill-primary);
+  --btn-border-hover: var(--label-tertiary);
+  --btn-bg-active: var(--fill-active);
+  --btn-border-active: var(--label-tertiary);
 }
 
 /* Text, and an icon alone */
@@ -206,8 +206,9 @@
   --btn-bg-hover: var(--fill-primary);
   --btn-bg-active: var(--fill-active);
   --btn-radius: var(--radius-sm);
-  width: 34px;
-  height: 34px;
+  width: var(--ctl-height-md);
+  height: var(--ctl-height-md);
+  min-height: 0;
   padding: 0;
   border: none;
 }
@@ -223,22 +224,22 @@
 /* Send: the call to action */
 .ui-button.send-btn {
   --btn-radius: var(--radius-lg);
-  height: 40px;
+  height: var(--ctl-height-lg);
   padding: 0 22px;
   border: none;
-  background: var(--accent-solid);
-  color: #ffffff;
+  background: var(--ink);
+  color: var(--on-ink);
   font-weight: 600;
   letter-spacing: -0.006em;
 }
 
 /* No glow and no lift: the button the app is used for, all day (audit U-019). */
 .ui-button.send-btn:not(:disabled):hover {
-  background: var(--accent-solid-hover);
+  background: var(--ink-hover);
 }
 
 .ui-button.send-btn:not(:disabled):active {
-  background: var(--accent-solid-active);
+  background: var(--ink-press);
 }
 
 .ui-button.send-btn:disabled {

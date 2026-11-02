@@ -24,18 +24,97 @@ function tokensOf(file) {
 /** The names of the tokens both themes share. */
 export const sharedNames = () => new Set(tokensOf(read("base")).keys());
 
-/** The shared tokens, then the theme's: what one theme holds. */
-export function theme(name) {
+/** The contrast levels: `normal`, and `more` for `prefers-contrast: more` (D3.6, U-110). */
+export const LEVELS = ["normal", "more"];
+
+/** The shared tokens, then the theme's: what one theme holds, with its derived colours solved at a contrast level. */
+export function theme(name, level = "normal") {
   if (!THEMES.includes(name)) throw new Error(`no theme ${name}`);
-  const shared = tokensOf(read("base"));
-  const own = tokensOf(read(name));
+  if (!LEVELS.includes(level)) throw new Error(`no contrast level ${level}`);
+  const base = read("base");
+  const file = read(name);
+  const shared = tokensOf(base);
+  const own = tokensOf(file);
   for (const key of own.keys()) if (shared.has(key)) throw new Error(`${key} is in base and in ${name}`);
-  return new Map([...shared, ...own]);
+  const tokens = new Map([...shared, ...own]);
+  derive(tokens, file.$extensions["com.wayfarer.inputs"], base.$extensions["com.wayfarer.contrast"][level], name);
+  return tokens;
 }
 
+/** The names of the colours a theme derives: what the `prefers-contrast: more` block writes again. */
+export const derivedNames = (name) =>
+  [...theme(name)].filter(([, token]) => token.$extensions?.["com.wayfarer.derive"]).map(([key]) => key);
+
+/**
+ * U-149: the label tiers, the control boundary, the state fills and the ink action's states are not
+ * hand-set. Each is the neutral of the theme's inputs (hue and chroma) at the lightness, or the ink at the
+ * opacity, that just meets its contrast target on every surface it is drawn on (or on the colours its
+ * `against` names). Lighter than the surfaces in dark, darker in light. The increased-contrast theme is the
+ * same inputs at the `more` targets.
+ */
+function derive(tokens, inputs, targets, name) {
+  const resolved = (key) => {
+    const token = tokens.get(key) ?? fail(`${key} names no token`);
+    if (typeof token.$value === "string") return resolved(token.$value.slice(1, -1).split(".").pop());
+    if (!token.$value) fail(`${key} is used before it is derived`);
+    return token.$value;
+  };
+  const fail = (message) => {
+    throw new Error(`${name}: ${message}`);
+  };
+  const surfaces = [...tokens].filter(([, t]) => t.group === "canvas" || t.group === "surface").map(([key]) => key);
+  const lighter = name === "dark";
+  for (const [key, token] of tokens) {
+    const spec = token.$extensions?.["com.wayfarer.derive"];
+    if (!spec) continue;
+    const target = targets[spec.contrast] ?? fail(`${key}: no contrast target ${spec.contrast}`);
+    const against = (spec.against ?? surfaces).map((k) => luminanceOf(resolved(k)));
+    const meets = (lum) => against.every((other) => ratio(lum, other) >= target);
+    if (spec.alpha) {
+      // The ink at the least opacity that meets the target over each surface.
+      const ink = resolved(spec.alpha.slice(1, -1).split(".").pop());
+      const over = (alpha) => (k) =>
+        luminanceOfRgb(blend(toSrgbFloat(ink.components), alpha, toSrgbFloat(resolved(k).components)));
+      const fits = (alpha) => (spec.against ?? surfaces).every((k, i) => ratio(over(alpha)(k), against[i]) >= target);
+      if (!fits(1)) fail(`${key} cannot reach ${target}:1`);
+      let [lo, hi] = [0, 1];
+      for (let i = 0; i < 40; i++) [lo, hi] = fits((lo + hi) / 2) ? [lo, (lo + hi) / 2] : [(lo + hi) / 2, hi];
+      token.$value = { colorSpace: "oklch", components: ink.components, alpha: Math.ceil(hi * 1000) / 1000 };
+    } else {
+      // The lightness nearest the surfaces that still meets the target.
+      // The chroma tapers to none at the ends of the lightness range, where sRGB has no room for it.
+      const at = (l) => [
+        l,
+        Math.round(inputs.chroma * Math.min(1, l / 0.1, (1 - l) / 0.1) * 10000) / 10000,
+        inputs.hue,
+      ];
+      const lum = (l) => luminanceOfRgb(toSrgbFloat(at(l)));
+      const far = lighter ? 1 : 0;
+      if (!meets(lum(far))) fail(`${key} cannot reach ${target}:1`);
+      let [near, ok] = [lighter ? 0 : 1, far];
+      for (let i = 0; i < 40; i++) {
+        const mid = (near + ok) / 2;
+        if (meets(lum(mid))) ok = mid;
+        else near = mid;
+      }
+      // Rounded away from the surfaces, so the rounding never takes it under its target.
+      const l = lighter ? Math.ceil(ok * 1000) / 1000 : Math.floor(ok * 1000) / 1000;
+      token.$value = { colorSpace: "oklch", components: at(l) };
+    }
+  }
+}
+
+/** WCAG 2's relative luminance and contrast ratio. */
+const linear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const luminanceOfRgb = ([r, g, b]) => 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+const luminanceOf = (value) => luminanceOfRgb(toSrgbFloat(value.components));
+const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+const blend = (top, alpha, under) => top.map((c, i) => c * alpha + under[i] * (1 - alpha));
+const toSrgbFloat = (components) => toSrgb(components).map((c) => c / 255);
+
 /** A theme's tokens as CSS values, by custom property name; an alias (`{group.name}`) stays a `var()`. */
-export function cssValues(name) {
-  const tokens = theme(name);
+export function cssValues(name, level = "normal") {
+  const tokens = theme(name, level);
   return Object.fromEntries(
     [...tokens].flatMap(([key, token]) =>
       token.$type === "typography" ? typeValues(key, token) : [[`--${key}`, css(key, token, tokens)]],

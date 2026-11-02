@@ -9,6 +9,28 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Controls can be found, and the colours carry one meaning each.** The
+  green accent is gone: Send, the focus ring, the selected row's mark and
+  a ticked box are drawn in ink (the text colour), and colour now means a
+  method or a status and nothing else. Before, Send, GET and 200 OK were
+  three near-identical greens on the same screen. Fields, selects, the
+  segmented choices, checkboxes and the file field have an edge you can
+  see (3:1 against the page, where it was as faint as 1.14:1); a focused
+  field has a 2 px edge, and in the address bar the half that has focus is
+  the one ringed. A disabled field looks disabled, a read-only one has a
+  dashed edge, and an invalid one an edge in the error colour. Secondary
+  and danger buttons answer hover and press. The selected row in the
+  collections keeps its mark under the pointer. The text tiers step down
+  in contrast as they should (light tertiary was darker than secondary).
+  Success, warning and error are Wayfarer's own colours, not Apple's, and
+  information is grey with its icon. Menus opened in a dialog sit above
+  it in dark. With "increase contrast" set in the system
+  (`prefers-contrast: more`), every grey, edge and state is stronger.
+  These colours are no longer typed by hand: the token build solves each
+  from a neutral hue and its contrast target, so the stronger theme is the
+  same rule at a higher target. Controls take three heights and corners
+  three radii.
+
 - **The design docs say what session D4-l built.** The plan's row 1.54
   lists the exchange record's pull requests, what is done and what is left
   (the screen-reader checks are the maintainer's), and the audit has a new

@@ -2,7 +2,7 @@
 <p class="sr-only" role="status">{{ store.scriptsHeld() ? heldText : '' }}</p>
 @if (store.scriptsHeld()) {
 <div
-  class="scripts-held flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
+  class="scripts-held flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
 >
   <div class="flex flex-1 basis-56 min-w-0 items-start gap-2">
     <app-icon name="warning" class="icon-sm shrink-0 mt-0.5 text-status-warning" />
@@ -21,7 +21,7 @@
     <p class="type-subhead font-semibold">Pre-request script</p>
   </div>
   <p class="type-footnote text-label-tertiary">
-    Runs before the request. Use <code class="font-mono text-accent-text">pm.environment.set(key, value)</code> to set
+    Runs before the request. Use <code class="font-mono text-label-primary">pm.environment.set(key, value)</code> to set
     variables.
   </p>
   <app-script-editor
@@ -40,8 +40,8 @@
     <p class="type-subhead font-semibold">Post-response script</p>
   </div>
   <p class="type-footnote text-label-tertiary">
-    Runs after the response. Use <code class="font-mono text-accent-text">pm.test(name, fn)</code> and
-    <code class="font-mono text-accent-text">pm.expect(value)</code> for assertions.
+    Runs after the response. Use <code class="font-mono text-label-primary">pm.test(name, fn)</code> and
+    <code class="font-mono text-label-primary">pm.expect(value)</code> for assertions.
   </p>
   <app-script-editor
     name="postScript"

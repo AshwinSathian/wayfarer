@@ -4,23 +4,23 @@
    ============================================================ */
 
 /* Control colours, from the design tokens in both themes (CLAUDE.md): the
-   primary is the accent (direction A, PLAN-design 1.9), a neutral is a
+   primary is the ink (DQ11: chrome and actions carry no hue), a neutral is a
    label or a fill, and nothing here is a colour of its own. */
 [data-theme="dark"],
 :root {
-  /* As text and icons; behind white text, the -fill steps (accent-solid). */
-  --ctl-primary: var(--accent-text);
-  --ctl-primary-hover: var(--accent-text);
-  --ctl-primary-active: var(--accent-text);
-  /* What sits on --ctl-primary or --accent as a fill (a checkbox's tick): dark on the light green of this theme. */
-  --ctl-on-primary: var(--canvas-app);
-  --ctl-primary-fill: var(--accent-solid);
-  --ctl-primary-fill-hover: var(--accent-solid-hover);
-  --ctl-primary-fill-active: var(--accent-solid-active);
-  --ctl-primary-border: var(--accent-border);
-  --ctl-primary-tint: color-mix(in srgb, var(--accent), transparent 94%);
-  --ctl-primary-tint-strong: color-mix(in srgb, var(--accent), transparent 84%);
-  --ctl-neutral: var(--label-secondary-on-fill);
+  /* As text and icons; as a fill, the ink and its states, with --on-ink on it. */
+  --ctl-primary: var(--label-primary);
+  --ctl-primary-hover: var(--label-primary);
+  --ctl-primary-active: var(--label-primary);
+  /* What sits on the ink as a fill (Send's text, a checkbox's tick). */
+  --ctl-on-primary: var(--on-ink);
+  --ctl-primary-fill: var(--ink);
+  --ctl-primary-fill-hover: var(--ink-hover);
+  --ctl-primary-fill-active: var(--ink-press);
+  --ctl-primary-border: var(--ink);
+  --ctl-primary-tint: color-mix(in srgb, var(--ink), transparent 94%);
+  --ctl-primary-tint-strong: color-mix(in srgb, var(--ink), transparent 84%);
+  --ctl-neutral: var(--label-secondary);
   --ctl-neutral-tint: var(--fill-hover);
   --ctl-neutral-tint-strong: var(--fill-active);
   --ctl-danger: var(--status-error-text);
@@ -33,26 +33,20 @@
   --ctl-surface-border: var(--border-strong);
   --ctl-surface-muted: var(--label-secondary);
   --ctl-surface-text: var(--label-primary);
-  --ctl-segment-checked: var(--canvas-overlay);
   --ctl-chevron: var(--label-secondary);
-  --ctl-highlight: var(--accent-fill);
-  --ctl-highlight-text: var(--accent-text);
+  --ctl-highlight-text: var(--label-primary);
   --ctl-menu-icon: var(--label-secondary);
-  --ctl-drawer-shadow: rgba(0, 0, 0, 0.45);
   --ctl-danger-on-fill: var(--status-error-text);
 }
 
 [data-theme="light"] {
-  --ctl-on-primary: #ffffff;
   --ctl-neutral: var(--label-secondary);
   --ctl-neutral-tint: var(--fill-secondary);
   --ctl-neutral-tint-strong: var(--fill-primary);
   --ctl-surface: var(--canvas-panel);
   --ctl-surface-border: var(--separator-opaque);
-  --ctl-segment-checked: var(--canvas-panel);
   --ctl-chevron: var(--label-tertiary);
   --ctl-menu-icon: var(--label-tertiary);
-  --ctl-drawer-shadow: rgba(40, 30, 10, 0.12);
 }
 
 /* ── Skeleton ────────────────────────────────────────────── */
@@ -60,7 +54,7 @@
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--fill-secondary);
 }
 
@@ -90,7 +84,7 @@
 .ui-splitter {
   display: flex;
   flex-wrap: nowrap;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   /* The panes' widths come from the splitter, never the other way round. Without this an
      editor that sizes itself to its pane makes the pane, then the splitter, wider, without end. */
   contain: inline-size;
@@ -113,7 +107,7 @@
 
 .ui-splitter-gutter:hover,
 .ui-splitter--resizing .ui-splitter-gutter {
-  background-image: linear-gradient(var(--accent), var(--accent));
+  background-image: linear-gradient(var(--ink), var(--ink));
   background-size: 3px 100%;
 }
 

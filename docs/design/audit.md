@@ -441,6 +441,7 @@ status colours are still Apple's system values (`tokens.css:115, 118, 217,
 220`), and the page's `theme-color` is #000000 and #F5F5F7 (that part is
 U-088). Open, D3.6 (session D3-b): the status colours derived in OKLCH
 from the product's palette.
+**2026-11-02:** Fixed in #478 (D3-b): success, warning and error are the product's own OKLCH values (`packages/tokens`), none of Apple's; the token test refuses Apple's system colours. The `theme-color` half stays U-088's.
 
 ### Found in triage
 
@@ -1249,6 +1250,7 @@ half has focus.
 Evidence: `input.css:49-54`; `select.css:30-36`; `components.css:308-311`;
 [`hig-review/1440-light-focus-method.png`](hig-review/1440-light-focus-method.png).
 **Status:** Open, D3.6 (session D3-b). Review rows DS-4 and W-17.
+**2026-11-02:** Fixed in #478 (D3-b): a focused field, select or address half has a 2 px edge in ink (above 10:1 on every surface; `contrast.test.mjs`), and in the address bar only the half with focus is ringed.
 
 **U-109. Controls are drawn as faintly as decoration.** Severity 2. H1,
 H6. All.
@@ -1258,12 +1260,14 @@ knowing where it is.
 Evidence: `input.css`; `select.css`; `segmented.css`; `file.css`;
 `components.css:565`; `styles.css:138-155`.
 **Status:** Open, D3.6. Review row DS-5.
+**2026-11-02:** Fixed in #478 (D3-b): a control's edge is `--ctl-boundary`, solved to 3:1 on every surface, and hover takes it to the tertiary label; the gate fails if a field, select, segmented choice, checkbox or file field reads `--separator`.
 
 **U-110. There is no increased-contrast theme.** Severity 3. H1. Low
 vision.
 No `prefers-contrast` block; the setting has nothing to change.
 Evidence: `tokens.css`; `packages/tokens`.
 **Status:** Open, D3.6. Review row DS-6.
+**2026-11-02:** Fixed in #478 (D3-b): `tokens.css` has a `prefers-contrast: more` block per theme, the same inputs solved at higher targets (secondary 10:1, tertiary 7:1, boundary 4.5:1), checked by the gate at both levels.
 
 **U-111. 12 px is the working size.** Severity 3. H8. All.
 190 of 275 uses of a type class are 12 px; the 14 px body appears five
@@ -1276,22 +1280,26 @@ Severity 3. H1. All.
 `--fill-hover` equals `--fill-secondary`.
 Evidence: `tokens.css:78-79, 180-181`; `button.css:122-140`.
 **Status:** Open, D3.6. Review row DS-9.
+**2026-11-02:** Fixed in #478 (D3-b): hover, press and selection are distinct derived fills (each a step of contrast over the last, held by the gate); secondary and danger buttons change edge on hover and fill on press.
 
 **U-113. A disabled field looks enabled.** Severity 2. H1, H5. All.
 `ui-select` has no disabled style, and a read-only field none of its own.
 Evidence: `input.css:70-77`; `select.css`.
 **Status:** Open, D3.6. Review row DS-10.
+**2026-11-02:** Fixed in #478 (D3-b): a disabled field has a quiet fill, the secondary label and `not-allowed`; a read-only one a dashed edge. `ui-select` has no disabled state because nothing disables one; a select that needs it takes the field's rule.
 
 **U-114. An invalid field looks valid.** Severity 3. H9. All.
 Nothing styles `[aria-invalid]`.
 Evidence: `address-row.html:39`; `input.css`; `select.css`.
 **Status:** Open, D3.6. Review row DS-11.
+**2026-11-02:** Fixed in #478 (D3-b): `[aria-invalid="true"]` gives a field its edge in the error colour, also when focused.
 
 **U-115. Elevation flattens inside dialogs.** Severity 3. H8. All.
 A popup inside a dialog is level with it in dark and lower than it in
 light.
 Evidence: `tokens.css:74, 91, 104-105, 176, 206-207`.
 **Status:** Open, D3.6. Review row DS-13.
+**2026-11-02:** Fixed in #478 (D3-b): in dark a popup (`--surface-overlay`) is one step lighter than the dialog it opens in; in light both are white, the popup above it by its shadow.
 
 **U-116. Forced colours lose five marks.** Severity 2. H1. Windows High
 Contrast users.
@@ -1308,6 +1316,7 @@ The selected row's fill is 1.14 to 1.23:1; hovering it replaces the
 selection's fill. In dark, the chosen segment is darker than its track.
 Evidence: `tree.css:35-41`; `segmented.css:40-46`.
 **Status:** Open, D3.6. Review row DS-15.
+**2026-11-02:** Fixed in #478 (D3-b): the selected row has a derived fill and a 3 px ink mark at its start (3:1 on the row, hovered or not); hover makes it a step stronger and keeps the mark. The chosen segment is raised above its track and edged at 3:1.
 
 **U-118. Colours and shadows written as literals.** Severity 3. H4. None
 directly.
@@ -1316,18 +1325,21 @@ scrims, the drawer's shadow.
 Evidence: `button.css:9, 236`; `input.css:12`; `select.css:12`;
 `segmented.css:42-44, 86-88`; `dialog.css:17, 131, 138, 142`.
 **Status:** Open, D3.6. Review row DS-17.
+**2026-11-02:** Fixed in #478 (D3-b): the scrims are `--scrim`, the drawers take `--shadow-dialog`, the field and segment shadows are gone; the token test fails on a colour or shadow literal in `src/design-system` or `src/app/ui`.
 
 **U-119. The label tiers have collapsed.** Severity 3. H8. All.
 Secondary and tertiary are close, and in light tertiary is darker than
 secondary.
 Evidence: `tokens.css:84-87, 186-189`.
 **Status:** Open, D3.6. Review row DS-19.
+**2026-11-02:** Fixed in #478 (D3-b): the tiers are solved from targets (primary 15:1 on the canvas, secondary 7:1, tertiary 4.5:1 on every surface), and the gate fails unless each has less contrast than the one above on every surface. The maintainer's look at the tiers is row 1.55.
 
 **U-120. Some token roles repeat or mislead.** Severity 3. H4. None
 directly.
 `text-method-*` draws the fill colour as text, at 2.65:1.
 Evidence: `tokens.css`; `styles.css:65-101`.
 **Status:** Open, D3.6. Review row DS-20.
+**2026-11-02:** Fixed in #478 (D3-b): the `text-method-*` and `status-info` utilities, which drew a fill as text, are gone, as are `--label-placeholder` and `--label-secondary-on-fill` (the tiers now read on a fill).
 
 **U-121. Chips spring up on hover.** Severity 3. H8. All.
 A translate with a spring easing, against motion.md's tone.
@@ -1354,18 +1366,21 @@ Evidence: `app-shell.html:136`.
 40, 41, about 35, 34, 32 and 28 px.
 Evidence: `button.css`; `input.css`; `select.css`; `components.css`.
 **Status:** Open, D3.6. Review row DS-25.
+**2026-11-02:** Fixed in #478 (D3-b): `--ctl-height-sm`, `-md` and `-lg` (28, 32 and 36 px, in rem); the token test fails on a button, field or select height that is not one of them.
 
 **U-125. The focus ring rounds every corner it draws on.** Severity 3. H4.
 All.
 The global `:focus-visible` sets a 3 px radius.
 Evidence: `styles.css:164-168`.
 **Status:** Open, D3.6. Review row DS-26.
+**2026-11-02:** Fixed in #478 (D3-b): the global `:focus-visible` rule sets no radius; the ring follows each element's own corners.
 
 **U-126. Radii outside the scale.** Severity 3. H4. All.
 6 px, `999px`, and a wrong `--radius-lg` fallback.
 Evidence: `accordion.css:17-27`; `segmented.css:80`; `controls.css:93`;
 `settings.css:106, 219`.
 **Status:** Open, D3.6. Review row DS-27; the remainder of U-004.
+**2026-11-02:** Fixed in #478 (D3-b): three radii and a circle (`xs` 3, `sm` 5, `lg` 9, `full`); 7, 12 and 16 px and the off-scale values are gone, and the token test fails on a radius in px or a Tailwind `rounded-md`, `-xl` or `-2xl`.
 
 **U-127. Material's metrics, and icons a weight lighter than the text.**
 Severity 3. H4. All.
@@ -1380,11 +1395,13 @@ DS-28.
 Method and status colours share values.
 Evidence: `tokens.css`.
 **Status:** Open, D3.6. Review row DS-29.
+**2026-11-02:** Fixed in #478 (D3-b): success has its own colour; GET keeps the convention's green, and the token test fails if the two are the same value.
 
 **U-129. Stale file headers, and one choice painted twice.** Severity 4.
 H8. None directly.
 Evidence: `animations.css:1-4`; `components.css:1-4`; `segmented.css`.
 **Status:** Open, D3.6. Review row DS-30.
+**2026-11-02:** Fixed in #478 (D3-b): the two file headers say what their files hold, and the chosen segment is painted once.
 
 **U-077. The app reads as any dark developer tool.** Severity 3. H8, H4.
 TP, SD.
@@ -1593,6 +1610,7 @@ near-greens mean Send, GET and 200 OK.
 Evidence: `src/design-system/tokens.css:95-101`, `:108`, `:125`, `:126`,
 `:139`. Extends U-128.
 **Status:** Open, D3-b (D3.6), with DQ11. Review row P8-1.
+**2026-11-02:** Fixed in #478 (D3-b, DQ11): there is no accent; Send, the focus ring, the selected row's mark and a checked box are ink, and the token test fails on chroma above 0.015 in any token outside method and status.
 
 **U-148. Wayfarer's own placeholder words are drawn in the wire face.**
 Severity 3. H4. All.
@@ -1610,6 +1628,7 @@ Corrects the third pass's "parametric OKLCH theme kept". Extends U-110
 and U-119.
 Evidence: `packages/tokens/{dark,light}.tokens.json`; `tokens.mjs:111-122`.
 **Status:** Open, D3-b (D3.6). Review row P8-3.
+**2026-11-02:** Fixed in #478 (D3-b): the labels, the boundary, the state fills, the separators and the ink's states carry a `com.wayfarer.derive` extension and are solved by `tokens.mjs` from the theme's hue and chroma against `base.tokens.json`'s targets; the increased-contrast theme is the `more` targets.
 
 **U-150. In Inter, capital I and lowercase l render identically at 12
 and 13 px.** Severity 3. H4, H6. All.

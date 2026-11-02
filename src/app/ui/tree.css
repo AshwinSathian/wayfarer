@@ -26,7 +26,7 @@
   padding: 5px 8px;
   border-radius: var(--radius-sm);
   color: var(--label-primary);
-  font-size: 13px;
+  font-size: var(--type-callout-size);
   font-weight: 400;
   cursor: pointer;
   transition: background var(--dur-micro) var(--ease-standard);
@@ -86,7 +86,7 @@
   border-radius: 50%;
   color: var(--ctl-surface-muted);
   /* The glyph fills half of its box: 28px draws it as large as the old 16px chevron. */
-  font-size: 28px;
+  font-size: 1.75rem;
 }
 
 .ui-tree-row--selected .ui-tree-toggle {
@@ -101,6 +101,5 @@
   flex: 1;
   min-width: 0;
   color: var(--label-primary);
-  font-size: 13px;
-  letter-spacing: -0.002em;
+  font-size: var(--type-callout-size);
 }

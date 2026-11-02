@@ -1,5 +1,9 @@
 /* ── Fonts (self-hosted; no requests to Google, F18) ────── */
-/* Inter Variable — full optical-size + weight range, upright and italic */
+/* Atkinson Hyperlegible Next speaks for Wayfarer (DQ11, U-150); Latin only, so Inter Variable draws the Greek,
+   Cyrillic and Vietnamese glyphs it lacks. A face loads only when a glyph in its range is drawn. */
+@import "@fontsource/atkinson-hyperlegible-next/400.css";
+@import "@fontsource/atkinson-hyperlegible-next/500.css";
+@import "@fontsource/atkinson-hyperlegible-next/600.css";
 @import "@fontsource-variable/inter/opsz.css";
 @import "@fontsource-variable/inter/opsz-italic.css";
 @import "@fontsource/jetbrains-mono/400.css";

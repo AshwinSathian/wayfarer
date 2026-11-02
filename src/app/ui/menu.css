@@ -16,9 +16,8 @@
   background: var(--surface-overlay);
   box-shadow: var(--shadow-overlay);
   color: var(--label-primary);
-  font-size: 13px;
+  font-size: var(--type-callout-size);
   font-weight: 400;
-  letter-spacing: -0.002em;
   line-height: normal;
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
@@ -53,7 +52,7 @@
 
 .ui-menu-icon {
   color: var(--ctl-menu-icon);
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .ui-menu-separator {

@@ -147,6 +147,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends
 - [Motion](docs/design/motion.md): what moves, for how long, and what reduced motion does
 - [Voice](docs/design/voice.md): what the app calls things, how it says an error, asks a question and explains a limit, and how labels and shortcuts are written
+- [Type evaluation, 2026-11-02](docs/design/type-eval.md): the app's three typefaces measured for confusable letters in three browsers, and why Atkinson Hyperlegible Next speaks for Wayfarer
 - [Git, decided](docs/design/git.md): how a collection gets into a team's repository and back, the options argued against, and what Wayfarer does not do
 - [AI, decided](docs/design/ai.md): what AI does in Wayfarer, which models it may use, and how every byte sent to one is shown first
 

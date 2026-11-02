@@ -24,7 +24,6 @@
   color: var(--label-secondary);
   font-size: var(--type-footnote-size);
   font-weight: 500;
-  letter-spacing: -0.002em;
   line-height: normal;
   text-align: center;
   cursor: pointer;

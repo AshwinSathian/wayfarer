@@ -563,3 +563,26 @@ test.describe("the toolbar", () => {
     expect(outline).toBe("solid 1px");
   });
 });
+
+// U-073 (D3.6): text is in rem, so at 200% text the type grows with the boxes. At 1,440 px every response tab's
+// label is whole; before, the sidebar took half the window and the response's tabs read "Timi…".
+test("at 200% text and 1440 px no response tab's label is cut", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  // A browser's text size setting is the root's font size.
+  await page.addStyleTag({ content: "html { font-size: 200%; }" });
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  const tabs = page.locator("app-response-viewer").getByRole("tab");
+  expect(await tabs.count()).toBeGreaterThan(2);
+  const cut = await tabs.evaluateAll((all) =>
+    all
+      .filter((tab) => [tab, ...tab.querySelectorAll("*")].some((el) => el.scrollWidth > el.clientWidth + 1))
+      .map((tab) => tab.textContent?.trim()),
+  );
+  expect(cut).toEqual([]);
+  // The type did grow: a tab's label is 26 px (13 at 200%), not the 12 or 13 it was when type was in px.
+  const size = await tabs.first().evaluate((tab) => parseFloat(getComputedStyle(tab).fontSize));
+  expect(size).toBeGreaterThanOrEqual(24);
+});

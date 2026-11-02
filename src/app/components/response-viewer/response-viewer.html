@@ -251,7 +251,7 @@
                 >
                 } @if (currentSearchExcerpt) {
                 <div
-                  class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-footnote text-label-secondary font-mono"
+                  class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-mono-body text-label-secondary font-mono"
                 >
                   …{{ currentSearchExcerpt }}…
                 </div>
@@ -593,7 +593,7 @@
                       @if (!result.passed && result.error) {
                       <div class="type-footnote text-label-tertiary mt-0.5">{{ result.error }}</div>
                       } @if (!result.passed && result.actual !== undefined) {
-                      <div class="type-footnote text-label-tertiary mt-0.5 font-mono"
+                      <div class="type-mono-body text-label-tertiary mt-0.5 font-mono"
                         >Actual: {{ result.actual | json }}</div
                       >
                       }
@@ -619,7 +619,7 @@
                 <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
                   <h3 class="ds-section-label">Console</h3>
                   <pre
-                    class="type-footnote font-mono text-label-secondary rounded-lg bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
+                    class="type-mono-body font-mono text-label-secondary rounded-lg bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
                   >
 {{ scriptLogs().join("\n") }}</pre>
                 </section>

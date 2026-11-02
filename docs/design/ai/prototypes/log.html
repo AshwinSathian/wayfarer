@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Model call log</title>
+    <style>
+      :root {
+        --canvas-app: #fbfaf8;
+        --canvas-sidebar: #f4f3f0;
+        --canvas-panel: #ffffff;
+        --canvas-elevated: #f6f5f2;
+        --label-primary: #26231e;
+        --label-secondary: #55524d;
+        --label-tertiary: #726f69;
+        --separator: rgba(38, 35, 30, 0.117);
+        --ink: #26231e;
+        --on-ink: #fbfaf8;
+        --fill: rgba(38, 35, 30, 0.042);
+        --added: rgba(41, 134, 70, 0.1);
+        --success-text: #206133;
+        --warning-text: #7a4702;
+        --warning-fill: rgba(214, 129, 12, 0.1);
+        --error-text: #a51f1e;
+        --get-text: #1f6b3e;
+        --post-text: #7d4d00;
+        --font-sans: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", Menlo, "SF Mono", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas-app: #161513;
+          --canvas-sidebar: #121110;
+          --canvas-panel: #1b1a18;
+          --canvas-elevated: #22211e;
+          --label-primary: #ebe9e4;
+          --label-secondary: #c0bdb6;
+          --label-tertiary: #9a9790;
+          --separator: rgba(235, 233, 228, 0.098);
+          --ink: #ebe9e4;
+          --on-ink: #161513;
+          --fill: rgba(235, 233, 228, 0.04);
+          --added: rgba(91, 189, 116, 0.14);
+          --success-text: #86d797;
+          --warning-text: #f8bf6c;
+          --warning-fill: rgba(244, 164, 55, 0.14);
+          --error-text: #f7958a;
+          --get-text: #7fd39d;
+          --post-text: #f0b45a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas-app);
+        color: var(--label-primary);
+        font: 15px/1.45 var(--font-sans);
+        overflow-wrap: anywhere;
+      }
+      .proto-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--separator);
+        background: var(--canvas-sidebar);
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .proto-bar strong {
+        color: var(--label-primary);
+      }
+      .frame {
+        max-width: 880px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .panel {
+        background: var(--canvas-panel);
+        border: 1px solid var(--separator);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      h2 {
+        font-size: 17px;
+      }
+      h3 {
+        font-size: 15px;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .mono,
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      pre {
+        margin: 0;
+        padding: 12px;
+        background: var(--canvas-elevated);
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 24lh;
+        overflow-y: auto;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .end {
+        justify-content: flex-end;
+      }
+      .stack > * + * {
+        margin-top: 12px;
+      }
+      .btn {
+        font: inherit;
+        font-size: 14px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px solid var(--separator);
+        background: transparent;
+        color: var(--label-primary);
+        cursor: pointer;
+      }
+      .btn.filled {
+        background: var(--ink);
+        color: var(--on-ink);
+        border-color: var(--ink);
+      }
+      .btn.text {
+        border-color: transparent;
+      }
+      .btn.danger {
+        color: var(--error-text);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn:focus-visible,
+      .field:focus-visible,
+      pre:focus-visible,
+      [tabindex="-1"]:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .field {
+        font: inherit;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        background: var(--canvas-panel);
+        color: var(--label-primary);
+      }
+      .field.mono {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-weight: 400;
+      }
+      .seg {
+        display: inline-flex;
+        flex-wrap: wrap;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 14px;
+        min-height: 40px;
+        padding: 0 12px;
+        border: 0;
+        background: transparent;
+        color: var(--label-secondary);
+        cursor: pointer;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--fill);
+        color: var(--label-primary);
+        font-weight: 600;
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: var(--fill);
+        white-space: nowrap;
+      }
+      .get {
+        color: var(--get-text);
+      }
+      .post {
+        color: var(--post-text);
+      }
+      .ok {
+        color: var(--success-text);
+      }
+      .err {
+        color: var(--error-text);
+      }
+      .warn {
+        background: var(--warning-fill);
+        color: var(--warning-text);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+      }
+      .record {
+        border-top: 1px solid var(--separator);
+        padding-top: 12px;
+        font-size: 13px;
+      }
+      .record ul,
+      .parts {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .record li,
+      .parts li {
+        margin: 4px 0;
+      }
+      .diff {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .diff li {
+        padding: 1px 10px 1px 28px;
+        position: relative;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .diff li.add {
+        background: var(--added);
+        border-left: 3px solid var(--success-text);
+      }
+      .diff li.add::before {
+        content: "+";
+        position: absolute;
+        left: 10px;
+      }
+      .step[hidden] {
+        display: none;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--separator);
+        margin-bottom: 12px;
+        overflow-x: auto;
+      }
+      .tabs span {
+        padding: 8px 10px;
+        font-size: 14px;
+        color: var(--label-secondary);
+      }
+      .tabs span.on {
+        color: var(--label-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--ink);
+      }
+      .entry {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 10px 0;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid var(--separator);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      .entry .sub {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--label-secondary);
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto-bar">
+      <strong>Model calls in history</strong>
+      <span>Prototype of D4.10, not the app. Step: <span id="where">all</span></span>
+    </div>
+    <main class="frame">
+      <div class="panel stack">
+        <h1>History</h1>
+        <div class="row">
+          <input class="field" aria-label="Search history" placeholder="Search by address, method, status or model" />
+          <span id="show-label" class="sr">Show</span>
+          <div class="seg" role="group" aria-labelledby="show-label">
+            <button type="button" aria-pressed="true" data-go="all" data-say="3 entries.">All</button>
+            <button type="button" data-go="requests" data-say="1 entry.">Requests</button>
+            <button type="button" data-go="models" data-say="2 entries.">Model calls</button>
+          </div>
+        </div>
+
+        <section class="step" id="all">
+          <button class="entry" type="button" data-go="open">
+            <span class="badge">Model</span>
+            <span>Write tests<span class="sub">api.openai.com · gpt-4.1-mini · 200 · 14:02 · Accepted</span></span>
+          </button>
+          <button class="entry" type="button">
+            <span class="badge get">GET</span>
+            <span class="mono">https://api.example.com/pets<span class="sub">200 · 16 ms · 14:01</span></span>
+          </button>
+          <button class="entry" type="button">
+            <span class="badge">Model</span>
+            <span>Test the provider<span class="sub">api.openai.com · gpt-4.1-mini · 401 · 13:58</span></span>
+          </button>
+          <div class="row end"><button class="btn" type="button">Export as HAR…</button></div>
+        </section>
+
+        <section class="step" id="requests" hidden>
+          <button class="entry" type="button">
+            <span class="badge get">GET</span>
+            <span class="mono">https://api.example.com/pets<span class="sub">200 · 16 ms · 14:01</span></span>
+          </button>
+        </section>
+
+        <section class="step" id="models" hidden>
+          <button class="entry" type="button" data-go="open">
+            <span class="badge">Model</span>
+            <span>Write tests<span class="sub">api.openai.com · gpt-4.1-mini · 200 · 14:02 · Accepted</span></span>
+          </button>
+          <button class="entry" type="button">
+            <span class="badge">Model</span>
+            <span>Test the provider<span class="sub">api.openai.com · gpt-4.1-mini · 401 · 13:58</span></span>
+          </button>
+          <div class="row end"><button class="btn" type="button">Export as HAR…</button></div>
+        </section>
+
+        <section class="step stack" id="open" hidden>
+          <div class="record" aria-label="Exchange record">
+            <p tabindex="-1"><strong>200 OK, 2,310 ms, Direct to api.openai.com</strong></p>
+            <ul>
+              <li>Sent from this page to <span class="mono">api.openai.com</span>.</li>
+              <li>Filled from the vault: <span class="mono">AI provider key</span>. Each is *** in what is kept.</li>
+              <li>Masked with *** in what is kept: <span class="mono">Authorization</span>.</li>
+              <li>History kept the request and the response.</li>
+            </ul>
+            <p>
+              Asked for by Write tests on <span class="mono">GET https://api.example.com/pets</span>, 14:02. Accepted.
+            </p>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" data-go="sent">Show what was sent</button>
+            <button class="btn" type="button" data-go="answer">Show the answer</button>
+            <button class="btn text danger" type="button" data-go="all">Delete from history</button>
+          </div>
+          <button class="btn text" type="button" data-go="all">Back to the list</button>
+        </section>
+
+        <section class="step stack" id="sent" hidden>
+          <h2 tabindex="-1">What was sent</h2>
+          <pre tabindex="0">
+POST https://api.openai.com/v1/chat/completions
+Content-Type: application/json
+Authorization: Bearer ***
+
+{ "model": "gpt-4.1-mini", "messages": [ … "Response body:\n[response body, 3.1 kB, not kept]" … ] }</pre>
+          <p class="note">With "Keep response bodies in history" off, the quoted body is not kept.</p>
+          <button class="btn text" type="button" data-go="open">Back to the record</button>
+        </section>
+
+        <section class="step stack" id="answer" hidden>
+          <h2 tabindex="-1">The answer</h2>
+          <pre tabindex="0">
+```js
+pm.test("is a list of pets", () => {
+  const body = pm.response.json();
+  pm.expect(body).to.be.an("array");
+});
+```</pre>
+          <button class="btn text" type="button" data-go="open">Back to the record</button>
+        </section>
+      </div>
+    </main>
+    <div class="sr" role="status" id="status"></div>
+    <script>
+      // Steps through the prototype: a button with data-go shows the step it names.
+      function go(id, say) {
+        document.querySelectorAll(".step").forEach((step) => (step.hidden = step.id !== id));
+        document.getElementById("where").textContent = id;
+        document.getElementById("status").textContent = say || "";
+        const heading = document.querySelector("#" + id + " [tabindex='-1']");
+        if (heading) heading.focus();
+      }
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-go]");
+        if (target) go(target.dataset.go, target.dataset.say);
+      });
+    </script>
+  </body>
+</html>

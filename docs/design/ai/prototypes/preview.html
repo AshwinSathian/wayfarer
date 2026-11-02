@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Model call preview</title>
+    <style>
+      :root {
+        --canvas-app: #fbfaf8;
+        --canvas-sidebar: #f4f3f0;
+        --canvas-panel: #ffffff;
+        --canvas-elevated: #f6f5f2;
+        --label-primary: #26231e;
+        --label-secondary: #55524d;
+        --label-tertiary: #726f69;
+        --separator: rgba(38, 35, 30, 0.117);
+        --ink: #26231e;
+        --on-ink: #fbfaf8;
+        --fill: rgba(38, 35, 30, 0.042);
+        --added: rgba(41, 134, 70, 0.1);
+        --success-text: #206133;
+        --warning-text: #7a4702;
+        --warning-fill: rgba(214, 129, 12, 0.1);
+        --error-text: #a51f1e;
+        --get-text: #1f6b3e;
+        --post-text: #7d4d00;
+        --font-sans: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", Menlo, "SF Mono", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas-app: #161513;
+          --canvas-sidebar: #121110;
+          --canvas-panel: #1b1a18;
+          --canvas-elevated: #22211e;
+          --label-primary: #ebe9e4;
+          --label-secondary: #c0bdb6;
+          --label-tertiary: #9a9790;
+          --separator: rgba(235, 233, 228, 0.098);
+          --ink: #ebe9e4;
+          --on-ink: #161513;
+          --fill: rgba(235, 233, 228, 0.04);
+          --added: rgba(91, 189, 116, 0.14);
+          --success-text: #86d797;
+          --warning-text: #f8bf6c;
+          --warning-fill: rgba(244, 164, 55, 0.14);
+          --error-text: #f7958a;
+          --get-text: #7fd39d;
+          --post-text: #f0b45a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas-app);
+        color: var(--label-primary);
+        font: 15px/1.45 var(--font-sans);
+        overflow-wrap: anywhere;
+      }
+      .proto-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--separator);
+        background: var(--canvas-sidebar);
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .proto-bar strong {
+        color: var(--label-primary);
+      }
+      .frame {
+        max-width: 880px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .panel {
+        background: var(--canvas-panel);
+        border: 1px solid var(--separator);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      h2 {
+        font-size: 17px;
+      }
+      h3 {
+        font-size: 15px;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .mono,
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      pre {
+        margin: 0;
+        padding: 12px;
+        background: var(--canvas-elevated);
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 24lh;
+        overflow-y: auto;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .end {
+        justify-content: flex-end;
+      }
+      .stack > * + * {
+        margin-top: 12px;
+      }
+      .btn {
+        font: inherit;
+        font-size: 14px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px solid var(--separator);
+        background: transparent;
+        color: var(--label-primary);
+        cursor: pointer;
+      }
+      .btn.filled {
+        background: var(--ink);
+        color: var(--on-ink);
+        border-color: var(--ink);
+      }
+      .btn.text {
+        border-color: transparent;
+      }
+      .btn.danger {
+        color: var(--error-text);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn:focus-visible,
+      .field:focus-visible,
+      pre:focus-visible,
+      [tabindex="-1"]:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .field {
+        font: inherit;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        background: var(--canvas-panel);
+        color: var(--label-primary);
+      }
+      .field.mono {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-weight: 400;
+      }
+      .seg {
+        display: inline-flex;
+        flex-wrap: wrap;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 14px;
+        min-height: 40px;
+        padding: 0 12px;
+        border: 0;
+        background: transparent;
+        color: var(--label-secondary);
+        cursor: pointer;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--fill);
+        color: var(--label-primary);
+        font-weight: 600;
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: var(--fill);
+        white-space: nowrap;
+      }
+      .get {
+        color: var(--get-text);
+      }
+      .post {
+        color: var(--post-text);
+      }
+      .ok {
+        color: var(--success-text);
+      }
+      .err {
+        color: var(--error-text);
+      }
+      .warn {
+        background: var(--warning-fill);
+        color: var(--warning-text);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+      }
+      .record {
+        border-top: 1px solid var(--separator);
+        padding-top: 12px;
+        font-size: 13px;
+      }
+      .record ul,
+      .parts {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .record li,
+      .parts li {
+        margin: 4px 0;
+      }
+      .diff {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .diff li {
+        padding: 1px 10px 1px 28px;
+        position: relative;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .diff li.add {
+        background: var(--added);
+        border-left: 3px solid var(--success-text);
+      }
+      .diff li.add::before {
+        content: "+";
+        position: absolute;
+        left: 10px;
+      }
+      .step[hidden] {
+        display: none;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--separator);
+        margin-bottom: 12px;
+        overflow-x: auto;
+      }
+      .tabs span {
+        padding: 8px 10px;
+        font-size: 14px;
+        color: var(--label-secondary);
+      }
+      .tabs span.on {
+        color: var(--label-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--ink);
+      }
+      .entry {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 10px 0;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid var(--separator);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      .entry .sub {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--label-secondary);
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto-bar">
+      <strong>The preview of a model call</strong>
+      <span>Prototype of D4.10, not the app. Step: <span id="where">preview</span></span>
+    </div>
+    <main class="frame">
+      <div class="panel">
+        <p class="note">
+          The response's Tests tab, after <span class="badge get">GET</span>
+          <span class="mono">https://api.example.com/pets</span> answered 200 OK.
+        </p>
+        <div class="tabs" aria-hidden="true"
+          ><span>Body</span><span>Headers</span><span>Timings</span><span class="on">Tests</span></div
+        >
+
+        <section class="step stack" id="preview" aria-labelledby="p-h">
+          <h2 id="p-h" tabindex="-1">Ask the model to write tests</h2>
+          <p>Sends to <span class="mono">https://api.openai.com/v1/chat/completions</span></p>
+          <p>Provider: OpenAI-compatible, model <span class="mono">gpt-4.1-mini</span></p>
+          <p>Route: auto. From this page; the Local Bridge only if the page gets no response and you agree.</p>
+          <p>Key: <span class="mono">AI provider key</span>, from the vault. It is *** below and in what is kept.</p>
+          <h3>In the prompt</h3>
+          <ul class="parts">
+            <li
+              ><span aria-hidden="true">✓</span> The request as sent: <span class="mono">GET</span>, its address, 3
+              headers</li
+            >
+            <li><span aria-hidden="true">✓</span> The response's status and 6 headers</li>
+            <li>
+              <label class="check"><input type="checkbox" data-go="ticked" /> The response body, 3.1 kB of JSON</label>
+            </li>
+            <li><span aria-hidden="true">✓</span> The post-response script, 4 lines</li>
+          </ul>
+          <p>
+            Masked with *** before it leaves: <span class="mono">Authorization</span>,
+            <span class="mono">Cookie</span> of the request, <span class="mono">Set-Cookie</span> of the response.
+          </p>
+          <h3>What is sent · 2.4 kB</h3>
+          <pre tabindex="0" aria-label="What is sent, 2.4 kB">
+POST https://api.openai.com/v1/chat/completions
+Content-Type: application/json
+Authorization: Bearer ***
+
+{
+  "model": "gpt-4.1-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Write tests for this exchange in Postman's pm script API: pm.test, pm.expect, pm.response. Test the status, the headers that matter, and the shape of the body if it is given. Do not repeat a test the existing script has. Do not send requests. Reply with one JavaScript code block and nothing else."
+    },
+    {
+      "role": "user",
+      "content": "Request:\nGET https://api.example.com/pets\nAccept: application/json\nAuthorization: ***\nCookie: ***\n\nResponse:\n200 OK\nContent-Type: application/json\nSet-Cookie: ***\n…\n\nPost-response script:\npm.test(\"status is 200\", () => {\n  pm.response.to.have.status(200);\n});"
+    }
+  ]
+}</pre>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="cancelled">Cancel</button>
+            <button class="btn filled" type="button" data-go="sending" data-say="Asking the model…"
+              >Send to model</button
+            >
+          </div>
+          <p class="note"
+            >Other states: <button class="btn text" type="button" data-go="locked">Vault locked</button>
+            <button class="btn text" type="button" data-go="secretref">Names a vault secret</button></p
+          >
+        </section>
+
+        <section class="step stack" id="ticked" hidden aria-labelledby="t-h">
+          <h2 id="t-h" tabindex="-1">Ask the model to write tests</h2>
+          <h3>In the prompt</h3>
+          <ul class="parts">
+            <li
+              ><span aria-hidden="true">✓</span> The request as sent: <span class="mono">GET</span>, its address, 3
+              headers</li
+            >
+            <li><span aria-hidden="true">✓</span> The response's status and 6 headers</li>
+            <li>
+              <label class="check"
+                ><input type="checkbox" checked data-go="preview" /> The response body, 3.1 kB of JSON</label
+              >
+            </li>
+            <li><span aria-hidden="true">✓</span> The post-response script, 4 lines</li>
+          </ul>
+          <p
+            >Masked with *** before it leaves: <span class="mono">Authorization</span>,
+            <span class="mono">Cookie</span> of the request, <span class="mono">Set-Cookie</span> of the response, and
+            the response body's <span class="mono">owner.email</span>.</p
+          >
+          <h3>What is sent · 5.5 kB</h3>
+          <pre tabindex="0" aria-label="What is sent, 5.5 kB">
+…
+      "content": "Request:\nGET https://api.example.com/pets\n…\n\nResponse body:\n[{\"id\":1,\"name\":\"Rex\",\"tag\":\"dog\",\"owner\":{\"email\":\"***\"}}, …]\n\nPost-response script:\n…"
+…</pre>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="cancelled">Cancel</button>
+            <button class="btn filled" type="button" data-go="sending" data-say="Asking the model…"
+              >Send to model</button
+            >
+          </div>
+        </section>
+
+        <section class="step stack" id="sending" hidden>
+          <h2 tabindex="-1">Ask the model to write tests</h2>
+          <p>Asking the model…</p>
+          <div class="row end">
+            <button class="btn" type="button" data-go="stopped" data-say="Stopped. No answer was kept.">Stop</button>
+            <button
+              class="btn filled"
+              type="button"
+              data-go="record"
+              data-say="200 OK, 2,310 ms, Direct to api.openai.com"
+            >
+              (Answer arrives)
+            </button>
+            <button class="btn" type="button" data-go="nonet" data-say="The request got no response."
+              >(No response)</button
+            >
+          </div>
+        </section>
+
+        <section class="step stack" id="record" hidden>
+          <div class="record" aria-label="Exchange record">
+            <p tabindex="-1"><strong>200 OK, 2,310 ms, Direct to api.openai.com</strong></p>
+            <ul>
+              <li>Sent from this page to <span class="mono">api.openai.com</span>.</li>
+              <li>Filled from the vault: <span class="mono">AI provider key</span>. Each is *** in what is kept.</li>
+              <li>Masked with *** in what is kept: <span class="mono">Authorization</span>.</li>
+              <li>History kept the request and the response.</li>
+            </ul>
+            <button class="btn text" type="button" data-go="preview">Show what was sent</button>
+          </div>
+          <p class="note">The proposal follows here: see the actions prototype.</p>
+        </section>
+
+        <section class="step stack" id="nonet" hidden>
+          <div class="record" aria-label="Exchange record">
+            <p tabindex="-1"
+              ><strong>The request got no response. Direct to localhost:11434, no bridge paired.</strong></p
+            >
+            <ul>
+              <li>Sent from this page to <span class="mono">localhost:11434</span>. No Local Bridge is paired.</li>
+              <li>No vault secret was filled.</li>
+              <li>Nothing was masked.</li>
+              <li>History kept the request. No response came.</li>
+              <li>What was reported: <span class="mono">Failed to fetch</span></li>
+            </ul>
+            <p>Run this on your machine, then type the pairing code it prints:</p>
+            <pre>npx wayfarer-bridge</pre>
+            <div class="row"><button class="btn" type="button">Copy</button></div>
+          </div>
+        </section>
+
+        <section class="step stack" id="stopped" hidden>
+          <h2 tabindex="-1">Stopped. No answer was kept.</h2>
+          <button class="btn" type="button" data-go="preview">Send again</button>
+        </section>
+
+        <section class="step stack" id="locked" hidden>
+          <h2 tabindex="-1">Ask the model to write tests</h2>
+          <p class="warn">The key is in the vault, which is locked. Send to model asks you to unlock it.</p>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="preview">Cancel</button>
+            <button class="btn filled" type="button" data-go="preview">Send to model</button>
+          </div>
+        </section>
+
+        <section class="step stack" id="secretref" hidden>
+          <h2 tabindex="-1">Ask the model to draft a request</h2>
+          <p class="warn">
+            The description names a vault secret (<span class="mono">{{$secret.…}}</span>), which never leaves this
+            browser. Take it out to send.
+          </p>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="preview">Cancel</button>
+            <button class="btn filled" type="button" disabled>Send to model</button>
+          </div>
+        </section>
+
+        <section class="step stack" id="cancelled" hidden>
+          <p tabindex="-1">Nothing was sent.</p>
+          <p class="note">The Tests tab, as it was.</p>
+          <button class="btn" type="button" data-go="preview">Write tests from this response…</button>
+        </section>
+      </div>
+    </main>
+    <div class="sr" role="status" id="status"></div>
+    <script>
+      // Steps through the prototype: a button with data-go shows the step it names.
+      function go(id, say) {
+        document.querySelectorAll(".step").forEach((step) => (step.hidden = step.id !== id));
+        document.getElementById("where").textContent = id;
+        document.getElementById("status").textContent = say || "";
+        const heading = document.querySelector("#" + id + " [tabindex='-1']");
+        if (heading) heading.focus();
+      }
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-go]");
+        if (target) go(target.dataset.go, target.dataset.say);
+      });
+    </script>
+  </body>
+</html>

@@ -968,7 +968,7 @@ Evidence:
 [`hig-review/390-light-stress-font200-composer.png`](hig-review/390-light-stress-font200-composer.png);
 `tokens.css:36-67`; `button.css:29`; `input.css:16, 124`.
 **Status:** Open, D3.6 (session D3-b). Review rows W-16 and DS-7.
-**2026-11-02:** Fixed in #PRNUM (D3-b): every type token is in rem and the token test fails on a font size in px in any stylesheet; icons are in rem too. `e2e/layout.spec.ts` sends a request at 200% text and 1,440 px and finds no response tab's label cut.
+**2026-11-02:** Fixed in #479 (D3-b): every type token is in rem and the token test fails on a font size in px in any stylesheet; icons are in rem too. `e2e/layout.spec.ts` sends a request at 200% text and 1,440 px and finds no response tab's label cut.
 
 **U-070. Below 1,200 px the tree is a closed drawer.** Severity 2. H6, H7.
 SD, QA, TP.
@@ -1275,7 +1275,7 @@ Evidence: `tokens.css`; `packages/tokens`.
 times.
 Evidence: the templates; `tokens.css:52-63`.
 **Status:** Decided in D4-e (plan row 1.53): the compact density sets working text (values, rows, tabs, the response) at 13 px and captions at 12; prose and dialogs stay at the 14 px body. D3.6 builds it, measured with the text face DQ11 settles. Review row DS-8.
-**2026-11-02:** Built in #PRNUM (D3-b): values, rows, tabs, fields, selects and buttons are 13 px (`type-callout`, `type-mono-body`), captions 12 px, prose and dialogs 14 px.
+**2026-11-02:** Built in #479 (D3-b): values, rows, tabs, fields, selects and buttons are 13 px (`type-callout`, `type-mono-body`), captions 12 px, prose and dialogs 14 px.
 
 **U-112. Secondary and danger buttons do not answer hover or press.**
 Severity 3. H1. All.
@@ -1392,7 +1392,7 @@ Evidence: `checkbox.css`; `input.css`; `select.css`; `dialog.css`;
 `components.css:531-534`.
 **Status:** Open: D3.6 (the metrics) and D2.4 (the icon set). Review row
 DS-28.
-**2026-11-02:** The metrics half fixed in #PRNUM (D3-b): fields, selects and buttons take the control-height tokens, and the Inter tuning (stylistic sets, negative tracking) is gone. The icon set stays D2.4's.
+**2026-11-02:** The metrics half fixed in #479 (D3-b): fields, selects and buttons take the control-height tokens, and the Inter tuning (stylistic sets, negative tracking) is gone. The icon set stays D2.4's.
 
 **U-128. GET is the colour of success.** Severity 3. H4. All.
 Method and status colours share values.
@@ -1642,7 +1642,7 @@ character variants (`cv05`, `cv08`) have no effect in the
 `@fontsource-variable/inter` build the app ships.
 Evidence: `tokens.css:32`; `src/styles.css:3-4`; the review's section 6.
 **Status:** Open, D3-b (D3.6), with DQ11. Review row T-1.
-**2026-11-02:** Fixed in #PRNUM (D3-b, DQ11): the text role is Atkinson Hyperlegible Next with Inter as the per-glyph fallback; `type-eval.js` in three engines finds no identical pair at 12 or 13 px (`docs/design/type-eval.md`).
+**2026-11-02:** Fixed in #479 (D3-b, DQ11): the text role is Atkinson Hyperlegible Next with Inter as the per-glyph fallback; `type-eval.js` in three engines finds no identical pair at 12 or 13 px (`docs/design/type-eval.md`).
 
 **U-151. JetBrains Mono's zero and capital O differ by one device pixel
 at 12 px on a 1× display.** Severity 4. H4. SD, QA.
@@ -1650,7 +1650,7 @@ at 12 px on a 1× display.** Severity 4. H4. SD, QA.
 13 px differ by 4 to 6 pixels.
 Evidence: `tokens.css:33, 64`; the review's section 6.
 **Status:** Open, D3-b (D3.6). Review row T-2.
-**2026-11-02:** Fixed in #PRNUM (D3-b): no mono role is under 13 px (where 0 and O are 4 to 6 device pixels apart); the method field moved from 12 to 13 px, and the token test fails on an element that is monospace and a 12 px type class.
+**2026-11-02:** Fixed in #479 (D3-b): no mono role is under 13 px (where 0 and O are 4 to 6 device pixels apart); the method field moved from 12 to 13 px, and the token test fails on an element that is monospace and a 12 px type class.
 
 **U-152. The Local Bridge's own error status is drawn as the server's.**
 Severity 3. H1. SD, OC.

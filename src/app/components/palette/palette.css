@@ -1,0 +1,110 @@
+/* The palette (U-011): a floating list under the top of the window, no title, no box inside its box (U-093). */
+dialog.palette {
+  top: 12vh;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(520px, 76vh);
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-dialog);
+  box-shadow: var(--shadow-dialog);
+  color: var(--label-primary);
+}
+
+dialog.palette[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.palette-field {
+  flex: none;
+  width: 100%;
+  height: calc(var(--ctl-height-lg) + 0.75rem);
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 1px solid var(--separator);
+  background: transparent;
+  color: var(--label-primary);
+  font-size: var(--type-body-size);
+  outline: none;
+}
+
+.palette-field::placeholder {
+  color: var(--label-tertiary);
+}
+
+.palette-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 6px;
+  overflow-y: auto;
+}
+
+.palette-group + .palette-group {
+  margin-top: 6px;
+}
+
+.palette-group-name {
+  padding: 6px 10px 4px;
+  color: var(--label-secondary);
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--ctl-height-md);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--type-callout-size);
+  cursor: pointer;
+}
+
+/* The active row: a fill and an ink mark at its start, 3:1 on the fill (as the select's option, U-107). */
+.palette-row[aria-selected="true"] {
+  background: var(--fill-hover);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.palette-method {
+  flex: none;
+}
+
+.palette-label {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-detail {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--label-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-body-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-keys {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.palette-empty {
+  margin: 0;
+  padding: 16px 10px;
+  color: var(--label-secondary);
+}
+
+@media (forced-colors: active) {
+  .palette-row[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

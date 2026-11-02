@@ -1,0 +1,61 @@
+<dialog
+  uiModal
+  dismissable
+  class="palette"
+  aria-label="Search and commands"
+  [open]="open()"
+  (closeRequest)="open.set(false)"
+>
+  @if (open()) {
+  <input
+    #field
+    cdkFocusInitial
+    class="palette-field font-sans"
+    type="text"
+    role="combobox"
+    aria-label="Search requests, collections, environments, history and commands"
+    aria-autocomplete="list"
+    aria-expanded="true"
+    aria-controls="palette-list"
+    placeholder="Search or run a command"
+    autocomplete="off"
+    spellcheck="false"
+    [attr.aria-activedescendant]="rows()[active()] ? optionId(rows()[active()]) : null"
+    [value]="query()"
+    (input)="search($any($event.target).value)"
+    (keydown)="key($event)"
+  />
+  <div #list id="palette-list" class="palette-list" role="listbox" aria-label="Results">
+    @for (group of groups(); track group.name) {
+    <div class="palette-group" role="group" [attr.aria-label]="group.name">
+      <div class="palette-group-name type-footnote" aria-hidden="true">{{ group.name }}</div>
+      @for (item of group.items; track item.id) {
+      <!-- An option of a combobox's list takes no focus: the field keeps it, and the keys are the field's. -->
+      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+      <div
+        class="palette-row"
+        role="option"
+        [id]="optionId(item)"
+        [attr.aria-selected]="rows()[active()] === item"
+        [attr.aria-keyshortcuts]="item.keys ? ariaKeysOf(item.keys) : null"
+        (click)="run(item)"
+        (pointermove)="point(item)"
+      >
+        @if (item.method) {
+        <span class="palette-method method-badge method-{{ item.method.toLowerCase() }}">{{ item.method }}</span>
+        }
+        <span class="palette-label">{{ item.label }}</span>
+        @if (item.detail) {
+        <span class="palette-detail type-footnote">{{ item.detail }}</span>
+        } @if (item.keys) {
+        <kbd class="keycap palette-keys" aria-hidden="true">{{ keysOf(item.keys) }}</kbd>
+        }
+      </div>
+      }
+    </div>
+    } @empty {
+    <p class="palette-empty type-callout" role="presentation">Nothing found for "{{ query() }}".</p>
+    }
+  </div>
+  }
+</dialog>

@@ -171,8 +171,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
     "Secrets",
     "Environments",
     "New collection",
-    "Import a cURL command",
-    "Open command palette",
+    "Search or run a command",
   ]) {
     // The toolbar's or the header's; an empty sidebar has a second "New collection" (U-022).
     const button = page.getByRole("button", { name: opener, exact: true }).first();
@@ -218,7 +217,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.type("Fields");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await opens("Open command palette", page.getByPlaceholder("Type a command"));
+  await opens("Search or run a command", page.getByPlaceholder("Search or run a command"));
   // New environment is in the environments dialog: it opens on its field, and Escape gives focus back to the button.
   await page.getByRole("button", { name: "Environments", exact: true }).click();
   const newEnvironment = page.getByRole("button", { name: "New environment", exact: true }).first();
@@ -230,7 +229,18 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await expect(newEnvironment).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await opens("Import a cURL command", page.locator("#import-paste-text"));
+  // From the Import menu, by keys: the paste box opens on its field, and Escape gives focus back to Import.
+  const importButton = page.locator("app-collections-sidebar").getByRole("button", { name: "Import", exact: true });
+  await importButton.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitem", { name: "File…" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("menuitem", { name: "cURL command…" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#import-paste-text")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(importButton).toBeFocused();
   await opens("Vault locked", page.locator('input[type="password"]').first());
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/echo`);

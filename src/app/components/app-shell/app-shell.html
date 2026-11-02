@@ -27,13 +27,18 @@
       <button uiButton="outlined" type="button" aria-label="New request" (click)="handleNewRequest()" class="w-full"
         ><app-icon name="add_circle" /> New request</button
       >
+      @if (isMobile()) {
+      <!-- The toolbar's search is too wide for a phone's toolbar: it is here (U-011, U-097). -->
+      <button uiButton="outlined" class="btn-secondary w-full mt-2" type="button" (click)="searchFromDrawer()"
+        ><app-icon name="search" /> Search or run a command</button
+      >
+      }
     </div>
     }
 
     <div class="flex-1 overflow-y-auto px-3 py-3">
       <app-collections-sidebar
         class="h-full w-full"
-        [externalActions]="sidebarPaletteActions"
         (loadRequest)="handleLoadCollectionRequest($event)"
         (run)="handleRun($event)"
       ></app-collections-sidebar>
@@ -152,6 +157,18 @@
         </div>
         }
       </div>
+
+      <!-- The palette's field (U-011): it opens the palette, which searches. Below 768 px the drawer has it. -->
+      <button
+        type="button"
+        class="palette-trigger"
+        [attr.aria-keyshortcuts]="ariaKeys(shortcuts.palette)"
+        (click)="paletteOpen.set(true)"
+      >
+        <app-icon name="search" class="icon-sm" />
+        <span class="palette-trigger-text">Search or run a command</span>
+        <kbd class="keycap palette-trigger-keys" aria-hidden="true">{{ keys(shortcuts.palette) }}</kbd>
+      </button>
 
       <!-- Right: actions cluster -->
       <div class="flex min-w-0 items-center gap-2">
@@ -452,7 +469,9 @@
   [(visible)]="settingsDialogVisible"
   [(section)]="settingsSection"
   (clearHistory)="confirmClear()"
-  [paletteActions]="sidebarPaletteActions"
+  [paletteActions]="paletteCommands"
   (openSecrets)="secretsDialogVisible.set(true)"
   (resetAllData)="confirmResetAllData()"
 ></app-settings>
+
+<app-palette [(open)]="paletteOpen" [items]="paletteItems" />

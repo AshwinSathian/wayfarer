@@ -1,4 +1,5 @@
-import { SHORTCUTS, ariaKeysOf, keysOf, matches, type Shortcut } from "../../shared/shortcuts";
+import { SHORTCUTS, type Shortcut } from "../../shared/shortcuts";
+import { MenuTrigger } from "@angular/aria/menu";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,9 +10,9 @@ import {
   afterNextRender,
   computed,
   signal,
+  viewChild,
   WritableSignal,
   inject,
-  input,
   output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
@@ -62,6 +63,7 @@ export interface PaletteAction {
     FormsModule,
     Tree,
     UiMenu,
+    MenuTrigger,
     Dialog,
     UiTooltip,
     UiSelect,
@@ -100,8 +102,6 @@ export class CollectionsSidebar implements OnInit {
   readonly loadRequest = output<RequestDoc>();
   /** "Run…" was chosen for a collection or a folder (P5.2): the composer opens the run's tab. */
   readonly run = output<RunTarget>();
-  /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
-  readonly externalActions = input<PaletteAction[]>([]);
 
   readonly nodes = computed<UiTreeNode<NodeData>[]>(() => collectionsToNodes(this.collectionsService.tree()));
   readonly loading = this.collectionsService.loading;
@@ -114,8 +114,6 @@ export class CollectionsSidebar implements OnInit {
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
-  readonly commandPaletteVisible = signal(false);
-  readonly commandPaletteQuery = signal("");
   readonly creationDialogVisible = signal(false);
   readonly creationContext = signal<{
     type: "collection" | "folder" | "request";
@@ -137,13 +135,7 @@ export class CollectionsSidebar implements OnInit {
   }
 
   handleGlobalKeydown(event: KeyboardEvent): void {
-    if (this.importPipeline.dialogVisible() || this.commandPaletteVisible()) {
-      return;
-    }
-    // From a field too (U-049): the address has focus when the app opens.
-    if (matches(event, SHORTCUTS.palette)) {
-      event.preventDefault();
-      this.openCommandPalette();
+    if (this.importPipeline.dialogVisible()) {
       return;
     }
 
@@ -178,41 +170,15 @@ export class CollectionsSidebar implements OnInit {
     }
   }
 
-  openCommandPalette(): void {
-    this.commandPaletteQuery.set("");
-    this.commandPaletteVisible.set(true);
+  /** Selects a collection, a folder or a request in the tree, its parents opened, with focus on it (the palette). */
+  reveal(key: string): void {
+    this.tree()?.reveal(key);
   }
 
-  closeCommandPalette(): void {
-    this.commandPaletteVisible.set(false);
-    this.commandPaletteQuery.set("");
-  }
-
-  get filteredPaletteActions(): PaletteAction[] {
-    const actions = this.buildPaletteActions();
-    const needle = this.commandPaletteQuery().trim().toLowerCase();
-    if (!needle) {
-      return actions;
-    }
-    return actions.filter((action) => action.label.toLowerCase().includes(needle));
-  }
-
-  executeFirstPaletteAction(): void {
-    const action = this.filteredPaletteActions[0];
-    if (action) {
-      void this.executePaletteAction(action);
-    }
-  }
-
-  async executePaletteAction(action: PaletteAction): Promise<void> {
-    await Promise.resolve(action.run());
-    this.closeCommandPalette();
-  }
-
-  private buildPaletteActions(): PaletteAction[] {
+  /** What the palette offers from here: New collection, and what can be done to the selected row. */
+  commands(): PaletteAction[] {
     const actions: PaletteAction[] = [
-      { id: "new-collection", label: "New Collection", run: () => this.handleCreateCollection() },
-      ...this.externalActions(),
+      { id: "new-collection", label: "New collection", run: () => this.handleCreateCollection() },
     ];
     const node = this.selectedNode();
     if (!node) {
@@ -223,13 +189,13 @@ export class CollectionsSidebar implements OnInit {
       actions.push(
         {
           id: "new-folder",
-          label: `New Folder in ${data.ref.name}`,
+          label: `New folder in ${data.ref.name}`,
           run: () => this.createFolderPrompt(data.ref.meta.id),
         },
         {
           // Not "new-request": that is the shell's own action, in the same list, and two rows of one id are drawn as one (NG0955).
           id: "new-request-collection",
-          label: `New Request in ${data.ref.name}`,
+          label: `New request in ${data.ref.name}`,
           run: () => this.createRequestPrompt(data.ref.meta.id),
         },
         {
@@ -239,7 +205,7 @@ export class CollectionsSidebar implements OnInit {
         },
         {
           id: "export-collection",
-          label: `Export ${data.ref.name}`,
+          label: `Export ${data.ref.name}…`,
           run: () => this.exportCollection(node),
         },
         {
@@ -254,7 +220,7 @@ export class CollectionsSidebar implements OnInit {
       actions.push(
         {
           id: "new-request-folder",
-          label: `New Request in ${folder.name}`,
+          label: `New request in ${folder.name}`,
           run: () => this.createRequestPrompt(folder.collectionId, folder.meta.id),
         },
         {
@@ -272,11 +238,6 @@ export class CollectionsSidebar implements OnInit {
     if (data.type === "request") {
       const request = data.ref;
       actions.push(
-        {
-          id: "load-request",
-          label: `Load "${request.name || request.url}" into composer`,
-          run: () => this.emitLoadRequest(request),
-        },
         {
           id: "duplicate-request",
           label: `Duplicate ${request.name || request.url}`,
@@ -366,8 +327,36 @@ export class CollectionsSidebar implements OnInit {
 
   protected readonly methodLabel = methodLabel;
   protected readonly shortcuts = SHORTCUTS;
-  protected readonly keysOf = keysOf;
-  protected readonly ariaKeysOf = ariaKeysOf;
+  private readonly tree = viewChild<Tree<NodeData>>("tree");
+
+  /** The header's Import menu (U-010): a file, or a cURL command pasted. */
+  protected readonly importItems: UiMenuItem[] = [
+    { label: "File…", icon: "upload_file", command: () => this.fileInput()?.nativeElement.click() },
+    { label: "cURL command…", icon: "terminal", command: () => this.importPipeline.openPaste() },
+  ];
+
+  /** The header's New menu (U-010, U-102): a collection, and a request or a folder where the selected row is. */
+  protected readonly newItems = computed<UiMenuItem[]>(() => {
+    const data = this.selectedNode()?.data as NodeData | undefined;
+    const collectionId = data ? (data.type === "collection" ? data.ref.meta.id : data.ref.collectionId) : null;
+    const folderId =
+      data?.type === "folder" ? data.ref.meta.id : data?.type === "request" ? data.ref.folderId : undefined;
+    return [
+      { label: "Collection", icon: "folder_open", keys: "C", command: () => void this.handleCreateCollection() },
+      ...(collectionId
+        ? [
+            {
+              label: "Request",
+              icon: "add" as const,
+              keys: "N",
+              command: () => void this.createRequestPrompt(collectionId, folderId ?? undefined),
+            },
+            { label: "Folder", icon: "folder" as const, command: () => void this.createFolderPrompt(collectionId) },
+          ]
+        : []),
+    ];
+  });
+  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>("fileInput");
 
   private emitLoadRequest(doc: RequestDoc): void {
     this.loadRequest.emit(doc);

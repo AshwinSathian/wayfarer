@@ -69,11 +69,20 @@ const POSITIONS: ConnectedPosition[] = [
           @if ("separator" in item) {
             <div class="ui-menu-separator" role="separator"></div>
           } @else {
-            <div ngMenuItem class="ui-menu-item" [value]="$index" [searchTerm]="item.label">
+            <div
+              ngMenuItem
+              class="ui-menu-item"
+              [value]="$index"
+              [searchTerm]="item.label"
+              [attr.aria-keyshortcuts]="item.keys ?? null"
+            >
               @if (item.icon; as icon) {
                 <app-icon class="ui-menu-icon" [name]="icon" />
               }
               {{ item.label }}
+              @if (item.keys; as keys) {
+                <kbd class="keycap ui-menu-keys" aria-hidden="true">{{ keys }}</kbd>
+              }
             </div>
           }
         }

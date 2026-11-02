@@ -280,6 +280,20 @@ export async function dumpIdb(page: Page): Promise<Record<string, unknown[]>> {
   });
 }
 
+/** Chooses an item of the sidebar's Import menu (U-010): "File…" or "cURL command…". */
+export async function importMenu(page: Page, item: "File…" | "cURL command…"): Promise<void> {
+  await page.locator("app-collections-sidebar").getByRole("button", { name: "Import", exact: true }).click();
+  await page.getByRole("menuitem", { name: item, exact: true }).click();
+}
+
+/** Opens the palette from the toolbar's search (U-011) and gives back its field. */
+export async function openPalette(page: Page): Promise<Locator> {
+  await page.getByRole("button", { name: "Search or run a command", exact: true }).click();
+  const field = page.getByRole("combobox", { name: /^Search requests/ });
+  await expect(field).toBeFocused();
+  return field;
+}
+
 /** Chooses an item of the open tab's menu (right-click on the tab): Close tab, Duplicate tab, Rename (U-027). */
 export async function tabMenu(page: Page, item: string): Promise<void> {
   await page

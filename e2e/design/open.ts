@@ -385,11 +385,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   },
   palette: async (page) => {
     await seed(page);
-    // The palette is the sidebar's: below 1,200 px it answers only with the drawer open.
-    await tree(page);
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.keyboard.press("ControlOrMeta+K");
-    await expect(page.getByPlaceholder("Type a command")).toBeVisible();
+    await expect(page.getByPlaceholder("Search or run a command")).toBeVisible();
   },
   "import-review": async (page) => {
     await page.goto("/app/");
@@ -397,7 +394,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   },
   "import-curl": async (page) => {
     await page.goto("/app/");
-    await sidebarHeaderButton(page, "Import a cURL command");
+    await sidebarHeaderButton(page, "Import");
+    await page.getByRole("menuitem", { name: "cURL command…", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
   },
   "script-review": async (page) => {

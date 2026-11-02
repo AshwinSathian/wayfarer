@@ -62,7 +62,7 @@ back gets reworded until one can, or removed.
 | C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
 | C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
 | C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |
-| C-030 | ⌘K opens a command palette. | README.md | e2e/settings.spec.ts, src/app/components/collections/collections-sidebar.spec.ts |
+| C-030 | ⌘K opens a command palette. | README.md | e2e/settings.spec.ts, e2e/palette.spec.ts |
 | C-031 | The composer/response split is resizable and remembered across reloads. | README.md | e2e/layout.spec.ts |
 | C-032 | On mobile the composer shows one section at a time, with labels. | README.md | e2e/layout.spec.ts |
 | C-033 | Settings covers theme, environment export and import, Reset all data, Local Bridge and a shortcuts reference. | README.md | e2e/settings.spec.ts, e2e/features.spec.ts |

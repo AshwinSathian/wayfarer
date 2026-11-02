@@ -9,6 +9,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **⌘K finds what you work with, not only commands.** The palette now
+  opens from a search field in the toolbar or ⌘K (Ctrl+K) anywhere, and
+  finds saved requests by name, method or address, collections and
+  folders, environments (Enter makes one the one in use) and past
+  requests from History, newest first, in groups, as well as every
+  command. Each command shows its shortcut as keys at its right. It has no
+  title or close button and opens over the page; before, it was a titled
+  dialog of command buttons drawn by the sidebar, so on a narrow window it
+  answered only with the sidebar open. The sidebar's header now has two
+  named menus, New (Collection, and a request or a folder where the
+  selected row is, at every width) and Import (File…, cURL command…), in
+  place of three unlabelled icons, and its title is no longer in capitals.
+
 - **Each tab closes from its own ×, and a saved request is renamed on its
   tab.** New sits right after the last tab instead of at the far end of
   the strip, up to 1,000 px from the tab it acted on. A tab's menu

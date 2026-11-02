@@ -11,11 +11,11 @@ test.describe("Secrets management view", () => {
 
   test("opens from the command palette", async ({ page }) => {
     await page.goto("/app/");
-    await page.keyboard.press("Meta+K");
-    await expect(page.getByPlaceholder("Type a command")).toBeVisible();
-    await page.getByPlaceholder("Type a command").fill("Manage Secrets");
-    await page.getByText("Manage Secrets", { exact: true }).click();
-    await expect(page.getByPlaceholder("Type a command")).toBeHidden();
+    await page.keyboard.press("ControlOrMeta+K");
+    await expect(page.getByPlaceholder("Search or run a command")).toBeVisible();
+    await page.getByPlaceholder("Search or run a command").fill("Secrets");
+    await page.getByRole("option", { name: "Secrets", exact: true }).click();
+    await expect(page.getByPlaceholder("Search or run a command")).toBeHidden();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
   });
 

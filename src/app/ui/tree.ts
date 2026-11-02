@@ -183,6 +183,18 @@ export class Tree<T> {
     this.host.nativeElement.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`)?.focus();
   }
 
+  /** Opens the node's parents, selects it and moves focus to it, once it is drawn (the palette finding a folder). */
+  reveal(key: string): void {
+    const rows = this.rows();
+    const row = rows.get(key);
+    if (!row) return;
+    const open = new Map(this.toggled());
+    for (let parent = row.parent; parent; parent = rows.get(parent.key)?.parent ?? null) open.set(parent.key, true);
+    this.toggled.set(open);
+    this.select(row.node);
+    afterNextRender(() => this.focusNode(key), { injector: this.injector });
+  }
+
   /** Moves keyboard focus to the selected node's row. */
   focusSelected(): void {
     const key = this.selectedKey();

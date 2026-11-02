@@ -340,9 +340,9 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `collections-sidebar.html: Open command palette` | Sidebar header, a lightning icon | Toolbar, a field "Search or run a command" with its ⌘K keycap (U-010, U-011) | D4-f |
-| `collections-sidebar.html: Import collection` | Sidebar header, an upload icon | Sidebar header, Import menu, "File…" (U-010) | D4-f |
-| `collections-sidebar.html: Import a cURL command` | Sidebar header, a terminal icon | Sidebar header, Import menu, "cURL command…" (U-010) | D4-f |
+| `app-shell.html: Search or run a command` | Toolbar, a field with its ⌘K keycap; ⌘K anywhere | Toolbar (U-010, U-011) | D4-f, done |
+| `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010) | D4-f, done |
+| `collections-sidebar.html: New` | Sidebar header, New menu: "Collection" (C), and in the selected collection or folder "Request" (N) and "Folder", at every width | Sidebar header (U-010, U-102) | D4-f, done |
 | `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010); and the empty sidebar's button (D4-c, U-022) | D4-f |
 | `collections-sidebar.html: Import…` | — (new in D4-c) | The empty sidebar: imports a file, as Import, "File…" (U-022) | — |
 | `collections-sidebar.html: importPipeline.pick($event)` | The file picker behind Import collection | Behind Import, "File…" | — |
@@ -352,8 +352,7 @@ it is.
 | `collections-sidebar.html: Method` | New request dialog, method | Sidebar, same dialog | D4-f |
 | `collections-sidebar.html: Cancel` | New collection or request dialog | Sidebar, same dialog | D4-f |
 | `collections-sidebar.html: Create` | New collection or request dialog | Sidebar, same dialog | D4-f |
-| `collections-sidebar.html: executeFirstPaletteAction()` | Palette, Enter in its field | Palette | D4-f |
-| `collections-sidebar.html: executePaletteAction(action)` | Palette, a row | Palette, a row: a command or a found request, collection, environment or history entry (U-011) | D4-f |
+| `palette.html: run(item)` | Palette, a row, or Enter on the active one: a command, or a request, collection, folder, environment or past request found by typing | Palette, the shell's (U-011) | D4-f, done |
 | `inherited-settings-dialog.html: Auth` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
 | `inherited-settings-dialog.html: Variables` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
 | `inherited-settings-dialog.html: Scripts` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
@@ -543,7 +542,6 @@ it is.
 | `palette: new-request-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: duplicate-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: delete-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
-| `palette: load-request` | Palette, the request selected in the tree | **Removed**: a request found by its name, method or address opens it (U-011) | D4-f |
 | `palette: duplicate-request` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: delete-request` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 

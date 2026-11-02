@@ -765,7 +765,7 @@ Evidence: [`hig-review/1440-dark-43-confirm-dialog.png`](hig-review/1440-dark-43
 Open: the shared confirm and the tree's in D4-f, Delete secret in D4-g,
 Reset all data in D4-h.
 **2026-11-02:** History's confirms fixed in #485 (D4-f): Clear history asks "Clear history? Every entry is deleted; collections are not touched. This cannot be undone." with Clear history and Cancel; an entry's Delete names the entry. The shared confirm's default and the tree's confirm are the next D4-f PR's.
-**2026-11-03:** The shared confirm and the tree's fixed in #PRNUM (D4-f): `acceptLabel` is required (no "Proceed"), the glyph and the centred template are gone; the tree no longer asks (U-080); Reset all data and Delete the secret {name} say what goes and the act.
+**2026-11-03:** The shared confirm and the tree's fixed in #487 (D4-f): `acceptLabel` is required (no "Proceed"), the glyph and the centred template are gone; the tree no longer asks (U-080); Reset all data and Delete the secret {name} say what goes and the act.
 
 ### Found later
 
@@ -882,7 +882,7 @@ Evidence: `collections-sidebar.ts:487-490`; the rows editor's ×.
 **Status:** Open, D4-f, after the maintainer chooses the undo model (an
 "Undo" in place for a few seconds, the confirm kept for Reset all data and
 Replace all, is the review's proposal). Review row W-24.
-**2026-11-03:** Fixed in #PRNUM (D4-f), the review's model taken under row 1.55's instruction: a delete in the tree goes at once and is offered back for 10 s (kept while the pointer or focus is on the line, WCAG 2.2.1) by Undo or ⌘Z outside a field; it puts back, in one transaction, the records and the files the delete read in its own (`src/app/data/removed.ts`). The confirms stay for Clear history and Reset all data. Undo lasts the page: a reload ends it.
+**2026-11-03:** Fixed in #487 (D4-f), the review's model taken under row 1.55's instruction: a delete in the tree goes at once and is offered back for 10 s (kept while the pointer or focus is on the line, WCAG 2.2.1) by Undo or ⌘Z outside a field; it puts back, in one transaction, the records and the files the delete read in its own (`src/app/data/removed.ts`). The confirms stay for Clear history and Reset all data. Undo lasts the page: a reload ends it.
 
 ### Announcements and names
 

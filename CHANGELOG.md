@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what sessions D3-b and D4-f built.** The plan's
+  row 1.56 lists their pull requests, the team and AI flows designed, and
+  what is left (the screen-reader checks are the maintainer's); the
+  benchmark has tasks 2 and 8 measured again.
+
 - **On a narrower window the sidebar can stay beside the page, and a
   phone's toolbar is shorter.** From 1,024 to 1,200 px the sidebar was a
   drawer over the page, closed until asked for, so a saved request could

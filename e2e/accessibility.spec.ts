@@ -335,7 +335,7 @@ test.describe("Accessibility (primary flows)", () => {
 
       await page.setViewportSize({ width: 390, height: 844 });
       await scan("phone");
-      await button("Toggle sidebar").click();
+      await button("Show sidebar").click();
       await expect(page.getByRole("dialog", { name: "Navigation" })).toBeVisible();
       await scan("phone navigation");
 

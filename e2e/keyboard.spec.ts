@@ -360,7 +360,7 @@ test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and f
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
-  const opener = page.getByRole("button", { name: "Toggle sidebar" });
+  const opener = page.getByRole("button", { name: /^(Show|Hide) sidebar$/ });
   await opener.focus();
   await page.keyboard.press("Enter");
 
@@ -380,7 +380,7 @@ test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and f
 test("phone navigation drawer: New request closes it and puts focus in the address", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
-  await page.getByRole("button", { name: "Toggle sidebar" }).click();
+  await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
   const drawer = page.getByRole("dialog", { name: "Navigation" });
   await drawer.getByRole("button", { name: "New request" }).click();
   await expect(drawer).toHaveCount(0);
@@ -392,7 +392,7 @@ test("phone navigation drawer: New request closes it and puts focus in the addre
 // the page. Focus is inside by the end of the task that asked for the drawer.
 for (const [width, opener, name] of [
   [1440, "Request history", "Request history"],
-  [390, "Toggle sidebar", "Navigation"],
+  [390, "Show sidebar", "Navigation"],
 ] as const) {
   test(`${name} drawer at ${width} px: focus is inside by the end of the click that opens it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -612,7 +612,7 @@ test("phone: Escape with a tree row's menu open closes the menu and leaves the n
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
-  await page.getByRole("button", { name: "Toggle sidebar" }).click();
+  await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
   const drawer = page.getByRole("dialog", { name: "Navigation" });
   await drawer.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Phone Col");

@@ -14,6 +14,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   what is left (the screen-reader checks are the maintainer's); the
   benchmark has tasks 2 and 8 measured again.
 
+- **On a narrower window the sidebar can stay beside the page, and a
+  phone's toolbar is shorter.** From 1,024 to 1,200 px the sidebar was a
+  drawer over the page, closed until asked for, so a saved request could
+  not be seen beside the open one. Its header now has Keep beside the
+  page: it stays, 280 px wide, and the choice is kept; Show as a drawer
+  goes back. On a phone, Environments and Request history are named rows
+  of the navigation drawer, beside Search, and the toolbar keeps the
+  sidebar, the environment, the vault's lock and Settings.
+
 - **A delete in the sidebar can be undone.** Deleting a collection, a
   folder or a request no longer asks "Delete item? This action cannot be
   undone. Continue?", which named nothing: it goes at once, a line under

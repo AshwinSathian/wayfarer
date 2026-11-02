@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI actions</title>
+    <style>
+      :root {
+        --canvas-app: #fbfaf8;
+        --canvas-sidebar: #f4f3f0;
+        --canvas-panel: #ffffff;
+        --canvas-elevated: #f6f5f2;
+        --label-primary: #26231e;
+        --label-secondary: #55524d;
+        --label-tertiary: #726f69;
+        --separator: rgba(38, 35, 30, 0.117);
+        --ink: #26231e;
+        --on-ink: #fbfaf8;
+        --fill: rgba(38, 35, 30, 0.042);
+        --added: rgba(41, 134, 70, 0.1);
+        --success-text: #206133;
+        --warning-text: #7a4702;
+        --warning-fill: rgba(214, 129, 12, 0.1);
+        --error-text: #a51f1e;
+        --get-text: #1f6b3e;
+        --post-text: #7d4d00;
+        --font-sans: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", Menlo, "SF Mono", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas-app: #161513;
+          --canvas-sidebar: #121110;
+          --canvas-panel: #1b1a18;
+          --canvas-elevated: #22211e;
+          --label-primary: #ebe9e4;
+          --label-secondary: #c0bdb6;
+          --label-tertiary: #9a9790;
+          --separator: rgba(235, 233, 228, 0.098);
+          --ink: #ebe9e4;
+          --on-ink: #161513;
+          --fill: rgba(235, 233, 228, 0.04);
+          --added: rgba(91, 189, 116, 0.14);
+          --success-text: #86d797;
+          --warning-text: #f8bf6c;
+          --warning-fill: rgba(244, 164, 55, 0.14);
+          --error-text: #f7958a;
+          --get-text: #7fd39d;
+          --post-text: #f0b45a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas-app);
+        color: var(--label-primary);
+        font: 15px/1.45 var(--font-sans);
+        overflow-wrap: anywhere;
+      }
+      .proto-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--separator);
+        background: var(--canvas-sidebar);
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .proto-bar strong {
+        color: var(--label-primary);
+      }
+      .frame {
+        max-width: 880px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .panel {
+        background: var(--canvas-panel);
+        border: 1px solid var(--separator);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      h2 {
+        font-size: 17px;
+      }
+      h3 {
+        font-size: 15px;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--label-secondary);
+      }
+      .mono,
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      pre {
+        margin: 0;
+        padding: 12px;
+        background: var(--canvas-elevated);
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 24lh;
+        overflow-y: auto;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .end {
+        justify-content: flex-end;
+      }
+      .stack > * + * {
+        margin-top: 12px;
+      }
+      .btn {
+        font: inherit;
+        font-size: 14px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px solid var(--separator);
+        background: transparent;
+        color: var(--label-primary);
+        cursor: pointer;
+      }
+      .btn.filled {
+        background: var(--ink);
+        color: var(--on-ink);
+        border-color: var(--ink);
+      }
+      .btn.text {
+        border-color: transparent;
+      }
+      .btn.danger {
+        color: var(--error-text);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn:focus-visible,
+      .field:focus-visible,
+      pre:focus-visible,
+      [tabindex="-1"]:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .field {
+        font: inherit;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        background: var(--canvas-panel);
+        color: var(--label-primary);
+      }
+      .field.mono {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-weight: 400;
+      }
+      .seg {
+        display: inline-flex;
+        flex-wrap: wrap;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 14px;
+        min-height: 40px;
+        padding: 0 12px;
+        border: 0;
+        background: transparent;
+        color: var(--label-secondary);
+        cursor: pointer;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--fill);
+        color: var(--label-primary);
+        font-weight: 600;
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: var(--fill);
+        white-space: nowrap;
+      }
+      .get {
+        color: var(--get-text);
+      }
+      .post {
+        color: var(--post-text);
+      }
+      .ok {
+        color: var(--success-text);
+      }
+      .err {
+        color: var(--error-text);
+      }
+      .warn {
+        background: var(--warning-fill);
+        color: var(--warning-text);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+      }
+      .record {
+        border-top: 1px solid var(--separator);
+        padding-top: 12px;
+        font-size: 13px;
+      }
+      .record ul,
+      .parts {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .record li,
+      .parts li {
+        margin: 4px 0;
+      }
+      .diff {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        border: 1px solid var(--separator);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .diff li {
+        padding: 1px 10px 1px 28px;
+        position: relative;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .diff li.add {
+        background: var(--added);
+        border-left: 3px solid var(--success-text);
+      }
+      .diff li.add::before {
+        content: "+";
+        position: absolute;
+        left: 10px;
+      }
+      .step[hidden] {
+        display: none;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--separator);
+        margin-bottom: 12px;
+        overflow-x: auto;
+      }
+      .tabs span {
+        padding: 8px 10px;
+        font-size: 14px;
+        color: var(--label-secondary);
+      }
+      .tabs span.on {
+        color: var(--label-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--ink);
+      }
+      .entry {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 10px 0;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid var(--separator);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      .entry .sub {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--label-secondary);
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto-bar">
+      <strong>The three actions</strong>
+      <span>Prototype of D4.10, not the app. Step: <span id="where">tests</span></span>
+    </div>
+    <main class="frame">
+      <div class="panel">
+        <p class="note">
+          Choose an action: <button class="btn text" type="button" data-go="tests">Write tests</button>
+          <button class="btn text" type="button" data-go="draft">Draft a request</button>
+          <button class="btn text" type="button" data-go="explain">Explain a response</button>
+        </p>
+
+        <section class="step stack" id="tests">
+          <div class="tabs" aria-hidden="true"
+            ><span>Body</span><span>Headers</span><span>Timings</span><span class="on">Tests</span></div
+          >
+          <h2 tabindex="-1">Tests</h2>
+          <p>Tests you write run after each send, and their results show here.</p>
+          <div class="row">
+            <button class="btn" type="button" data-go="proposal" data-say="Proposed tests."
+              >Write tests from this response…</button
+            >
+            <button class="btn text" type="button">Open the script</button>
+          </div>
+          <p class="note">(The preview and the record come between: see the preview prototype.)</p>
+        </section>
+
+        <section class="step stack" id="proposal" hidden aria-labelledby="pr-h">
+          <h2 id="pr-h" tabindex="-1">Proposed tests</h2>
+          <p>Adds 2 tests to the post-response script, after its 3 lines.</p>
+          <p class="warn">This script sends a request of its own, on line 9.</p>
+          <ul class="diff" aria-label="Changes to the post-response script">
+            <li><span class="sr">Unchanged: </span>pm.test("status is 200", () =&gt; {</li>
+            <li><span class="sr">Unchanged: </span> pm.response.to.have.status(200);</li>
+            <li><span class="sr">Unchanged: </span>});</li>
+            <li class="add"><span class="sr">Added: </span>pm.test("is a list of pets", () =&gt; {</li>
+            <li class="add"><span class="sr">Added: </span> const body = pm.response.json();</li>
+            <li class="add"><span class="sr">Added: </span> pm.expect(body).to.be.an("array");</li>
+            <li class="add"><span class="sr">Added: </span>});</li>
+            <li class="add"><span class="sr">Added: </span>pm.test("each pet has a name", () =&gt; {</li>
+            <li class="add"
+              ><span class="sr">Added: </span> pm.sendRequest("https://collector.example/" +
+              pm.environment.get("token"));</li
+            >
+            <li class="add"><span class="sr">Added: </span>});</li>
+          </ul>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="tests" data-say="Discarded.">Discard</button>
+            <button
+              class="btn filled"
+              type="button"
+              data-go="accepted"
+              data-say="Added 2 tests to the post-response script."
+            >
+              Accept
+            </button>
+          </div>
+          <p class="note"
+            >Other answers: <button class="btn text" type="button" data-go="unusable">Nothing usable</button></p
+          >
+        </section>
+
+        <section class="step stack" id="accepted" hidden>
+          <p class="row">
+            Added 2 tests to the post-response script.
+            <button class="btn" type="button" data-go="tests" data-say="Put back as it was." tabindex="-1">Undo</button>
+            <button class="btn text" type="button">Open the script</button>
+          </p>
+          <p class="note">
+            The tests run at the next send if this request's scripts may run; in a collection not yet reviewed, the
+            review comes first.
+          </p>
+        </section>
+
+        <section class="step stack" id="unusable" hidden>
+          <h2 tabindex="-1">The answer held no script.</h2>
+          <p>The model answered:</p>
+          <pre>I cannot see the response body, so I cannot write tests for its shape.</pre>
+          <button class="btn" type="button" data-go="tests">Send again</button>
+        </section>
+
+        <section class="step stack" id="draft" hidden role="dialog" aria-labelledby="d-h">
+          <h2 id="d-h" tabindex="-1">Draft a request</h2>
+          <p>Describe the request. The model drafts it; nothing is sent until you send it.</p>
+          <div>
+            <label for="desc">Description</label>
+            <textarea id="desc" class="field" rows="4">Create a pet named Rex, with the tag dog</textarea>
+          </div>
+          <label class="check"
+            ><input type="checkbox" checked /> The names of the variables in use: <span class="mono">baseUrl</span>,
+            <span class="mono">petId</span>, <span class="mono">token</span> (no values)</label
+          >
+          <div class="row end">
+            <button class="btn text" type="button" data-go="tests">Cancel</button>
+            <button class="btn filled" type="button" data-go="draftprop" data-say="Proposed request.">Preview…</button>
+          </div>
+          <p class="note">(Preview… shows the preview in this dialog; this prototype skips to the answer.)</p>
+        </section>
+
+        <section class="step stack" id="draftprop" hidden role="dialog" aria-labelledby="dp-h">
+          <h2 id="dp-h" tabindex="-1">Proposed request</h2>
+          <ul class="diff" aria-label="Changes to the request">
+            <li class="del"><span class="sr">Removed: </span>Method: GET</li>
+            <li class="add"><span class="sr">Added: </span>Method: POST</li>
+            <li class="add"><span class="sr">Added: </span>Address: {{baseUrl}}/pets</li>
+            <li class="add"><span class="sr">Added: </span>Header: Content-Type: application/json</li>
+            <li class="add"><span class="sr">Added: </span>Body: { "name": "Rex", "tags": ["dog"] }</li>
+          </ul>
+          <p class="note">
+            <span class="mono">baseUrl</span> · environment "Local" · <span class="mono">http://localhost:8080</span>
+          </p>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="tests">Discard</button>
+            <button class="btn filled" type="button" data-go="drafted" data-say="Drafted from your description."
+              >Accept</button
+            >
+          </div>
+        </section>
+
+        <section class="step stack" id="drafted" hidden>
+          <p class="row"> <span class="badge post">POST</span> <span class="mono">{{baseUrl}}/pets</span> </p>
+          <p class="row">
+            Drafted from your description.
+            <button class="btn" type="button" data-go="draft" data-say="Put back as it was." tabindex="-1">Undo</button>
+          </p>
+          <p class="note">Nothing was sent. Send is yours.</p>
+        </section>
+
+        <section class="step stack" id="explain" hidden>
+          <p><strong>422 Unprocessable Entity, 41 ms, Direct to api.example.com</strong></p>
+          <div class="record" aria-label="Exchange record">
+            <ul>
+              <li>Sent from this page to <span class="mono">api.example.com</span>.</li>
+              <li>No vault secret was filled.</li>
+              <li>Nothing was masked.</li>
+              <li>History kept the request and the response.</li>
+            </ul>
+            <button class="btn" type="button" data-go="explained" data-say="The model answered.">
+              Explain this response…
+            </button>
+          </div>
+        </section>
+
+        <section class="step stack" id="explained" hidden aria-labelledby="e-h">
+          <h2 id="e-h" tabindex="-1">The model answered</h2>
+          <pre>
+The server refused the body because "tags" must be a list of objects with an "id", and the request sent a list of strings ("dog"). The response body's "detail[0].loc" names body.tags[0].</pre>
+          <div class="row end">
+            <button class="btn text" type="button" data-go="explain">Close</button>
+            <button class="btn" type="button" data-go="explain">Ask again…</button>
+          </div>
+        </section>
+      </div>
+    </main>
+    <div class="sr" role="status" id="status"></div>
+    <script>
+      // Steps through the prototype: a button with data-go shows the step it names.
+      function go(id, say) {
+        document.querySelectorAll(".step").forEach((step) => (step.hidden = step.id !== id));
+        document.getElementById("where").textContent = id;
+        document.getElementById("status").textContent = say || "";
+        const heading = document.querySelector("#" + id + " [tabindex='-1']");
+        if (heading) heading.focus();
+      }
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-go]");
+        if (target) go(target.dataset.go, target.dataset.say);
+      });
+    </script>
+  </body>
+</html>

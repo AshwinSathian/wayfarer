@@ -233,6 +233,12 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
 /** The labels a status fill may hold. The others are under 4.5:1 on one fill or another, in one theme or the other. */
 const ON_FILL = ["--label-primary", "--label-secondary"];
 
+// The variable chips draw their own fills (components.css): the tertiary label is under 4.5:1 on them (#478's light theme).
+test("a variable chip's captions are not the tertiary label", () => {
+  const chips = readFileSync(new URL("../src/app/components/composer/variable-chips.html", import.meta.url), "utf8");
+  assert.ok(!/text-label-tertiary/.test(chips), "variable-chips.html uses text-label-tertiary");
+});
+
 test("no template puts a grey label that does not read on a status fill inside one", () => {
   const app = new URL("../src/app/", import.meta.url).pathname;
   const found = [];

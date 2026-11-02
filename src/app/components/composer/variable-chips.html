@@ -17,7 +17,7 @@
   >
     <div class="flex items-center gap-1.5">
       <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>
-      <span class="var-chip-source type-footnote text-label-tertiary"
+      <span class="var-chip-source type-footnote text-label-secondary"
         >{{ variable.holder ?? (variable.source === 'dynamic' ? 'Dynamic' : variable.source === 'secret' ? 'Vault' :
         'Missing') }}</span
       >
@@ -29,7 +29,7 @@
       } @else if (variable.source === 'dynamic') { New value each send } @else { No value }
     </div>
     @if (variable.shadows.length) {
-    <div class="var-chip-shadows type-footnote text-label-tertiary mt-0.5"
+    <div class="var-chip-shadows type-footnote text-label-secondary mt-0.5"
       >Hides the value in {{ hidden(variable) }}</div
     >
     }

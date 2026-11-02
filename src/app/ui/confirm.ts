@@ -9,15 +9,14 @@ import {
   viewChild,
 } from "@angular/core";
 import { UiButton } from "./button";
-import { Icon } from "../shared/icon/icon";
 import { UiModal } from "./modal";
 
 export interface ConfirmOptions {
   /** Heading of a centred confirmation. Omit it together with setting `anchor` for a small popup. */
   title?: string;
   message: string;
-  /** Label of the button that goes ahead. Default "Proceed". */
-  acceptLabel?: string;
+  /** The button that goes ahead says the act ("Delete", "Clear history"): there is no default (U-056). */
+  acceptLabel: string;
   /** Label of the button that backs out. Default "Cancel". */
   rejectLabel?: string;
   /** Show the confirmation as a small popup under this element instead of a centred dialog. */
@@ -36,7 +35,7 @@ const MARGIN = 8;
  */
 @Component({
   selector: "ui-confirm",
-  imports: [Icon, UiButton, UiModal],
+  imports: [UiButton, UiModal],
   template: `
     <dialog
       uiModal
@@ -52,7 +51,7 @@ const MARGIN = 8;
           <span class="text-label-secondary" [id]="id + '-message'">{{ options.message }}</span>
           <div class="flex items-center gap-2 mt-3">
             <button uiButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{
-              options.acceptLabel ?? "Proceed"
+              options.acceptLabel
             }}</button>
             <button uiButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
@@ -60,21 +59,17 @@ const MARGIN = 8;
           </div>
         </div>
       } @else {
-        <div class="flex flex-col items-center p-8 bg-canvas-overlay">
-          <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4"
-            ><app-icon name="warning" class="icon-lg text-status-error"
-          /></div>
-          <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
-          <p class="type-body text-label-secondary text-center max-w-xs" [id]="id + '-message'">{{
-            options.message
-          }}</p>
-          <div class="flex items-center gap-3 mt-6">
-            <button uiButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{
-              options.acceptLabel ?? "Proceed"
-            }}</button>
-            <button uiButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="answer(false)">
+        <!-- The question, what it does, and two buttons that say so: no glyph, no template (U-056). -->
+        <div class="flex flex-col gap-2 p-6 bg-canvas-overlay max-w-md">
+          <span class="type-title-3 text-label-primary" [id]="id + '-title'">{{ options.title }}</span>
+          <p class="type-body text-label-secondary m-0" [id]="id + '-message'">{{ options.message }}</p>
+          <div class="flex items-center justify-end gap-2 mt-4">
+            <button uiButton type="button" class="btn-secondary" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
             </button>
+            <button uiButton="filled" type="button" class="btn-danger" (click)="answer(true)">{{
+              options.acceptLabel
+            }}</button>
           </div>
         </div>
       }
@@ -84,7 +79,7 @@ const MARGIN = 8;
 })
 class ConfirmDialog {
   readonly id = `ui-confirm-${nextId++}`;
-  options: ConfirmOptions = { message: "" };
+  options: ConfirmOptions = { message: "", acceptLabel: "" };
   answer: (accepted: boolean) => void = () => undefined;
   readonly modal = viewChild.required(UiModal);
 }

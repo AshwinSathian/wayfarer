@@ -33,21 +33,25 @@ describe("Confirm", () => {
     opener.remove();
   });
 
-  it("resolves false on the other button, on Escape and on a click outside; labels default to Proceed and Cancel", async () => {
+  it("resolves false on the other button, on Escape and on a click outside; the act's button says the act", async () => {
     const service = TestBed.inject(Confirm);
 
-    let answer = service.confirm({ title: "Are you sure?", message: "Your entire history will be cleared" });
-    expect(button("Proceed")).toBeDefined();
+    let answer = service.confirm({
+      title: "Clear history?",
+      message: "Every entry is deleted.",
+      acceptLabel: "Clear history",
+    });
+    expect(button("Clear history")).toBeDefined();
     button("Cancel").click();
     expect(await answer).toBe(false);
 
-    answer = service.confirm({ title: "Are you sure?", message: "m" });
+    answer = service.confirm({ title: "Clear history?", message: "m", acceptLabel: "Clear history" });
     document.activeElement!.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
     );
     expect(await answer).toBe(false);
 
-    answer = service.confirm({ title: "Are you sure?", message: "m" });
+    answer = service.confirm({ title: "Clear history?", message: "m", acceptLabel: "Clear history" });
     outside("pointerdown");
     outside("click");
     expect(await answer).toBe(false);
@@ -75,7 +79,7 @@ describe("Confirm", () => {
     expect(await answer).toBe(true);
 
     anchor.style.top = `${innerHeight - 30}px`;
-    answer = service.confirm({ message: "m", anchor });
+    answer = service.confirm({ message: "m", acceptLabel: "Delete", anchor });
     expect(alert()!.offsetTop + alert()!.offsetHeight).toBe(innerHeight - 40);
     button("Cancel").click();
     expect(await answer).toBe(false);

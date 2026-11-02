@@ -1,5 +1,6 @@
 import { SHORTCUTS, type Shortcut } from "../../shared/shortcuts";
 import { MenuTrigger } from "@angular/aria/menu";
+import { UndoNotice } from "../../services/undo-notice";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,7 +21,6 @@ import { UiInput } from "../../ui/input";
 import { UiButton } from "../../ui/button";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
-import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
 import { Tree, UiTreeNode } from "../../ui/tree";
 import { Folder, RequestDoc } from "../../models/collections";
@@ -86,7 +86,6 @@ export class CollectionsSidebar implements OnInit {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
   private readonly collectionsService = inject(CollectionsStore);
-  private readonly confirm = inject(Confirm);
   /** Every file picked here goes down the one import road (P4.1). */
   protected readonly importPipeline = inject(ImportPipeline);
 
@@ -322,6 +321,7 @@ export class CollectionsSidebar implements OnInit {
   protected readonly methodLabel = methodLabel;
   protected readonly shortcuts = SHORTCUTS;
   private readonly tree = viewChild<Tree<NodeData>>("tree");
+  private readonly undo = inject(UndoNotice);
 
   /** The header's Import menu (U-010): a file, or a cURL command pasted. */
   protected readonly importItems: UiMenuItem[] = [
@@ -466,19 +466,21 @@ export class CollectionsSidebar implements OnInit {
     }
   }
 
+  /**
+   * Deletes at once and offers Undo for a few seconds (U-080): a confirm asked first and named nothing ("Delete
+   * item?", U-056). The line says what went, a folder's contents too.
+   */
   private async deleteNode(data: NodeData): Promise<void> {
-    const confirmed = await this.confirm.confirm({
-      title: "Delete item?",
-      message: `${data.type === "folder" ? this.insideFolder(data.ref) : ""}This action cannot be undone. Continue?`,
-    });
-    if (!confirmed) return;
-    if (data.type === "collection") {
-      await this.collectionsService.deleteCollection(data.ref.meta.id);
-    } else if (data.type === "folder") {
-      await this.collectionsService.deleteFolder(data.ref.meta.id);
-    } else {
-      await this.collectionsService.deleteRequest(data.ref.meta.id);
-    }
+    const name = data.type === "request" ? data.ref.name || data.ref.url : data.ref.name;
+    const inside = data.type === "folder" ? this.insideFolder(data.ref) : "";
+    const removed =
+      data.type === "collection"
+        ? await this.collectionsService.deleteCollection(data.ref.meta.id)
+        : data.type === "folder"
+          ? await this.collectionsService.deleteFolder(data.ref.meta.id)
+          : await this.collectionsService.deleteRequest(data.ref.meta.id);
+    this.selectedNode.set(null);
+    this.undo.offer(`Deleted ${name}.${inside ? ` ${inside}` : ""}`, () => this.collectionsService.restore(removed));
   }
 
   /** What a folder's deletion takes with it, as a sentence; nothing for an empty folder. */
@@ -493,7 +495,7 @@ export class CollectionsSidebar implements OnInit {
     if (folders + requests === 0) return "";
     const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
     const parts = [...(folders ? [count(folders, "folder")] : []), ...(requests ? [count(requests, "request")] : [])];
-    return `Folder "${folder.name}" is deleted with the ${parts.join(" and ")} in it. `;
+    return `The ${parts.join(" and ")} in it went with it.`;
   }
 
   /** Opens the one Export… dialog, which asks the format and whether to include credentials (U-016). */

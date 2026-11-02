@@ -65,10 +65,12 @@ test.describe("Secrets management view", () => {
     await page.getByRole("button", { name: "Save name" }).click();
     await expect(page.getByText("Renamed Token", { exact: true })).toBeVisible();
 
-    // Delete goes through the confirm service, whose default labels are
-    // "Proceed" and "Cancel".
+    // Delete asks first, and its button says the act (U-056).
     await page.getByRole("button", { name: "Delete Renamed Token" }).click();
-    await page.getByRole("button", { name: "Proceed", exact: true }).click();
+    await page
+      .getByRole("alertdialog", { name: "Delete the secret Renamed Token?" })
+      .getByRole("button", { name: "Delete", exact: true })
+      .click();
     await expect(page.getByText("No secrets yet")).toBeVisible();
   });
 });

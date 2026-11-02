@@ -460,11 +460,12 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
       .click();
     await expect(page.getByRole("dialog", { name: /secrets/i }).last()).toBeVisible();
   },
+  // A delete in the tree asks nothing since U-080: the confirm is the one that cannot be undone, Reset all data.
   "confirm-dialog": async (page) => {
     await seed(page);
-    await contextMenu(page, "Health");
-    await page.getByRole("menuitem", { name: "Delete" }).click();
-    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await settingsPane(page, "Danger zone");
+    await page.getByRole("button", { name: "Reset all data" }).click();
+    await expect(page.getByRole("alertdialog", { name: "Reset all data?" })).toBeVisible();
   },
   "settings-general": (page) => settingsPane(page, "General"),
   "settings-requests": (page) => settingsPane(page, "Requests"),

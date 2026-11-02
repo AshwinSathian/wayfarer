@@ -347,6 +347,8 @@ it is.
 | Action | Today | Place | Session |
 |---|---|---|---|
 | `app-shell.html: Search or run a command` | Toolbar, a field with its ⌘K keycap; ⌘K anywhere | Toolbar (U-010, U-011) | D4-f, done |
+| `app-shell.html: Undo` | — (new in D4-f): the line under the page after a delete in the tree, for 10 s, kept while the pointer or focus is on it | Shell, the Undo line (U-080) | D4-f, done |
+| `app-shell.html: Dismiss` | The Undo line | Shell, the Undo line | D4-f, done |
 | `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010) | D4-f, done |
 | `collections-sidebar.html: New` | Sidebar header, New menu: "Collection" (C), and in the selected collection or folder "Request" (N) and "Folder", at every width | Sidebar header (U-010, U-102) | D4-f, done |
 | `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010); and the empty sidebar's button (D4-c, U-022) | D4-f |
@@ -383,7 +385,7 @@ it is.
 | `menu collection-context-menu.ts: Rename` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Duplicate` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Export…` | Collection's menu | Sidebar, context menu, one dialog with the format and the credentials (U-016) | D4-f, done |
-| `menu collection-context-menu.ts: Delete` | Context menu of a tree row | Sidebar, context menu | D4-f |
+| `menu collection-context-menu.ts: Delete` | Context menu of a tree row; Delete on a row | Sidebar, context menu: deletes at once and offers Undo (U-080, U-056) | D4-f, done |
 
 ### Tab strip
 
@@ -559,6 +561,7 @@ it is.
 | `shortcut: closeTab` | ⌥W or Alt+W, anywhere | Anywhere; keycap in the close tooltip and the palette (D4-c) | — |
 | `shortcut: send` | — (new in D4-c) | ⌘↵ or Ctrl+Enter, anywhere but under a dialog; keycap in Send's tooltip and the palette | — |
 | `shortcut: save` | — (new in D4-c) | ⌘S or Ctrl+S, anywhere but under a dialog; keycap in Save's tooltip and the palette | — |
+| `shortcut: undo` | — (new in D4-f) | ⌘Z or Ctrl+Z while an Undo is offered, focus not where text is typed (U-080) | D4-f, done |
 | `shortcut: C` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: N` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027) | D4-c |
@@ -593,7 +596,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `confirm.ts: Proceed` | Every confirmation | Same | — |
+| `confirm.ts: answer(true)` | Every confirmation: its button says the act ("Clear history", "Reset all data", "Delete"), no "Proceed" (U-056) | Same | D4-f, done |
 | `confirm.ts: Cancel` | Every confirmation | Same | — |
 | `dialog.ts: Close` | Every dialog's header | Same | — |
 | `file.ts: Choose another… / Choose a file…` | — (new in D4-d, D3.5) | Every file field: the binary body, a multipart part, the vault's import | — |

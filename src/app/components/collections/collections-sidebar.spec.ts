@@ -1,11 +1,12 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { inCollection, inFolder, requestContent } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
-import { Confirm } from "../../ui/confirm";
 import { CollectionsSidebar } from "./collections-sidebar";
+import { UndoNotice } from "../../services/undo-notice";
+import type { Removed } from "../../data/removed";
 import { CollectionsStore, CollectionTree } from "../../services/collections-store";
 import { Collection, Folder, Meta, RequestDoc } from "../../models/collections";
-import { describe, it, beforeEach, expect, vi } from "vitest";
+import { describe, it, beforeEach, expect } from "vitest";
 
 function meta(id: string): Meta {
   return { id, createdAt: 1, updatedAt: 1 };
@@ -63,8 +64,9 @@ class CollectionsServiceStub {
     return makeCollection("new-col", payload.name);
   }
 
-  async deleteCollection(id: string): Promise<void> {
+  async deleteCollection(id: string): Promise<Removed> {
     this.deleteCollectionCalls.push(id);
+    return { collections: [], folders: [], requests: [], files: [] };
   }
 
   async duplicateCollection(id: string): Promise<Collection | null> {
@@ -72,12 +74,19 @@ class CollectionsServiceStub {
     return null;
   }
 
-  async deleteFolder(id: string): Promise<void> {
+  async deleteFolder(id: string): Promise<Removed> {
     this.deleteFolderCalls.push(id);
+    return { collections: [], folders: [], requests: [], files: [] };
   }
 
-  async deleteRequest(id: string): Promise<void> {
+  async deleteRequest(id: string): Promise<Removed> {
     this.deleteRequestCalls.push(id);
+    return { ...{ collections: [], folders: [], requests: [], files: [] }, requests: [makeRequest(id, "c1")] };
+  }
+
+  readonly restoreCalls: Removed[] = [];
+  async restore(removed: Removed): Promise<void> {
+    this.restoreCalls.push(removed);
   }
 
   async exportCollectionJson(): Promise<string | null> {
@@ -350,31 +359,24 @@ describe("CollectionsSidebar", () => {
   });
 
   describe("handleAction dispatch", () => {
-    it("routes 'delete' on a request node through Confirm, and only calls deleteRequest once the user accepts", async () => {
+    it("deletes at once and offers Undo, which puts back what went (U-080, U-056)", async () => {
       const collection = makeCollection("c1");
       const request = makeRequest("r1", "c1");
       collectionsService.setTree([{ collection, folders: [], requests: [request] }]);
-      const requestNode = component.nodes()[0].children?.[0];
-      expect(requestNode).toBeDefined();
+      const undo = TestBed.inject(UndoNotice);
 
-      let answer: (accepted: boolean) => void = () => undefined;
-      const confirm = vi
-        .spyOn(TestBed.inject(Confirm), "confirm")
-        .mockImplementation(() => new Promise<boolean>((resolve) => (answer = resolve)));
-
-      const pending = component.handleAction("delete", requestNode!);
-      await Promise.resolve();
-
-      expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete item?" }));
-      expect(collectionsService.deleteRequestCalls).toEqual([]);
-
-      answer(true);
-      await pending;
+      await component.handleAction("delete", component.nodes()[0].children![0]);
 
       expect(collectionsService.deleteRequestCalls).toEqual(["r1"]);
+      expect(undo.current()?.message).toBe(`Deleted ${request.name}.`);
+      await undo.undo();
+      expect(collectionsService.restoreCalls.map((removed) => removed.requests.map((r) => r.meta.id))).toEqual([
+        ["r1"],
+      ]);
+      expect(undo.current()).toBeNull();
     });
 
-    it("the question before a folder is deleted says how many folders and requests go with it", async () => {
+    it("the line after a folder is deleted says how many folders and requests went with it", async () => {
       const collection = makeCollection("c1");
       const requests = [
         makeRequest("r1", "c1", "f1", 1),
@@ -388,28 +390,14 @@ describe("CollectionsSidebar", () => {
           requests,
         },
       ]);
-      const confirm = vi.spyOn(TestBed.inject(Confirm), "confirm").mockResolvedValue(true);
       const folderNode = component.nodes()[0].children!.find((node) => node.key === "folder:f1");
 
       await component.handleAction("delete", folderNode!);
 
-      expect(confirm).toHaveBeenCalledWith({
-        title: "Delete item?",
-        message:
-          'Folder "Folder f1" is deleted with the 1 folder and 2 requests in it. This action cannot be undone. Continue?',
-      });
+      expect(TestBed.inject(UndoNotice).current()?.message).toBe(
+        "Deleted Folder f1. The 1 folder and 2 requests in it went with it.",
+      );
       expect(collectionsService.deleteFolderCalls).toEqual(["f1"]);
-    });
-
-    it("does not delete when the user backs out of the confirmation", async () => {
-      const collection = makeCollection("c1");
-      const request = makeRequest("r1", "c1");
-      collectionsService.setTree([{ collection, folders: [], requests: [request] }]);
-      vi.spyOn(TestBed.inject(Confirm), "confirm").mockResolvedValue(false);
-
-      await component.handleAction("delete", component.nodes()[0].children![0]);
-
-      expect(collectionsService.deleteRequestCalls).toEqual([]);
     });
 
     it("creates a folder under the collection when dispatched 'new-folder' on a collection node", async () => {

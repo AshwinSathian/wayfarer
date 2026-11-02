@@ -155,6 +155,8 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [AI preview](docs/design/ai/preview.md): exactly what a model call's preview shows before it is sent, and its record after
 - [AI actions](docs/design/ai/actions.md): write tests, draft a request and explain a failed response, with the proposal, Accept and Undo
 - [AI log](docs/design/ai/log.md): model calls as history entries, filtered, opened and exported as HAR
+- [Team flows](docs/design/teams/README.md): sharing a collection by file and link, a folder in Git, peer to peer and a team server, designed and not built, with the principles each way keeps and the open questions
+  - [Share](docs/design/teams/share.md), [Receive](docs/design/teams/receive.md), [See who changed what](docs/design/teams/history.md), [Resolve a conflict](docs/design/teams/conflict.md) and [Review before taking a change](docs/design/teams/review.md): one spec per flow, each with a clickable prototype
 
 ## Security
 

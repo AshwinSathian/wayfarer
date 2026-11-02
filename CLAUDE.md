@@ -549,7 +549,9 @@ code errors.
   stays outside it. A composer pane with an editor is `@defer (when …)`
   its tab is first chosen, and stays.
 - `Confirm.confirm(options)` makes a `<dialog uiModal role="alertdialog">`
-  from code, with focus on the button that backs out (`cdkFocusInitial`):
+  from code, its title the question naming what goes and `acceptLabel`
+  the act ("Clear history"; required, there is no "Proceed", U-056), with
+  focus on the button that backs out (`cdkFocusInitial`):
   centred, or with `anchor` a small one placed under that button (else
   against its end, else above it), where the CDK's dialog put it. Escape,
   the other button and a click outside resolve false.
@@ -1253,6 +1255,11 @@ code errors.
   banners; never fall back silently.
 - Reset all data must remove everything the app stored, including every
   `wayfarer:` key in `localStorage`.
+- A delete in the tree asks nothing: it returns what it removed
+  (`Removed`, read in its own transaction) and `UndoNotice` offers it back
+  for 10 s (U-080); `putBack` restores it as it was. A new delete of
+  stored things takes the same road; a confirm is for what cannot be put
+  back (Clear history, Reset all data, a vault secret).
 
 ## Tests
 

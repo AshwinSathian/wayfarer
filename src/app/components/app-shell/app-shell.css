@@ -91,3 +91,25 @@
     display: none;
   }
 }
+
+/* Undo (U-080): over the page's foot, centred; nothing is drawn while there is nothing to undo. */
+.undo-bar {
+  position: fixed;
+  bottom: 48px;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  transform: translateX(-50%);
+}
+
+.undo-bar:has(> *) {
+  padding: 6px 6px 6px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
+  color: var(--label-primary);
+}

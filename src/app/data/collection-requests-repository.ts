@@ -5,6 +5,7 @@ import { IDBPTransaction } from "idb";
 import { IdbCore } from "./idb-core";
 import { WayfarerDB, StoreCollection, StoredFile } from "./idb-schema";
 import { sweepFiles } from "./request-files";
+import { filesOf, Removed } from "./removed";
 
 /**
  * CRUD for requests saved inside a collection/folder (`RequestDoc`) — not
@@ -141,12 +142,17 @@ export class CollectionRequestsRepository {
     });
   }
 
-  async deleteRequest(id: string): Promise<void> {
+  /** Deletes a request, and gives back what went, for Undo (U-080). */
+  async deleteRequest(id: string): Promise<Removed> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests", "files"]);
-    await this.core.commitOrRollback(tx, async () => {
+    return this.core.commitOrRollback(tx, async () => {
+      const request = await tx.objectStore("requests").get(id);
+      const requests = request ? [request] : [];
+      const files = await filesOf(tx, requests);
       await tx.objectStore("requests").delete(id);
       await sweepFiles(tx);
+      return { collections: [], folders: [], requests, files };
     });
   }
 }

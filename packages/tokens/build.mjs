@@ -32,7 +32,7 @@ function block(name) {
 function moreBlock(name) {
   const values = cssValues(name, "more");
   return [
-    `  ${SELECTORS[name].replace("\n", "\n  ")} {`,
+    `  ${SELECTORS[name].replaceAll("\n", "\n  ")} {`,
     ...derivedNames(name).map((key) => `    --${key}: ${values[`--${key}`]};`),
     "  }",
   ].join("\n");

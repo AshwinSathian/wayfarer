@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Receive</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --app: #fbfaf8;
+        --side: #f4f3f0;
+        --panel: #ffffff;
+        --elev: #f6f5f2;
+        --l1: #26231e;
+        --l2: #55524d;
+        --l3: #726f69;
+        --sep: rgba(38, 35, 30, 0.117);
+        --ink: #26231e;
+        --on-ink: #fbfaf8;
+        --get: #1f6b3e;
+        --post: #7d4d00;
+        --put: #2453a6;
+        --del: #a8322b;
+        --warn: #7a4702;
+        --err: #a51f1e;
+        --warn-fill: rgba(214, 129, 12, 0.1);
+        --add-fill: rgba(41, 134, 70, 0.1);
+        --rem-fill: rgba(201, 48, 45, 0.1);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          color-scheme: dark;
+          --app: #161513;
+          --side: #121110;
+          --panel: #1b1a18;
+          --elev: #22211e;
+          --l1: #ebe9e4;
+          --l2: #c0bdb6;
+          --l3: #9a9790;
+          --sep: rgba(235, 233, 228, 0.098);
+          --ink: #ebe9e4;
+          --on-ink: #161513;
+          --get: #7fd39d;
+          --post: #f0b45a;
+          --put: #8db4ef;
+          --del: #f08a80;
+          --warn: #f8bf6c;
+          --err: #f7958a;
+          --warn-fill: rgba(244, 164, 55, 0.14);
+          --add-fill: rgba(91, 189, 116, 0.14);
+          --rem-fill: rgba(236, 92, 82, 0.14);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--app);
+        color: var(--l1);
+        font:
+          15px/1.45 "Atkinson Hyperlegible Next",
+          "Atkinson Hyperlegible",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Inter,
+          sans-serif;
+      }
+      code,
+      .mono {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+      }
+      .proto {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--sep);
+        background: var(--elev);
+        font-size: 13px;
+        color: var(--l2);
+      }
+      .proto h1 {
+        font-size: 15px;
+        margin: 0 0 6px;
+        color: var(--l1);
+      }
+      .proto fieldset {
+        border: 0;
+        padding: 0;
+        margin: 8px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .proto legend {
+        float: left;
+        margin-right: 8px;
+      }
+      .chip {
+        border: 1px solid var(--sep);
+        background: var(--panel);
+        color: var(--l1);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .chip[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--on-ink);
+        border-color: var(--ink);
+      }
+      .chip:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        min-height: calc(100vh - 110px);
+      }
+      .side {
+        background: var(--side);
+        border-right: 1px solid var(--sep);
+        padding: 12px;
+        min-width: 0;
+      }
+      .side h2 {
+        font-size: 13px;
+        margin: 0 0 8px;
+        color: var(--l2);
+        font-weight: 600;
+      }
+      .row {
+        padding: 6px 8px;
+        border-radius: 6px;
+      }
+      .row.sel {
+        background: var(--elev);
+      }
+      .row small {
+        display: block;
+        color: var(--l2);
+        font-size: 12px;
+      }
+      .row .link {
+        font: inherit;
+        font-size: 12px;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--l1);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      .req {
+        padding: 3px 8px 3px 20px;
+        font-size: 13px;
+        color: var(--l2);
+        overflow-wrap: anywhere;
+      }
+      .m {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 6px;
+      }
+      .GET {
+        color: var(--get);
+      }
+      .POST {
+        color: var(--post);
+      }
+      .PUT {
+        color: var(--put);
+      }
+      .DELETE {
+        color: var(--del);
+      }
+      .main {
+        padding: 24px 16px;
+        min-width: 0;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+      }
+      .dialog {
+        background: var(--panel);
+        border: 1px solid var(--sep);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+        width: 100%;
+        max-width: 720px;
+        min-width: 0;
+      }
+      .dialog.drawer {
+        max-width: 440px;
+        align-self: flex-end;
+      }
+      .dialog header {
+        padding: 16px 20px 8px;
+      }
+      .dialog h2 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .body {
+        padding: 8px 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      .body p {
+        margin: 0;
+      }
+      .body h3 {
+        font-size: 14px;
+        margin: 0;
+      }
+      .foot {
+        padding: 12px 20px;
+        border-top: 1px solid var(--sep);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .btn {
+        font: inherit;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 7px 14px;
+        border: 1px solid var(--sep);
+        background: var(--panel);
+        color: var(--l1);
+        cursor: pointer;
+      }
+      .btn.fill {
+        background: var(--ink);
+        color: var(--on-ink);
+        border-color: var(--ink);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .btn:focus-visible,
+      .chip:focus-visible,
+      input:focus-visible,
+      [tabindex]:focus-visible,
+      .item:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      .sec {
+        color: var(--l2);
+        font-size: 13px;
+      }
+      .note {
+        background: var(--warn-fill);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .note > strong {
+        color: var(--warn);
+      }
+      .err {
+        color: var(--err);
+        font-size: 14px;
+      }
+      .opt {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        border: 1px solid var(--sep);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: var(--elev);
+      }
+      .opt input {
+        margin-top: 4px;
+        accent-color: var(--ink);
+      }
+      .opt small {
+        display: block;
+        color: var(--l2);
+        font-size: 13px;
+      }
+      label.f {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+        color: var(--l2);
+      }
+      input.t {
+        font: inherit;
+        color: var(--l1);
+        background: var(--elev);
+        border: 1px solid var(--sep);
+        border-radius: 8px;
+        padding: 7px 10px;
+        width: 100%;
+        min-width: 0;
+        text-overflow: ellipsis;
+      }
+      input.t.mono {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 13px;
+      }
+      .line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .line input.t {
+        flex: 1 1 220px;
+      }
+      .box {
+        border: 1px solid var(--sep);
+        border-radius: 8px;
+        padding: 10px 12px;
+        overflow-x: auto;
+      }
+      ul.plain {
+        margin: 0;
+        padding-left: 18px;
+      }
+      .diff {
+        border: 1px solid var(--sep);
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      .diff h3 {
+        font-size: 14px;
+        margin: 0;
+        padding: 8px 12px;
+        background: var(--elev);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        align-items: baseline;
+      }
+      .diff h3 .kind {
+        font-weight: 400;
+        color: var(--l2);
+        font-size: 13px;
+      }
+      .diff h3 label {
+        margin-left: auto;
+        font-weight: 400;
+        font-size: 13px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .fld {
+        padding: 8px 12px;
+        border-top: 1px solid var(--sep);
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr);
+        gap: 4px 12px;
+        font-size: 14px;
+      }
+      .fld .k {
+        color: var(--l2);
+        font-size: 13px;
+      }
+      .v {
+        overflow-wrap: anywhere;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 13px;
+        padding: 1px 4px;
+        border-radius: 4px;
+      }
+      .v.before {
+        background: var(--rem-fill);
+      }
+      .v.after {
+        background: var(--add-fill);
+      }
+      .v u {
+        text-decoration-thickness: 2px;
+      }
+      pre.ud {
+        margin: 0;
+        padding: 8px 12px;
+        font:
+          13px/1.5 "JetBrains Mono",
+          ui-monospace,
+          monospace;
+        overflow-x: auto;
+        border-top: 1px solid var(--sep);
+      }
+      pre.ud .a {
+        background: var(--add-fill);
+        display: block;
+      }
+      pre.ud .r {
+        background: var(--rem-fill);
+        display: block;
+      }
+      .tw {
+        overflow-x: auto;
+      }
+      table.c {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+      }
+      table.c th,
+      table.c td {
+        border-top: 1px solid var(--sep);
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      table.c th {
+        color: var(--l2);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .seg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .seg label {
+        border: 1px solid var(--sep);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 13px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font: inherit;
+        color: var(--l1);
+        background: none;
+        border: 0;
+        border-top: 1px solid var(--sep);
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+      .item small {
+        display: block;
+        color: var(--l2);
+        font-size: 13px;
+      }
+      .day {
+        font-size: 13px;
+        color: var(--l2);
+        padding: 12px 12px 4px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .banner {
+        border: 1px solid var(--sep);
+        background: var(--elev);
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 720px;
+        margin-bottom: 12px;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      @media (max-width: 767px) {
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          min-height: 0;
+        }
+        table.c thead {
+          display: none;
+        }
+        table.c tr,
+        table.c td,
+        table.c th {
+          display: block;
+        }
+        table.c td::before {
+          content: attr(data-label) ": ";
+          color: var(--l2);
+          font-family: inherit;
+        }
+        .side {
+          border-right: 0;
+          border-bottom: 1px solid var(--sep);
+        }
+        .fld {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .dialog.drawer {
+          max-width: none;
+        }
+      }
+      @media (forced-colors: active) {
+        .v.before,
+        .v.after,
+        pre.ud .a,
+        pre.ud .r {
+          background: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto" role="region" aria-label="Prototype controls">
+      <h1>Receive: prototype, designed and not built (D4.8)</h1>
+      <p style="margin: 0"
+        >A person receives the collection Shop API that Ana Ruiz shared. Spec:
+        <code>docs/design/teams/receive.md</code>. Buttons inside the dialog that say what they do move to the next
+        step; nothing is sent, stored or read.</p
+      >
+      <fieldset
+        ><legend>Way to share</legend
+        ><button type="button" class="chip" data-way="link" aria-pressed="false">File and link</button
+        ><button type="button" class="chip" data-way="folder" aria-pressed="false">Folder (Git)</button
+        ><button type="button" class="chip" data-way="peer" aria-pressed="false">Peer to peer</button
+        ><button type="button" class="chip" data-way="server" aria-pressed="false">Team server</button></fieldset
+      >
+      <fieldset
+        ><legend id="count">Step</legend><button type="button" class="chip" id="back">Back a step</button
+        ><button type="button" class="chip" id="next">Next step</button></fieldset
+      >
+    </div>
+    <div class="shell">
+      <nav class="side" id="side" aria-label="Collections"></nav>
+      <main class="main"><div class="stack" id="stage"></div></main>
+    </div>
+    <p class="sr" id="live" aria-live="polite"></p>
+    <script>
+      const FLOW = {
+        title: "Receive",
+        about: "A person receives the collection Shop API that Ana Ruiz shared.",
+        side: '<h2>Collections<\/h2><div class="row"><strong>Payments<\/strong><\/div>',
+        ways: {
+          link: {
+            label: "File and link",
+            steps: [
+              {
+                name: "the link opens",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a shared collection<\/h2><\/header><div class="body"><p>Someone sent you a collection in this link. It is encrypted; the code they sent decrypts it here.<\/p><label class="f">Code<input class="t mono" placeholder="XXXX XXXX XXXX XXXX"><\/label><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Open<\/button><\/div><\/section>',
+              },
+              {
+                name: "a wrong code",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a shared collection<\/h2><\/header><div class="body"><label class="f">Code<input class="t mono" value="K7QM 2XWD 9PLA 4RTF" aria-describedby="e1"><\/label><p class="err" id="e1" role="alert">This code does not open the link. Check it with the person who sent it.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Open<\/button><\/div><\/section>',
+              },
+              {
+                name: "the report",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a shared collection<\/h2><\/header><div class="body"><p>Sent by Ana Ruiz, as the link says. Wayfarer cannot check it.<\/p><p class="sec">Wayfarer collection<\/p>\n<p><strong>"Shop API" will add 1 collection, 3 folders, 12 requests.<\/strong><\/p>\n<p class="sec">Nothing is stored until you choose Import.<\/p>\n\n<div class="note">\n<span>Needs 1 secret you do not have: <code>token<\/code>. Requests that use it ask for it when you send them. <button type="button" class="btn">Add to the vault…<\/button><\/span>\n<span>2 credentials were not shared and are ***. Type yours in Auth.<\/span>\n<span>2 scripts came with it. They do not run until you read them and trust them. <button type="button" class="btn">Review scripts…<\/button><\/span>\n<\/div>\n<p>Its requests go to: <code>api.shop.example.com<\/code>, <code>auth.shop.example.com<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Import<\/button><\/div><\/section>',
+              },
+              {
+                name: "added",
+                say: "Added Shop API.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Shop API is in your collections<\/h2><\/header><div class="body"><p>Added Shop API. A newer file or link of it is shown to you as changes before it is taken.<\/p><\/div><\/section>',
+              },
+            ],
+          },
+          folder: {
+            label: "Folder (Git)",
+            steps: [
+              {
+                name: "Import › Folder…",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a folder<\/h2><\/header><div class="body"><p><button type="button" class="btn">Choose folder…<\/button> <span class="sec">Chromium<\/span><\/p><p class="sec">In Firefox and Safari, through the Local Bridge: the bridge\'s folder is <code>~/code/shop/api-requests<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Use this folder<\/button><\/div><\/section>',
+              },
+              {
+                name: "reading",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a folder<\/h2><\/header><div class="body"><p role="status">Reading 16 files…<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn" data-go="1">(read)<\/button><\/div><\/section>',
+              },
+              {
+                name: "the report",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a folder<\/h2><\/header><div class="body"><p class="sec">Wayfarer collection<\/p>\n<p><strong>"Shop API" will add 1 collection, 3 folders, 12 requests.<\/strong><\/p>\n<p class="sec">Nothing is stored until you choose Open.<\/p>\n<p>Wayfarer keeps this collection in step with the folder. A change in the folder (a pull, a branch, an edit) is shown to you before it is taken.<\/p>\n<div class="note">\n<span>Needs 1 secret you do not have: <code>token<\/code>. Requests that use it ask for it when you send them. <button type="button" class="btn">Add to the vault…<\/button><\/span>\n<span>2 credentials were not shared and are ***. Type yours in Auth.<\/span>\n<span>2 scripts came with it. They do not run until you read them and trust them. <button type="button" class="btn">Review scripts…<\/button><\/span>\n<\/div>\n<p>Its requests go to: <code>api.shop.example.com<\/code>, <code>auth.shop.example.com<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Open<\/button><\/div><\/section>',
+              },
+              {
+                name: "added",
+                say: "Added Shop API.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Shop API is in your collections<\/h2><\/header><div class="body"><p>Added Shop API. It is kept in step with shop-api.<\/p><\/div><\/section>',
+                side: '<h2>Collections<\/h2>\n<div class="row sel"><strong>Shop API<\/strong><small>Folder: shop-api<\/small><\/div>\n<div class="req"><span class="m POST">POST<\/span>Create order<\/div>\n<div class="req"><span class="m GET">GET<\/span>List orders<\/div>\n<div class="req"><span class="m DELETE">DELETE<\/span>Cancel order<\/div>\n<div class="row"><strong>Payments<\/strong><\/div>',
+              },
+              {
+                name: "a folder with conflict markers",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Open a folder<\/h2><\/header><div class="body"><p class="err" role="alert"><code>orders/create-order.json<\/code> has Git\'s conflict markers. Resolve them before opening the folder.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Choose another folder…<\/button><button type="button" class="btn fill">Resolve here…<\/button><\/div><\/section>',
+              },
+            ],
+          },
+          peer: {
+            label: "Peer to peer",
+            steps: [
+              {
+                name: "the invite opens",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p>Ana Ruiz invited you to Shop API, shared peer to peer through <code>relay.example.com<\/code>.<\/p>\n<p class="sec">Her key: <code>2B9E 04D1<\/code>. Check it with her if you were not expecting this.<\/p>\n<label class="f">Your name<input class="t" value="Sam Okafor"><\/label><p class="sec">Your key: <code>7F3A 91C2<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Ask to join<\/button><\/div><\/section>',
+              },
+              {
+                name: "waiting",
+                say: "Waiting for a member to let you in.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p role="status">Waiting for a member to let you in. A member must be online to do it.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn" data-go="1">(Ana lets you in)<\/button><\/div><\/section>',
+              },
+              {
+                name: "the report",
+                say: "Ana Ruiz let you in.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p class="sec">Wayfarer collection<\/p>\n<p><strong>"Shop API" will add 1 collection, 3 folders, 12 requests.<\/strong><\/p>\n<p class="sec">Nothing is stored until you choose Open.<\/p>\n<p>Kept in step with the team: changes from others are shown to you before they are taken.<\/p>\n<div class="note">\n<span>Needs 1 secret you do not have: <code>token<\/code>. Requests that use it ask for it when you send them. <button type="button" class="btn">Add to the vault…<\/button><\/span>\n<span>2 credentials were not shared and are ***. Type yours in Auth.<\/span>\n<span>2 scripts came with it. They do not run until you read them and trust them. <button type="button" class="btn">Review scripts…<\/button><\/span>\n<\/div>\n<p>Its requests go to: <code>api.shop.example.com<\/code>, <code>auth.shop.example.com<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Open<\/button><\/div><\/section>',
+              },
+              {
+                name: "added",
+                say: "Added Shop API.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Shop API is in your collections<\/h2><\/header><div class="body"><p>Added Shop API. Changes from the team come while a member is online, and are shown to you before they are taken.<\/p><\/div><\/section>',
+              },
+            ],
+          },
+          server: {
+            label: "Team server",
+            steps: [
+              {
+                name: "the invite opens",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p>Ana Ruiz invited you to Shop API, kept on the team server <code>teams.example.com<\/code>.<\/p>\n<p class="sec">Her key: <code>2B9E 04D1<\/code>. Check it with her if you were not expecting this.<\/p>\n<label class="f">Your name<input class="t" value="Sam Okafor"><\/label><p class="sec">Your key: <code>7F3A 91C2<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Ask to join<\/button><\/div><\/section>',
+              },
+              {
+                name: "waiting",
+                say: "Waiting for a member to let you in.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p role="status">Waiting for a member to let you in. A member must be online to do it.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn" data-go="1">(Ana lets you in)<\/button><\/div><\/section>',
+              },
+              {
+                name: "the report",
+                say: "Ana Ruiz let you in.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Join Shop API<\/h2><\/header><div class="body"><p class="sec">Wayfarer collection<\/p>\n<p><strong>"Shop API" will add 1 collection, 3 folders, 12 requests.<\/strong><\/p>\n<p class="sec">Nothing is stored until you choose Open.<\/p>\n<p>Kept in step with the team: changes from others are shown to you before they are taken.<\/p>\n<div class="note">\n<span>Needs 1 secret you do not have: <code>token<\/code>. Requests that use it ask for it when you send them. <button type="button" class="btn">Add to the vault…<\/button><\/span>\n<span>2 credentials were not shared and are ***. Type yours in Auth.<\/span>\n<span>2 scripts came with it. They do not run until you read them and trust them. <button type="button" class="btn">Review scripts…<\/button><\/span>\n<\/div>\n<p>Its requests go to: <code>api.shop.example.com<\/code>, <code>auth.shop.example.com<\/code>.<\/p><\/div><div class="foot"><button type="button" class="btn" data-go="-1">Cancel<\/button><button type="button" class="btn fill" data-go="1">Open<\/button><\/div><\/section>',
+              },
+              {
+                name: "added",
+                say: "Added Shop API.",
+                html: '<section class="dialog " role="dialog" aria-labelledby="dt"><header><h2 id="dt">Shop API is in your collections<\/h2><\/header><div class="body"><p>Added Shop API. Changes from the team are kept on teams.example.com and shown to you before they are taken.<\/p><\/div><\/section>',
+              },
+            ],
+          },
+        },
+      };
+
+      let way = Object.keys(FLOW.ways)[0],
+        step = 0;
+      const $ = (s) => document.querySelector(s);
+      function render(focus) {
+        const steps = FLOW.ways[way].steps,
+          s = steps[step];
+        document
+          .querySelectorAll("[data-way]")
+          .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.way === way)));
+        $("#side").innerHTML = FLOW.ways[way].side || FLOW.side;
+        $("#stage").innerHTML = s.html;
+        $("#count").textContent = "Step " + (step + 1) + " of " + steps.length + ": " + s.name;
+        $("#back").disabled = step === 0;
+        $("#next").disabled = step === steps.length - 1;
+        const h = $("#stage h2");
+        if (h) h.setAttribute("tabindex", "-1");
+        $("#live").textContent = s.say || "";
+        if (focus && h) h.focus();
+      }
+      function go(d) {
+        step = Math.max(0, Math.min(FLOW.ways[way].steps.length - 1, step + d));
+        render(true);
+      }
+      document.addEventListener("click", (e) => {
+        const w = e.target.closest("[data-way]");
+        if (w) {
+          way = w.dataset.way;
+          step = 0;
+          render(false);
+          return;
+        }
+        const g = e.target.closest("[data-go]");
+        if (g) go(Number(g.dataset.go));
+      });
+      $("#back").addEventListener("click", () => go(-1));
+      $("#next").addEventListener("click", () => go(1));
+      render(false);
+    </script>
+  </body>
+</html>

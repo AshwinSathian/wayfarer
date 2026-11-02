@@ -6,6 +6,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestSettings } from "./services/request-settings";
 import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
+import { recordDiagnostic } from "./services/diagnostics";
 
 @Component({
   selector: "app-root",
@@ -33,6 +34,10 @@ export class App implements OnInit {
    * composer 294 px (its fourth tab cut off) and the response 240 px.
    */
   readonly sidebarOverlay = signal(false);
+  /** 1,024 to 1,200 px: the sidebar may stay beside the page, 280 px wide, if the user asks (U-070). */
+  readonly canPin = signal(false);
+  /** The user's choice there, kept across reloads. Reset all data removes it with every `wayfarer:` key. */
+  private readonly pinned = signal(readPinned());
   private viewportInitialized = false;
 
   ngOnInit(): void {
@@ -90,11 +95,25 @@ export class App implements OnInit {
     await this.refreshPastRequests();
   }
 
+  /** Keeps the sidebar beside the page from 1,024 px, or makes it a drawer again (U-070). */
+  setPinned(pinned: boolean): void {
+    this.pinned.set(pinned);
+    try {
+      localStorage.setItem(PINNED_KEY, String(pinned));
+    } catch (error) {
+      recordDiagnostic(error, "sidebar: the pinned choice was not stored");
+    }
+    this.updateViewportFlags();
+  }
+
   private updateViewportFlags(): void {
     const wasOverlay = this.sidebarOverlay();
     // Media queries, as the stylesheet's breakpoints are: WebKit takes the
     // scrollbar off the width a query sees, and not off innerWidth.
-    const overlay = !matchMedia("(min-width: 1200px)").matches;
+    const wide = matchMedia("(min-width: 1200px)").matches;
+    const room = matchMedia("(min-width: 1024px)").matches;
+    this.canPin.set(room && !wide);
+    const overlay = !wide && !(room && this.pinned());
     this.isMobile.set(!matchMedia("(min-width: 768px)").matches);
     this.sidebarOverlay.set(overlay);
 
@@ -102,5 +121,16 @@ export class App implements OnInit {
     // means open, a drawer starts closed.
     if (!this.viewportInitialized || wasOverlay !== overlay) this.drawerVisible.set(!overlay);
     this.viewportInitialized = true;
+  }
+}
+
+const PINNED_KEY = "wayfarer:sidebar-pinned";
+
+function readPinned(): boolean {
+  try {
+    return localStorage.getItem(PINNED_KEY) === "true";
+  } catch (error) {
+    recordDiagnostic(error, "sidebar: the pinned choice was not read");
+    return false;
   }
 }

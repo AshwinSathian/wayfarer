@@ -4,6 +4,8 @@
   [drawerVisible]="drawerVisible()"
   [isMobile]="isMobile()"
   [sidebarOverlay]="sidebarOverlay()"
+  [canPin]="canPin()"
+  (pinSidebar)="setPinned($event)"
   (newRequest)="refreshPastRequests()"
   (clearHistory)="clearPastRequests()"
   (deleteRequest)="deletePastRequest($event)"

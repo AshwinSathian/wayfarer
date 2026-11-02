@@ -407,7 +407,9 @@ code errors.
   a `flex-basis`), as the address row does. "the URL field has room to type
   in at N px" checks it at the same widths.
 - Two widths decide the layout, both in `App.updateViewportFlags`: below
-  1200 px the sidebar is a drawer over the page (`sidebarOverlay`), and
+  1200 px the sidebar is a drawer over the page (`sidebarOverlay`) unless,
+  from 1024 px, the user kept it beside the page (`canPin`, 280 px wide,
+  `wayfarer:sidebar-pinned`, U-070), and
   below 768 px the composer's sections stack (`isMobile`). They are
   separate on purpose: pinned, the sidebar takes 352 px. Beside it an
   820 px window left the composer and the response 150 px each, and a

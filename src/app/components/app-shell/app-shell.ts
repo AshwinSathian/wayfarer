@@ -92,6 +92,10 @@ export class AppShell implements OnInit {
   readonly deleteRequest = output<number>();
   readonly closeDrawer = output<void>();
   readonly toggleDrawer = output<void>();
+  /** Between 1,024 and 1,200 px: keep the sidebar beside the page (true) or make it a drawer again (U-070). */
+  readonly pinSidebar = output<boolean>();
+  /** The window is wide enough for the sidebar to stay beside the page if asked (1,024 to 1,200 px). */
+  readonly canPin = input(false);
 
   readonly composer = viewChild.required(Composer);
 
@@ -358,6 +362,14 @@ export class AppShell implements OnInit {
     afterNextRender(() => this.sidebar()?.reveal(key), { injector: this.injector });
   }
 
+  /** A drawer row (U-097): the drawer closes first, so what it opens is over the page and takes the keys. */
+  protected fromDrawer(open: () => void): void {
+    this.closeNavigation();
+    open();
+  }
+  protected readonly openEnvironments = () => this.environmentsVisible.set(true);
+  protected readonly openHistoryRow = () => this.openHistory();
+
   /** The drawer's search row: the drawer closes first, so the palette opens over the page. */
   protected searchFromDrawer(): void {
     this.closeNavigation();
@@ -407,8 +419,12 @@ export class AppShell implements OnInit {
     this.closeDrawer.emit();
   }
 
+  /** The sidebar is on screen: pinned and shown, or the drawer open. The toolbar's button says what it will do. */
+  protected readonly sidebarShown = computed(() => this.drawerVisible());
+
+  /** Pinned below 1,200 px (U-070) it is narrower: beside it the composer and the response keep room. */
   get drawerWidth(): string {
-    return this.sidebarOverlay() ? "18rem" : "22rem";
+    return this.sidebarOverlay() ? "18rem" : this.canPin() ? "17.5rem" : "22rem";
   }
 
   handleLoadRequest(request: PastRequest): void {

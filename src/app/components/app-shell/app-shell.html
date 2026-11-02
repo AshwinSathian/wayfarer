@@ -15,11 +15,32 @@
           <span class="type-title-3 text-label-primary" style="line-height: 1.1"> Wayfarer </span>
         </div>
       </div>
-      @if (sidebarOverlay()) {
-      <button type="button" uiButton="icon" class="btn-plain" aria-label="Close navigation" (click)="closeNavigation()">
-        <app-icon name="side_navigation" class="icon-md" />
-      </button>
-      }
+      <div class="flex items-center gap-1">
+        <!-- From 1,024 px the sidebar may stay beside the page, narrower; the choice is kept (U-070). -->
+        @if (canPin()) {
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          [uiTooltip]="sidebarOverlay() ? 'Keep beside the page' : 'Show as a drawer'"
+          [attr.aria-label]="sidebarOverlay() ? 'Keep beside the page' : 'Show as a drawer'"
+          [attr.aria-pressed]="!sidebarOverlay()"
+          (click)="pinSidebar.emit(sidebarOverlay())"
+        >
+          <app-icon name="side_navigation" class="icon-md" />
+        </button>
+        } @if (sidebarOverlay()) {
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          aria-label="Close navigation"
+          (click)="closeNavigation()"
+        >
+          <app-icon name="close" class="icon-md" />
+        </button>
+        }
+      </div>
     </div>
 
     @if (sidebarOverlay()) {
@@ -28,10 +49,18 @@
         ><app-icon name="add_circle" /> New request</button
       >
       @if (isMobile()) {
-      <!-- The toolbar's search is too wide for a phone's toolbar: it is here (U-011, U-097). -->
-      <button uiButton="outlined" class="btn-secondary w-full mt-2" type="button" (click)="searchFromDrawer()"
-        ><app-icon name="search" /> Search or run a command</button
-      >
+      <!-- A phone's toolbar has room for four controls: these are here, by name (U-011, U-097). -->
+      <nav class="drawer-rows mt-2" aria-label="More">
+        <button uiButton class="btn-secondary drawer-row" type="button" (click)="searchFromDrawer()"
+          ><app-icon name="search" /> Search or run a command</button
+        >
+        <button uiButton class="btn-secondary drawer-row" type="button" (click)="fromDrawer(openEnvironments)"
+          ><app-icon name="dns" /> Environments</button
+        >
+        <button uiButton class="btn-secondary drawer-row" type="button" (click)="fromDrawer(openHistoryRow)"
+          ><app-icon name="history" /> Request history</button
+        >
+      </nav>
       }
     </div>
     }
@@ -125,7 +154,10 @@
   }
 
   <!-- Main content area -->
-  <div class="flex min-w-0 flex-1 flex-col" [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''">
+  <div
+    class="flex min-w-0 flex-1 flex-col"
+    [style.margin-left]="!sidebarOverlay() && drawerVisible() ? drawerWidth : null"
+  >
     <!-- Top toolbar -->
     <header class="ds-toolbar">
       <!-- Left: nav toggle + brand -->
@@ -135,8 +167,9 @@
           uiButton="icon"
           class="btn-plain"
           (click)="toggleNavigation()"
-          uiTooltip="Toggle sidebar"
-          aria-label="Toggle sidebar"
+          [uiTooltip]="sidebarShown() ? 'Hide sidebar' : 'Show sidebar'"
+          [attr.aria-label]="sidebarShown() ? 'Hide sidebar' : 'Show sidebar'"
+          [attr.aria-expanded]="sidebarShown()"
         >
           <app-icon name="side_navigation" class="icon-md" />
         </button>
@@ -172,6 +205,8 @@
           [value]="selectedEnvironmentId()"
           (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
         />
+        <!-- On a phone, Environments and History are rows of the drawer, by name (U-097). -->
+        @if (!isMobile()) {
         <button
           type="button"
           uiButton="icon"
@@ -182,6 +217,7 @@
         >
           <app-icon name="dns" class="icon-md" />
         </button>
+        }
 
         <!-- Divider -->
         <div class="w-px h-5 bg-separator hidden sm:block"></div>
@@ -203,6 +239,7 @@
         }
 
         <!-- History -->
+        @if (!isMobile()) {
         <button
           type="button"
           uiButton="icon"
@@ -214,6 +251,7 @@
         >
           <app-icon name="history" class="icon-md" />
         </button>
+        }
 
         <!-- Settings -->
         <button

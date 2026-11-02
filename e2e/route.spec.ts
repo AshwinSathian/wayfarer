@@ -173,7 +173,7 @@ for (const theme of ["light", "dark"] as const) {
     // Opened again at each width: the dialog belongs to the sidebar, which becomes a drawer below 1200 px and closes it.
     for (const width of [360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      if (width < 1200) await page.getByRole("button", { name: "Toggle sidebar" }).click();
+      if (width < 1200) await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
       await page.getByRole("tree").getByText("Tripwire collection", { exact: true }).click({ button: "right" });
       await page.getByRole("menuitem", { name: "Settings" }).click();
       const collection = page.getByRole("dialog", { name: /^Collection settings/ });

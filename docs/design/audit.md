@@ -991,6 +991,7 @@ Evidence: `app/app.ts:97`; `app-shell.html:46-63`;
 [`hig-review/820-light-26-tree.png`](hig-review/820-light-26-tree.png).
 **Status:** Open, D4-f, with the threshold chosen together with U-003.
 Review row W-13.
+**2026-11-03:** Fixed in #PRNUM (D4-f), decided under row 1.55: the drawer stays the default below 1,200 px (the widths that set it were measured, `CLAUDE.md`), and from 1,024 px the sidebar can be kept beside the page at 280 px, the choice kept in `wayfarer:sidebar-pinned`; below 1,024 px it is a drawer.
 
 **U-097. At 390 px the toolbar is six controls, five of them icons.**
 Severity 3. H6. OC.
@@ -999,6 +1000,7 @@ collections is the corner farthest from the thumb.
 Evidence: [`hig-review/390-light-26-tree.png`](hig-review/390-light-26-tree.png).
 **Status:** Open, D4-f (Environments and History move into the drawer as
 labelled rows). Review row W-41c.
+**2026-11-03:** Fixed in #PRNUM (D4-f): on a phone the toolbar is the sidebar, the environment, the lock and Settings; Environments, Request history and Search are named rows at the top of the drawer.
 
 **U-099. Values flip under a right-to-left page.** Severity 3. H4. None
 today: no right-to-left locale is planned.

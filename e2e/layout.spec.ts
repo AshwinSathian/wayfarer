@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openEnvironments } from "./support/app";
+import { openEnvironments, toolbarOrDrawer } from "./support/app";
 import { ECHO } from "./support/echo";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
@@ -161,7 +161,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       .fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
-    await page.getByRole("button", { name: "Request history", exact: true }).click();
+    await toolbarOrDrawer(page, "Request history");
     const drawer = page.getByRole("dialog", { name: "Request history" });
     const remove = drawer.getByRole("button", { name: "Delete from history" }).last();
     await expect(remove).toBeVisible();
@@ -189,7 +189,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       // 85 px at 768 px; it was 20 px.
       expect(field!.width).toBeGreaterThanOrEqual(80);
 
-      await page.getByRole("button", { name: "Toggle sidebar" }).click();
+      await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
       const drawer = page.getByRole("dialog", { name: "Navigation" });
       await expect(drawer.getByRole("button", { name: "New collection" }).first()).toBeVisible();
       await page.keyboard.press("Escape");
@@ -469,7 +469,10 @@ test.describe("The app stays usable after an overlay closes", () => {
   test("on a phone, after the navigation drawer closes, the composer can be clicked", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Toggle sidebar" }).first().click();
+    await page
+      .getByRole("button", { name: /^(Show|Hide) sidebar$/ })
+      .first()
+      .click();
     await page.getByRole("button", { name: "Close navigation" }).click();
 
     await page.getByRole("button", { name: "Scripts", exact: true }).click({ timeout: 5_000 });
@@ -588,4 +591,40 @@ test("at 200% text and 1440 px no response tab's label is cut", async ({ page })
   // The type did grow: a tab's label is 26 px (13 at 200%), not the 12 or 13 it was when type was in px.
   const size = await tabs.first().evaluate((tab) => parseFloat(getComputedStyle(tab).fontSize));
   expect(size).toBeGreaterThanOrEqual(24);
+});
+
+// U-070: below 1,200 px the sidebar was a closed drawer over the page. From 1,024 px it can stay beside the page,
+// narrower, and the choice is kept; below 1,024 px it is a drawer, as before.
+test("from 1,024 px the sidebar can stay beside the page, and stays after a reload", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.goto("/app/");
+  await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
+  await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
+  const drawer = page.getByRole("dialog", { name: "Navigation" });
+  await drawer.getByRole("button", { name: "Keep beside the page" }).click();
+  const aside = page.getByRole("complementary", { name: "Collections sidebar" });
+  await expect(aside).toBeVisible();
+  expect((await aside.boundingBox())!.width).toBeLessThanOrEqual(281);
+  // The composer is not under it.
+  const composer = await page.locator(".composer-pane").boundingBox();
+  expect(composer!.x).toBeGreaterThanOrEqual(280);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1100);
+  await page.reload();
+  await expect(aside).toBeVisible();
+  await aside.getByRole("button", { name: "Show as a drawer" }).click();
+  await expect(aside).toHaveCount(0);
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await expect(page.getByRole("button", { name: "Keep beside the page" })).toHaveCount(0);
+});
+
+// U-097: a phone's toolbar was six controls, five of them icons. Environments and History are rows of the drawer.
+test("on a phone Environments and History are named rows of the drawer, not toolbar icons", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/");
+  const toolbar = page.getByRole("banner");
+  await expect(toolbar.getByRole("button", { name: "Environments" })).toHaveCount(0);
+  await expect(toolbar.getByRole("button", { name: "Request history" })).toHaveCount(0);
+  await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
+  await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: "Request history" }).click();
+  await expect(page.getByRole("dialog", { name: "Request history" })).toBeVisible();
 });

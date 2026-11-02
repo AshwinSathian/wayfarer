@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **On a narrower window the sidebar can stay beside the page, and a
+  phone's toolbar is shorter.** From 1,024 to 1,200 px the sidebar was a
+  drawer over the page, closed until asked for, so a saved request could
+  not be seen beside the open one. Its header now has Keep beside the
+  page: it stays, 280 px wide, and the choice is kept; Show as a drawer
+  goes back. On a phone, Environments and Request history are named rows
+  of the navigation drawer, beside Search, and the toolbar keeps the
+  sidebar, the environment, the vault's lock and Settings.
+
 - **A collection has one Export…, and its credentials are masked unless
   you say otherwise.** Its menu had Export, Export with credentials and
   Export for Postman… side by side, and Export with credentials wrote

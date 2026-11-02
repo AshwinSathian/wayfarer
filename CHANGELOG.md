@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what sessions D3-b and D4-f built.** The plan's
+  row 1.56 lists their pull requests, the team and AI flows designed, and
+  what is left (the screen-reader checks are the maintainer's); the
+  benchmark has tasks 2 and 8 measured again.
+
 - **A delete in the sidebar can be undone.** Deleting a collection, a
   folder or a request no longer asks "Delete item? This action cannot be
   undone. Continue?", which named nothing: it goes at once, a line under

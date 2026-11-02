@@ -45,6 +45,15 @@ way (three runs, the median), beside its row above.
 | 5a | Find why a request failed: CORS | D4-l (#469 to #472) | 46 (+2 in a terminal) | 6 | 0 | 40 | 0.34 | 0.34, 0.34, 0.32 |
 | 5b | Find why a request failed: DNS | D4-l (#469 to #472) | 43 (+2 in a terminal) | 6 | 0 | 37 | 0.31 | 0.34, 0.31, 0.30 |
 | 5c | Find why a request failed: 401 | D4-l (#469 to #472) | 35 | 3 | 0 | 32 | 0.25 | 0.25, 0.29, 0.20 |
+| 2 | Import a Postman collection with scripts and run it | D4-f (#484) | 11 | 11 | 0 | 0 | 1.71 | 1.67, 1.71, 1.79 |
+| 8 | Find a request sent last week | D4-f (#485) | 9 | 3 | 0 | 6 | 0.54 | 0.54, 0.50, 0.55 |
+
+D4-f added one input to task 2: Import is now a named menu (File…,
+cURL command…) where it was an unlabelled upload icon (U-010), so the
+file is two clicks away, not one. The seconds rose with it and with the
+review the import shows. Task 8 takes the same nine inputs: the search
+field is where it was, and the row it finds now shows the whole address
+(U-024).
 
 D4-d rebuilt the composer and left task 1 as D4-c made it: the caret
 still starts in the address, and the address and Enter are the task.

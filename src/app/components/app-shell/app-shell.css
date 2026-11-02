@@ -113,3 +113,15 @@
   box-shadow: var(--shadow-overlay);
   color: var(--label-primary);
 }
+
+/* The drawer's rows on a phone (U-097): each a full-width button, its name beside its icon. */
+.drawer-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.drawer-row {
+  justify-content: flex-start;
+  width: 100%;
+}

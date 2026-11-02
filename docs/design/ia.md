@@ -268,7 +268,7 @@ it is.
 | `app-shell.html: Close navigation` | Sidebar as a drawer (below 1,200 px) | Sidebar | — |
 | `app-shell.html: New request` | Sidebar as a drawer, above the tree; empties the open tab | Sidebar as a drawer; opens a new tab, as New tab does | D4-f |
 | `app-shell.html: Close history` | History drawer (toolbar) | Toolbar, History drawer | — |
-| `app-shell.html: Toggle sidebar` | Toolbar | Toolbar | — |
+| `app-shell.html: Hide sidebar / Show sidebar` | Toolbar; named for what it will do (U-082) | Toolbar | D4-f, done |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
 | `app-shell.html: Environments` | Toolbar, icon `dns` | Toolbar; D4-g decides whether it gains its word (U-006) | D4-g |
 | `app-shell.html: Lock secrets / Unlock secrets` | Toolbar below 768 px | Same | — |
@@ -347,6 +347,7 @@ it is.
 | Action | Today | Place | Session |
 |---|---|---|---|
 | `app-shell.html: Search or run a command` | Toolbar, a field with its ⌘K keycap; ⌘K anywhere | Toolbar (U-010, U-011) | D4-f, done |
+| `app-shell.html: Keep beside the page / Show as a drawer` | — (new in D4-f): the sidebar's header from 1,024 to 1,200 px, the choice kept (U-070) | Sidebar | D4-f, done |
 | `app-shell.html: Undo` | — (new in D4-f): the line under the page after a delete in the tree, for 10 s, kept while the pointer or focus is on it | Shell, the Undo line (U-080) | D4-f, done |
 | `app-shell.html: Dismiss` | The Undo line | Shell, the Undo line | D4-f, done |
 | `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010) | D4-f, done |

@@ -218,7 +218,7 @@ export function withoutMethod(name: string): string {
 /** Opens the environments editor, a dialog of its own, and gives it. */
 export async function openEnvironments(page: Page): Promise<Locator> {
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
-  if (!(await dialog.count())) await page.getByRole("button", { name: "Environments", exact: true }).click();
+  if (!(await dialog.count())) await toolbarOrDrawer(page, "Environments");
   await expect(dialog).toBeVisible();
   return dialog;
 }
@@ -323,4 +323,15 @@ export async function exportCollectionFile(
   const chunks: Buffer[] = [];
   for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
   return Buffer.concat(chunks).toString("utf8");
+}
+
+/**
+ * Clicks a control the toolbar holds from 768 px and the navigation drawer holds on a phone (U-097): Environments,
+ * Request history.
+ */
+export async function toolbarOrDrawer(page: Page, name: "Environments" | "Request history"): Promise<void> {
+  const inToolbar = page.getByRole("banner").getByRole("button", { name, exact: true });
+  if (await inToolbar.count()) return inToolbar.click();
+  await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
+  await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name, exact: true }).click();
 }

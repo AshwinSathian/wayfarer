@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The environments open in a tab, beside your requests.** The
+  Environments button, the palette and a variable's chip open an
+  Environments tab: the list and the selected environment's variables,
+  each field written as you leave it. It was a large dialog over the
+  page, which hid the request you were working on and opened further
+  dialogs on top of itself; now a request tab is one click away and the
+  tab closes like any other.
+
 - **The design docs say what sessions D3-b and D4-f built.** The plan's
   row 1.56 lists their pull requests, the team and AI flows designed, and
   what is left (the screen-reader checks are the maintainer's); the

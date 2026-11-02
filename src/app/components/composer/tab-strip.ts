@@ -77,6 +77,7 @@ export class TabStrip {
 
   /** The saved request's name, or else the address, or else that it is new. */
   protected label(tab: TabState): string {
+    if (tab.environments) return "Environments";
     if (tab.run) return tab.run.target.name;
     return (
       tab.bound()?.name ??
@@ -137,7 +138,7 @@ export class TabStrip {
   protected menuFor(tab: TabState, event: MouseEvent): void {
     const button = event.currentTarget as HTMLElement;
     this.menuItems.set([
-      ...(tab.run ? [] : [{ label: "Rename", icon: "edit" as const, command: () => this.rename(tab, button) }]),
+      ...(tab.document ? [] : [{ label: "Rename", icon: "edit" as const, command: () => this.rename(tab, button) }]),
       { label: "Duplicate tab", icon: "content_copy", command: () => this.duplicate(tab) },
       { separator: true },
       { label: "Close tab", icon: "close", command: () => void this.close(tab) },
@@ -170,7 +171,7 @@ export class TabStrip {
 
   /** A saved request is renamed over its tab; an unsaved one is named where it is saved. */
   protected rename(tab: TabState, button?: HTMLElement): void {
-    if (tab.run) return;
+    if (tab.document) return;
     if (!tab.bound()) {
       this.tabs.activate(tab.id);
       this.requestSave.openSaveAsDialog();

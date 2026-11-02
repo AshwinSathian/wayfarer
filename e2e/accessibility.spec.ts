@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
 import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
+import { closeEnvironments } from "./support/app";
 
 // Scan only once the page has stopped animating (see settled()).
 async function analyze(page: Page) {
@@ -205,14 +206,7 @@ test.describe("Accessibility (primary flows)", () => {
           .click();
         await scan(`response ${tab}`);
       }
-      for (const opener of [
-        "Request history",
-        "Settings",
-        "Route: direct",
-        "Secrets",
-        "Environments",
-        "New collection",
-      ]) {
+      for (const opener of ["Request history", "Settings", "Route: direct", "Secrets", "New collection"]) {
         // The header's button; an empty sidebar has a second "New collection" (U-022).
         await button(opener).first().click();
         await expect(page.getByRole("dialog").first()).toBeVisible();
@@ -220,6 +214,11 @@ test.describe("Accessibility (primary flows)", () => {
         await page.keyboard.press("Escape");
         await expect(page.getByRole("dialog")).toHaveCount(0);
       }
+      // The Environments tab (D4.5).
+      await button("Environments").first().click();
+      await expect(page.getByRole("region", { name: "Environments", exact: true })).toBeVisible();
+      await scan("Environments tab");
+      await closeEnvironments(page);
 
       // Settings, pane by pane: its list, and each section's own controls.
       await button("Settings").click();
@@ -282,8 +281,7 @@ test.describe("Accessibility (primary flows)", () => {
       await scan("export environments, file for Postman");
       await page.keyboard.press("Escape");
       await expect(environments).toHaveCount(0);
-      await page.keyboard.press("Escape");
-      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await closeEnvironments(page);
 
       await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
       await page.locator("app-composer").getByRole("combobox", { name: "Type" }).click();

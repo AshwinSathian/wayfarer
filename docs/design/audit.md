@@ -313,6 +313,7 @@ Evidence: `baseline/1440-light-01b-first-run-full.png`.
 **Status:** Fixed in #371 (S3). Environments is a dialog opened from the
 toolbar and is no longer in the page's column. What the editor looks like is
 D4-g's.
+**2026-11-03:** Fixed in #PRNUM (D4-g, D4.5, DQ9): the environments are a tab of their own, a document like a request, opened from the toolbar, the palette or a variable's chip; decided under row 1.55 as one Environments tab (the list and the editor) rather than a tab per environment, which would need a second list in the sidebar.
 
 **U-026. The vault's passphrase fields have no labels.** Severity 2. H5,
 WCAG 3.3.2. PE.
@@ -1124,6 +1125,7 @@ Evidence: `environments-manager.html:263, 311, 320`;
 **Status:** Open, D4-g (New environment as an inline row, which closes
 U-044; the vault as a panel; delete through `Confirm`). Review rows W-30
 and DS-12.
+**2026-11-03:** Fixed in #PRNUM (D4-g): the environments are no longer a dialog, so the dialogs they open (new environment, export, globals, the vault) open over a page, not over another dialog.
 
 **U-076. A run's results lead nowhere.** Severity 2. H3, H7. QA.
 A failed row cannot open its request, its response or the failing test:

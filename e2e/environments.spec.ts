@@ -40,9 +40,9 @@ test.describe("Environments", () => {
 // U-001 and U-012 of docs/design/audit.md: the environments are a dialog, not the bottom of the page.
 test("a click on an environment variable's chip opens the environments with that variable shown", async ({ page }) => {
   await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
-  await expect(page.getByRole("dialog", { name: "Environments", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Environments", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: /^host environment/ }).click();
-  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("input[placeholder='KEY']")).toHaveValue("host");
   await expect(dialog.locator(".ring-2")).toHaveCount(1);
@@ -75,16 +75,19 @@ test.describe("the environment editor keeps what was typed", () => {
     await expect.poll(async () => JSON.stringify((await dumpIdb(page))["environments"])).toContain("typed.example");
   }
 
-  test("closed with ×", async ({ page }) => {
+  // The editor is a tab since D4.5: it is closed as a tab is, or left for another tab.
+  test("closed with the tab's ×", async ({ page }) => {
     const dialog = await twoEnvironments(page);
-    await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
+    const tab = page.getByRole("tablist", { name: "Open requests" }).getByRole("tab", { name: /Environments/ });
+    await tab.hover();
+    await tab.locator(".request-tab-close").click();
     await expect(dialog).toHaveCount(0);
     await expectKept(page);
   });
 
-  test("closed with Escape", async ({ page }) => {
+  test("left for another tab", async ({ page }) => {
     const dialog = await twoEnvironments(page);
-    await page.keyboard.press("Escape");
+    await page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first().click();
     await expect(dialog).toHaveCount(0);
     await expectKept(page);
   });

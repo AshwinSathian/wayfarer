@@ -67,9 +67,10 @@ Each region holds one kind of thing:
 - **Banners.** Above the composer: an update, the backup reminder, the
   storage state.
 
-A dialog or a drawer belongs to the region that opens it: the Environments
-dialog to the toolbar, the Secrets dialog to the status bar, a collection's
-Settings dialog to the sidebar. Row 1.9 also chose Direction C's rail, an
+A dialog or a drawer belongs to the region that opens it: the Secrets
+dialog to the status bar, a collection's Settings dialog to the sidebar.
+The environments are a tab, a document like a request (D4.5, DQ9), opened
+from the toolbar, the palette or a variable's chip. Row 1.9 also chose Direction C's rail, an
 inspector beside the response for why a request failed, where it went and
 which secrets it used. Row 1.45 gave it session D4-l (D4.12), which built
 it as the exchange record under the response's status line: in a pane as
@@ -270,7 +271,7 @@ it is.
 | `app-shell.html: Close history` | History drawer (toolbar) | Toolbar, History drawer | — |
 | `app-shell.html: Hide sidebar / Show sidebar` | Toolbar; named for what it will do (U-082) | Toolbar | D4-f, done |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
-| `app-shell.html: Environments` | Toolbar, icon `dns` | Toolbar; D4-g decides whether it gains its word (U-006) | D4-g |
+| `app-shell.html: Environments` | Toolbar, icon `dns`; on a phone a row of the drawer | Toolbar; opens the Environments tab (D4.5) | D4-g, done |
 | `app-shell.html: Lock secrets / Unlock secrets` | Toolbar below 768 px | Same | — |
 | `app-shell.html: Request history` | Toolbar | Toolbar | — |
 | `app-shell.html: Settings` | Toolbar | Toolbar | — |
@@ -292,31 +293,31 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `environment-export-dialog.html: File for` | Export environments dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `environment-export-dialog.html: Environment` | Export environments dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `environment-export-dialog.html: Protected variables` | Export environments dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `environment-export-dialog.html: Cancel` | Export environments dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `environment-export-dialog.html: Export file` | Export environments dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Global variables` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Import environments` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Export environments` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: New environment` | Environments dialog (toolbar) | Toolbar, Environments dialog; and its empty list's button (D4-c, U-022) | D4-g |
-| `environments-manager.html: importPipeline.pick($event)` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: selectEnvironment(env.meta.id)` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Use for requests` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Duplicate` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Delete` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Key / Value` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: JSON` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Reveal` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Mark variable as secret` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Remove variable` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Add variable` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | Toolbar, Environments dialog | D4-e |
-| `environments-manager.html: Confirm passphrase` | The same (Enter makes the vault) | Toolbar, Environments dialog | D4-e |
-| `environments-manager.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | Toolbar, Environments dialog | D4-e |
-| `environments-manager.html: Cancel` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Create environment` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
+| `environment-export-dialog.html: File for` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environment-export-dialog.html: Environment` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environment-export-dialog.html: Protected variables` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environment-export-dialog.html: Cancel` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environment-export-dialog.html: Export file` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Global variables` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Import environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Export environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: New environment` | Environments dialog (toolbar) | Environments tab (D4.5); and its empty list's button (D4-c, U-022) | D4-g |
+| `environments-manager.html: importPipeline.pick($event)` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: selectEnvironment(env.meta.id)` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Use for requests` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Duplicate` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Delete` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Key / Value` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: JSON` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Reveal` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Mark variable as secret` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Remove variable` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Add variable` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
+| `environments-manager.html: Confirm passphrase` | The same (Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
+| `environments-manager.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
+| `environments-manager.html: Cancel` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Create environment` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `past-requests.html: Select none / Select all` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: exportChosen()` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Select` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
@@ -325,8 +326,8 @@ it is.
 | `past-requests.html: Clear history…` | History drawer, above the list, in words, away from Close, asked first (U-086) | Toolbar, History drawer; Settings, History | D4-f, done |
 | `past-requests.html: details` | History drawer, a row: opens the entry with its exchange record; its card says the status, the time and when | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f, done |
 | `past-requests.html: Delete from history` | Each row's end, grey until its row is hovered or focused, asked first | Toolbar, History drawer | D4-f, done |
-| `variables-dialog.ts: Cancel` | Global variables dialog (Environments) | Toolbar, Environments dialog | D4-g |
-| `variables-dialog.ts: Save variables` | Global variables dialog (Environments) | Toolbar, Environments dialog | D4-g |
+| `variables-dialog.ts: Cancel` | Global variables dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `variables-dialog.ts: Save variables` | Global variables dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 
 ### Status bar
 
@@ -392,7 +393,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `tab-strip.html: Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
+| `tab-strip.html: Env / Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
 | `tab-strip.html: New tab` | + after the last tab; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f, done |
 | `tab-strip.html: closeFromPointer(tab, $event)` | Each tab's ×, for the pointer; Alt+W, Delete on a focused tab and the tab's menu from the keyboard | Tab strip (U-027) | D4-f, done |
 | `run-view.html: Cancel run` | A run's tab | A run's tab | D4-i |

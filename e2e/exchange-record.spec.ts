@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { protectVariable, seedAndOpen, send } from "./support/app";
+import { protectVariable, seedAndOpen, send, closeEnvironments } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
@@ -188,12 +188,11 @@ test("the preview's chip for a variable with no value adds it to the environment
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
   await expect(chip).toContainText("No value");
   await chip.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByPlaceholder("KEY", { exact: true }).last()).toHaveValue("nowhere");
   await dialog.getByPlaceholder("Value", { exact: true }).last().fill("echo");
-  await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
-  await expect(dialog).toHaveCount(0);
+  await closeEnvironments(page);
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText("Sends to http://127.0.0.1:4300/echo");
 });
 

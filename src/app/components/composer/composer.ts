@@ -38,6 +38,8 @@ import { ComposerView } from "./composer-view";
 import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
 import { SaveAsDialog } from "./save-as-dialog";
+import { EnvironmentsManager } from "../environments/environments-manager";
+import { SecretsVault } from "../../services/secrets-vault";
 import { ScriptsPanel } from "./scripts-panel";
 import { TabStrip } from "./tab-strip";
 import { VariableChips } from "./variable-chips";
@@ -50,6 +52,7 @@ import { VariableChips } from "./variable-chips";
 @Component({
   selector: "app-composer",
   imports: [
+    EnvironmentsManager,
     Icon,
     UiButton,
     ComposerSections,
@@ -109,6 +112,12 @@ export class Composer {
   private readonly addressRow = viewChild(AddressRow);
   protected readonly tabs = inject(Tabs);
   protected readonly socket = inject(SocketClient);
+  private readonly vault = inject(SecretsVault);
+
+  /** The Environments tab asks for the vault: the shell's unlock dialog answers. */
+  protected unlockVault(): void {
+    void this.vault.ensureUnlocked();
+  }
   private readonly tabStrip = viewChild.required(TabStrip);
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
@@ -181,6 +190,10 @@ export class Composer {
     this.view.openRun(target);
   }
 
+  openEnvironments(): void {
+    this.view.openEnvironments();
+  }
+
   clearComposer(): void {
     this.view.clear();
   }
@@ -198,8 +211,8 @@ export class Composer {
   }
 
   async sendRequest(): Promise<void> {
-    // A run's tab has no request to send or to save: the palette's commands do nothing there.
-    if (this.tabs.active().run) return;
+    // A run's tab and the Environments tab have no request to send or to save: the palette's commands do nothing there.
+    if (this.tabs.active().document) return;
     // An address of a WebSocket is connected to, not sent (P5.7).
     if (this.socket.isSocket()) return this.socket.connect();
     // On a phone the response is a pane of its own (U-028): a send shows it.
@@ -220,7 +233,7 @@ export class Composer {
   }
 
   async saveCurrentRequest(): Promise<void> {
-    if (this.tabs.active().run) return;
+    if (this.tabs.active().document) return;
     await this.requestSave.save(this.store.snapshot(), this.store.scriptsAllowed());
   }
 }

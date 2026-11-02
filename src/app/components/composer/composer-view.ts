@@ -81,7 +81,7 @@ export class ComposerView {
 
   /** A request about to be loaded goes into a tab of its own when the open tab holds changes that are not saved (P5.1). */
   private keepUnsaved(): void {
-    if (this.tabs.active().dirty() || this.tabs.active().run) this.tabs.open();
+    if (this.tabs.active().dirty() || this.tabs.active().document) this.tabs.open();
   }
 
   /** Opens the tab of a run of `target` (P5.2): the one that is open already, or a new one. Nothing is sent until Run. */
@@ -100,10 +100,22 @@ export class ComposerView {
     this.tabs.open(tab);
   }
 
+  /** Opens the Environments tab (D4.5): the one that is open, or a new one. */
+  openEnvironments(): void {
+    const open = this.tabs.tabs().find((tab) => tab.environments);
+    if (open) {
+      this.tabs.activate(open.id);
+      return;
+    }
+    const tab = new TabState();
+    tab.environments = true;
+    this.tabs.open(tab);
+  }
+
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
   clear(): void {
-    // A run's tab holds no request: a new one goes into a tab of its own.
-    if (this.tabs.active().run) this.tabs.open();
+    // A run's tab or the Environments tab holds no request: a new one goes into a tab of its own.
+    if (this.tabs.active().document) this.tabs.open();
     this.requestSave.bind(null);
     this.trust.openedHere();
     this.store.reset();

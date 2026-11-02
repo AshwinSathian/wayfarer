@@ -637,3 +637,20 @@ pre,
   margin-inline-start: 8px;
   vertical-align: baseline;
 }
+
+/* Forced colours paint every background as the canvas: a timing bar keeps its length in the text's colour (U-116). */
+@media (forced-colors: active) {
+  .timing-bar-fill {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
+
+/* A value is the wire's, left to right whatever the page's direction (U-099): under dir="rtl" the address read
+   "content/json?kind=pets/{{baseUrl}}" and the response editor drew nothing. */
+.font-mono,
+[class*="type-mono"],
+.monaco-editor {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

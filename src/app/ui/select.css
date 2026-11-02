@@ -146,3 +146,12 @@
 .ui-select.env-switcher .ui-select-chevron {
   width: 28px;
 }
+
+/* Forced colours take the edge's colour and the shadow away: focus is an outline in the system's colour (U-116). */
+@media (forced-colors: active) {
+  .ui-select:focus,
+  .ui-select[aria-expanded="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}

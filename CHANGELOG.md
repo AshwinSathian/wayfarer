@@ -152,6 +152,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **High contrast mode keeps five marks it lost, and values read left to
+  right on a right-to-left page.** With Windows' contrast themes (forced
+  colours), the environment select's focus, a tab's unsaved dot, the
+  response's timing bars, the storage meter in Settings and the line that
+  shows where a dragged request will land had vanished, since they were
+  drawn as backgrounds or shadows; each is now drawn in a system colour.
+  On a page set right to left, an address read
+  "content/json?kind=pets/{{baseUrl}}" and the response editor drew
+  nothing: every monospace value and the editor now read left to right.
+
 - **`npm audit` reports 0 again.** Two moderate advisories had appeared
   in development tools, never shipped to the browser: `minimatch` before
   11.0.1 (used by ESLint, typescript-eslint and Stryker) and `qs` 6.16.0

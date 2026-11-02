@@ -997,6 +997,7 @@ Evidence: [`hig-review/1440-light-stress-rtl-composer.png`](hig-review/1440-ligh
 `composer/address-row.html:29-40`.
 **Status:** Open, D3.6 (`uiInput` and Monaco's host take `dir="ltr"`).
 Review row W-41g.
+**2026-11-02:** Fixed in #PRNUM (D3-b): every monospace value and Monaco's host are `direction: ltr` with `unicode-bidi: isolate`; `e2e/forced-colours.spec.ts` sets `dir="rtl"`, sends, and finds the address left to right and the editor's lines drawn.
 
 ### The response and the send
 
@@ -1309,6 +1310,7 @@ Evidence: `select.css:31-36`; `tabs.css:95-101`; `components.css:360-363`;
 `settings.css:216-229`; `tree.css:47-53`;
 [`hig-review/1440-light-stress-forced-colors-composer.png`](hig-review/1440-light-stress-forced-colors-composer.png).
 **Status:** Open, D3.6. Review row DS-14.
+**2026-11-02:** Fixed in #PRNUM (D3-b): each of the five has a forced-colours rule (an outline in `Highlight`, a fill in `CanvasText` with `forced-color-adjust: none`, a border for the drop line); `e2e/forced-colours.spec.ts` checks each.
 
 **U-117. The selected row barely shows, and hover erases it.** Severity 2.
 H1, H6. All.

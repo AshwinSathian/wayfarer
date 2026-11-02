@@ -165,6 +165,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **`npm audit` reports 0 again.** Two moderate advisories had appeared
+  in development tools, never shipped to the browser: `minimatch` before
+  11.0.1 (used by ESLint, typescript-eslint and Stryker) and `qs` 6.16.0
+  (under the publishing tool's REST client). Both are overridden to fixed
+  versions (`minimatch` 11.0.4, `qs` 6.17.1); lint and Stryker's dry run
+  pass with them.
+
 - **Tab goes from a tab straight to what is in its pane.** A pane that
   holds a control is no longer a stop of its own on the way, so a walk
   through the composer with Tab has three fewer empty stops. A pane with

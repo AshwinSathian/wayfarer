@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { seedAndOpen } from "./support/app";
 
 test.describe("Collections", () => {
   test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({
@@ -128,4 +129,50 @@ test.describe("Collections", () => {
     // From the keyboard the user goes on walking the tree.
     await expect(row).toBeFocused();
   });
+});
+
+// U-067: a save rebuilt the tree's rows, and the folder that held the request closed under it, the saved row gone
+// from view and unselected.
+test("Ctrl+S keeps the request's folder open and its row selected", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json`, folder: {} });
+  const tree = page.getByRole("tree");
+  const folder = tree.getByRole("treeitem", { name: /Tripwire folder/ });
+  const request = tree.getByRole("treeitem", { name: /Tripwire request/ });
+  await expect(folder).toHaveAttribute("aria-expanded", "true");
+  await expect(request).toHaveAttribute("aria-selected", "true");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?saved=1`);
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByRole("img", { name: "Unsaved changes" })).toHaveCount(0);
+  await expect(folder).toHaveAttribute("aria-expanded", "true");
+  await expect(request).toBeVisible();
+  await expect(request).toHaveAttribute("aria-selected", "true");
+});
+
+// U-094: a stray click on the backdrop closed Save to collection and Create vault passphrase, and what was typed went.
+test("a click on the backdrop keeps Save to collection and the vault's dialog open, with what was typed", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json` });
+  await page.getByRole("button", { name: "New tab" }).click();
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?new=1`);
+  await page.keyboard.press("ControlOrMeta+s");
+  const save = page.getByRole("dialog", { name: "Save to collection" });
+  await expect(save).toBeVisible();
+  const name = save.getByRole("textbox").first();
+  await name.fill("Kept name");
+  await page.mouse.click(5, 5);
+  await expect(save).toBeVisible();
+  await expect(name).toHaveValue("Kept name");
+  await page.keyboard.press("Escape");
+  await expect(save).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+  const vault = page.getByRole("dialog", { name: /Create vault passphrase|Unlock secrets/ });
+  await expect(vault).toBeVisible();
+  await vault.locator("input").first().fill("typed");
+  await page.mouse.click(5, 5);
+  await expect(vault).toBeVisible();
+  await expect(vault.locator("input").first()).toHaveValue("typed");
 });

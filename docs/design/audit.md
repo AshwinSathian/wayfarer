@@ -213,11 +213,13 @@ Evidence: `baseline/1440-light-03b-response-full.png`.
 **Status:** Open, D4-f. The maintainer chose (2026-10-22) a close button on
 each tab, New after the last tab and Duplicate in a tab's context menu,
 placed by [`ia.md`](ia.md#u-027-the-tab-strip).
+**2026-11-02:** Fixed in #PRNUM (D4-f): each tab has its ×, New follows the last tab, the tab's menu has Rename, Duplicate tab and Close tab, Delete closes a focused tab, and the unsaved dot is the secondary label (`e2e/tabs.spec.ts`).
 
 **U-035. A request is named by a dialog.** Severity 3. H7. SD.
 A new tab is titled by its URL ("127.0.0.1:4300/echo?user=ada&p…"); a name
 is given only through Save as. Rivals let the name be edited in place.
 **Status:** Open, D4-f.
+**2026-11-02:** Fixed in #PRNUM (D4-f): a saved request is renamed over its tab (a double click, F2 or the tab's menu) and the tree takes the name; an unsaved tab's Rename opens Save to collection, where a request is first named.
 
 ### The composer and the response
 
@@ -853,6 +855,7 @@ save.
 Evidence: `services/collections-store.ts:257-262`;
 [`hig-review/1440-light-kb-ctrl-s-after.png`](hig-review/1440-light-kb-ctrl-s-after.png).
 **Status:** Open, D4-f. Review row W-9.
+**2026-11-02:** Not reproducible on 2026-11-02 in three engines, before or after a reload: after ⌘S the folder stays open and the saved row is shown and selected. The save path changed in D4-e (#443); `e2e/collections.spec.ts` now holds it (#PRNUM).
 
 **U-094. A click on the backdrop loses what was typed.** Severity 3. H5.
 All.
@@ -862,6 +865,7 @@ Evidence: `app-shell.html:390`; `save-as-dialog.html:6`;
 [`hig-review/1440-dark-40-vault-create.png`](hig-review/1440-dark-40-vault-create.png).
 **Status:** Open, D4-f (Save to collection) and D4-g (the vault). Review
 row W-40.
+**2026-11-02:** Fixed in #PRNUM (D4-f, and the vault's half with it): Save to collection and the vault's passphrase dialog take no click on the backdrop; Escape and Cancel close them (`e2e/collections.spec.ts`).
 
 **U-080. Nothing can be undone.** Severity 3. H3. All.
 Deletes go through a confirm, a row's × removes it at once, and ⌘Z
@@ -1065,6 +1069,7 @@ Firefox's Tools menu.
 Evidence: `tab-strip.ts:88-99`; `shortcuts.ts:16-17`.
 **Status:** Open, D4-f (needs a choice of keys). Review row W-25; U-032's
 fix holds otherwise.
+**2026-11-02:** Fixed in #PRNUM (D4-f), with the keys kept (decided under row 1.55's instruction): Alt+T and Alt+W act in one-line fields, where focus usually is and a typed † or ∑ is not plausible, and not in a text area, Monaco or anything editable, where it is. Firefox's Alt+T menu was already prevented (`tabs.spec.ts`).
 
 **U-086. Clear history is a red icon beside Close.** Severity 3. H5. All.
 The icon-only, red-at-rest "Clear all history" sits 34 px from the

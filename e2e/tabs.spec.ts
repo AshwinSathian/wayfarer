@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { dumpIdb, seedAndOpen, send } from "./support/app";
+import { dumpIdb, seedAndOpen, send, tabMenu } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P5.1: the composer's tabs. What a reload keeps of them is in the second half of this file.
@@ -82,17 +82,17 @@ test("closing a tab with unsaved changes asks first; a clean one closes at once"
   await page.goto("/app/");
   await page.getByRole("button", { name: "New tab" }).click();
   await expect(tabs(page)).toHaveCount(2);
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   await expect(tabs(page)).toHaveCount(1);
 
   await address(page).fill("https://api.example.test/keep");
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   const dialog = page.getByRole("alertdialog", { name: "Close this tab?" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Keep it open" }).click();
   await expect(address(page)).toHaveValue("https://api.example.test/keep");
 
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   await dialog.getByRole("button", { name: "Close tab" }).click();
   // The last tab is replaced by an empty one.
   await expect(tabs(page)).toHaveCount(1);
@@ -102,7 +102,7 @@ test("closing a tab with unsaved changes asks first; a clean one closes at once"
 test("Duplicate tab opens a second tab with the same request, unsaved changes included", async ({ page }) => {
   await page.goto("/app/");
   await address(page).fill("https://api.example.test/copy");
-  await page.getByRole("button", { name: "Duplicate tab" }).click();
+  await tabMenu(page, "Duplicate tab");
   await expect(tabs(page)).toHaveCount(2);
   await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
   await expect(address(page)).toHaveValue("https://api.example.test/copy");
@@ -239,14 +239,14 @@ test("closing a tab whose request is on its way asks first, and cancels the requ
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   const dialog = page.getByRole("alertdialog", { name: "Close this tab?" });
   await expect(dialog).toContainText("is waiting for a response");
   await dialog.getByRole("button", { name: "Keep it open" }).click();
   await expect(tabs(page)).toHaveCount(2);
   await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(page, "Close tab");
   await dialog.getByRole("button", { name: "Close tab" }).click();
   await expect(tabs(page)).toHaveCount(1);
   // The send ended as a cancelled one: history has it. (WebKit on Linux reports no "requestfailed" for an aborted fetch.)
@@ -427,7 +427,7 @@ test("two browser tabs share the composer's tabs: one opened or closed in one is
   await expect(tabs(one).nth(0)).toContainText("api.example.test/changed-in-two");
 
   // Closed in two, with its question answered: gone in one.
-  await two.getByRole("button", { name: "Close tab" }).click();
+  await tabMenu(two, "Close tab");
   await two.getByRole("alertdialog", { name: "Close this tab?" }).getByRole("button", { name: "Close tab" }).click();
   await expect(tabs(two)).toHaveCount(1);
   await expect(tabs(one)).toHaveCount(1);
@@ -501,4 +501,66 @@ test("the editor's undo does not bring another tab's text into this one", async 
   // And the second tab was not changed by an undo made in the first.
   await tabs(page).nth(1).click();
   await expect.poll(text).toBe("second();");
+});
+
+// U-027: each tab has its own close, New follows the last tab, Duplicate and Close are in the tab's menu.
+test("a tab closes by its own ×, by Delete when focused, and New follows the last tab", async ({ page }) => {
+  await page.goto("/app/");
+  await page.getByRole("button", { name: "New tab" }).click();
+  await page.getByRole("button", { name: "New tab" }).click();
+  await expect(tabs(page)).toHaveCount(3);
+  // New sits right after the last tab, not at the strip's far end.
+  const last = await tabs(page).last().boundingBox();
+  const plus = await page.getByRole("button", { name: "New tab" }).boundingBox();
+  expect(plus!.x - (last!.x + last!.width)).toBeLessThan(16);
+  // The first tab's ×, on a tab that is not the open one.
+  await tabs(page).first().hover();
+  await tabs(page).first().locator(".request-tab-close").click();
+  await expect(tabs(page)).toHaveCount(2);
+  // Delete on a focused tab closes it.
+  await tabs(page).first().focus();
+  await page.keyboard.press("Delete");
+  await expect(tabs(page)).toHaveCount(1);
+  // The menu from the keyboard: Shift+F10 on the tab.
+  await tabs(page).first().focus();
+  await page.keyboard.press("Shift+F10");
+  await expect(page.getByRole("menuitem", { name: "Duplicate tab" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tabs(page).first()).toBeFocused();
+});
+
+// U-081: in a text area or an editor Alt+W and Alt+T are characters (Option+W is "∑" on a Mac), not commands.
+test("Alt+W and Alt+T typed in a text area do not close or open a tab", async ({ page }) => {
+  await page.goto("/app/");
+  await page.getByRole("button", { name: "New tab" }).click();
+  await expect(tabs(page)).toHaveCount(2);
+  await page.getByRole("tab", { name: "Headers" }).click();
+  await page.getByRole("button", { name: "Edit as text" }).click();
+  const text = page.locator("textarea").first();
+  await text.click();
+  await page.keyboard.press("Alt+KeyW");
+  await page.keyboard.press("Alt+KeyT");
+  await expect(tabs(page)).toHaveCount(2);
+  // In the address field they still work.
+  await address(page).click();
+  await page.keyboard.press("Alt+KeyT");
+  await expect(tabs(page)).toHaveCount(3);
+});
+
+// U-035: a saved request is renamed in place, over its tab, and the tree takes the name.
+test("a saved request is renamed over its tab with F2 or a double click", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json` });
+  await tabs(page).first().dblclick();
+  const field = page.getByRole("textbox", { name: "Request name" });
+  await expect(field).toBeFocused();
+  await field.fill("List pets");
+  await page.keyboard.press("Enter");
+  await expect(tabs(page).first()).toContainText("List pets");
+  await expect(page.getByRole("tree").getByText("List pets", { exact: true })).toBeVisible();
+  await expect(tabs(page).first()).toBeFocused();
+  // F2, then Escape: nothing changes.
+  await page.keyboard.press("F2");
+  await page.getByRole("textbox", { name: "Request name" }).fill("Something else");
+  await page.keyboard.press("Escape");
+  await expect(tabs(page).first()).toContainText("List pets");
 });

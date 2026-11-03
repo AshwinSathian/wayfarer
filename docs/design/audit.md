@@ -1128,6 +1128,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **2026-11-02:** The palette's half fixed in #484 (D4-f): its rows are plain rows in one floating list, no boxes inside it.
 **2026-11-02:** History's skeleton fixed in #485 (D4-f): rows to come are lines, not boxes.
 **2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
+**2026-11-03:** Settings' share fixed in #PRNUM (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
 
 ### Environments, the vault and the runner
 
@@ -1184,6 +1185,7 @@ Evidence: `app-shell.html:302, 351`; `app-shell.ts:194, 369, 373, 412`;
 **Status:** D4-e's share fixed in #458 (the composer's OAuth and script review strings, the socket's and the script worker's errors). The shell's, the vault's, the environments', import's and the backup's remain with D4-f, D4-g and D4-h. Review row W-26.
 **2026-11-03:** The vault's share fixed in #494 (D4-g): "That is not the vault's passphrase." for "Incorrect passphrase", and "The file is not JSON." twice (the vault's import and the backup's restore). The shell's words were fixed in D4-f. Import's remain with D4-h.
 **2026-11-03:** Import's share fixed in #503 (D4-h): "{file} was not imported:" for "Unable to import". The backup's and the shell's remain with D4-h's Settings PR.
+**2026-11-03:** Checked in D4-h: the shell's strings were fixed with its D4-f changes ("Show sidebar" and "Hide sidebar", #489; the vault's words, #494), and the backup's "The file is not JSON." in #494. Every string of this row is fixed.
 
 **U-083. One thing goes by several names.** Severity 3. H4. All.
 Address is also "URL" and "Load … into composer"; secret is also

@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Settings has no boxes inside it.** Each section's rows sit between
+  thin lines on the dialog itself, where they were drawn as cards inside
+  the dialog.
+
 - **Settings opens on more than one row.** General now holds the theme
   and how a request is sent (the timeout, and whether a request with an
   unset variable is held back); the Requests section, which held those

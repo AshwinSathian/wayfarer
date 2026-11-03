@@ -266,6 +266,23 @@ test("the open tab is in view when the strip holds more tabs than fit", async ({
   await expect(tabs(page).nth(0)).not.toBeInViewport();
 });
 
+// U-142: the strip has no scrollbar, so the side with tabs out of view fades.
+test("the side of the strip with tabs out of view fades, and only that side", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/app/");
+  const strip = page.getByRole("tablist", { name: "Open requests" });
+  const mask = () => strip.evaluate((el) => getComputedStyle(el).maskImage);
+  expect(await mask()).toBe("none");
+  for (let opened = 1; opened <= 6; opened++) await page.getByRole("button", { name: "New tab" }).click();
+  await expect(tabs(page)).toHaveCount(7);
+  await expect(strip).toHaveAttribute("data-more-start", "");
+  await expect(strip).not.toHaveAttribute("data-more-end", "");
+  expect(await mask()).toContain("gradient");
+  await tabs(page).nth(0).click();
+  await expect(strip).toHaveAttribute("data-more-end", "");
+  await expect(strip).not.toHaveAttribute("data-more-start", "");
+});
+
 // ── What is stored (the `tabs` store) ──────────────────────────────────────
 
 test("five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({

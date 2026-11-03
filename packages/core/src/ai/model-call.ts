@@ -136,7 +136,9 @@ export function answerText(kind: AiProviderKind, body: string): string | undefin
   let value: unknown;
   try {
     value = JSON.parse(body);
-  } catch {
+  } catch (error) {
+    // An answer that is not JSON has no text to read.
+    if (!(error instanceof SyntaxError)) throw error;
     return undefined;
   }
   if (typeof value !== "object" || value === null) return undefined;
@@ -156,8 +158,9 @@ export function providerMessage(body: string): string {
   try {
     const message = (JSON.parse(body) as { error?: { message?: unknown } }).error?.message;
     if (typeof message === "string" && message) return message;
-  } catch {
+  } catch (error) {
     // Not JSON: the text itself.
+    if (!(error instanceof SyntaxError)) throw error;
   }
   return body.slice(0, 500);
 }
@@ -182,7 +185,9 @@ export function requestProposal(answer: string): { request: RequestContent } | {
   let value: unknown;
   try {
     value = json === undefined ? undefined : JSON.parse(json);
-  } catch {
+  } catch (error) {
+    // Braces that are not JSON: no request.
+    if (!(error instanceof SyntaxError)) throw error;
     value = undefined;
   }
   if (typeof value !== "object" || value === null) return { refused: "The answer is not a request the app can read." };

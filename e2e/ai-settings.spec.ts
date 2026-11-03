@@ -75,13 +75,18 @@ test("Test the provider previews the call, and the model receives exactly what w
   page,
   request,
 }) => {
-  await request.delete("http://127.0.0.1:4300/model/received");
+  // The mock keeps every test's calls in one list: this test's are the ones that name its model.
+  const model = `test-model-${Date.now()}`;
+  const received = async () =>
+    ((await (await request.get("http://127.0.0.1:4300/model/received")).json()) as string[]).filter((body) =>
+      body.includes(`"model": "${model}"`),
+    );
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const settings = await openSettings(page, "AI");
   await settings.getByRole("button", { name: "Add a provider" }).click();
   await settings.getByLabel("Address").fill("http://127.0.0.1:4300/model/v1");
-  await settings.getByLabel("Model").fill("test-model");
+  await settings.getByLabel("Model").fill(model);
   await settings.getByRole("button", { name: "Save", exact: true }).click();
   await settings.getByRole("button", { name: "Test the provider…" }).click();
   const preview = settings.getByRole("region", { name: "Test the provider" });
@@ -89,21 +94,21 @@ test("Test the provider previews the call, and the model receives exactly what w
   await expect(preview).toContainText("No key is sent.");
   const shown = (await preview.getByLabel(/^What is sent/).textContent()) ?? "";
   // Shown, not sent.
-  expect(await (await request.get("http://127.0.0.1:4300/model/received")).json()).toEqual([]);
+  expect(await received()).toEqual([]);
   await preview.getByRole("button", { name: "Send to model" }).click();
   await expect(settings).toContainText("The provider answered:");
   await expect(settings.locator(".settings-note.font-mono")).toHaveText("OK");
-  const received = (await (await request.get("http://127.0.0.1:4300/model/received")).json()) as string[];
-  expect(received).toHaveLength(1);
-  expect(shown.slice(shown.indexOf("\n\n") + 2)).toBe(received[0]);
-  expect(JSON.parse(received[0])).toMatchObject({
-    model: "test-model",
+  const got = await received();
+  expect(got).toHaveLength(1);
+  expect(shown.slice(shown.indexOf("\n\n") + 2)).toBe(got[0]);
+  expect(JSON.parse(got[0])).toMatchObject({
+    model,
     messages: [{ role: "user", content: "Reply with the word OK." }],
   });
   // Kept in history as a model call with its record (AI-13).
   await expect
     .poll(async () => JSON.stringify((await dumpIdb(page))["history"]))
-    .toContain('"model":{"action":"test","model":"test-model"}');
+    .toContain(`"model":{"action":"test","model":"${model}"}`);
 });
 
 test("a provider that refuses the key is said in its own words, with the key masked everywhere it is kept", async ({

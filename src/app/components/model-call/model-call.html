@@ -31,7 +31,9 @@
   @if (sending()) {
   <button uiButton="outlined" class="btn-secondary" type="button" (click)="stop()">Stop</button>
   } @else {
-  <button uiButton="filled" type="button" [disabled]="!!call().blocked" (click)="send()">Send to model</button>
+  <button uiButton="filled" type="button" [disabled]="!!call().blocked || preparing()" (click)="send()"
+    >Send to model</button
+  >
   }
 </div>
 }

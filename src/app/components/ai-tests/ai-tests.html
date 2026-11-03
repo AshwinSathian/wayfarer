@@ -1,0 +1,66 @@
+<!-- In the page from the first render: what Accept and Undo did is heard when it changes. -->
+<p class="ai-tests-said sr-only" role="status">{{ accepted()?.line }}</p>
+@if (call(); as prepared) {
+<app-model-call
+  heading="Ask the model to write tests"
+  [call]="prepared"
+  [preparing]="redrawing()"
+  (answered)="answered($event)"
+  (cancelled)="close()"
+>
+  <p class="type-footnote text-label-secondary">✓ The request as sent, its address and headers</p>
+  <p class="type-footnote text-label-secondary">✓ The response's status and headers</p>
+  @if (bodyKept()) {
+  <label class="ui-checkbox-label type-footnote"
+    ><input type="checkbox" uiCheckbox [checked]="withBody()" (change)="withBody.set($any($event.target).checked)" />The
+    response body</label
+  >
+  } @else {
+  <p class="type-footnote text-label-tertiary"
+    >History keeps no body of this response, so it cannot go into a prompt.</p
+  >
+  }
+  <p class="type-footnote text-label-secondary">✓ The post-response script</p>
+</app-model-call>
+} @if (proposal(); as proposal) {
+<section class="ai-proposal" aria-labelledby="ai-tests-proposal">
+  <h3 id="ai-tests-proposal" class="type-headline m-0">Proposed tests</h3>
+  <p class="type-footnote text-label-secondary">
+    {{ proposal.count ? "Adds " + proposal.count + (proposal.count === 1 ? " test" : " tests") : "Adds lines" }} to the
+    post-response script{{ proposal.current ? ", after its " + proposal.current.split("\n").length + " lines" : "" }}.
+  </p>
+  @for (note of proposal.notes; track $index) {
+  <p class="type-footnote text-status-warning">{{ note.text }}</p>
+  }
+  <pre
+    class="ai-diff type-mono-body font-mono"
+    tabindex="0"
+    aria-label="The post-response script, with the lines added"
+  ><span class="ai-diff-kept">{{ proposal.current }}</span>{{ proposal.current ? "\n\n" : "" }}<span class="ai-diff-added">{{ proposal.added }}</span></pre>
+  @if (tabGone()) {
+  <p class="type-footnote text-label-secondary">The tab this was for is closed.</p>
+  }
+  <div class="flex justify-end gap-2">
+    <button uiButton type="button" (click)="discard()">Discard</button>
+    @if (!tabGone()) {
+    <button uiButton="filled" type="button" (click)="accept()">Accept</button>
+    }
+  </div>
+</section>
+} @if (!call()) {
+<div class="flex flex-wrap items-center gap-3">
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="ask()"
+    >Write tests from this response…</button
+  >
+  @if (accepted(); as accepted) {
+  <span class="type-footnote text-label-secondary">{{ accepted.line }}</span>
+  @if (accepted.line !== "Put back as it was.") {
+  <button uiButton class="btn-sm" type="button" (click)="undo()">Undo</button>
+  } }
+</div>
+} @if (problem()) {
+<p class="type-footnote text-label-secondary">{{ problem() }}</p>
+} @if (refused(); as refused) {
+<p class="type-footnote text-status-warning">{{ refused.text }}</p>
+<pre class="ai-diff type-mono-body font-mono" tabindex="0" aria-label="What the model wrote">{{ refused.answer }}</pre>
+}

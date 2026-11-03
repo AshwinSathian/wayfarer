@@ -29,3 +29,16 @@ method or a status in Wayfarer and nothing else (DQ11), so the mark has none.
 
 Use the mark at 16 px or more, with clear space of a quarter of its size around it. Do not recolour it,
 add a gradient or a shadow, or set the name in another face.
+
+## The icon set
+
+`icons/` holds one SVG per icon the app draws, by the name `<app-icon name>` takes. Each is a single path
+on a 24-unit grid, stroked 2 units wide with round caps and joins in `currentColor`, every point inside
+2 units of padding (`brand.test.mjs` holds the rules, and that the app draws each one). The stroke is
+0.083 of the icon's size, the weight of Atkinson Hyperlegible Next Regular's stems (0.084 to 0.094 em):
+an icon at its text's size has its text's weight (U-127). `npm run gen:tokens` writes
+`src/app/shared/icon/icon-paths.ts` from them.
+
+To add an icon, draw it under those rules, run `npm run gen:tokens` and `npm run gen:brand`, and read the
+new glyph in `icons-1x.png` and `icons-2x.png`: each icon at 16, 20 and 24 px and beside 13 px text, in
+the light and the dark theme. Delete the file of an icon nothing draws.

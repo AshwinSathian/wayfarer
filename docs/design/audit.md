@@ -1461,6 +1461,7 @@ Evidence: `checkbox.css`; `input.css`; `select.css`; `dialog.css`;
 **Status:** Open: D3.6 (the metrics) and D2.4 (the icon set). Review row
 DS-28.
 **2026-11-02:** The metrics half fixed in #479 (D3-b): fields, selects and buttons take the control-height tokens, and the Inter tuning (stylistic sets, negative tracking) is gone. The icon set stays D2.4's.
+**2026-11-04:** The icon half fixed in D2.4 (D2-b): the set is Wayfarer's own (`packages/tokens/brand/icons`), stroked 2 of 24 units, 0.083 em, against the labels' stems of 0.084 to 0.094 em; every icon checked at 16, 20 and 24 px at 1x and 2x (`brand/icons-1x.png`, `icons-2x.png`).
 
 **U-128. GET is the colour of success.** Severity 3. H4. All.
 Method and status colours share values.

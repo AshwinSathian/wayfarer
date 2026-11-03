@@ -1,7 +1,7 @@
 // Writes src/design-system/tokens.css from the token files. `--check` fails
 // when the file in the tree is not what the tokens give (CI runs it).
 import { readFileSync, writeFileSync } from "node:fs";
-import { brandSvgs } from "./brand.mjs";
+import { brandSvgs, iconPathsTs } from "./brand.mjs";
 import { THEMES, cssValues, derivedNames, hexColours, sharedNames, theme, typeClasses } from "./tokens.mjs";
 
 const target = new URL("../../src/design-system/tokens.css", import.meta.url);
@@ -74,6 +74,7 @@ const outputs = [
   [target, css],
   [new URL("../../src/design-system/typography.css", import.meta.url), typography],
   [new URL("../../src/design-system/tokens.ts", import.meta.url), ts],
+  [new URL("../../src/app/shared/icon/icon-paths.ts", import.meta.url), iconPathsTs()],
   ...Object.entries(brandSvgs()).map(([name, text]) => [new URL(`brand/${name}`, import.meta.url), text]),
 ];
 
@@ -85,8 +86,10 @@ if (process.argv.includes("--check")) {
     );
     process.exit(1);
   }
-  console.log("tokens.css, typography.css, tokens.ts and the brand's SVGs are what packages/tokens gives.");
+  console.log(
+    "tokens.css, typography.css, tokens.ts, the brand's SVGs and the icon set are what packages/tokens gives.",
+  );
 } else {
   for (const [file, text] of outputs) writeFileSync(file, text);
-  console.log("tokens.css, typography.css, tokens.ts and the brand's SVGs written from packages/tokens.");
+  console.log("tokens.css, typography.css, tokens.ts, the brand's SVGs and the icon set written from packages/tokens.");
 }

@@ -1,6 +1,7 @@
 // Wayfarer's brand files (D2.4 of PLAN-design.md), written from the tokens: the mark, the wordmark, the
 // favicon and the app icon's sources, as SVG. `build.mjs` writes them to brand/ and `--check` holds them
 // to the tokens; `brand-png.mjs` draws the PNGs, the favicon's ICO and the social image from them.
+import { readFileSync, readdirSync } from "node:fs";
 import { hexColours } from "./tokens.mjs";
 
 /** The mark's colours are Send's: the tile is the theme's ink and the glyph the colour on it (DQ11). */
@@ -87,4 +88,34 @@ export function brandSvgs() {
     "wordmark-dark.svg": wordmark("dark"),
     "maskable.svg": maskableIcon(),
   };
+}
+
+const ICON_DIR = new URL("brand/icons/", import.meta.url);
+
+/** The icon set (D2.4): each file's one path, by the icon's name. */
+export function iconPaths() {
+  return Object.fromEntries(
+    readdirSync(ICON_DIR)
+      .filter((file) => file.endsWith(".svg"))
+      .sort()
+      .map((file) => {
+        const text = readFileSync(new URL(file, ICON_DIR), "utf8");
+        const d = /^<svg [^>]*><path d="([^"]+)"\/><\/svg>\n$/.exec(text)?.[1];
+        if (!d) throw new Error(`brand/icons/${file}: not one path in the set's <svg>`);
+        return [file.slice(0, -4), d];
+      }),
+  );
+}
+
+export function iconPathsTs() {
+  return [
+    "// Generated from packages/tokens/brand/icons by `npm run gen:tokens`. Do not edit: draw the icon there.",
+    "// Wayfarer's icon set (D2.4): a 24-unit grid, one path each, stroked 2 units wide with round caps and joins.",
+    "export const ICON_PATHS = {",
+    ...Object.entries(iconPaths()).map(([name, d]) => `  ${name}: "${d}",`),
+    "} as const;",
+    "",
+    "export type IconName = keyof typeof ICON_PATHS;",
+    "",
+  ].join("\n");
 }

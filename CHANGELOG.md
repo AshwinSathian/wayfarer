@@ -586,6 +586,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Icons are Wayfarer's own, one style, as heavy as the words beside
+  them.** The 44 icons were Material Symbols at weight 300, their lines
+  half as thick as the text's stems. They are now a set drawn for
+  Wayfarer on one grid, with round ends and a line as thick as the
+  labels' (0.083 of the icon's size against 0.084 to 0.094 em). Icons in
+  buttons, the tree's arrows, a select's and a section's chevrons are
+  drawn at 16 px beside text and 18 px alone, where some were 22 to
+  28 px to make up for Material's thin, padded glyphs.
+
 - **The mark is drawn in the theme's ink, and the installed app has icons
   cut for each use.** The app's sidebar and the site show the mark in the
   colour Send is drawn in, light on the dark theme and dark on the light

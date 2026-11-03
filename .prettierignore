@@ -10,6 +10,7 @@ package-lock.json
 src/design-system/tokens.css
 src/design-system/tokens.ts
 src/design-system/typography.css
+src/app/shared/icon/icon-paths.ts
 packages/core/src/scripting/vm-libs/
 
 # Byte-exact test data.

@@ -53,11 +53,14 @@ change. Build first: the container serves `dist/deploy` and does not build.
 ```bash
 npm run build
 docker run --rm -v "$PWD":/w -w /w -e CI=1 --ipc=host mcr.microsoft.com/playwright:v1.64.1-noble \
-  npx playwright test e2e/design/screens.spec.ts --project=design-chromium --update-snapshots
+  npx playwright test e2e/design/screens.spec.ts --project=design-chromium --update-snapshots=all
 git add docs/design/baseline/design-chromium
 ```
 
 The image's tag is the version of `@playwright/test` in `package.json`.
+`=all` rewrites every capture: without it Playwright rewrites only those
+that differ by more than the 200 pixels it tolerates, and a small change
+(an icon) leaves the committed set showing the screen as it was.
 Add `--grep "<screen>"` to take one screen again. A new screen is an entry
 in `e2e/design/screens.ts`, a way to reach it in `OPEN` in the spec, and a
 row below.

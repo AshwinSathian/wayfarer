@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **AI has a page of its own, and its promises are tested claims.**
+  `docs/ai.md` says how to set up a provider, what each call sends and
+  when, what a proposal can change, and what History keeps. Its fifteen
+  promises are claims C-069 to C-083 in the ledger, each with tests in
+  Chromium, Firefox and WebKit. Among them: a prompt holds no vault
+  secret or credential even when the response quoted them, accepted
+  tests lift no hold on a request's scripts, and nothing calls a model
+  but Send to model.
+
 - **History lists model calls, and exports them.** Each call to a model
   is listed with the requests, as "Model" and its action, host and model,
   and History gains a Show filter (All, Requests, Model calls) once one is

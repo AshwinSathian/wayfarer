@@ -15,7 +15,7 @@ async function createVault(page: Page): Promise<void> {
   await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
-test("with no provider, Settings › AI says nothing is sent and offers to add one; nothing else mentions AI", async ({
+test("@claim:C-069 with no provider, Settings › AI says nothing is sent and offers to add one; nothing else mentions AI", async ({
   page,
 }) => {
   const hosts = new Set<string>();
@@ -39,7 +39,9 @@ test("with no provider, Settings › AI says nothing is sent and offers to add o
   expect([...hosts].every((host) => host.startsWith("127.0.0.1") || host.startsWith("localhost"))).toBe(true);
 });
 
-test("a provider's key is kept only in the vault, and removing the provider deletes it", async ({ page }) => {
+test("@claim:C-074 @claim:C-075 a provider's key is kept only in the vault, and removing the provider deletes it", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await createVault(page);
@@ -71,7 +73,7 @@ test("a provider's key is kept only in the vault, and removing the provider dele
 
 // AI-3 on the provider's test: the preview's body is the body the model received, byte for byte; nothing goes before
 // Send to model, and the answer and a refusal are said in the pane.
-test("Test the provider previews the call, and the model receives exactly what was shown", async ({
+test("@claim:C-071 Test the provider previews the call, and the model receives exactly what was shown", async ({
   page,
   request,
 }) => {

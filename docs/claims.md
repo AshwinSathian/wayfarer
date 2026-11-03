@@ -101,3 +101,18 @@ back gets reworded until one can, or removed.
 | C-066 | The command line runs a collection file's scripts only when told to (`--allow-scripts`): without it, a collection that has a script is not run, and nothing is sent. | docs/cli.md, README.md | packages/cli/test/cli.test.mjs |
 | C-067 | The app can be used by keyboard alone: the core flow (a collection, a new tab, an address, a header, send, save, run) needs no pointer, every stop Tab reaches shows a focus ring, a dialog opens on the field it asks for, and closing one gives focus back to what opened it. | README.md | e2e/keyboard-flow.spec.ts |
 | C-068 | Settings → Diagnostics shows the app's errors and what the Content-Security-Policy blocked, with self-tests; the report it copies, and the GitHub issue it opens, hold no address, header, body or vault secret of a request sent before. | docs/trust-center.md | e2e/diagnostics.spec.ts |
+| C-069 | AI is off until a provider is added in Settings › AI: until then no AI control is drawn, the palette has no AI command, and no request goes to a model. | README.md, docs/ai.md | e2e/ai-settings.spec.ts, e2e/ai-tests.spec.ts, e2e/ai-draft.spec.ts, e2e/ai-explain.spec.ts |
+| C-070 | A prompt sent to a model holds no vault secret's plaintext and no credential: it quotes the exchange as history keeps it, masked. | README.md, docs/ai.md | e2e/ai-claims.spec.ts |
+| C-071 | What is sent to a model is shown before it is sent, byte for byte, and nothing is sent until Send to model. | README.md, docs/ai.md | e2e/ai-settings.spec.ts, e2e/ai-tests.spec.ts, e2e/ai-draft.spec.ts, e2e/ai-explain.spec.ts |
+| C-072 | A response body goes into a prompt only when it is ticked for that call; the tick starts unticked every time. | README.md, docs/ai.md | e2e/ai-tests.spec.ts, e2e/ai-explain.spec.ts |
+| C-073 | A model's proposal changes nothing until it is accepted, and Undo puts the script or the request back as it was. | README.md, docs/ai.md | e2e/ai-tests.spec.ts, e2e/ai-draft.spec.ts |
+| C-074 | The AI provider's key is kept only as a vault secret. | README.md, docs/ai.md | e2e/ai-settings.spec.ts |
+| C-075 | Removing the AI provider deletes its key from the vault and turns AI off again. | README.md, docs/ai.md | e2e/ai-settings.spec.ts |
+| C-076 | A prompt is never a template: `{{name}}` in it is sent as written, not as its value. | README.md, docs/ai.md | e2e/ai-draft.spec.ts, packages/core/src/ai/model-call.spec.ts |
+| C-077 | A prompt that names a vault secret's reference (`{{$secret.…}}`) is not sent. | README.md, docs/ai.md | e2e/ai-draft.spec.ts, packages/core/src/ai/model-call.spec.ts |
+| C-078 | A model's proposal that names a vault secret's reference is refused and not offered. | README.md, docs/ai.md | e2e/ai-draft.spec.ts, packages/core/src/ai/model-call.spec.ts |
+| C-079 | Tests a model wrote run only where the request's scripts may run: accepting them lifts no hold on the scripts of a request not yet reviewed. | README.md, docs/ai.md | e2e/ai-claims.spec.ts |
+| C-080 | Nothing calls a model but Send to model: not a send, a reload or a preview that is cancelled. | README.md, docs/ai.md | e2e/ai-claims.spec.ts |
+| C-081 | Each model call is a History entry with its exchange record, masked as a send is, and opens in History without loading into a tab. | README.md, docs/ai.md | e2e/ai-log.spec.ts, packages/core/src/ai/call.spec.ts |
+| C-082 | With response bodies off in history, a model call whose prompt quoted a response body keeps neither that prompt nor the answer. | README.md, docs/ai.md | e2e/ai-log.spec.ts, packages/core/src/ai/call.spec.ts |
+| C-083 | A HAR export of model calls holds no key and nothing history masked. | README.md, docs/ai.md | e2e/ai-log.spec.ts |

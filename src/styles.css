@@ -120,6 +120,12 @@ body {
   overscroll-behavior: none;
 }
 
+/* The page asks for the whole screen (viewport-fit=cover): the shell keeps out of a notch and the home indicator
+   (D4.13, U-089). Inside the shell's own height: the box is border-box. */
+.safe-area {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 /* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;

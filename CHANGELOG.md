@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The installed app's window matches the app.** Its title bar takes
+  the colour of the theme you chose, not black or a grey of the system's;
+  the manifest names and describes the app; on a phone with a notch the
+  app keeps out of it and the home indicator; the page says it is in
+  British English; and Settings › About says "Trust centre".
+
 - **The design docs say what session D4-g built.** The plan's row 1.57
   lists the eight changes to environments, variables and the vault, the
   audit's notes close their findings, and the baseline gives tasks 3 and 4

@@ -1227,12 +1227,14 @@ Evidence: `index.html:2`.
 **Status:** Open, D4-h (plan D4.13: `lang="en-GB"`). The rest waits for a
 plan that takes up translation; this one has none.
 Review row W-41h.
+**2026-11-03:** `lang="en-GB"` in #501 (D4-h, D4.13). The names built by concatenation and the plurals by ternary wait for a plan that takes up translation, as above.
 
 **U-105. "Trust center" is the one American spelling on screen.**
 Severity 4. H4. All.
 Settings › About's link. The file's name can stay.
 Evidence: `settings/settings.ts:177`.
 **Status:** Open, D4-h. Review row W-42e.
+**2026-11-03:** Fixed in #501 (D4-h): "Trust centre".
 
 ### The installed app
 
@@ -1243,6 +1245,7 @@ the system, not the app's theme. The manifest has no `theme_color`,
 `background_color`, `id` or `description`.
 Evidence: `index.html:8-9`; `public/manifest.webmanifest`.
 **Status:** Open, D4-h (plan D4.13). Review row W-33.
+**2026-11-03:** Fixed in #501 (D4-h, D4.13): `theme-color` is each theme's `--canvas-app`, set to the theme drawn by `theme.js` before the first paint and by `Theme` on every change, whatever the system prefers; the manifest has `id`, `description`, `theme_color` and `background_color` (the light canvas: a manifest cannot follow a theme). `scripts/installed-app.test.mjs` reads them against the tokens; `e2e/status-bar.spec.ts` changes the theme. Seeing the installed app on macOS, Windows and iOS is the maintainer's step (D1.8).
 
 **U-089. The page asks for the whole screen and pads none of it.**
 Severity 3. H4. Phones.
@@ -1250,6 +1253,7 @@ Severity 3. H4. Phones.
 is `100vh`.
 Evidence: `index.html:7`; `app-shell.html:121`.
 **Status:** Open, D4-h (plan D4.13). Review row W-34.
+**2026-11-03:** Fixed in #501 (D4-h, D4.13): the shell pads `env(safe-area-inset-*)` on every side (`.safe-area`, inside its own height), and the phone shell is `min-h-dvh`, not `100vh`. Not yet seen on a notched phone (D1.8).
 
 **U-101. Every icon of the manifest is "maskable any".** Severity 4. H4.
 All who install it.

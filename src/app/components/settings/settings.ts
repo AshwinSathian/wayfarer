@@ -174,7 +174,7 @@ export class Settings {
       href: "https://github.com/AshwinSathian/wayfarer/blob/main/CHANGELOG.md",
     },
     {
-      label: "Trust center",
+      label: "Trust centre",
       about: "Where your data is, what leaves the page, and the known limits.",
       href: "https://github.com/AshwinSathian/wayfarer/blob/main/docs/trust-center.md",
     },

@@ -12,4 +12,7 @@
   }
   var dark = choice === "dark" || (choice !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  // The window's own colour is the canvas of the theme drawn, not the system's (U-088): --canvas-app.
+  var metas = document.querySelectorAll('meta[name="theme-color"]');
+  for (var i = 0; i < metas.length; i++) metas[i].setAttribute("content", dark ? "#161513" : "#FBFAF8");
 })();

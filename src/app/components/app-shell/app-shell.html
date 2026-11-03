@@ -142,7 +142,7 @@
 <!-- From 768 px the window is the workspace: panes of its height, each scrolling inside itself.
      Below, the composer's sections stack and the window scrolls the page. -->
 <div
-  [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'"
+  [class]="isMobile() ? 'safe-area flex min-h-dvh bg-canvas-app text-label-primary' : 'safe-area flex h-dvh overflow-hidden bg-canvas-app text-label-primary'"
 >
   @if (!sidebarOverlay() && drawerVisible()) {
   <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard

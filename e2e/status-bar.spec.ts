@@ -36,3 +36,22 @@ test("the vault's item is its state, and a lock or an unlock is said", async ({ 
   await expect(said).toHaveText("Vault locked.");
   await expect(status.getByRole("button", { name: "Vault locked", exact: true })).toBeVisible();
 });
+
+// D4.13 (U-088): the installed app's window is the canvas of the theme drawn, set before the page is drawn
+// and again when the theme changes, whatever the system prefers.
+test("the window's colour follows the app's theme, from the first paint", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "light"));
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/app/");
+  const colours = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) => meta.getAttribute("content")),
+    );
+  expect(await colours()).toEqual(["#FBFAF8", "#FBFAF8"]);
+  await page
+    .locator(".status-bar")
+    .getByRole("button", { name: /^Theme: / })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await colours()).toEqual(["#161513", "#161513"]);
+});

@@ -1,3 +1,4 @@
+import { TOKEN_COLOURS } from "../../design-system/tokens";
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { Diagnostics } from "./diagnostics";
 
@@ -61,6 +62,9 @@ export class Theme {
    */
   private apply(): void {
     const root = document.documentElement;
+    // The installed app's window takes the canvas of the theme drawn (D4.13, U-088), as theme.js set it first.
+    for (const meta of document.querySelectorAll('meta[name="theme-color"]'))
+      meta.setAttribute("content", TOKEN_COLOURS[this.theme()]["canvas-app"]);
     if (root.getAttribute("data-theme") === this.theme()) return;
     root.setAttribute("data-theme-changing", "");
     root.setAttribute("data-theme", this.theme());

@@ -1,9 +1,13 @@
 {
+  "id": "./",
   "name": "Wayfarer",
   "short_name": "Wayfarer",
+  "description": "A local-first API client: no account, no cloud, no catch.",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "theme_color": "#FBFAF8",
+  "background_color": "#FBFAF8",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

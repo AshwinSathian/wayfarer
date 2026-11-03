@@ -1,0 +1,35 @@
+@if (call(); as prepared) {
+<app-model-call
+  heading="Ask the model to explain this response"
+  [call]="prepared"
+  [preparing]="redrawing()"
+  (answered)="answered($event)"
+  (cancelled)="close()"
+>
+  <p class="type-footnote text-label-secondary">✓ The request as sent, its address and headers</p>
+  <p class="type-footnote text-label-secondary">✓ The response's status and headers</p>
+  @if (bodyKept()) {
+  <label class="ui-checkbox-label type-footnote"
+    ><input type="checkbox" uiCheckbox [checked]="withBody()" (change)="withBody.set($any($event.target).checked)" />The
+    response body</label
+  >
+  } @else {
+  <p class="type-footnote text-label-tertiary"
+    >History keeps no body of this response, so it cannot go into a prompt.</p
+  >
+  }
+</app-model-call>
+} @if (answer(); as text) {
+<section class="ai-proposal" aria-labelledby="ai-explain-answer">
+  <h3 #answerHeading id="ai-explain-answer" class="type-headline m-0" tabindex="-1">The model answered</h3>
+  <p class="ai-answer type-mono-body font-mono">{{ text }}</p>
+  <div class="flex justify-end gap-2">
+    <button uiButton type="button" (click)="close()">Close</button>
+    <button uiButton="outlined" class="btn-secondary" type="button" (click)="ask()">Ask again…</button>
+  </div>
+</section>
+} @if (!call()) {
+<button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="ask()">Explain this response…</button>
+} @if (problem()) {
+<p class="type-footnote text-label-secondary">{{ problem() }}</p>
+}

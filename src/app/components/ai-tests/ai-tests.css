@@ -46,3 +46,11 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Explain this response: the model's text as it came, wrapped, never rendered. */
+.ai-answer {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--label-primary);
+}

@@ -57,6 +57,7 @@ import { InheritedSettingsDialog, type InheritedSettingsTarget } from "../collec
 import { AiSettings } from "../../services/ai-settings";
 import { ModelCalls } from "../../services/model-calls";
 import { AiDraft } from "../ai-draft/ai-draft";
+import { Tabs } from "../../state/tabs";
 @Component({
   selector: "app-shell",
   imports: [
@@ -238,6 +239,7 @@ export class AppShell implements OnInit {
   readonly settingsDialogVisible = signal(false);
   protected readonly ai = inject(AiSettings);
   protected readonly modelCalls = inject(ModelCalls);
+  private readonly openTabs = inject(Tabs);
 
   /** The pane Settings opens at. */
   readonly settingsSection = signal<SettingsSection>("general");
@@ -329,7 +331,8 @@ export class AppShell implements OnInit {
         label: "Settings",
         run: () => this.openSettings(),
       },
-      // Only with a provider and the action on (AI-1).
+      // Only with a provider and the action on (AI-1), and Write tests and Explain only where their control is.
+      ...this.aiCommands(),
       ...(this.ai.offers().draft
         ? [
             {
@@ -338,6 +341,26 @@ export class AppShell implements OnInit {
               run: () => this.modelCalls.draftOpen.set(true),
             },
           ]
+        : []),
+    ];
+  }
+
+  /** Write tests and Explain in the palette: the open tab's response must be there, and failed for Explain. */
+  private aiCommands(): PaletteAction[] {
+    const tab = this.openTabs.active();
+    const status = tab.responseStatusCode();
+    if (status === undefined) return [];
+    const ask = (action: "tests" | "explain") => {
+      if (action === "tests") tab.responseTab.set("tests");
+      else tab.recordOpen.set(true);
+      this.modelCalls.asked.set(action);
+    };
+    return [
+      ...(this.ai.offers().tests
+        ? [{ id: "ai-tests", label: "Write tests from the response…", run: () => ask("tests") }]
+        : []),
+      ...(this.ai.offers().explain && status >= 400
+        ? [{ id: "ai-explain", label: "Explain the response…", run: () => ask("explain") }]
         : []),
     ];
   }

@@ -18,6 +18,7 @@ import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
 import { AiSettings } from "../../services/ai-settings";
+import { AiExplain } from "../ai-explain/ai-explain";
 import { AiTests } from "../ai-tests/ai-tests";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
@@ -81,6 +82,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
   selector: "app-response-viewer",
   imports: [
     AiTests,
+    AiExplain,
     UiInput,
     EventList,
     ExchangeRecordView,

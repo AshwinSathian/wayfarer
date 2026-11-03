@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The model can explain a failed response.** With a provider set up and
+  the action on, the exchange record of a response whose status is 400 or
+  more has Explain this response…. The call is previewed first, the
+  response body going only when ticked for that call; the answer is shown
+  as the model wrote it, as text, with nothing to accept. The palette
+  gains Explain the response… and Write tests from the response…, each
+  where its control is.
+
 - **The model can draft a request from a description.** With a provider
   set up and the action on, the empty response offers Describe a
   request…, and the palette has Draft a request from a description…. The

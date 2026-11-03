@@ -11,7 +11,7 @@ export function markColours(name) {
 
 // The glyph on a 26-unit tile: a path that sets out and turns to the host it reaches. Kept from the
 // first mark (row 1.62): only its colours changed.
-const ROUTE = "M9 17.5V13.5C9 10.7 11.2 8.5 14 8.5H17";
+export const ROUTE = "M9 17.5V13.5C9 10.7 11.2 8.5 14 8.5H17";
 const TILE_RADIUS = 6;
 
 /** The glyph, in `colour`, on a 26-unit grid. */

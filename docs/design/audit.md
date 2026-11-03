@@ -1282,6 +1282,7 @@ Art cut for the maskable safe zone is also used where the full mark is
 wanted.
 Evidence: `public/manifest.webmanifest`.
 **Status:** Open, D2.4 (the icons). Review row W-42a.
+**2026-11-04:** Fixed in D2.4 (D2-b): the manifest lists the mark at 192 and 512 px as `any` and one 512 px `maskable` icon with the glyph inside the safe zone (`packages/tokens/brand/`, `scripts/installed-app.test.mjs`).
 
 ### The design system
 

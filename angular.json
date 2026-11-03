@@ -26,6 +26,21 @@
                 "output": "/"
               },
               {
+                "glob": "*.png",
+                "input": "packages/tokens/brand/app",
+                "output": "icons"
+              },
+              {
+                "glob": "favicon.svg",
+                "input": "packages/tokens/brand",
+                "output": "/"
+              },
+              {
+                "glob": "favicon.ico",
+                "input": "packages/tokens/brand/app",
+                "output": "/"
+              },
+              {
                 "glob": "THIRD_PARTY_NOTICES.md",
                 "input": ".",
                 "output": "/"

@@ -369,10 +369,30 @@ pre,
   color: var(--label-tertiary);
 }
 
-/* The mark, public/icons/logo.svg: the one file the app and the site both show. */
-.brand-logo-icon {
-  border-radius: var(--radius-sm);
+/* The mark (app-mark, packages/tokens/brand/mark.svg): the ink, and the colour on it, as Send is. */
+.brand-mark {
+  display: block;
   flex-shrink: 0;
+}
+.brand-mark-tile {
+  fill: var(--ink);
+}
+.brand-mark-route {
+  stroke: var(--on-ink);
+}
+.brand-mark-host {
+  fill: var(--on-ink);
+}
+@media (forced-colors: active) {
+  .brand-mark-tile {
+    fill: CanvasText;
+  }
+  .brand-mark-route {
+    stroke: Canvas;
+  }
+  .brand-mark-host {
+    fill: Canvas;
+  }
 }
 
 /* ── Env tag ─────────────────────────────────────────────── */

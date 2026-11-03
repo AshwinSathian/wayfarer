@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   // The app's own icons: one mark for the site and the app.
   icons: {
     icon: [
-      { url: "/app/favicon.ico", sizes: "any" },
-      { url: "/app/icons/logo.svg", type: "image/svg+xml" },
+      { url: "/app/favicon.ico", sizes: "32x32" },
+      { url: "/app/favicon.svg", type: "image/svg+xml" },
     ],
-    apple: "/app/icons/icon-192x192.png",
+    apple: "/app/icons/apple-touch-icon.png",
   },
 };
 

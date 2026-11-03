@@ -195,6 +195,13 @@ export class Tree<T> {
     afterNextRender(() => this.focusNode(key), { injector: this.injector });
   }
 
+  /** Selects a node, or none, as code asks (the open tab's request, U-144). Focus stays where it is. */
+  choose(key: string | null): void {
+    const row = key ? this.rows().get(key) : undefined;
+    if (row) this.select(row.node);
+    else this.selectedKey.set(null);
+  }
+
   /** Moves keyboard focus to the selected node's row. */
   focusSelected(): void {
     const key = this.selectedKey();

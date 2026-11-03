@@ -1684,6 +1684,7 @@ with no cue, and the tree keeps the old selection.** Severity 3. H1, H3.
 SD, QA.
 Evidence: [`hig-review/1440-light-rt-23-after-history-load.png`](hig-review/1440-light-rt-23-after-history-load.png).
 **Status:** Open, D4-f (D4.4). Review row N15.
+**2026-11-04:** Fixed in D5-a: a request opened from history goes into a tab of its own; only an empty new tab is taken for it (`ComposerView.loadPastRequest`, `TabState.empty`). The tree's selected row is the open tab's request, and none for a tab that is not a saved request (`CollectionsSidebar`, `Tree.choose`). Task 8 measured again: 9 inputs, 0.52 s (`baseline.md`).
 
 ### Visual system and type
 

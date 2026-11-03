@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { inCollection, inFolder, requestContent } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
 import { CollectionsSidebar } from "./collections-sidebar";
+import { Tabs } from "../../state/tabs";
 import { UndoNotice } from "../../services/undo-notice";
 import type { Removed } from "../../data/removed";
 import { CollectionsStore, CollectionTree } from "../../services/collections-store";
@@ -224,6 +225,24 @@ describe("CollectionsSidebar", () => {
         "1 Collection c2",
       ]);
       expect(row("Folder f1").getAttribute("aria-expanded")).toBe("false");
+    });
+
+    // U-144: the selected row is the open tab's request, or none for a tab that is not a saved request.
+    it("selects the open tab's request, and no row for a tab that is not saved", async () => {
+      const selected = () =>
+        rows()
+          .filter((r) => r.getAttribute("aria-selected") === "true")
+          .map((r) => r.getAttribute("aria-label"));
+      const tabs = TestBed.inject(Tabs);
+      row("Request r2").click();
+      await fixture.whenStable();
+      expect(selected()).toEqual(["GET Request r2"]);
+      tabs.active().bound.set(makeRequest("r1", "c1"));
+      await fixture.whenStable();
+      expect(selected()).toEqual(["GET Request r1"]);
+      tabs.open();
+      await fixture.whenStable();
+      expect(selected()).toEqual([]);
     });
 
     it("saves a new order for what moved: the collections, or a parent's folders and requests together", async () => {

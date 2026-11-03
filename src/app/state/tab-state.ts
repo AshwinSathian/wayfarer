@@ -152,6 +152,18 @@ export class TabState {
     this.markClean();
   }
 
+  /** A new tab no one has used: no saved request, nothing typed, nothing sent, and no run or environments in it. */
+  empty(): boolean {
+    return (
+      !this.document &&
+      !this.bound() &&
+      this.historyKey() === undefined &&
+      this.responseStatusCode() === undefined &&
+      !this.responseError() &&
+      JSON.stringify(contentOf(this.draft())) === JSON.stringify(contentOf(emptyDraft()))
+    );
+  }
+
   /** The draft as it is now is what the tab holds unchanged: it was just opened, loaded or saved. */
   markClean(): void {
     this.baseline.set(JSON.stringify(contentOf(this.draft())));

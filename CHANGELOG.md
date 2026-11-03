@@ -492,6 +492,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The size budgets are reset to the first download as it is now.**
+  The first download is 1,113,075 B raw and 311,316 B gzip; the budgets
+  are reset to it as before (raw × 1.05 to warn, × 1.10 to fail, gzip
+  × 1.10): 1169kb, 1225kb and 342,448 B. They were last reset at
+  1,028,906 B: the build of 2026-11-03's first commit was already over the
+  warning (1,073 kB), and the design sessions D4-f to D4-i added about
+  14 kB raw, 5 kB gzip (the tabs' strip and menus, the palette, undo, the
+  environments tab and the run's actions), measured input by input
+  against that commit with `ng build --stats-json`. The gzip size was
+  within 800 B of its gate.
+
 - **The design docs say what session D4-e fixed.** Each audit finding it
   closed names its pull request; the plan's row 1.53 says what is done and
   what is left (the screen-reader checks, NVDA and VoiceOver, are the

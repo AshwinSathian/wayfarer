@@ -39,7 +39,7 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
   // Nothing went anywhere while the question is open.
   expect([...composed, ...elsewhere]).toEqual([]);
 
-  await question.getByRole("button", { name: "Don't send", exact: true }).click();
+  await question.getByRole("button", { name: "Do not send", exact: true }).click();
   await expect(
     page
       .getByRole("alert")
@@ -52,7 +52,7 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
   // Sent again, it is asked again: the variable is back, so the script moves the request once more.
   await send(page);
   await expect(question).toContainText("from tripwire.test to elsewhere.test");
-  await question.getByRole("button", { name: "Send", exact: true }).click();
+  await question.getByRole("button", { name: "Send to elsewhere.test", exact: true }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
   // The user said yes: it went where the script pointed it, with the secret, and nowhere else.
   expect(composed).toEqual([]);
@@ -87,7 +87,7 @@ test("@claim:C-053 the comparison starts before the first inherited script: a co
   expect([...composed, ...elsewhere]).toEqual([]);
 
   // No: nothing is sent, and what both inherited scripts set is put back.
-  await question.getByRole("button", { name: "Don't send", exact: true }).click();
+  await question.getByRole("button", { name: "Do not send", exact: true }).click();
   await expect(
     page
       .getByRole("alert")
@@ -98,7 +98,7 @@ test("@claim:C-053 the comparison starts before the first inherited script: a co
   expect([...composed, ...elsewhere]).toEqual([]);
 
   await send(page);
-  await question.getByRole("button", { name: "Send", exact: true }).click();
+  await question.getByRole("button", { name: "Send to elsewhere.test", exact: true }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
   expect(composed).toEqual([]);
   expect(elsewhere).toHaveLength(1);

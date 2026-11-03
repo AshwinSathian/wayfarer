@@ -326,6 +326,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The question about a moved request says what Yes allows.** When a
+  script sends a request with a vault secret to another host, the button
+  names the host ("Send to api.example.com"), and in a run it says the
+  answer holds for the rest of the run ("… for this run"), which a plain
+  "Send" did not.
+
+- **The "different host" question says what Send allows.** When a
+  script moved a request that uses a vault secret to another host during a
+  run, the button said only "Send", though one click let every later
+  request of the run go there. It now says "Send to {host} for this run"
+  (and "Send to {host}" for a single send); "Don't send" is "Do not send".
+
 - **Number fields have no browser arrows, and a dialog opened by a click
   has no focus ring.** Firefox and Safari drew their own up and down
   arrows in every number field (the timeout, the history size, a run's

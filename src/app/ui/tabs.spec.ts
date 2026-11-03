@@ -172,6 +172,20 @@ describe("uiTabList", () => {
     expect(open.right).toBeLessThanOrEqual(room.right + 0.5);
   });
 
+  // U-142: a bar that scrolls says so. The side with tabs out of view fades; with none hidden, nothing does.
+  it("marks the side of a bar that has tabs out of view", async () => {
+    const { host, root, settle } = await setup();
+    const bar = root.querySelector<HTMLElement>('[role="tablist"]')!;
+    const marks = () => [bar.hasAttribute("data-more-start"), bar.hasAttribute("data-more-end")];
+    expect(marks()).toEqual([false, false]);
+    bar.style.width = "60px";
+    await settle();
+    expect(marks()).toEqual([false, true]);
+    host.tab.set("c");
+    await settle();
+    expect(marks()).toEqual([true, false]);
+  });
+
   // U-090: WAI-ARIA's pattern makes a pane a Tab stop only when nothing in it can take focus.
   it("takes a pane that holds a control out of the Tab order, and leaves one with nothing to focus in it", async () => {
     const { root, tab, settle } = await setup();

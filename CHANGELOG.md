@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A tab bar with more tabs than fit says so.** The bar scrolls
+  sideways with no scrollbar, so the fifth request tab at 1,440 px was
+  cut off under New tab with nothing to say more were there. The side
+  that holds tabs out of view now fades.
+
 - **A screen reader names each row by what it holds.** In Params,
   Headers, a form body, a multipart body and the variables dialogs, a
   row's controls were named by their place ("Send parameter 2", "Headers

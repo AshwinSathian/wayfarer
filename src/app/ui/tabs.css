@@ -21,6 +21,27 @@
   display: none;
 }
 
+/* A side with tabs out of view fades (U-142): without a scrollbar, nothing else
+   said the bar held more. `uiTabList` marks the sides. */
+.tab-bar[data-more-start] {
+  --tab-fade-start: 3rem;
+}
+
+.tab-bar[data-more-end] {
+  --tab-fade-end: 3rem;
+}
+
+.tab-bar:is([data-more-start], [data-more-end]) {
+  /* A mask reads only alpha: any opaque colour will do. */
+  --tab-fade:
+    transparent, var(--ink) var(--tab-fade-start, 0px), var(--ink) calc(100% - var(--tab-fade-end, 0px)), transparent;
+  mask-image: linear-gradient(to right, var(--tab-fade));
+}
+
+.tab-bar:is([data-more-start], [data-more-end]):dir(rtl) {
+  mask-image: linear-gradient(to left, var(--tab-fade));
+}
+
 .tab-bar [role="tab"] {
   position: relative;
   flex: none;

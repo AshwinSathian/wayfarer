@@ -280,27 +280,6 @@
         "lineHeight": 1.3333
       }
     },
-    "type-overline": {
-      "$type": "typography",
-      "$value": {
-        "fontFamily": "{font.font-sans}",
-        "fontSize": {
-          "value": 0.75,
-          "unit": "rem"
-        },
-        "fontWeight": 600,
-        "letterSpacing": {
-          "value": 0.06,
-          "unit": "em"
-        },
-        "lineHeight": 1.3333
-      },
-      "$extensions": {
-        "com.wayfarer.css": {
-          "text-transform": "uppercase"
-        }
-      }
-    },
     "type-mono-body": {
       "$type": "typography",
       "$value": {

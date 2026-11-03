@@ -1383,7 +1383,8 @@ test("text field: none of the browser's look; under the pointer, focused and dis
       return colour;
     }, name);
   for (const name of ["Name", "Value", "Passphrase", "Timeout", "Search", "Subprotocols", "Message"]) {
-    expect(await css(field(name), "appearance"), name).toBe("none");
+    // A number is a text field's look too: "textfield" is what takes Firefox's arrows off (U-057).
+    expect(await css(field(name), "appearance"), name).toBe(name === "Timeout" ? "textfield" : "none");
     expect(await css(field(name), "border-top-style"), name).toBe("solid");
   }
   // A value is monospace, a name is not.

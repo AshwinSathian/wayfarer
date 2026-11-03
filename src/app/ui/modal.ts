@@ -1,4 +1,4 @@
-import { InteractivityChecker } from "@angular/cdk/a11y";
+import { InputModalityDetector, InteractivityChecker } from "@angular/cdk/a11y";
 import {
   Directive,
   ElementRef,
@@ -80,6 +80,7 @@ export class UiModal implements OnDestroy {
   readonly closed = output<void>();
 
   readonly element: HTMLDialogElement = inject<ElementRef<HTMLDialogElement>>(ElementRef).nativeElement;
+  private readonly modality = inject(InputModalityDetector);
   private readonly checker = inject(InteractivityChecker);
   protected pressedOutside = false;
 
@@ -94,6 +95,15 @@ export class UiModal implements OnDestroy {
     if (this.element.open) return;
     this.element.showModal();
     open.push(this.element);
+    // Opened by a click or a touch, its first control draws no ring until a key is pressed in it: WebKit takes focus
+    // set by code for the keyboard's, and `focus({ focusVisible: false })` does not hold there (U-053, dialog.css).
+    if (["mouse", "touch"].includes(this.modality.mostRecentModality ?? "")) {
+      this.element.setAttribute("data-quiet-focus", "");
+      this.element.addEventListener("keydown", () => this.element.removeAttribute("data-quiet-focus"), {
+        once: true,
+        capture: true,
+      });
+    }
     (this.element.querySelector<HTMLElement>("[cdkFocusInitial]") ?? this.tabbable()[0] ?? this.element).focus();
   }
 
@@ -103,6 +113,7 @@ export class UiModal implements OnDestroy {
 
   private shut(): boolean {
     if (!this.element.open) return false;
+    this.element.removeAttribute("data-quiet-focus");
     this.element.close();
     open.splice(open.indexOf(this.element), 1);
     keepFocusInDialogs();

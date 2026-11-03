@@ -1717,6 +1717,7 @@ Evidence: task 5b of `docs/design/baseline.md` (D4-l);
 `packages/core/src/send/exchange.ts` (`shapeFailure`, `statusCode` of a
 `bridge` failure).
 **Status:** Open, D4-h (D4.7, the Local Bridge), found in D4-l.
+**2026-11-03:** Fixed in #504 (D4-h, D4.7): a failure of the Local Bridge itself is no response, as a network failure is (`shapeFailure`): no status code and no body, its words the error text. The status line says "No response", as the record does; the bridge's 502, and its 401 for a token, are no longer drawn as a server's.
 
 **U-146. The Environments list's "+" sticks out of its card border.**
 Severity 4. H8. All.

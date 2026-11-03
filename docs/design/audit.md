@@ -416,6 +416,7 @@ and tracked.
 2026-10-23 (hig-review): confirmed; both are still uppercase. The
 hierarchy they stood for is U-119's.
 **2026-11-02:** The sidebar's title fixed in #484 (D4-f): "Collections" is a sentence-case heading in the secondary label. The environments list's is D4-g's.
+**2026-11-03:** The environments list's title fixed in #493 (D4-g): "Environments", a sentence-case heading in the secondary label; `type-overline`, the uppercase style, is deleted (nothing reads it). Every finding of this row is fixed.
 
 **U-021. Three blues and a stray grey.** Severity 3. H4.
 The Send fill, the link colour (`rgb(79,70,229)`) and the focus ring

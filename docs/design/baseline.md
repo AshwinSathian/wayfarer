@@ -47,6 +47,14 @@ way (three runs, the median), beside its row above.
 | 5c | Find why a request failed: 401 | D4-l (#469 to #472) | 35 | 3 | 0 | 32 | 0.25 | 0.25, 0.29, 0.20 |
 | 2 | Import a Postman collection with scripts and run it | D4-f (#484) | 11 | 11 | 0 | 0 | 1.71 | 1.67, 1.71, 1.79 |
 | 8 | Find a request sent last week | D4-f (#485) | 9 | 3 | 0 | 6 | 0.54 | 0.54, 0.50, 0.55 |
+| 3 | Add an environment and switch to it | D4-g (#492 to #498) | 43 | 7 | 1 | 35 | 0.62 | 0.63, 0.62, 0.37 |
+| 4 | Use a secret without it touching disk | D4-g (#492 to #498) | 133 | 13 | 1 | 119 | 1.11 | 1.12, 1.09, 1.11 |
+
+D4-g took two clicks from tasks 3 and 4: the environments open in a tab,
+not a dialog, and a new environment is named in the list and made with
+Enter, where a dialog opened and Create was a click (U-044). Task 4 now
+goes back to the request's tab with a click where it pressed Escape. Each
+takes about half the time it did: no dialog opens, and none closes.
 
 D4-f added one input to task 2: Import is now a named menu (File…,
 cURL command…) where it was an unlabelled upload icon (U-010), so the

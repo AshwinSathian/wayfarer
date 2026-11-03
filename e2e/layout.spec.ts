@@ -185,7 +185,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
       await page.getByRole("tab", { name: "Headers", exact: true }).click();
-      const field = await page.getByLabel("Headers name, row 1").boundingBox();
+      const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
       // 85 px at 768 px; it was 20 px.
       expect(field!.width).toBeGreaterThanOrEqual(80);
 
@@ -205,7 +205,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
     await page.getByRole("tab", { name: "Headers", exact: true }).click();
-    const field = await page.getByLabel("Headers name, row 1").boundingBox();
+    const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
     // 111 px at 1220 px: "Content-Type" in full. Pinned at 1024 px it was 85 px.
     expect(field!.width).toBeGreaterThanOrEqual(100);
     // Every composer tab is on screen, none cut off by the pane's edge.
@@ -347,9 +347,9 @@ test.describe("Mobile composer (390px)", () => {
 
     // Opening Auth must collapse Headers — only one panel open at a time.
     await page.getByRole("button", { name: "Headers", exact: true }).click();
-    await expect(page.getByLabel("Headers name, row 1")).toBeVisible();
+    await expect(page.getByLabel(/^Header name, 1 of /)).toBeVisible();
     await page.getByRole("button", { name: "Auth", exact: true }).click();
-    await expect(page.getByLabel("Headers name, row 1")).toBeHidden();
+    await expect(page.getByLabel(/^Header name, 1 of /)).toBeHidden();
     await expect(page.locator("#auth-type-select")).toBeVisible();
   });
 

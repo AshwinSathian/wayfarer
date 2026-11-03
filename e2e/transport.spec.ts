@@ -40,8 +40,8 @@ test.describe("Transport on fetch (P2.3)", () => {
 
     // A new request has one header row, empty.
     await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
-    await page.getByLabel("Headers name, row 1").fill("Accept");
-    await page.getByLabel("Headers value, row 1").fill("text/plain");
+    await page.getByLabel("Header name, 1 of 1").fill("Accept");
+    await page.getByLabel("Value of Accept").fill("text/plain");
     const second = page.waitForResponse(`${ECHO}/echo`);
     await page.getByRole("button", { name: "Send request" }).click();
     const chosen = ((await (await second).json()) as Reflected).headers.filter(([name]) => name === "accept");

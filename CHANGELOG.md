@@ -440,6 +440,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   cut off under New tab with nothing to say more were there. The side
   that holds tabs out of view now fades.
 
+- **A screen reader names each row by what it holds.** In Params,
+  Headers, a form body, a multipart body and the variables dialogs, a
+  row's controls were named by their place ("Send parameter 2", "Headers
+  value, row 3") or not at all ("Remove part" on every row). They now
+  say the row's name: "Send page", "Value of Accept", "Remove upload",
+  and "Header name, 2 of 3" for the field that holds it.
+
 - **The site's header fits a narrow window again when its fonts do not
   load.** Since the mark became an inline drawing, a header set in a
   fallback face could be 9 px wider than a 360 px window, so the page

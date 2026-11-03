@@ -126,15 +126,15 @@ test("none: a POST is sent with no body and no Content-Type, and the text typed 
 
 test("form: fields are URL-encoded in order, a switched-off row is left out", async ({ page }) => {
   await postWithBody(page, "Form (URL-encoded)");
-  await page.getByLabel("Body name, row 1").fill("q");
-  await page.getByLabel("Body value, row 1").fill("a b&c=é");
+  await page.getByLabel("Field name, 1 of 1").fill("q");
+  await page.getByLabel("Value of q").fill("a b&c=é");
   await page.getByRole("button", { name: "Add field" }).click();
-  await page.getByLabel("Body name, row 2").fill("off");
-  await page.getByLabel("Body value, row 2").fill("1");
-  await page.getByRole("checkbox", { name: "Send body row 2" }).uncheck();
+  await page.getByLabel("Field name, 2 of 2").fill("off");
+  await page.getByLabel("Value of off").fill("1");
+  await page.getByRole("checkbox", { name: "Send off" }).uncheck();
   await page.getByRole("button", { name: "Add field" }).click();
-  await page.getByLabel("Body name, row 3").fill("q");
-  await page.getByLabel("Body value, row 3").fill("again");
+  await page.getByLabel("Field name, 3 of 3").fill("q");
+  await page.getByLabel("Value of q").last().fill("again");
 
   const echo = await sendAndEcho(page);
 
@@ -148,13 +148,13 @@ test("multipart: a text part and a 1 MB file arrive byte for byte, also after th
 }) => {
   const file = randomBytes(1 << 20);
   await postWithBody(page, "Multipart");
-  await page.getByLabel("Part name, row 1").fill("note");
-  await page.getByLabel("Part value, row 1").fill("héllo");
+  await page.getByLabel("Part name, 1 of 1").fill("note");
+  await page.getByLabel("Value of note").fill("héllo");
   await page.getByRole("button", { name: "Add part" }).click();
-  await page.getByLabel("Part name, row 2").fill("upload");
-  await choose(page, "Part type, row 2", "File");
+  await page.getByLabel("Part name, 2 of 2").fill("upload");
+  await choose(page, "Type of upload", "File");
   await page
-    .getByLabel("File for part 2")
+    .getByLabel("File for upload")
     .setInputFiles({ name: "one-megabyte.bin", mimeType: "application/octet-stream", buffer: file });
   await expect(page.getByText("one-megabyte.bin")).toBeVisible();
 
@@ -193,13 +193,13 @@ test("multipart: a Content-Type header is flagged, because it would replace the 
   await expect(warning).toHaveCount(0);
 
   await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
-  await page.getByLabel("Headers name, row 1").fill("content-type");
-  await page.getByLabel("Headers value, row 1").fill("multipart/form-data");
+  await page.getByLabel("Header name, 1 of 1").fill("content-type");
+  await page.getByLabel("Value of content-type").fill("multipart/form-data");
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();
   await expect(warning).toBeVisible();
 
   await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
-  await page.getByRole("checkbox", { name: "Send headers row 1" }).uncheck();
+  await page.getByRole("checkbox", { name: "Send content-type" }).uncheck();
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();
   await expect(warning).toHaveCount(0);
 });

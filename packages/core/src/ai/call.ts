@@ -98,5 +98,6 @@ export function keptModelCall(input: {
         ? { kind: outcome.kind, reported: problem ?? "", summary: problem ?? "" }
         : undefined,
   });
+  if (!keepPrompt) history.record.kept.quoteLeftOut = true;
   return { history, ...(answer !== undefined && { answer }), ...(problem !== undefined && { problem }) };
 }

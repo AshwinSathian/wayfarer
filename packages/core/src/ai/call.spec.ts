@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TransportError, type ResponseEnvelope } from "../transport/transport";
+import { recordLines } from "../send/record";
 import { keptModelCall } from "./call";
 import { modelRequest, type AiProvider } from "./model-call";
 
@@ -57,7 +58,12 @@ describe("a model call as history keeps it (D4.10)", () => {
     expect(history.sent.bodyPreview).toBeUndefined();
     expect(history.template.body).toEqual({ mode: "none" });
     expect(history.response?.body).toBeUndefined();
-    expect(history.record?.kept).toEqual({ response: true, body: false });
+    expect(history.record?.kept).toEqual({ response: true, body: false, quoteLeftOut: true });
+    // The record says the quote was not kept (AI-14).
+    const record = history.record ?? expect.fail("no record");
+    expect(recordLines(record, "history").find((line) => line.field === "kept")?.parts).toEqual([
+      "History kept the request without the response body it quoted, and the response's status and headers, not its body.",
+    ]);
   });
 
   it("says a provider's refusal in its own words, and a call with no response as the transport did", () => {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, effect, inject, signal, untracked } from "@angular/core";
 import { AppShell } from "./components/app-shell/app-shell";
 import { HistoryRepository } from "./data/history-repository";
 import { IdbCore } from "./data/idb-core";
@@ -6,6 +6,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestSettings } from "./services/request-settings";
 import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
+import { ModelCalls } from "./services/model-calls";
 import { recordDiagnostic } from "./services/diagnostics";
 
 @Component({
@@ -22,6 +23,7 @@ export class App implements OnInit {
   private readonly requestSettings = inject(RequestSettings);
   private readonly tabsStorage = inject(TabsStorage);
   private readonly cookieJar = inject(CookieJar);
+  private readonly modelCalls = inject(ModelCalls);
 
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
@@ -39,6 +41,13 @@ export class App implements OnInit {
   /** The user's choice there, kept across reloads. Reset all data removes it with every `wayfarer:` key. */
   private readonly pinned = signal(readPinned());
   private viewportInitialized = false;
+
+  constructor() {
+    // A model call was kept: History lists it with the requests (D4.10).
+    effect(() => {
+      if (this.modelCalls.kept()) untracked(() => void this.refreshPastRequests());
+    });
+  }
 
   ngOnInit(): void {
     void this.initializeHistory();

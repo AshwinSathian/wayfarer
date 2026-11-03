@@ -413,7 +413,9 @@ export class AppShell implements OnInit {
       detail: environment.meta.id === active ? "In use" : undefined,
       run: () => this.handleEnvironmentChange(environment.meta.id),
     }));
+    // A model call loads into no tab (D4.10): History opens it into its record.
     const history: PaletteItem[] = [...this.pastRequests()]
+      .filter((entry) => !entry.model)
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((entry) => ({
         id: String(entry.id ?? entry.createdAt),

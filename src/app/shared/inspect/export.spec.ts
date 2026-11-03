@@ -45,6 +45,13 @@ describe("a history entry as a HAR exchange (P4.6 c)", () => {
     ...patch,
   });
 
+  it("names a model call as one, by its action, in the entry's comment (D4.10)", () => {
+    expect(historyExchange(entry({ model: { action: "tests", model: "m" } })).comment).toBe(
+      "Wayfarer model call: Write tests.",
+    );
+    expect(historyExchange(entry()).comment).toBeUndefined();
+  });
+
   it("is the request as it was sent, not as it was composed, with the response and the time it took", () => {
     expect(historyExchange(entry())).toEqual({
       startedAt: "2026-10-11T10:00:00.000Z",

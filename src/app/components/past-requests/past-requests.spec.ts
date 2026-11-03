@@ -91,6 +91,38 @@ describe("PastRequests", () => {
     expect(shown()).toEqual([]);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain("No request in history matches.");
   });
+  it("lists model calls with the requests, filtered by kind, found by action, host and model, and loads none (D4.10)", async () => {
+    const call: PastRequest = {
+      id: 2,
+      ...historyEntry({
+        method: "POST",
+        url: "https://api.openai.com/v1/chat/completions",
+        status: 200,
+        createdAt: Date.now(),
+      }),
+      model: { action: "explain", model: "gpt-4.1-mini" },
+    };
+    const send: PastRequest = { id: 1, ...historyEntry({ url: "https://api.test/users", createdAt: Date.now() }) };
+    expect(matches(call, "explain gpt-4.1")).toBe(true);
+    expect(matches(call, "api.openai.com")).toBe(true);
+    expect(matches(send, "explain")).toBe(false);
+
+    fixture.componentRef.setInput("pastRequests", [call, send]);
+    await fixture.whenStable();
+    const shown = () => component.groups().flatMap((group) => group.requests.map((request) => request.id));
+    expect(shown()).toEqual([2, 1]);
+    component.kind.set("models");
+    expect(shown()).toEqual([2]);
+    component.kind.set("requests");
+    expect(shown()).toEqual([1]);
+
+    // A model call opens in place; only a send's entry is loaded into a tab.
+    const loadSpy = vi.fn();
+    component.loadRequest.subscribe(loadSpy);
+    component.load(call);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
   describe("choosing entries for a HAR (P4.6 c)", () => {
     const entries: PastRequest[] = [
       { id: 3, ...historyEntry({ url: "https://api.test/c", createdAt: 3000, status: 200 }) },

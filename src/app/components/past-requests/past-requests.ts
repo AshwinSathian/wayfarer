@@ -7,20 +7,42 @@ import { UiButton } from "../../ui/button";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
-import { PastRequest } from "@wayfarer/core";
+import { MODEL_ACTION_WORDS, type PastRequest } from "@wayfarer/core";
+import { UiSegmented, type UiSegment } from "../../ui/segmented";
+import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
 
-/** Whether every word of `query` is part of the entry's URL, or is its method or its status. Case does not matter. */
+/**
+ * Whether every word of `query` is part of the entry's URL, or is its method or its status; for a model call, also
+ * part of its action, host or model (D4.10). Case does not matter.
+ */
 export function matches(request: PastRequest, query: string): boolean {
   const url = request.sent.url.toLowerCase();
   const method = request.sent.method.toLowerCase();
   const status = String(request.response?.status ?? "");
+  const model = request.model
+    ? `${MODEL_ACTION_WORDS[request.model.action]} ${hostOf(request)} ${request.model.model}`.toLowerCase()
+    : "";
   return query
     .toLowerCase()
     .split(/\s+/)
     .filter(Boolean)
-    .every((word) => url.includes(word) || method === word || status === word);
+    .every((word) => url.includes(word) || method === word || status === word || model.includes(word));
 }
+
+/** The host a request went to, as its record names it; the address when it has none. */
+export function hostOf(request: PastRequest): string {
+  return request.record?.host ?? request.sent.url;
+}
+
+/** Which entries History lists: all, the requests sent, or the calls to a model (D4.10). */
+export type HistoryKind = "all" | "requests" | "models";
+
+const KINDS: UiSegment<HistoryKind>[] = [
+  { value: "all", label: "All" },
+  { value: "requests", label: "Requests" },
+  { value: "models", label: "Model calls" },
+];
 
 export interface HistoryGroup {
   label: string;
@@ -29,10 +51,11 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [UiButton, UiInput, DatePipe, Icon, UiTooltip, UiCheckbox, HarExportDialog],
+  imports: [UiButton, UiInput, DatePipe, Icon, UiTooltip, UiCheckbox, HarExportDialog, UiSegmented, ExchangeRecordView],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { "(keydown.escape)": "collapse($event)" },
 })
 export class PastRequests {
   readonly pastRequests = input<PastRequest[]>([]);
@@ -53,8 +76,31 @@ export class PastRequests {
   /** What the search field holds. Each word must be in the URL, or be the method or the status. */
   readonly query = signal("");
 
-  /** The entries the search leaves, newest first as they are given. */
-  private readonly shown = computed(() => this.pastRequests().filter((request) => matches(request, this.query())));
+  protected readonly kinds = KINDS;
+  protected readonly actionWords = MODEL_ACTION_WORDS;
+  protected readonly hostOf = hostOf;
+  /** Which entries are listed. The choice is drawn only while history holds a model call. */
+  readonly kind = signal<HistoryKind>("all");
+  protected readonly hasModelCalls = computed(() => this.pastRequests().some((request) => request.model));
+  /** What the drawer's status region says: the count after the filter changed. */
+  protected readonly said = signal("");
+  /** The model call opened into its record, by id: it loads into no tab (log.md). */
+  protected readonly expanded = signal<number | undefined>(undefined);
+  /** Which kept text of the opened model call is shown. */
+  protected readonly showing = signal<"sent" | "answer" | null>(null);
+
+  /** The entries the filter and the search leave, newest first as they are given. */
+  private readonly shown = computed(() => {
+    const kind = this.hasModelCalls() ? this.kind() : "all";
+    return this.pastRequests().filter(
+      (request) => (kind === "all" || (kind === "models") === !!request.model) && matches(request, this.query()),
+    );
+  });
+
+  protected chooseKind(kind: HistoryKind): void {
+    this.kind.set(kind);
+    this.said.set(`${this.shown().length} ${this.shown().length === 1 ? "entry" : "entries"}.`);
+  }
   readonly groups = computed(() => this.buildGroups(this.shown()));
 
   /** The entries ticked for an export (P4.6 c), by id. One that was deleted since is not among `chosen`. */
@@ -169,8 +215,40 @@ export class PastRequests {
     return `${(ms / 1000).toFixed(1)}s`;
   }
 
+  /** A send's entry loads into a tab; a model call's opens into its record in place, since Send would use its key. */
   load(req: PastRequest) {
-    this.loadRequest.emit(req);
+    if (!req.model) {
+      this.loadRequest.emit(req);
+      return;
+    }
+    this.expanded.set(this.expanded() === req.id ? undefined : req.id);
+    this.showing.set(null);
+  }
+
+  /** Escape inside an opened model call's row closes it, not the drawer, and focus goes back to the row. */
+  protected collapse(event: Event): void {
+    const row = (event.target as HTMLElement).closest(".history-row");
+    if (!row?.querySelector(".history-model-record")) return;
+    event.preventDefault();
+    this.expanded.set(undefined);
+    row.querySelector<HTMLElement>(".history-open")?.focus();
+  }
+
+  /** The headers of what was sent, as kept: one per line. */
+  protected headerLines(request: PastRequest): string {
+    return request.sent.headers.map(([name, value]) => `${name}: ${value}`).join("\n");
+  }
+
+  /** A model call's row as a screen reader names it: "Model call, Write tests, api.openai.com, 200, just now". */
+  protected modelName(request: PastRequest): string {
+    const parts = [
+      "Model call",
+      request.model ? MODEL_ACTION_WORDS[request.model.action] : "",
+      hostOf(request),
+      request.response ? String(request.response.status) : "No response",
+      this.relativeTime(request.createdAt),
+    ];
+    return parts.filter(Boolean).join(", ");
   }
 
   async confirmDelete(req: PastRequest, event: Event): Promise<void> {

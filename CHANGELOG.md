@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History lists model calls, and exports them.** Each call to a model
+  is listed with the requests, as "Model" and its action, host and model,
+  and History gains a Show filter (All, Requests, Model calls) once one is
+  there. A model call opens in place into its exchange record, with what
+  was sent and the answer as kept; it never loads into a tab, where Send
+  would use its key, and the palette no longer offers it. A HAR export
+  names each one in its comment and holds the key as ***. With response
+  bodies off in history, a call whose prompt quoted a response body keeps
+  neither, and its record says so. Before, a model call was kept but not
+  listed until the next send.
+
 - **The model can explain a failed response.** With a provider set up and
   the action on, the exchange record of a response whose status is 400 or
   more has Explain this response…. The call is previewed first, the

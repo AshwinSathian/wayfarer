@@ -81,6 +81,14 @@ export interface PastRequest {
 /** What a model call was for: one of the three actions, or Settings › AI's test of the provider. */
 export type ModelAction = "tests" | "draft" | "explain" | "test";
 
+/** Each model call's action as History and a HAR name it (docs/design/ai/log.md). */
+export const MODEL_ACTION_WORDS: Record<ModelAction, string> = {
+  tests: "Write tests",
+  draft: "Draft a request",
+  explain: "Explain a response",
+  test: "Test the provider",
+};
+
 /**
  * Thrown when a request must not reach the network. The message is
  * user-facing.

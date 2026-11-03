@@ -1,6 +1,6 @@
 import type { ExportBody, HarExchange, RedactOptions } from "@wayfarer/core";
 import { version } from "../../../../package.json";
-import type { PastRequest } from "@wayfarer/core";
+import { MODEL_ACTION_WORDS, type PastRequest } from "@wayfarer/core";
 
 /** What a HAR is made from, for the export dialog: the exchanges, masked as `options` say, and the file's name. */
 export interface HarSource {
@@ -34,6 +34,7 @@ export function historyExchange(entry: PastRequest): HarExchange {
   const body: ExportBody =
     kept && entry.sent.bodyPreview ? { mode: "raw", text: entry.sent.bodyPreview } : { mode: "none" };
   const notes = [
+    ...(entry.model ? [`Wayfarer model call: ${MODEL_ACTION_WORDS[entry.model.action]}.`] : []),
     ...(!kept && mode !== "none"
       ? [
           `The request's body (${mode === "multipart" ? "a multipart form" : "a file"}) is not in history and is left out.`,

@@ -36,6 +36,8 @@ export class ModelCalls {
   readonly draftOpen = signal(false);
   /** The palette asked for Write tests or Explain: the open tab's control asks, once drawn, and clears this. */
   readonly asked = signal<"tests" | "explain" | null>(null);
+  /** How many calls this page has kept in history: History reads it again when it changes. */
+  readonly kept = signal(0);
 
   /** The call a prompt makes, for the preview. Null with no provider: no AI is offered then (AI-1). */
   async prepare(
@@ -103,6 +105,7 @@ export class ModelCalls {
       createdAt: Date.now(),
     });
     await this.history.add(kept.history, this.settings.historyCap());
+    this.kept.update((count) => count + 1);
     return kept;
   }
 }

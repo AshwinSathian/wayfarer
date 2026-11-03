@@ -46,6 +46,9 @@ export class ComposerView {
   }
 
   loadPastRequest(request: PastRequest): void {
+    // A model call is no request a person composed, and its template names the key's secret: it loads into no tab,
+    // where Send would use it (D4.10, docs/design/ai/log.md).
+    if (request.model) return;
     // A History replay is never bound back to a collection request — even
     // if the composer was previously bound, replaying an older history
     // entry shouldn't silently overwrite whatever's saved in the

@@ -193,6 +193,7 @@ export { containsSecretPlaceholder } from "./send/wire";
 export { runAssertions, type AssertionResponseContext, type TestResult } from "./send/assertions";
 export {
   HISTORY_BODY_LIMIT,
+  MODEL_ACTION_WORDS,
   PreRequestScriptError,
   RequestSkipped,
   SendBlockedError,

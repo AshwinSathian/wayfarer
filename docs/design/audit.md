@@ -325,6 +325,7 @@ Evidence: `baseline/1440-light-p-20-vault-create.png`.
 2026-10-23 (hig-review): confirmed; Create vault still does not say that a
 forgotten passphrase cannot be recovered. The wrong passphrase's message
 is not announced: U-062 (D4.11, D4-e). Close this one before v3.0.0.
+**2026-11-03:** Environments' share fixed in #493 (D4-g): the passphrase fields made in a variable's row are labelled above them, and the row says a forgotten passphrase cannot be recovered. The shell's vault dialog is fixed in #PRNUM.
 **2026-11-03:** Fixed in #PRNUM (D4-g): the vault dialog's fields have labels above them, and creating a vault says a forgotten passphrase cannot be recovered, nor the secrets.
 
 ### History, settings, import
@@ -546,6 +547,7 @@ remove button, so `baseUrl` reads `baseUr` and its value `http:/`. The list
 of environments above takes the first half of the window.
 Evidence: `baseline/design-chromium/environments-rows-390-light.png`.
 **Status:** Open, D4-g.
+**2026-11-03:** Fixed in #493 (D4-g): the rows follow the editor's width, not the window's (a container query); where it is narrow the value has a line of its own under the name.
 
 **U-043. Which environment is in use reads three ways.** Severity 3. H4.
 OC.
@@ -555,12 +557,14 @@ switches to it, but it looks like the mark of the chosen one. Every row
 also shows its delete in red at rest, as U-018 found for header rows.
 Evidence: `baseline/design-chromium/environments-rows-1440-light.png`.
 **Status:** Open, D4-g.
+**2026-11-03:** Fixed in #493 (D4-g): the environment in use is said once, by its "In use" tag; every other row has a Use button, and the selected row is marked by an ink bar, not a second colour.
 
 **U-044. Enter does not create a new environment.** Severity 3. H7. SD.
 In the New environment dialog, Enter in the name field does nothing; Create
 is a click. The same dialog for a collection takes Enter.
 Evidence: D0.2's task 3.
 **Status:** Open, D4-g.
+**2026-11-03:** Fixed in #493 (D4-g, DQ9): a new environment is a row of the list, named in place; Enter makes it and Escape puts the row away. The New environment dialog is gone.
 
 ### The Auth editor's OAuth flow
 
@@ -885,6 +889,7 @@ Evidence: `collections-sidebar.ts:487-490`; the rows editor's ×.
 "Undo" in place for a few seconds, the confirm kept for Reset all data and
 Replace all, is the review's proposal). Review row W-24.
 **2026-11-03:** Fixed in #487 (D4-f), the review's model taken under row 1.55's instruction: a delete in the tree goes at once and is offered back for 10 s (kept while the pointer or focus is on the line, WCAG 2.2.1) by Undo or ⌘Z outside a field; it puts back, in one transaction, the records and the files the delete read in its own (`src/app/data/removed.ts`). The confirms stay for Clear history and Reset all data. Undo lasts the page: a reload ends it.
+**2026-11-03:** Environments take the same road in #493 (D4-g): deleting one goes at once with "Removed {name}." and Undo, which puts it back, in use again if it was. The browser's own confirm() asked before.
 
 ### Announcements and names
 
@@ -941,6 +946,7 @@ Evidence: `params-panel.html:13, 32`; `rows-editor.html:10`;
 `multipart-editor.html:7`; `environments-manager.html:185-198`.
 **Status:** Open, D4-g (the rows editors are shared; D4-g takes all of
 them). Review row W-14.
+**2026-11-03:** The environment editor's rows fixed in #493 (D4-g): "Variable name, n of m", "Value of {name}", "Mark {name} as secret", "Remove {name}".
 
 **U-072. The status bar's words are not its controls.** Severity 2. H4,
 H1. All.
@@ -1113,6 +1119,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 (settings). Review row W-39; the remainder of U-004.
 **2026-11-02:** The palette's half fixed in #484 (D4-f): its rows are plain rows in one floating list, no boxes inside it.
 **2026-11-02:** History's skeleton fixed in #485 (D4-f): rows to come are lines, not boxes.
+**2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
 
 ### Environments, the vault and the runner
 
@@ -1697,6 +1704,7 @@ Evidence: task 5b of `docs/design/baseline.md` (D4-l);
 **U-146. The Environments list's "+" sticks out of its card border.**
 Severity 4. H8. All.
 **Status:** Open, D4-g (D4.5). Review row N17.
+**2026-11-03:** Fixed in #493 (D4-g): New environment is a plain icon in the header's line, beside Global variables, Import and Export.
 
 ## Every screen of D0.1, and its findings
 

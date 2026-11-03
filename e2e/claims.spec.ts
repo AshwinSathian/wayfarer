@@ -17,14 +17,14 @@ async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill("Claims env");
-  await page.getByRole("button", { name: "Create environment" }).click();
+  await page.locator("#new-env-name-input").press("Enter");
   await page.getByRole("button", { name: "Add variable" }).click();
-  await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
+  await page.getByPlaceholder("Name", { exact: true }).fill("API_TOKEN");
   await page
     .getByRole("region", { name: "Environments", exact: true })
     .getByPlaceholder("Value", { exact: true })
     .fill(plaintext);
-  await page.getByRole("button", { name: "Mark variable as secret" }).click();
+  await page.getByRole("button", { name: /^Mark .* as secret$/ }).click();
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);

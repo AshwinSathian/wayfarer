@@ -121,17 +121,32 @@ export class EnvironmentsRepository {
     });
   }
 
-  async deleteEnvironment(id: string): Promise<void> {
+  /** Deletes an environment and gives back the record as it was, and whether it was the one in use, for Undo (U-080). */
+  async deleteEnvironment(id: string): Promise<{ doc: EnvironmentDoc; wasActive: boolean } | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
-    await this.core.commitOrRollback(tx, async () => {
+    const doc = await this.core.commitOrRollback(tx, async () => {
+      const found = await tx.objectStore("environments").get(id);
       await tx.objectStore("environments").delete(id);
+      return found ?? null;
     });
 
     const meta = await this.core.getMetaState();
-    if (meta.activeEnvironmentId === id) {
+    const wasActive = meta.activeEnvironmentId === id;
+    if (wasActive) {
       await this.setActiveEnvironment(null);
     }
+    return doc ? { doc, wasActive } : null;
+  }
+
+  /** Undo of a delete: the record put back as it was, and in use again if it was. */
+  async restoreEnvironment(removed: { doc: EnvironmentDoc; wasActive: boolean }): Promise<void> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["environments"]);
+    await this.core.commitOrRollback(tx, async () => {
+      await tx.objectStore("environments").put(removed.doc);
+    });
+    if (removed.wasActive) await this.setActiveEnvironment(removed.doc.meta.id);
   }
 
   async reorderEnvironments(order: { id: string; order: number }[]): Promise<void> {

@@ -43,14 +43,6 @@
   letter-spacing: var(--type-footnote-tracking);
 }
 
-.type-overline {
-  font-size: var(--type-overline-size);
-  line-height: var(--type-overline-line);
-  font-weight: var(--type-overline-weight);
-  letter-spacing: var(--type-overline-tracking);
-  text-transform: uppercase;
-}
-
 .type-mono-body {
   font-family: var(--font-mono);
   font-size: var(--type-mono-body-size);

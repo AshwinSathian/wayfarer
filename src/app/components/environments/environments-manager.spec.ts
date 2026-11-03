@@ -406,7 +406,7 @@ describe("EnvironmentsManager", () => {
       });
     });
 
-    // C-053's stall in WebKit (e2e/FLAKES.md): a second click on "Mark variable as secret" changed nothing for 15 s,
+    // C-053's stall in WebKit (e2e/FLAKES.md): a second click on "Mark this variable as secret" changed nothing for 15 s,
     // and nothing said whether it reached the save. Each way the click goes is written to the console, for a trace.
     it("protectVariable says in the console which way it went", async () => {
       const debug = vi.spyOn(console, "debug").mockImplementation(() => undefined);

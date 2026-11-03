@@ -167,11 +167,11 @@ const TASKS: Task[] = [
       const { page } = user;
       await user.click(button(page, "Environments"));
       await user.click(button(page, "New environment").first());
+      // The new environment is a row named in place, and Enter makes it (U-044).
       await user.type(page.locator("#new-env-name-input"), "Staging", false);
-      // Enter in the name does not create it: a click.
-      await user.click(button(page, "Create environment"));
+      await user.press("Enter");
       await user.click(button(page, "Add variable"));
-      await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "baseUrl");
+      await user.type(page.getByPlaceholder("Name", { exact: true }).last(), "baseUrl");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), ECHO);
       await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
       await user.click(page.getByRole("option", { name: "Staging" }));
@@ -186,13 +186,13 @@ const TASKS: Task[] = [
       const passphrase = "correct horse battery staple";
       await user.click(button(page, "Environments"));
       await user.click(button(page, "New environment").first());
+      // The new environment is a row named in place, and Enter makes it (U-044).
       await user.type(page.locator("#new-env-name-input"), "Prod", false);
-      // Enter in the name does not create it: a click.
-      await user.click(button(page, "Create environment"));
+      await user.press("Enter");
       await user.click(button(page, "Add variable"));
-      await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "token");
+      await user.type(page.getByPlaceholder("Name", { exact: true }).last(), "token");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), "s3cr3t-value");
-      await user.click(button(page, "Mark variable as secret").last());
+      await user.click(button(page, /^Mark .* as secret$/).last());
       const create = page.getByRole("region", { name: "Environments", exact: true });
       await user.type(create.getByLabel("Passphrase", { exact: true }), passphrase, false);
       await user.type(create.getByLabel("Confirm passphrase", { exact: true }), passphrase);

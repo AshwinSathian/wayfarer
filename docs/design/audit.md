@@ -738,6 +738,7 @@ and the "RUN" tab badge (`app-shell.ts:145-219`;
 tree, dialogs and tab badge, D4-g the environments, D4-i the assertion
 builder.
 **2026-11-02:** The tree's menu, the create dialogs' titles and the palette's commands (#484) fixed in #486 (D4-f). The environments' (D4-g) and the assertion builder's (D4-i) remain.
+**2026-11-03:** The environments' share checked in D4-g: the editor's and the list's labels are sentence case ("Add variable", "Key / Value", "New environment", "Global variables"), the "KEY" placeholder is "Name" (#493). The assertion builder's remains with D4-i.
 
 ### Found on the other screens
 
@@ -775,6 +776,7 @@ Open: the shared confirm and the tree's in D4-f, Delete secret in D4-g,
 Reset all data in D4-h.
 **2026-11-02:** History's confirms fixed in #485 (D4-f): Clear history asks "Clear history? Every entry is deleted; collections are not touched. This cannot be undone." with Clear history and Cancel; an entry's Delete names the entry. The shared confirm's default and the tree's confirm are the next D4-f PR's.
 **2026-11-03:** The shared confirm and the tree's fixed in #487 (D4-f): `acceptLabel` is required (no "Proceed"), the glyph and the centred template are gone; the tree no longer asks (U-080); Reset all data and Delete the secret {name} say what goes and the act.
+**2026-11-03:** Delete secret was fixed with the shared confirm in #487 (D4-f): "Delete the secret {name}?" with **Delete**; checked in D4-g. Reset all data remains with D4-h.
 
 ### Found later
 

@@ -173,8 +173,6 @@ const TASKS: Task[] = [
       await user.click(button(page, "Add variable"));
       await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "baseUrl");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), ECHO);
-      await user.press("Escape");
-      await expect(page.getByRole("dialog")).toHaveCount(0);
       await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
       await user.click(page.getByRole("option", { name: "Staging" }));
       await expect(page.getByRole("banner").getByRole("combobox", { name: "Environment" })).toContainText("Staging");
@@ -195,12 +193,13 @@ const TASKS: Task[] = [
       await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "token");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), "s3cr3t-value");
       await user.click(button(page, "Mark variable as secret").last());
-      const create = page.getByRole("dialog", { name: "Environments", exact: true });
+      const create = page.getByRole("region", { name: "Environments", exact: true });
       await user.type(create.getByLabel("Passphrase", { exact: true }), passphrase, false);
       await user.type(create.getByLabel("Confirm passphrase", { exact: true }), passphrase);
       await user.click(button(create, "Create vault"));
       await expect(page.getByText("Secret stored")).toBeVisible();
-      await user.press("Escape");
+      // The environments are a tab (D4.5): back to the request's.
+      await user.click(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first());
       await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
       await user.click(page.getByRole("option", { name: "Prod" }));
       await user.type(address(page), `${ECHO}/echo?token={{token}}`);

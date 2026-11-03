@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { closeEnvironments } from "./support/app";
 
 // P7.1: the core flow with the keyboard alone, and a focus ring on every
 // stop Tab reaches. No click, no fill: keys only, as a user without a
@@ -169,7 +170,6 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
     "Settings",
     "Route: direct",
     "Secrets",
-    "Environments",
     "New collection",
     "Search or run a command",
   ]) {
@@ -218,7 +218,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await opens("Search or run a command", page.getByPlaceholder("Search or run a command"));
-  // New environment is in the environments dialog: it opens on its field, and Escape gives focus back to the button.
+  // New environment is in the Environments tab: its dialog opens on its field, and Escape gives focus back to the button.
   await page.getByRole("button", { name: "Environments", exact: true }).click();
   const newEnvironment = page.getByRole("button", { name: "New environment", exact: true }).first();
   await newEnvironment.focus();
@@ -227,8 +227,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Escape");
   await expect(page.locator("#new-env-name-input")).toHaveCount(0);
   await expect(newEnvironment).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await closeEnvironments(page);
   // From the Import menu, by keys: the paste box opens on its field, and Escape gives focus back to Import.
   const importButton = page.locator("app-collections-sidebar").getByRole("button", { name: "Import", exact: true });
   await importButton.focus();

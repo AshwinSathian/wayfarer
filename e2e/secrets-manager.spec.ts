@@ -35,11 +35,14 @@ test.describe("Secrets management view", () => {
     // hidden, which a loose, case-insensitive match would collide with.
     await page.getByRole("button", { name: "Add variable" }).click();
     await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
-    await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill("super-secret-value");
+    await page
+      .getByRole("region", { name: "Environments", exact: true })
+      .getByPlaceholder("Value", { exact: true })
+      .fill("super-secret-value");
 
     // With no vault, the row asks for a passphrase itself, makes the vault and marks the variable (U-135, U-136).
     await page.getByRole("button", { name: "Mark variable as secret" }).click();
-    const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+    const dialog = page.getByRole("region", { name: "Environments", exact: true });
     await dialog.getByLabel("Passphrase", { exact: true }).fill("correct horse battery staple");
     await dialog.getByLabel("Confirm passphrase", { exact: true }).fill("correct horse battery staple");
     await dialog.getByRole("button", { name: "Create vault" }).click();

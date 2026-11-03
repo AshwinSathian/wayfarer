@@ -122,7 +122,7 @@ export class TabsStorage {
 
   /** The tabs that are stored: a tab of a collection run lives in the page only (P5.2). */
   private storable(): TabState[] {
-    return this.tabs.tabs().filter((tab) => !tab.run);
+    return this.tabs.tabs().filter((tab) => !tab.document);
   }
 
   private record(tab: TabState, order: number): Stored {
@@ -200,7 +200,7 @@ export class TabsStorage {
       const pristine =
         here.size === 1 &&
         this.tabs.tabs().length === 1 &&
-        !tab.run &&
+        !tab.document &&
         !tab.dirty() &&
         !tab.bound() &&
         !tab.loadingState() &&

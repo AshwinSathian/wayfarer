@@ -20,6 +20,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChild,
   output,
 } from "@angular/core";
@@ -43,7 +44,6 @@ import { BridgeSettings } from "../../services/bridge-settings";
 import { Composer } from "../composer/composer";
 import { PastRequests } from "../past-requests/past-requests";
 import { CollectionsSidebar, PaletteAction } from "../collections/collections-sidebar";
-import { EnvironmentsManager } from "../environments/environments-manager";
 import { SecretsManager } from "../secrets/secrets-manager";
 import { Settings, type SettingsSection } from "../settings/settings";
 import { Icon } from "../../shared/icon/icon";
@@ -69,7 +69,6 @@ import { UiSelect } from "../../ui/select";
     Composer,
     PastRequests,
     CollectionsSidebar,
-    EnvironmentsManager,
     SecretsManager,
     Settings,
     Palette,
@@ -201,12 +200,15 @@ export class AppShell implements OnInit {
 
   readonly secretsDialogVisible = signal(false);
   /** The environments editor, a dialog: the page holds the request and its response only. */
-  readonly environmentsVisible = signal(false);
+  /** The Environments tab (D4.5): it replaced the dialog that lost edits and stacked dialogs (U-060, U-085). */
+  protected openEnvironmentsTab(): void {
+    this.composer().openEnvironments();
+  }
   private readonly variableFocus = inject(VariableFocus);
   /** A variable chip or the secrets list asks to see an environment's variable, or to add a missing one: the editor opens for it. */
   private readonly openForVariable = effect(() => {
     const source = this.variableFocus.pending()?.source;
-    if (source === "environment" || source === "missing") this.environmentsVisible.set(true);
+    if (source === "environment" || source === "missing") untracked(() => this.openEnvironmentsTab());
   });
   readonly settingsDialogVisible = signal(false);
 
@@ -253,7 +255,7 @@ export class AppShell implements OnInit {
       {
         id: "environments",
         label: "Environments",
-        run: () => this.environmentsVisible.set(true),
+        run: () => this.openEnvironmentsTab(),
       },
       {
         id: "focus-address-bar",
@@ -374,7 +376,7 @@ export class AppShell implements OnInit {
     this.closeNavigation();
     open();
   }
-  protected readonly openEnvironments = () => this.environmentsVisible.set(true);
+  protected readonly openEnvironments = () => this.openEnvironmentsTab();
   protected readonly openHistoryRow = () => this.openHistory();
 
   /** The drawer's search row: the drawer closes first, so the palette opens over the page. */

@@ -216,18 +216,20 @@ export function withoutMethod(name: string): string {
 }
 
 /** Opens the environments editor, a dialog of its own, and gives it. */
+/** Opens the Environments tab (D4.5) and gives back its region. */
 export async function openEnvironments(page: Page): Promise<Locator> {
-  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
-  if (!(await dialog.count())) await toolbarOrDrawer(page, "Environments");
-  await expect(dialog).toBeVisible();
-  return dialog;
+  const region = page.getByRole("region", { name: "Environments", exact: true });
+  if (!(await region.isVisible())) await toolbarOrDrawer(page, "Environments");
+  await expect(region).toBeVisible();
+  return region;
 }
 
-/** Closes the environments editor; the composer is reachable again. */
+/** Closes the Environments tab; the request tab beside it is open again. */
 export async function closeEnvironments(page: Page): Promise<void> {
-  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
-  await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
-  await expect(dialog).toHaveCount(0);
+  const tab = page.getByRole("tablist", { name: "Open requests" }).getByRole("tab", { name: /Environments/ });
+  await tab.click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Close tab", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Environments", exact: true })).toHaveCount(0);
 }
 
 /** In the open environment, a protected variable holding `plaintext`, saved; the vault is made for it. The editor is closed after. */
@@ -241,7 +243,7 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
   await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
   // With no vault, the row asks for its passphrase in place and marks the variable once it is made.
-  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByRole("button", { name: "Create vault" }).click();

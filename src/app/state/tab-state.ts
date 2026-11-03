@@ -129,6 +129,15 @@ export class TabState {
   readonly socket = new SocketState();
   /** A tab that holds a collection run instead of a request (P5.2). It is one from the moment it is opened, and it is not stored. */
   run: RunState | null = null;
+  /**
+   * The Environments tab (D4.5, DQ9): the environments and their variables, edited where a request is, not in a dialog
+   * over the page. One at most; it is not stored.
+   */
+  environments = false;
+  /** A tab that holds no request: a run, or the Environments tab. Nothing is sent or saved from it. */
+  get document(): boolean {
+    return !!this.run || this.environments;
+  }
   /** Set on the tab a request of a collection run is sent from (P5.2): which iteration, and the data file's row. Such a tab is in no strip. */
   iteration?: RunIteration;
   /** Set for a send that reconnects an event stream (P5.6): the last id the stream gave, sent as `Last-Event-ID` as the server wrote it. */
@@ -211,6 +220,7 @@ export class TabState {
     copy.baseline.set(this.baseline());
     // A second tab of a run is a run of the same requests, not yet started.
     if (this.run) copy.run = new RunState(this.run.target);
+    copy.environments = this.environments;
     return copy;
   }
 }

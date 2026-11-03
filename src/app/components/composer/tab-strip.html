@@ -15,7 +15,9 @@
       (keydown)="tabKey(tab, $event)"
       (dblclick)="rename(tab)"
     >
-      <span class="request-tab-method">{{ tab.run ? "Run" : isSocket(tab) ? "WS" : tab.draft().method }}</span>
+      <span class="request-tab-method"
+        >{{ tab.environments ? "Env" : tab.run ? "Run" : isSocket(tab) ? "WS" : tab.draft().method }}</span
+      >
       <span class="request-tab-name">{{ label(tab) }}</span>
       @if (tab.dirty()) {
       <span class="request-tab-unsaved" role="img" aria-label="Unsaved changes"></span>

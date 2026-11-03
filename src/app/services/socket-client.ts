@@ -43,7 +43,7 @@ export class SocketClient {
   /** The open tab's address is a WebSocket's. */
   readonly isSocket = computed(() => {
     const tab = this.tabs.active();
-    return !tab.run && /^wss?:/i.test(this.resolved(tab.draft().url.trim()) ?? "");
+    return !tab.document && /^wss?:/i.test(this.resolved(tab.draft().url.trim()) ?? "");
   });
 
   /** `text` with the open tab's variables replaced, or undefined when they refer to each other in a circle. */

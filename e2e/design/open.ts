@@ -228,7 +228,9 @@ async function makeVault(page: Page): Promise<void> {
   await seed(page);
   await openEnvironments(page);
   await page.getByRole("button", { name: "Mark variable as secret" }).nth(1).click();
-  await expect(page.getByRole("dialog", { name: "Environments" }).getByLabel("Confirm passphrase")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Environments", exact: true }).getByLabel("Confirm passphrase"),
+  ).toBeVisible();
 }
 
 /** How each screen of the index is reached from a fresh page. */
@@ -440,7 +442,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "vault-create": makeVault,
   "vault-unlock": async (page) => {
     await makeVault(page);
-    const create = page.getByRole("dialog", { name: "Environments", exact: true });
+    const create = page.getByRole("region", { name: "Environments", exact: true });
     await create.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
     await create.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
     await button(create, "Create vault").click();

@@ -141,7 +141,7 @@ runs only if its own digest is there, so one that a later import changed
 waits again. <!-- claim:C-051 -->
 One redirect the app does ask about: when the pre-request script of a send
 moved the request to another host and the request uses a vault secret, a
-dialog names both hosts before the vault is read. Answered "Don't send",
+dialog names both hosts before the vault is read. Answered "Do not send",
 nothing is sent and the variables that script set are put back.
 <!-- claim:C-053 --> This compares one send. A host that an earlier
 script stored in a variable is, by the next send, the variable's value, and

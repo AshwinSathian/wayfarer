@@ -690,6 +690,7 @@ against `baseline/design-chromium/settings-general-390-light.png`;
 `baseline/second-pass/webkit-run-390-light.png`.
 **Status:** Open, D4-h.
 **2026-11-03:** Fixed in #506 (D4-h): a dialog a click or a touch opened carries `data-quiet-focus` until a key is pressed in it, and draws no ring inside it meanwhile (`UiModal`, the CDK's `InputModalityDetector`; `dialog.css`). `focus({ focusVisible: false })` was tried first: WebKit does not hold to it. Run again in the run's view is focus moved by the run, not a dialog, and is left for D4-i.
+**2026-11-03:** Run again fixed in #510 (D4-i): with one button for Run and Cancel, focus stays on the button a click put it on, and nothing moves it by code.
 
 **U-057. Number fields show the browser's arrows in Firefox and WebKit.**
 Severity 3. H4. All.
@@ -1060,6 +1061,7 @@ SD, QA.
 A double click sends and cancels. "Cancel run" is red and filled.
 Evidence: `run-view.html:8-13`; `address-row.html:103-112`.
 **Status:** Send fixed in #452 (D4-e): the second click of a double click is not a Cancel. Run remains with D4-i. Review row W-36.
+**2026-11-03:** Run fixed in #510 (D4-i): Run and Cancel run are one button, as Send is; the second click of a double click neither cancels nor, after a short run, starts another; Cancel run is the secondary fill, not red.
 
 **U-090. Tab panels that hold controls are Tab stops of their own.**
 Severity 3. H7. Everyone on a keyboard.
@@ -1161,6 +1163,7 @@ file) is still first; the counts and failures are below it.
 Evidence: `runner/run-view.html:17-98`;
 [`hig-review/1440-dark-34-run.png`](hig-review/1440-dark-34-run.png).
 **Status:** Open, D4-i. Review row W-41b.
+**2026-11-03:** Fixed in #510 (D4-i): once a run starts the setup folds to one line ("1 iteration, no delay, …" and Change), so after a run the counts and the results come first; Change opens the form.
 
 **U-069. "Send to a different host?" hides what Yes allows.** Severity 2.
 H2, H5. PE, QA.

@@ -660,7 +660,8 @@ for (const theme of ["dark", "light"] as const) {
         })
         .toBeLessThanOrEqual(0);
       // The table scrolls inside its own region when it must; the buttons stay in the window.
-      for (const name of ["Run again", "JSON", "JUnit XML", "HAR…", "Data file…"]) {
+      // After a run the setup is one line with Change (U-096).
+      for (const name of ["Run again", "JSON", "JUnit XML", "HAR…", "Change"]) {
         // Polled, like the width: the drawer's change of layout takes a moment.
         await expect
           .poll(
@@ -736,4 +737,22 @@ test("a run's row opens into its exchange record: where the request went, and th
     "Sent from this page to 127.0.0.1:4300.",
   );
   await expect(record).toHaveCount(0);
+});
+
+// U-096 and U-091: after a run its results come first and the setup is one line until Change; Run and Cancel are one
+// button, so the second click of a double click does not stop the run the first started.
+test("after a run the setup is one line, Change opens it, and a double click on Run does not cancel", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedCollection(page, [{ name: "Fine", url: `${ECHO}/echo` }]);
+  const view = await openRun(page);
+  await expect(view.getByLabel("Iterations")).toBeVisible();
+  await view.getByRole("button", { name: "Run", exact: true }).dblclick();
+  await expect(status(view)).toContainText("The run is complete.", { timeout: 30_000 });
+  await expect(status(view)).not.toContainText("cancelled", { ignoreCase: true });
+  await expect(view.getByLabel("Iterations")).toHaveCount(0);
+  await expect(view.locator(".run-setup-summary")).toHaveText(/^1 iteration, no delay\s*Change$/);
+  await view.getByRole("button", { name: "Change", exact: true }).click();
+  await expect(view.getByLabel("Iterations")).toBeVisible();
 });

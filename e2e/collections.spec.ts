@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { seedAndOpen } from "./support/app";
+import { dumpIdb, seedAndOpen } from "./support/app";
 
 test.describe("Collections", () => {
   test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({
@@ -205,4 +205,31 @@ test("a deleted folder comes back with what was in it, by Undo or by Ctrl+Z", as
   await page.getByRole("tree").getByText("Tripwire folder", { exact: true }).click();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tree").getByText("Tripwire request", { exact: true })).toBeVisible();
+});
+
+// U-139: a switched-off parameter is not in the address, and reading the address again dropped it: on opening the
+// request, on an edit of the address, and so on a save.
+test("a switched-off query parameter stays through opening, an edit of the address and a save", async ({ page }) => {
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo?a=1`,
+      params: [
+        { key: "a", value: "1", enabled: true },
+        { key: "off", value: "x", enabled: false },
+      ],
+    },
+  );
+  const off = page.getByRole("checkbox", { name: "Send parameter 2" });
+  await expect(off).not.toBeChecked();
+  await page.locator("input.address-url").fill(`${ECHO}/echo?a=1&b=2`);
+  await expect(off).not.toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Send parameter 3" })).toBeChecked();
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByRole("img", { name: "Unsaved changes" })).toHaveCount(0);
+  await expect
+    .poll(async () => JSON.stringify((await dumpIdb(page))["requests"]))
+    .toContain('{"key":"off","value":"x","enabled":false}');
 });

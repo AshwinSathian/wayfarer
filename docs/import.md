@@ -148,9 +148,6 @@ What the report says could not be kept:
 - **A path variable** (`/users/:id`). The app has `{{variables}}` only. One
   with a value in the file is replaced by the value; one without becomes
   `{{id}}`, which the composer asks you for before it sends.
-- **A query parameter that is switched off.** It is kept and an export
-  writes it back, but the composer has no switch for a parameter: it does
-  not show one, and saving the request there drops it.
 - **Files.** A file is named, not included: choose it again in the Body tab.
 - **Saved responses** (examples). The app keeps responses in its history.
 - **A request with no address**, or with a method that is not an HTTP

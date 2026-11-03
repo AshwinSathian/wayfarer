@@ -57,6 +57,8 @@ export interface SeededRequest {
   preRequestScript?: string;
   postRequestScript?: string;
   tests?: unknown[];
+  /** As stored; an empty list when absent. */
+  params?: { key: string; value: string; enabled: boolean }[];
   /** What the request's collection holds for it (P4.9), as stored. Its scripts count as written here, like the request's. */
   collection?: { auth?: unknown; scripts?: { pre: string; post: string }; variables?: Record<string, string> };
   /** Puts the request in a folder that holds this. */
@@ -148,7 +150,7 @@ export async function seedAndOpen(
         order: 0,
         method: request.method,
         url: request.url,
-        params: [],
+        params: request.params ?? [],
         headers: rows(request.headers ?? {}),
         body:
           request.storedBody ??

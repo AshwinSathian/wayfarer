@@ -1619,6 +1619,7 @@ row has a "Send parameter N" checkbox bound to `param.enabled`.
 Evidence: `packages/core/src/import/postman.ts:234`;
 `composer/params-panel.html:11-14`.
 **Status:** Open, D4-h (D4.7). Review row N10.
+**2026-11-03:** Fixed in #PRNUM (D4-h, D4.7): reading the address again (opening a request, an edit of the address, a run) keeps the switched-off parameters it was given, in their places (`parseParamsFromUrl`); the import says nothing of them any more, since nothing is lost, and `docs/import.md` loses the line.
 
 **U-141. The import review's buttons are named "Confirm import" and
 "Cancel import".** Severity 3. H4. All.

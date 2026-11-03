@@ -328,7 +328,7 @@ export class WorkspaceStore {
 
   /** The URL field was edited: the Params rows mirror its query. */
   setUrl(url: string): void {
-    this.patch({ url, params: parseParamsFromUrl(url) });
+    this.patch({ url, params: parseParamsFromUrl(url, this.draft().params) });
     this.refreshVariablePreview();
   }
 
@@ -336,7 +336,7 @@ export class WorkspaceStore {
   load(request: RequestContent): void {
     this.draft.set({
       ...structuredClone(request),
-      params: parseParamsFromUrl(request.url),
+      params: parseParamsFromUrl(request.url, request.params),
       responseId: this.draft().responseId,
     });
     this.endpointError.set("");
@@ -663,7 +663,7 @@ export class WorkspaceStore {
     run: RunSend,
   ): Promise<{ outcome: RunOutcome; exchange?: PastRequest; scriptsSkipped: boolean }> {
     const tab = new TabState();
-    tab.draft.set({ ...structuredClone(doc), params: parseParamsFromUrl(doc.url) });
+    tab.draft.set({ ...structuredClone(doc), params: parseParamsFromUrl(doc.url, doc.params) });
     tab.bound.set(doc);
     tab.iteration = iteration;
     const controller = new AbortController();

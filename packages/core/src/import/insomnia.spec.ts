@@ -610,7 +610,6 @@ describe("an Insomnia export (P4.4)", () => {
       { key: "debug", value: "1", enabled: false },
     ]);
     expect(warnings.map((warning) => warning.message.slice(0, 40))).toEqual([
-      "A query parameter that is switched off (",
       "The path variable :id is replaced by its",
       "The path variable :post has no value in ",
     ]);

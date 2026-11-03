@@ -68,13 +68,16 @@ function encodeQueryPart(text: string): string {
  * mirrors whatever `?a=b&c=d` is in the URL field). A single blank row when
  * there is no query.
  */
-export function parseParamsFromUrl(url: string): QueryParamRow[] {
+export function parseParamsFromUrl(url: string, previous: QueryParamRow[] = []): QueryParamRow[] {
   const entries = [...new URLSearchParams(splitEndpoint(url).query)].map(([key, value]) => ({
     key,
     value,
     enabled: true,
   }));
-  return entries.length ? entries : [{ key: "", value: "", enabled: true }];
+  // A switched-off row is not in the address: it is kept from the rows before, in its place among them (U-139).
+  const rows = previous.flatMap((row) => (row.enabled ? entries.splice(0, 1) : [{ ...row }]));
+  rows.push(...entries);
+  return rows.length ? rows : [{ key: "", value: "", enabled: true }];
 }
 
 /**

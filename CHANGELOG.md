@@ -291,6 +291,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A switched-off query parameter is kept.** Opening a request, editing
+  its address or saving it dropped every parameter whose box was
+  unchecked, and an imported Postman request warned that it would.
+
 - **High contrast mode keeps five marks it lost, and values read left to
   right on a right-to-left page.** With Windows' contrast themes (forced
   colours), the environment select's focus, a tab's unsaved dot, the

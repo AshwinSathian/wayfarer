@@ -187,7 +187,9 @@ test("the preview's chip for a variable with no value adds it to the environment
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/{{nowhere}}`);
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
   await expect(chip).toContainText("No value");
+  // The request is in a collection: the chip asks where the variable goes (D4.5).
   await chip.press("Enter");
+  await page.getByRole("menuitem", { name: 'Add nowhere to environment "Tripwire env"' }).click();
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
@@ -293,5 +295,24 @@ test("with no environment, the chip for a variable with no value makes one with 
   await expect(region.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
   await region.getByPlaceholder("Value", { exact: true }).last().fill("echo");
   await closeEnvironments(page);
+  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+});
+
+// D4.5: a missing variable of a request in a collection can go into the collection, in its settings' Variables.
+test("the chip for a variable with no value can add it to the request's collection", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/{{nowhere}}` });
+  const chip = page.getByRole("button", { name: /^nowhere Missing/ });
+  await chip.press("Enter");
+  await expect(page.getByRole("menuitem")).toHaveCount(2);
+  await page.keyboard.press("Escape");
+  await expect(chip).toBeFocused();
+  await chip.click();
+  await page.getByRole("menuitem", { name: 'Add nowhere to collection "Tripwire collection"' }).click();
+  const settings = page.getByRole("dialog", { name: /Tripwire collection/ });
+  await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
+  await expect(settings.getByPlaceholder("name").last()).toHaveValue("nowhere");
+  await settings.getByPlaceholder("value").last().fill("echo");
+  await settings.getByRole("button", { name: /^Save/ }).click();
+  await expect(settings).toBeHidden();
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
 });

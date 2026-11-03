@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import type { PreviewVariable } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { RequestSave } from "../../services/request-save";
 import { VariableFocus } from "../../services/variable-focus";
 import { WorkspaceStore } from "../../state/workspace-store";
+import { UiMenu } from "../../ui/menu";
+import type { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
 import { AUTH_TYPES } from "./auth-editor/auth-editor";
 
@@ -15,7 +17,7 @@ import { AUTH_TYPES } from "./auth-editor/auth-editor";
  */
 @Component({
   selector: "app-variable-chips",
-  imports: [UiTooltip],
+  imports: [UiTooltip, UiMenu],
   templateUrl: "./variable-chips.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block space-y-2" },
@@ -48,6 +50,8 @@ export class VariableChips {
   protected action(variable: PreviewVariable): string {
     const { name, source } = variable;
     if (source === "environment") return `Show ${name} in its environment.`;
+    if (source === "missing" && this.saved.loadedCollectionRequest())
+      return `Add ${name} to the environment or the collection.`;
     if (source === "missing")
       return this.environments.activeEnvironment()
         ? `Add ${name} to the environment.`
@@ -59,12 +63,41 @@ export class VariableChips {
     return "";
   }
 
-  protected act(variable: PreviewVariable): void {
+  /** Where a missing variable may go when the request is in a collection (D4.5): the environment or the collection. */
+  protected readonly placeItems = signal<UiMenuItem[]>([]);
+
+  protected act(variable: PreviewVariable, chip: HTMLElement, menu: UiMenu): void {
     if (!this.action(variable)) return;
+    const bound = this.saved.loadedCollectionRequest();
+    if (variable.source === "missing" && bound) {
+      const environment = this.environments.activeEnvironment();
+      const { name } = variable;
+      this.placeItems.set([
+        {
+          label: environment ? `Add ${name} to environment "${environment.name}"` : `Add ${name} to a new environment`,
+          icon: "dns",
+          command: () => this.focus(variable),
+        },
+        {
+          label: `Add ${name} to collection "${this.saved.breadcrumb()[0] ?? ""}"`,
+          icon: "folder",
+          command: () => this.focus(variable, { collectionId: bound.collectionId }),
+        },
+      ]);
+      // Under the chip, as a button's menu would be; Escape and Tab give focus back to it.
+      const box = chip.getBoundingClientRect();
+      menu.openAt(new MouseEvent("contextmenu", { clientX: box.left, clientY: box.bottom }), () => chip.focus());
+      return;
+    }
+    this.focus(variable);
+  }
+
+  private focus(variable: PreviewVariable, into?: { collectionId: string }): void {
     const environmentId = this.environments.activeEnvironment()?.meta.id;
     const holder =
-      (variable.source === "collection" || variable.source === "folder") &&
-      this.saved.holderOf(variable.name, variable.source);
+      into ??
+      ((variable.source === "collection" || variable.source === "folder") &&
+        this.saved.holderOf(variable.name, variable.source));
     this.variableFocus.requestFocus({
       key: variable.name,
       source: variable.source,

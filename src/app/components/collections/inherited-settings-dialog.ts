@@ -124,7 +124,11 @@ export class InheritedSettingsDialog {
       this.tab.set(untracked(this.target)?.variable ? "variables" : "auth");
       this.showPassword.set(false);
       this.auth.set(structuredClone(node.auth));
-      this.rows.set(node.variables.map((row) => ({ ...row })));
+      const rows = node.variables.map((row) => ({ ...row }));
+      // Opened from a chip of a variable it does not hold (D4.5): a row of that name, its value to type.
+      const asked = untracked(this.target)?.variable;
+      if (asked && !rows.some((row) => row.key === asked)) rows.push({ key: asked, value: "", enabled: true });
+      this.rows.set(rows);
       this.scripts.set({ ...node.scripts });
       this.route.set(("route" in node && node.route) || null);
     });

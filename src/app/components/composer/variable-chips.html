@@ -1,3 +1,5 @@
+<!-- First: it draws nothing here (display: contents), and last it would give the chips the stack's margin. -->
+<ui-menu #placeMenu [items]="placeItems()" />
 <p class="preview-address type-footnote text-label-secondary min-w-0 break-all"
   >Sends to <span class="font-mono text-label-primary">{{ store.previewAddress() }}</span></p
 >
@@ -7,13 +9,14 @@
 <div class="flex flex-wrap gap-2">
   @for (variable of store.previewVariables(); track variable.name) { @let does = action(variable);
   <div
+    #chip
     class="var-chip var-{{ variable.source === 'missing' ? 'missing' : variable.source === 'environment' ? 'environment' : 'request' }}"
     [attr.role]="does ? 'button' : null"
     [attr.tabindex]="does ? 0 : null"
     [uiTooltip]="does"
-    (click)="act(variable)"
-    (keydown.enter)="act(variable)"
-    (keydown.space)="$event.preventDefault(); act(variable)"
+    (click)="act(variable, chip, placeMenu)"
+    (keydown.enter)="act(variable, chip, placeMenu)"
+    (keydown.space)="$event.preventDefault(); act(variable, chip, placeMenu)"
   >
     <div class="flex items-center gap-1.5">
       <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>

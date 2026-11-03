@@ -276,6 +276,20 @@ describe("Composer", () => {
     expect(view.activeTab()).toBe("body");
   });
 
+  // U-144: a past request opens in a tab of its own; only an empty new tab is taken for it.
+  it("loadPastRequest opens a tab of its own, unless the open tab is an empty new one", () => {
+    const tabs = TestBed.inject(Tabs);
+    component.loadPastRequest(historyEntry({ url: "https://history.example.com/one", createdAt: 1 }));
+    expect(tabs.tabs().length).toBe(1);
+
+    const first = tabs.active();
+    first.markClean();
+    component.loadPastRequest(historyEntry({ url: "https://history.example.com/two", createdAt: 2 }));
+    expect(tabs.tabs().length).toBe(2);
+    expect(first.draft().url).toBe("https://history.example.com/one");
+    expect(store.draft().url).toBe("https://history.example.com/two");
+  });
+
   it("loadPastRequest clears any existing collection-request binding", () => {
     component.loadCollectionRequest(makeRequestDoc());
     expect(requestSave.loadedCollectionRequest()).not.toBeNull();

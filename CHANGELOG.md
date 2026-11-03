@@ -442,6 +442,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   off. The layout's widths now grow with the text, so that window is laid
   out as a 720 px one. At the default size nothing moves.
 
+- **A request opened from history gets a tab of its own.** It replaced
+  the open request's tab with no sign it had, and the collections tree
+  kept showing the replaced request as selected. It now opens beside it,
+  and an empty new tab is the only one it takes. The tree's selection
+  follows the open tab: its request, or none when the tab holds a
+  request that is not saved.
+
 - **A request you sent and never saved is not marked unsaved.** History
   keeps every send, yet a tab whose request was never saved kept its
   unsaved dot after each send, and closing it asked whether to discard

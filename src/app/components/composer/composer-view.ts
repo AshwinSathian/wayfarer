@@ -53,7 +53,8 @@ export class ComposerView {
     // if the composer was previously bound, replaying an older history
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
-    this.keepUnsaved();
+    // A tab of its own (U-144): it replaced the open request, saved or not, with no cue. Only an empty new tab is taken.
+    if (!this.tabs.active().empty()) this.tabs.open();
     this.requestSave.bind(null);
     this.trust.openedFromHistory(request.template);
     this.load(request.template);

@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Wayfarer's brand files are in one place.** `packages/tokens/brand/`
+  holds the mark, the wordmark, the favicon, the installed app's icons and
+  a social image, written from the design tokens, so they cannot drift
+  from the app's colours. The mark keeps its glyph and loses its
+  blue-to-violet gradient for the ink Send is drawn in. The app and the
+  site take the new files in the changes that follow.
+
 - **AI has a page of its own, and its promises are tested claims.**
   `docs/ai.md` says how to set up a provider, what each call sends and
   when, what a proposal can change, and what History keeps. Its fifteen

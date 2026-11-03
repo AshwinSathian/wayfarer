@@ -17,7 +17,7 @@ npx wayfarer-cli run orders.postman_collection.json -e local.postman_environment
 ✓ Fetch order: 200 OK, 2 ms
     ✓ the SKU came back
 
-2 results in 1 iteration; 0 failed; 3 of 3 tests passed.
+The run is complete. 2 results in 1 iteration; 0 failed; 3 of 3 tests passed.
 ```
 
 When a test fails, the line says what was expected, and the exit code is `1`:
@@ -26,8 +26,12 @@ When a test fails, the line says what was expected, and the exit code is `1`:
 ✗ Fetch order: 200 OK, 3 ms
     ✗ the SKU came back: expected 'ABC-2' to deeply equal 'ABC-1'
 
-2 results in 1 iteration; 1 failed; 2 of 3 tests passed.
+The run is complete. 2 results in 1 iteration; 1 failed; 2 of 3 tests passed.
 ```
+
+The words are the app's run view's. An error several requests share is said
+in full the first time, as "Same error as before." after that, and once more
+under the summary with how many requests it stopped.
 
 ## Install
 

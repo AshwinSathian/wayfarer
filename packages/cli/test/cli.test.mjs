@@ -383,6 +383,28 @@ test("a refused connection is said as Node saw it, not as a browser would", asyn
   assert.doesNotMatch(run.stdout, /browser|CORS|cross-origin|Local Bridge/i);
 });
 
+// D4.9: the terminal says what the app's run view says. A cause many requests share is said in full once, each
+// later row says "Same error as before.", and the summary ends with the run's ending, its counts and the shared error.
+test("a shared error is said once, and the summary is the app's sentences", async () => {
+  const closed = createServer();
+  await new Promise((resolve) => closed.listen(0, "127.0.0.1", resolve));
+  const port = closed.address().port;
+  closed.close();
+  const url = `http://127.0.0.1:${port}/`;
+  const path = await file(
+    "shared.json",
+    collectionFile([request("One", { url }), request("Two", { url }), request("Three", { url })]),
+  );
+  const run = await cli(["run", path]);
+  assert.equal(run.code, 1);
+  assert.equal(run.stdout.match(/ECONNREFUSED/g)?.length, 2, run.stdout);
+  assert.equal(run.stdout.match(/Same error as before\./g)?.length, 2, run.stdout);
+  assert.match(
+    run.stdout,
+    /\nThe run is complete\. 3 results in 1 iteration; 3 failed; 0 of 0 tests passed\.\n3 requests failed with the same error\. .*ECONNREFUSED.*\n$/,
+  );
+});
+
 test("what cannot be run is said, with exit code 2", async () => {
   const path = await file("one.json", collectionFile([request("One", { url: `${recorded}/` })]));
   const cases = [

@@ -8,7 +8,11 @@ import {
   isOversizedImport,
   readImportText,
   requestsInOrder,
+  runCounts,
+  runEnding,
   runFailed,
+  sharedErrorHeading,
+  sharedErrors,
   type RunResult,
 } from "@wayfarer/core";
 import { CollectionRunner } from "../../services/collection-runner";
@@ -69,21 +73,14 @@ export class RunView {
    * row. Each is said once, above the table.
    */
   protected readonly sharedErrors = computed(() => {
-    const counts = new Map<string, number>();
     // An error the page got no response for: the Local Bridge is what can send it, and says why (U-014).
     const network = new Set<string>();
     const records = this.run().records();
-    this.run()
-      .results()
-      .forEach(({ error }, index) => {
-        if (error === undefined) return;
-        counts.set(error, (counts.get(error) ?? 0) + 1);
-        if (records[index]?.failure?.kind === "network") network.add(error);
-      });
-    return [...counts]
-      .filter(([, count]) => count >= 2)
-      .sort((a, b) => b[1] - a[1])
-      .map(([error, count]) => ({ error, count, network: network.has(error) }));
+    const results = this.run().results();
+    results.forEach(({ error }, index) => {
+      if (error !== undefined && records[index]?.failure?.kind === "network") network.add(error);
+    });
+    return sharedErrors(results).map((shared) => ({ ...shared, network: network.has(shared.error) }));
   });
 
   /** Set up the Local Bridge: the shell opens its settings (U-014). */
@@ -123,18 +120,14 @@ export class RunView {
   /** How the run ended, in a sentence. */
   protected readonly ending = computed(() => {
     const report = this.run().report();
-    if (!report) return "";
-    switch (report.ended) {
-      case "completed":
-        return "The run is complete.";
-      case "cancelled":
-        return "The run was cancelled.";
-      case "failed":
-        return "The run stopped at the first failure.";
-      case "ended":
-        return `The run was stopped. ${report.reason ?? ""}`.trim();
-    }
+    return report ? runEnding(report) : "";
   });
+  /** "4 results in 1 iteration; 1 failed; 4 of 5 tests passed.", as the CLI says it. */
+  protected readonly counts = computed(() => {
+    const report = this.run().report();
+    return report ? runCounts({ iterations: report.iterations, results: this.run().results() }) : "";
+  });
+  protected readonly sharedHeading = sharedErrorHeading;
   protected readonly harSource = signal<HarSource | null>(null);
   protected readonly failedOf = runFailed;
 

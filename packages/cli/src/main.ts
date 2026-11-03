@@ -7,7 +7,11 @@ import {
   META_VAULT_KEY,
   VAULT_FILE_FORMAT,
   parseJson,
+  runCounts,
+  runEnding,
   runFailed,
+  sharedErrorHeading,
+  sharedErrors,
   scriptsOf,
   unwrapDek,
   validateVaultFile,
@@ -203,7 +207,11 @@ function scriptHolders(source: CollectionExport): string[] {
   ];
 }
 
-function line(result: RunResult, iterations: number): string {
+/**
+ * One result's lines. An error said before is "Same error as before": the terminal says a shared cause once, as the
+ * app's run view does, and the summary counts it (D4.9, U-014).
+ */
+function line(result: RunResult, iterations: number, said: Set<string>): string {
   const mark = runFailed(result) ? "✗" : result.skipped ? "-" : "✓";
   const where = iterations > 1 ? ` (iteration ${result.iteration + 1})` : "";
   const status = result.skipped
@@ -214,20 +222,16 @@ function line(result: RunResult, iterations: number): string {
   const tests = result.tests
     .map((test) => `\n    ${test.passed ? "✓" : "✗"} ${test.name}${test.error ? `: ${test.error}` : ""}`)
     .join("");
-  const error = result.error !== undefined ? `\n    ${result.error}` : "";
+  const repeated = result.error !== undefined && said.has(result.error);
+  if (result.error !== undefined) said.add(result.error);
+  const error = result.error === undefined ? "" : `\n    ${repeated ? "Same error as before." : result.error}`;
   return `${mark} ${result.name}${where}: ${status}${result.durationMs !== undefined ? `, ${result.durationMs} ms` : ""}${tests}${error}`;
 }
 
+/** The app's sentences: how the run ended, its counts, and each error several requests shared, once. */
 function summary(report: RunReport): string {
-  const tests = report.results.flatMap((result) => result.tests);
-  const failed = report.results.filter(runFailed).length;
-  const ended = {
-    completed: "",
-    cancelled: " The run was cancelled.",
-    failed: " The run stopped at the first failure.",
-    ended: ` The run ended: ${report.reason ?? ""}`,
-  }[report.ended];
-  return `${report.results.length} results in ${report.iterations} iteration${report.iterations === 1 ? "" : "s"}; ${failed} failed; ${tests.filter((test) => test.passed).length} of ${tests.length} tests passed.${ended}`;
+  const shared = sharedErrors(report.results).map(({ error, count }) => `\n${sharedErrorHeading(count)} ${error}`);
+  return `${runEnding(report)} ${runCounts(report)}${shared.join("")}`;
 }
 
 async function main(argv: string[]): Promise<number> {
@@ -304,6 +308,7 @@ async function main(argv: string[]): Promise<number> {
       throw new Refusal(`--out ${values.out}: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
+  const said = new Set<string>();
   const report = await runCollection(
     {
       source: read.source,
@@ -318,7 +323,7 @@ async function main(argv: string[]): Promise<number> {
       ...(data && { data }),
       stopOnFailure: values.bail,
       onResult: (result) => {
-        if (reporters.has("cli")) console.log(line(result, iterations ?? data?.length ?? 1));
+        if (reporters.has("cli")) console.log(line(result, iterations ?? data?.length ?? 1, said));
       },
     },
   );

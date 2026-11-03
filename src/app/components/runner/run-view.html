@@ -125,11 +125,7 @@
   <span>Running: {{ results.length }} {{ results.length === 1 ? "request" : "requests" }} done.</span>
   } @else if (state.report(); as report) {
   <span>{{ ending() }}</span>
-  <span
-    >{{ results.length }} {{ results.length === 1 ? "result" : "results" }} in {{ report.iterations }} {{
-    report.iterations === 1 ? "iteration" : "iterations" }}; {{ failed() }} failed; {{ tests().length - failedTests() }}
-    of {{ tests().length }} tests passed.</span
-  >
+  <span>{{ counts() }}</span>
   } @else {
   <span>Nothing is sent until you choose Run. Each request is sent as Send would send it, with its scripts.</span>
   }
@@ -169,10 +165,8 @@
   <p class="type-callout text-status-error flex items-start gap-1.5">
     <app-icon name="error" class="icon-xs mt-1 shrink-0" />
     <span
-      >@if (sharedErrors().length > 1) {<b>{{ index + 1 }}.</b> }<b
-        >{{ shared.count }} requests failed with the same error.</b
-      >
-      {{ shared.error }}</span
+      >@if (sharedErrors().length > 1) {<b>{{ index + 1 }}.</b> }<b>{{ sharedHeading(shared.count) }}</b> {{
+      shared.error }}</span
     >
   </p>
   @if (shared.network) {

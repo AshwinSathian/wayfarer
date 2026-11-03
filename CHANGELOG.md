@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The CLI says what the app's run view says.** Its summary starts with
+  how the run ended ("The run is complete."), an error many requests
+  share is written once and then "Same error as before.", and the summary
+  ends with it and how many requests it stopped. The app and the CLI take
+  these sentences from one place.
+
 - **A run offers the review its scripts wait for, and the bridge its
   errors need.** A run of a collection whose scripts had not been
   reviewed said to open a request and find Review scripts; it now has

@@ -50,14 +50,20 @@ function fixtureRequests(): SeededRequest[] {
 }
 
 /** Writes a collection "Shop" of `requests`, their scripts approved as scripts written here are, and an active environment; then reloads. */
-async function seedCollection(page: Page, requests: SeededRequest[], vars: Record<string, string> = {}): Promise<void> {
+async function seedCollection(
+  page: Page,
+  requests: SeededRequest[],
+  vars: Record<string, string> = {},
+  /** False: the collection's scripts wait for a review, as an imported collection's do. */
+  trusted = true,
+): Promise<void> {
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
     (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2),
   );
   await page.evaluate(
-    async ({ requests, vars }) => {
+    async ({ requests, vars, trusted }) => {
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         const open = indexedDB.open("wayfarer");
         open.onsuccess = () => resolve(open.result);
@@ -96,7 +102,7 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
         variables: [],
         auth: { type: "none" },
         scripts: { pre: "", post: "" },
-        scriptTrust: { trusted: true, approved },
+        scriptTrust: trusted ? { trusted: true, approved } : { trusted: false },
       });
       requests.forEach((request, order) =>
         tx.objectStore("requests").put({
@@ -125,7 +131,7 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
       });
       db.close();
     },
-    { requests, vars },
+    { requests, vars, trusted },
   );
   await page.reload();
 }
@@ -701,6 +707,12 @@ test("a run's report counts passed and failed, says a shared error once, and can
   await expect(shared).toContainText("3 requests failed with the same error");
   await expect(resultRows(view)).toHaveCount(4);
   await expect(view.getByText("Same error as above")).toHaveCount(3);
+  // One cause, one fix (U-014): the bridge's settings, from the run.
+  await shared.getByRole("button", { name: "Set up the Local Bridge…" }).click();
+  const settings = page.getByRole("dialog", { name: "Settings", exact: true });
+  await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(settings).toHaveCount(0);
 
   await view.getByRole("checkbox", { name: "Failed only" }).check();
   await expect(resultRows(view)).toHaveCount(3);
@@ -755,4 +767,28 @@ test("after a run the setup is one line, Change opens it, and a double click on 
   await expect(view.locator(".run-setup-summary")).toHaveText(/^1 iteration, no delay\s*Change$/);
   await view.getByRole("button", { name: "Change", exact: true }).click();
   await expect(view.getByLabel("Iterations")).toBeVisible();
+});
+
+// U-039: a run of a collection whose scripts wait for a review sent without them and sent the tester to a request's
+// Scripts tab. The run offers the review itself, says to run again once it is done, and then runs the scripts.
+test("a run whose scripts wait for a review offers the review, and the next run runs them", async ({ page }) => {
+  await seedCollection(
+    page,
+    [{ name: "Tested", url: `${ECHO}/status/200`, post: `pm.test("is 200", () => pm.response.to.have.status(200));` }],
+    {},
+    false,
+  );
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+  await expect(view).toContainText("wait for a review, so requests were sent without them");
+  await view.getByRole("button", { name: "Review scripts…" }).click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review).toContainText("is 200");
+  await review.getByRole("button", { name: "Trust these scripts" }).click();
+  await expect(review).toHaveCount(0);
+  await expect(view).toContainText("Scripts reviewed. Run again to run them.");
+  await view.getByRole("button", { name: "Run again" }).click();
+  await expect(status(view)).toContainText("1 of 1 tests passed", { timeout: 15_000 });
+  await expect(view).not.toContainText("wait for a review");
 });

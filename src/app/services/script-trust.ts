@@ -40,9 +40,12 @@ export class ScriptTrust {
   /** Whether the composer's scripts may run. Follows the bound request and its collection. */
   readonly allowed = this.allowedState.asReadonly();
 
+  /** A collection asked to be reviewed by id: a run's, whose tab has no bound request (U-039). Null: the bound one's. */
+  readonly reviewOf = signal<string | null>(null);
+
   private readonly collection = computed(() => {
-    const bound = this.saved.loadedCollectionRequest();
-    return bound ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId) : undefined;
+    const id = this.reviewOf() ?? this.saved.loadedCollectionRequest()?.collectionId;
+    return id ? this.collections.tree().find((entry) => entry.collection.meta.id === id) : undefined;
   });
 
   /** The digests the collection's last review covered: a script whose digest is here was reviewed as it is now. */

@@ -92,6 +92,8 @@ export class Composer {
   protected readonly importPipeline = inject(ImportPipeline);
 
   readonly newRequest = output<void>();
+  /** A run asked for the Local Bridge's settings (U-014): the shell holds Settings. */
+  readonly openBridge = output<void>();
 
   /**
    * Threaded down from App via AppShell — the same signal that drives the

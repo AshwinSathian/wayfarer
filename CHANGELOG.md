@@ -297,6 +297,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Local Bridge's own error is no longer shown as the server's.**
+  When the bridge could not reach a server (a name that does not
+  resolve), the response showed "502" and the bridge's message as if a
+  server had sent them, while the record said no response came. It now
+  says "No response" with the bridge's words, as for any failed send.
+
 - **A switched-off query parameter is kept.** Opening a request, editing
   its address or saving it dropped every parameter whose box was
   unchecked, and an imported Postman request warned that it would.

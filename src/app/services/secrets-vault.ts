@@ -62,6 +62,8 @@ export class SecretsVault {
 
   /** Something needs the vault open: the shell shows the unlock dialog while this is set. */
   readonly unlockRequested = signal(false);
+  /** What asked for the passphrase, said in the unlock dialog (U-143): "Sending "Get pet" needs token from the vault." */
+  readonly unlockReason = signal("");
   private answerUnlockRequest: ((unlocked: boolean) => void) | undefined;
 
   /** A lock in one tab locks them all. */
@@ -106,8 +108,9 @@ export class SecretsVault {
    * the passphrase, and resolves to whether they gave it: false when they
    * closed the dialog.
    */
-  ensureUnlocked(): Promise<boolean> {
+  ensureUnlocked(reason = ""): Promise<boolean> {
     if (this.isUnlocked()) return Promise.resolve(true);
+    this.unlockReason.set(reason);
     return new Promise((resolve) => {
       // A second request while one is open takes its place; the first is told no.
       this.answerUnlockRequest?.(false);
@@ -119,6 +122,7 @@ export class SecretsVault {
   /** The unlock dialog closed, with the vault unlocked or not. */
   unlockDialogClosed(): void {
     this.unlockRequested.set(false);
+    this.unlockReason.set("");
     this.answerUnlockRequest?.(this.isUnlocked());
     this.answerUnlockRequest = undefined;
   }

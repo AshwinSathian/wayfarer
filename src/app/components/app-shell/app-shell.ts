@@ -108,7 +108,7 @@ export class AppShell implements OnInit {
 
   private readonly confirm = inject(Confirm);
   private readonly environmentsService = inject(EnvironmentsStore);
-  private readonly secretsService = inject(SecretsVault);
+  protected readonly secretsService = inject(SecretsVault);
   protected readonly backup = inject(WorkspaceBackup);
   protected readonly persistence = inject(StoragePersistence);
   private readonly idb = inject(IdbCore);

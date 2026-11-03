@@ -423,8 +423,9 @@
       />
       <p class="type-callout text-label-secondary leading-relaxed">
         @if (isFirstVaultSetup()) { The passphrase encrypts your secrets, and opens them each time the app is opened. A
-        forgotten passphrase cannot be recovered, and nor can the secrets. } @else { The passphrase opens your secrets
-        until the app is closed or locked. }
+        forgotten passphrase cannot be recovered, and nor can the secrets. } @else if (secretsService.unlockReason(); as
+        reason) { {{ reason }} The passphrase opens your secrets until the app is closed or locked. } @else { The
+        passphrase opens your secrets until the app is closed or locked. }
       </p>
     </div>
 

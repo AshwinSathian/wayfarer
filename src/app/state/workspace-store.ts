@@ -729,7 +729,7 @@ export class WorkspaceStore {
     const probe = new VariableResolver(this.scopes());
     resolveAuth(oauth.auth, (text) => probe.resolve(text));
     const secrets = probe.lockedSecrets.size
-      ? await this.readSecrets([...probe.lockedSecrets])
+      ? await this.readSecrets([...probe.lockedSecrets], "Getting the token")
       : new Map<string, string>();
     const resolver = new VariableResolver(this.scopes(), (id) => secrets.get(id));
     const auth = resolveAuth(oauth.auth, (text) => resolver.resolve(text));
@@ -862,7 +862,7 @@ export class WorkspaceStore {
       // Read at each use: a pre-request script, or a vault unlock, may have come between.
       scopes: () => this.scopesOf(tab),
       ancestors: this.saved.ancestorsFor(tab.bound()),
-      readSecrets: (ids) => this.readSecrets(ids),
+      readSecrets: (ids) => this.readSecrets(ids, `Sending ${tab.bound() ? `"${tab.bound()?.name}"` : "this request"}`),
       readFile: (ref) => this.fileOf(ref),
       blockUnresolved: this.settings.blockUnresolved() && !allowUnresolved,
       ...(composed && { composed }),
@@ -920,14 +920,21 @@ export class WorkspaceStore {
     return request;
   }
 
+  /** "Sending "Get pet" needs token and apiKey from the vault.": what the unlock dialog says asked for it (U-143). */
+  private async unlockReasonFor(ids: string[], act: string): Promise<string> {
+    const names = (await this.vault.listSecrets()).filter((doc) => ids.includes(doc.id)).map((doc) => doc.name);
+    const listed = names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+    return `${act} needs ${listed || "a secret"} from the vault.`;
+  }
+
   /**
    * The plaintext of the secrets a request refers to. A locked vault asks
    * for the passphrase first; when the user closes that dialog, nothing is
    * sent (plan D4). A secret the vault does not have is left out: its
    * reference then stays in the request, and the wire check refuses it.
    */
-  private async readSecrets(ids: string[]): Promise<Map<string, string>> {
-    if (!(await this.vault.ensureUnlocked())) {
+  private async readSecrets(ids: string[], act: string): Promise<Map<string, string>> {
+    if (!this.vault.isUnlocked() && !(await this.vault.ensureUnlocked(await this.unlockReasonFor(ids, act)))) {
       throw new SendBlockedError(
         "This request uses a vault secret and the vault is locked. Unlock it to send. Nothing was sent.",
       );

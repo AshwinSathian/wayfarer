@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A send that needs the vault says why it asks for the passphrase.**
+  The unlock dialog names the request and its secrets ("Sending "Get pet"
+  needs token from the vault."); it said only "unlock encrypted secrets".
+
 - **An environment's variable can be switched off.** Each row of the
   environment editor has a box: a variable switched off keeps its value
   and is not used. Before, a variable was either there or deleted.

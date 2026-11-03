@@ -1,8 +1,9 @@
-<div class="env-manager grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+<!-- The list and the editor, side by side with a line between where there is room: no box inside the tab (U-093). -->
+<div class="env-manager grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
   <!-- ── Environment list ──────────────────────────────────── -->
-  <div class="ds-panel p-4">
-    <div class="mb-3 flex items-center justify-between gap-2">
-      <span class="type-overline text-label-tertiary">Environments</span>
+  <div class="env-list">
+    <div class="mb-2 flex items-center justify-between gap-2">
+      <h2 class="type-subhead text-label-secondary m-0">Environments</h2>
       <div class="flex items-center gap-0.5">
         <button
           type="button"
@@ -19,7 +20,7 @@
           uiButton="icon"
           class="btn-plain"
           (click)="envImportInput.click()"
-          uiTooltip="Import"
+          uiTooltip="Import environments"
           aria-label="Import environments"
         >
           <app-icon name="upload" class="icon-sm" />
@@ -29,38 +30,53 @@
           uiButton="icon"
           class="btn-plain"
           (click)="exportDialogVisible.set(true)"
-          uiTooltip="Export"
+          uiTooltip="Export environments"
           aria-label="Export environments"
         >
           <app-icon name="download" class="icon-sm" />
         </button>
+        <!-- Inside the header's line, as the other three (U-146). -->
         <button
-          uiButton="filled"
-          class="btn-secondary btn-sm btn-square"
+          #newEnvButton
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          uiTooltip="New environment"
           aria-label="New environment"
           (click)="openNewEnvironmentDialog()"
-          ><app-icon name="add"
+          ><app-icon name="add" class="icon-sm"
         /></button>
       </div>
     </div>
 
-    <input
-      #envImportInput
-      type="file"
-      accept="application/json,.json,.yaml,.yml"
-      class="hidden"
-      (change)="importPipeline.pick($event)"
-    />
-
-    @if (!environments().length) {
+    @if (newEnvDialogVisible()) {
+    <!-- A new environment is a row of the list, named in place (DQ9): Enter makes it (U-044), Escape puts it away. -->
+    <div class="env-new mb-2">
+      <label for="new-env-name-input" class="ds-form-label">Name of the new environment</label>
+      <input
+        class="font-sans w-full"
+        uiInput
+        id="new-env-name-input"
+        cdkFocusInitial
+        autocomplete="off"
+        [ngModel]="newEnvForm().name"
+        (ngModelChange)="onNewEnvNameChange($event)"
+        (keydown)="newEnvKey($event, newEnvButton)"
+        (blur)="newEnvForm().name.trim() || closeNewEnvironmentDialog()"
+        placeholder="Staging, Production…"
+      />
+    </div>
+    } @if (!environments().length) {
     <div class="ds-empty-state py-6">
       <app-icon name="dns" class="icon-lg text-label-tertiary" />
       <p class="type-footnote text-label-secondary text-center"
         >An environment holds variables, such as one address for staging and another for production.</p
       >
+      @if (!newEnvDialogVisible()) {
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openNewEnvironmentDialog()"
         >New environment</button
       >
+      }
     </div>
     } @else { @let activeEnv = activeEnvironment(); @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
     <div class="space-y-1">
@@ -81,26 +97,32 @@
           </span>
           }
         </button>
+        <!-- One mark of the one in use, its tag; the others have Use, in words (U-043). Grey until hovered (U-018). -->
         <div class="env-item-actions flex items-center gap-0.5 shrink-0">
+          @if (activeEnvId !== env.meta.id) {
           <button
-            uiButton="icon"
-            class="btn-success btn-sm"
-            [disabled]="activeEnvId === env.meta.id"
+            uiButton
+            class="btn-secondary btn-sm"
+            [attr.aria-label]="'Use ' + env.name + ' for requests'"
             (click)="setActive(env)"
-            uiTooltip="Use for requests"
-            uiTooltipPosition="above"
-            aria-label="Use for requests"
-            ><app-icon name="check"
-          /></button>
-          <button uiButton="icon" class="btn-sm" [attr.aria-label]="'Duplicate ' + env.name" (click)="duplicate(env)"
-            ><app-icon name="content_copy"
+            >Use</button
+          >
+          }
+          <button
+            uiButton="icon"
+            class="btn-plain"
+            [uiTooltip]="'Duplicate ' + env.name"
+            [attr.aria-label]="'Duplicate ' + env.name"
+            (click)="duplicate(env)"
+            ><app-icon name="content_copy" class="icon-sm"
           /></button>
           <button
             uiButton="icon"
-            class="btn-danger btn-sm"
+            class="btn-plain"
+            [uiTooltip]="'Delete ' + env.name"
             [attr.aria-label]="'Delete ' + env.name"
             (click)="remove(env)"
-            ><app-icon name="delete"
+            ><app-icon name="delete" class="icon-sm"
           /></button>
         </div>
       </div>
@@ -112,7 +134,7 @@
   <!-- ── Environment editor ────────────────────────────────── -->
   @if (draft(); as form) {
   <!-- Written when focus leaves a field (DQ9): there is no Save button. -->
-  <div class="ds-panel p-5" (focusout)="onFocusOut($event)">
+  <div class="env-editor @container min-w-0" (focusout)="onFocusOut($event)">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
@@ -148,29 +170,34 @@
             ><ng-template ngTabContent>
               <div class="flex flex-col gap-2">
                 @for (item of form.vars; track $index) {
+                <!-- By the editor's own width: on a phone the value takes a line of its own (U-042). -->
                 <div
-                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-lg p-1.5"
+                  class="env-var grid grid-cols-[minmax(0,1fr)_auto_auto] @md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg p-1.5"
                   [class]="focusedVariableKey() === item.key ? 'ring-2 ring-ink bg-fill-selected' : ''"
                 >
                   <input
                     #keyInput
                     class="font-mono"
                     uiInput
-                    placeholder="KEY"
+                    placeholder="Name"
+                    [attr.aria-label]="'Variable name, ' + ($index + 1) + ' of ' + form.vars.length"
                     [(ngModel)]="form.vars[$index].key"
                     (ngModelChange)="onPairsChange()"
                   />
                   @if (!isSecretValue(form.vars[$index].value)) {
                   <input
                     #valueInput
-                    class="font-mono"
+                    class="font-mono col-span-full order-last @md:col-span-1 @md:order-none"
                     uiInput
                     placeholder="Value"
+                    [attr.aria-label]="'Value of ' + (form.vars[$index].key || 'this variable')"
                     [(ngModel)]="form.vars[$index].value"
                     (ngModelChange)="onPairsChange()"
                   />
                   } @else {
-                  <div class="rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
+                  <div
+                    class="col-span-full order-last @md:col-span-1 @md:order-none rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2.5"
+                  >
                     <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
                     <div class="type-footnote text-label-secondary mt-0.5">
                       @if (!secretsUnlocked) { Unlock to reveal } @else if (getSecretPreview(form.vars[$index].value)) {
@@ -189,7 +216,7 @@
                     uiButton="icon"
                     class="btn-secondary"
                     [disabled]="isSecretValue(form.vars[$index].value)"
-                    aria-label="Mark variable as secret"
+                    [attr.aria-label]="'Mark ' + (form.vars[$index].key || 'this variable') + ' as secret'"
                     data-secret-lock
                     (pointerdown)="holdForSecret($index)"
                     (click)="protectVariable($index)"
@@ -198,7 +225,7 @@
                   <button
                     uiButton="icon"
                     class="btn-secondary"
-                    aria-label="Remove variable"
+                    [attr.aria-label]="'Remove ' + (form.vars[$index].key || 'this variable')"
                     (click)="removeVariable($index)"
                     ><app-icon name="close"
                   /></button>
@@ -212,32 +239,34 @@
                 <div class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
                   <p id="env-vault-create-title" class="type-footnote text-label-primary"
                     >Choose a passphrase for the vault. It encrypts {{ item.key }} and every secret after it, and
-                    nothing can open them without it.</p
+                    nothing can open them without it: a forgotten passphrase cannot be recovered.</p
                   >
                   <div class="flex flex-wrap gap-2">
-                    <input
-                      #vaultPassphraseField
-                      class="font-sans min-w-0 flex-1 basis-40"
-                      uiInput
-                      type="password"
-                      aria-label="Passphrase"
-                      placeholder="Passphrase"
-                      aria-describedby="env-error"
-                      [attr.aria-invalid]="vaultError() ? 'true' : null"
-                      [ngModel]="vaultPassphrase()"
-                      (ngModelChange)="vaultPassphrase.set($event)"
-                      (keydown.enter)="createVaultForRow()"
-                    />
-                    <input
-                      class="font-sans min-w-0 flex-1 basis-40"
-                      uiInput
-                      type="password"
-                      aria-label="Confirm passphrase"
-                      placeholder="Confirm passphrase"
-                      [ngModel]="vaultConfirmation()"
-                      (ngModelChange)="vaultConfirmation.set($event)"
-                      (keydown.enter)="createVaultForRow()"
-                    />
+                    <label class="flex min-w-0 flex-1 basis-40 flex-col gap-1">
+                      <span class="ds-form-label">Passphrase</span>
+                      <input
+                        #vaultPassphraseField
+                        class="font-sans w-full"
+                        uiInput
+                        type="password"
+                        aria-describedby="env-error"
+                        [attr.aria-invalid]="vaultError() ? 'true' : null"
+                        [ngModel]="vaultPassphrase()"
+                        (ngModelChange)="vaultPassphrase.set($event)"
+                        (keydown.enter)="createVaultForRow()"
+                      />
+                    </label>
+                    <label class="flex min-w-0 flex-1 basis-40 flex-col gap-1">
+                      <span class="ds-form-label">Confirm passphrase</span>
+                      <input
+                        class="font-sans w-full"
+                        uiInput
+                        type="password"
+                        [ngModel]="vaultConfirmation()"
+                        (ngModelChange)="vaultConfirmation.set($event)"
+                        (keydown.enter)="createVaultForRow()"
+                      />
+                    </label>
                   </div>
                   <div class="flex justify-end gap-2">
                     <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="cancelVaultForRow()"
@@ -266,7 +295,7 @@
                 @if (!form.jsonValid) {
                 <p class="type-footnote text-status-error flex items-center gap-1">
                   <app-icon name="error" class="icon-xs" />
-                  Invalid JSON
+                  This is not JSON.
                 </p>
                 }
                 <app-json-editor
@@ -301,55 +330,6 @@
   </div>
   }
 </div>
-
-<!-- New environment dialog -->
-<ui-dialog
-  header="New environment"
-  [visible]="newEnvDialogVisible()"
-  (visibleChange)="newEnvDialogVisible.set($event)"
-  width="420px"
-  (hide)="closeNewEnvironmentDialog()"
->
-  <div class="flex flex-col gap-3">
-    <div>
-      <label for="new-env-name-input" class="ds-form-label">Name</label>
-      <input
-        class="font-sans w-full"
-        uiInput
-        cdkFocusInitial
-        id="new-env-name-input"
-        [ngModel]="newEnvForm().name"
-        (ngModelChange)="onNewEnvNameChange($event)"
-        placeholder="Environment name"
-      />
-    </div>
-    <div>
-      <label for="new-env-description-input" class="ds-form-label">Description</label>
-      <input
-        class="font-sans w-full"
-        uiInput
-        id="new-env-description-input"
-        [ngModel]="newEnvForm().description"
-        (ngModelChange)="onNewEnvDescriptionChange($event)"
-        placeholder="Optional"
-      />
-    </div>
-  </div>
-  <div uiDialogFooter>
-    <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeNewEnvironmentDialog()"
-        >Cancel</button
-      >
-      <button
-        uiButton="filled"
-        aria-label="Create environment"
-        [disabled]="!newEnvForm().name.trim()"
-        (click)="submitNewEnvironment()"
-        >Create</button
-      >
-    </div>
-  </div>
-</ui-dialog>
 
 <app-variables-dialog
   header="Global variables"

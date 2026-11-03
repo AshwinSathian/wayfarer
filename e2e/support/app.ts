@@ -233,13 +233,13 @@ export async function closeEnvironments(page: Page): Promise<void> {
 /** In the open environment, a protected variable holding `plaintext`, saved; the vault is made for it. The editor is closed after. */
 export async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
   await openEnvironments(page);
-  const keys = page.getByPlaceholder("KEY", { exact: true });
+  const keys = page.getByPlaceholder("Name", { exact: true });
   const before = await keys.count();
   await page.getByRole("button", { name: "Add variable" }).click();
   await expect(keys).toHaveCount(before + 1);
   await keys.last().fill(name);
   await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
+  await page.getByRole("button", { name: /^Mark .* as secret$/ }).last().click();
   // With no vault, the row asks for its passphrase in place and marks the variable once it is made.
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);

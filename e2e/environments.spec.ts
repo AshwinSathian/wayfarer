@@ -11,7 +11,7 @@ test.describe("Environments", () => {
     await page.getByRole("button", { name: "New environment" }).first().click();
     const nameInput = page.locator("#new-env-name-input");
     await nameInput.fill("E2E Env");
-    await page.getByRole("button", { name: "Create environment" }).click();
+    await page.locator("#new-env-name-input").press("Enter");
 
     // Creating an environment auto-selects it as active — confirmed by its
     // name also appearing in the toolbar's environment switcher, which is
@@ -21,7 +21,7 @@ test.describe("Environments", () => {
 
     // Add a variable in the Key/Value editor.
     await page.getByRole("button", { name: "Add variable" }).click();
-    const keyInputs = page.locator("input[placeholder='KEY']");
+    const keyInputs = page.locator("input[placeholder='Name']");
     const valueInputs = page.locator("input[placeholder='Value']");
     await keyInputs.last().fill("baseHost");
     await valueInputs.last().fill("example.com");
@@ -44,7 +44,7 @@ test("a click on an environment variable's chip opens the environments with that
   await page.getByRole("button", { name: /^host environment/ }).click();
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator("input[placeholder='KEY']")).toHaveValue("host");
+  await expect(dialog.locator("input[placeholder='Name']")).toHaveValue("host");
   await expect(dialog.locator(".ring-2")).toHaveCount(1);
 });
 
@@ -56,13 +56,13 @@ test.describe("the environment editor keeps what was typed", () => {
     for (const name of ["First", "Second"]) {
       await dialog.getByRole("button", { name: "New environment" }).first().click();
       await page.locator("#new-env-name-input").fill(name);
-      await page.getByRole("button", { name: "Create environment" }).click();
+      await page.locator("#new-env-name-input").press("Enter");
       await expect(page.locator("#new-env-name-input")).toHaveCount(0);
     }
     await dialog.locator(".env-item-select", { hasText: "First" }).click();
     await dialog.getByRole("button", { name: "Add variable" }).click();
     // Add variable puts the keyboard in the new row (U-145).
-    await expect(dialog.getByPlaceholder("KEY", { exact: true })).toBeFocused();
+    await expect(dialog.getByPlaceholder("Name", { exact: true })).toBeFocused();
     await page.keyboard.type("host");
     await dialog.getByPlaceholder("Value", { exact: true }).fill("typed.example");
     return dialog;
@@ -92,16 +92,16 @@ test.describe("the environment editor keeps what was typed", () => {
   test("left for another environment", async ({ page }) => {
     const dialog = await twoEnvironments(page);
     await dialog.locator(".env-item-select", { hasText: "Second" }).click();
-    await expect(dialog.getByPlaceholder("KEY", { exact: true })).toHaveCount(0);
+    await expect(dialog.getByPlaceholder("Name", { exact: true })).toHaveCount(0);
     await page.reload();
     await expectKept(page);
   });
 
   test("a row with a value and no name says it is not kept", async ({ page }) => {
     const dialog = await twoEnvironments(page);
-    await dialog.getByPlaceholder("KEY", { exact: true }).fill("");
+    await dialog.getByPlaceholder("Name", { exact: true }).fill("");
     await expect(dialog.getByText("This row has no name, so it is not kept. Give it one.")).toBeVisible();
-    await dialog.getByRole("button", { name: "Mark variable as secret" }).click();
+    await dialog.getByRole("button", { name: /^Mark .* as secret$/ }).click();
     await expect(dialog.getByText("A variable needs a name and a value to be kept as a secret.")).toBeVisible();
   });
 });
@@ -114,11 +114,11 @@ test("marking a variable secret with no vault makes the vault in the row and sto
   const dialog = await openEnvironments(page);
   await dialog.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill("Vaulted");
-  await page.getByRole("button", { name: "Create environment" }).click();
+  await page.locator("#new-env-name-input").press("Enter");
   await dialog.getByRole("button", { name: "Add variable" }).click();
-  await dialog.getByPlaceholder("KEY", { exact: true }).fill("token");
+  await dialog.getByPlaceholder("Name", { exact: true }).fill("token");
   await dialog.getByPlaceholder("Value", { exact: true }).fill("plain-value-123");
-  await dialog.getByRole("button", { name: "Mark variable as secret" }).click();
+  await dialog.getByRole("button", { name: /^Mark .* as secret$/ }).click();
   // In the row, not a second dialog; the keyboard is already in the passphrase.
   await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toHaveCount(0);
   await expect(dialog.getByLabel("Passphrase", { exact: true })).toBeFocused();
@@ -135,4 +135,20 @@ test("marking a variable secret with no vault makes the vault in the row and sto
     .poll(async () => JSON.stringify((await dumpIdb(page))["environments"]))
     .toMatch(/\{\{\$secret\.[a-z0-9-]+\}\}/);
   expect(JSON.stringify(await dumpIdb(page))).not.toContain("plain-value-123");
+});
+
+// U-080 and DQ9: deleting an environment asked through the browser's own confirm(). It goes at once, the line says so,
+// and Undo puts it back, in use again if it was. U-043: the one in use is said once, by its tag; the others have Use.
+test("a deleted environment comes back by Undo, in use again", async ({ page }) => {
+  await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
+  const region = await openEnvironments(page);
+  const row = region.locator(".env-item", { hasText: "Tripwire env" });
+  await expect(row).toContainText("In use");
+  await expect(row.getByRole("button", { name: /^Use / })).toHaveCount(0);
+  await row.getByRole("button", { name: "Delete Tripwire env" }).click();
+  await expect(region.locator(".env-item", { hasText: "Tripwire env" })).toHaveCount(0);
+  await expect(page.locator(".undo-bar")).toContainText("Removed Tripwire env.");
+  await page.locator(".undo-bar").getByRole("button", { name: "Undo" }).click();
+  await expect(region.locator(".env-item", { hasText: "Tripwire env" })).toContainText("In use");
+  await expect(page.getByRole("combobox", { name: "Environment" })).toContainText("Tripwire env");
 });

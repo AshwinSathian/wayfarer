@@ -190,7 +190,7 @@ test("the preview's chip for a variable with no value adds it to the environment
   await chip.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByPlaceholder("KEY", { exact: true }).last()).toHaveValue("nowhere");
+  await expect(dialog.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
   await dialog.getByPlaceholder("Value", { exact: true }).last().fill("echo");
   await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
   await expect(dialog).toHaveCount(0);

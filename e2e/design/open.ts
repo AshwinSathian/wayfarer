@@ -227,7 +227,7 @@ async function settingsPane(page: Page, section: string): Promise<void> {
 async function makeVault(page: Page): Promise<void> {
   await seed(page);
   await openEnvironments(page);
-  await page.getByRole("button", { name: "Mark variable as secret" }).nth(1).click();
+  await page.getByRole("button", { name: /^Mark .* as secret$/ }).nth(1).click();
   await expect(page.getByRole("dialog", { name: "Environments" }).getByLabel("Confirm passphrase")).toBeVisible();
 }
 

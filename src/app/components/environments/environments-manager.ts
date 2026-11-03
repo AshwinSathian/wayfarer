@@ -1,3 +1,4 @@
+import { UndoNotice } from "../../services/undo-notice";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -88,6 +89,7 @@ interface EnvironmentDraft {
 })
 export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly envService = inject(EnvironmentsStore);
+  private readonly undo = inject(UndoNotice);
   private readonly secretsService = inject(SecretsVault);
   private readonly variableFocus = inject(VariableFocus);
   /** Every file picked here goes down the one import road (P4.1). */
@@ -221,6 +223,19 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     this.newEnvForm.update((form) => ({ ...form, description: value }));
   }
 
+  /** The inline row's keys (U-044): Enter makes the environment, Escape puts the row away and focus back on New. */
+  protected newEnvKey(event: KeyboardEvent, newButton: HTMLElement): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void this.submitNewEnvironment();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      this.closeNewEnvironmentDialog();
+      newButton.focus();
+    }
+  }
+
   async submitNewEnvironment(): Promise<void> {
     const name = this.newEnvForm().name.trim();
     if (!name) {
@@ -252,14 +267,17 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     }
   }
 
+  /** Deletes at once and offers Undo (U-080, DQ9: "Removed {name}. Undo"); the browser's own confirm() asked before. */
   async remove(env: EnvironmentDoc): Promise<void> {
-    if (!confirm(`Delete environment "${env.name}"?`)) {
-      return;
-    }
-    await this.envService.deleteEnvironment(env.meta.id);
+    const removed = await this.envService.deleteEnvironment(env.meta.id);
     const remaining = this.environments();
     this.selectedId.set(remaining.length ? remaining[0].meta.id : null);
     this.draft.set(remaining.length ? this.toDraft(remaining[0]) : null);
+    if (removed)
+      this.undo.offer(`Removed ${env.name}.`, async () => {
+        await this.envService.restoreEnvironment(removed);
+        this.selectEnvironment(removed.doc.meta.id);
+      });
   }
 
   async setActive(env: EnvironmentDoc): Promise<void> {

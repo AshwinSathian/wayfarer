@@ -586,6 +586,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The site's picture of the app is the app as it is.** The landing
+  page showed the app from before the redesign: the old colours, the old
+  mark and icons, a toolbar and a composer that have since changed. It
+  now shows today's app, with the ink theme, the new mark and the new
+  icons.
+
 - **Icons are Wayfarer's own, one style, as heavy as the words beside
   them.** The 44 icons were Material Symbols at weight 300, their lines
   half as thick as the text's stems. They are now a set drawn for

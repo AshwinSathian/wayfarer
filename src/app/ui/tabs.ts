@@ -1,5 +1,6 @@
 import {
   ApplicationRef,
+  DestroyRef,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -47,7 +48,8 @@ const FOCUSABLE =
  *   and forgets the value, so the tab was not chosen when it came back. That
  *   is not passed on, and the value is given to Aria again when the tabs change.
  * - its list does not scroll: a bar that does not fit scrolls sideways, and
- *   the chosen tab is brought into it.
+ *   the chosen tab is brought into it. The side with tabs out of view fades
+ *   (`data-more-start`, `data-more-end`), or nothing said the bar held more (U-142).
  * - a choice is drawn at the next render, and Chromium takes a key before
  *   it: Tab right after a click went into the pane that was shown before.
  *   A click, or a key Aria took, is drawn at once.
@@ -72,6 +74,7 @@ const FOCUSABLE =
     "(focusin)": "followFocus($event)",
     "(click)": "drawNow()",
     "(keydown)": "drawNow($event)",
+    "(scroll)": "markOverflow()",
   },
 })
 export class UiTabList<T extends string> {
@@ -117,7 +120,20 @@ export class UiTabList<T extends string> {
       const room = this.host.getBoundingClientRect();
       if (open.left < room.left) this.host.scrollLeft -= Math.ceil(room.left - open.left);
       else if (open.right > room.right) this.host.scrollLeft += Math.ceil(open.right - room.right);
+      this.markOverflow();
     });
+    // The bar's room changes without a render: the window, or the panes beside it, are resized.
+    const resized = new ResizeObserver(() => this.markOverflow());
+    resized.observe(this.host);
+    inject(DestroyRef).onDestroy(() => resized.disconnect());
+  }
+
+  /** Which sides hold tabs out of view. In a right-to-left page `scrollLeft` runs from 0 down, so its size is read. */
+  protected markOverflow(): void {
+    const { scrollWidth, clientWidth } = this.host;
+    const scrolled = Math.abs(this.host.scrollLeft);
+    this.host.toggleAttribute("data-more-start", scrolled > 1);
+    this.host.toggleAttribute("data-more-end", scrollWidth - clientWidth - scrolled > 1);
   }
 
   /**

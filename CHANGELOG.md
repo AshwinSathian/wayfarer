@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A tab bar with more tabs than fit says so.** The bar scrolls
+  sideways with no scrollbar, so the fifth request tab at 1,440 px was
+  cut off under New tab with nothing to say more were there. The side
+  that holds tabs out of view now fades.
+
 - **The site's header fits a narrow window again when its fonts do not
   load.** Since the mark became an inline drawing, a header set in a
   fallback face could be 9 px wider than a 360 px window, so the page

@@ -48,11 +48,14 @@
   border-radius: var(--btn-radius);
 }
 
-/* Material Symbols glyphs sit inside their em box with a margin, so they
-   are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
+/* An icon beside a filled or outlined button's words is 16 px, its stroke 1.33 px against the words' 1.15;
+   alone in a square button it is 18 px, which fills the square as the words would (D2.4). */
 .ui-button:not(.btn-plain) .app-icon {
-  margin: -3px;
-  font-size: 1.375rem;
+  font-size: 1rem;
+}
+.ui-button.btn-square .app-icon,
+.ui-button.ui-button-icon:not(.btn-plain) .app-icon {
+  font-size: 1.125rem;
 }
 
 .ui-button:not(:disabled):hover {
@@ -77,10 +80,6 @@
 .ui-button.btn-sm {
   min-height: var(--ctl-height-md);
   padding: 0 10px;
-}
-
-.ui-button.btn-sm .app-icon {
-  font-size: 1.25rem;
 }
 
 .ui-button.btn-square,

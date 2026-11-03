@@ -1,7 +1,7 @@
 // The brand files (D2.4): the maskable icon keeps its glyph in the safe zone, and the favicon's ICO is
 // what browsers read. That the SVGs are the tokens' colours is `npm run check:tokens`.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { brandSvgs, markColours } from "./brand.mjs";
 import { ico } from "./brand-png.mjs";
@@ -56,4 +56,36 @@ test("the committed favicon.ico holds the mark at 16, 32 and 48 px", () => {
     [0, 1, 2].map((i) => file.readUInt8(6 + 16 * i)),
     [16, 32, 48],
   );
+});
+
+test("the icon set keeps its rules: one path of absolute commands, every point inside the 2 units of padding", async () => {
+  const { iconPaths } = await import("./brand.mjs");
+  const outside = [];
+  for (const [name, d] of Object.entries(iconPaths())) {
+    assert.match(d, /^M[MLHVCSQAZ\d. -]*$/, `${name}: only absolute commands`);
+    let x = 0;
+    let y = 0;
+    for (const [command, ...args] of d
+      .match(/[A-Z][^A-Z]*/g)
+      .map((c) => [c[0], ...(c.slice(1).match(/-?[\d.]+/g) ?? []).map(Number)])) {
+      if (command === "H") [x] = args;
+      else if (command === "V") [y] = args;
+      else if (command === "A") [x, y] = args.slice(5);
+      else if (args.length) [x, y] = args.slice(-2);
+      // Each point a command ends at is the centre of a stroke 2 wide: inside 3..21, its ink is inside 2..22.
+      if (x < 3 || x > 21 || y < 3 || y > 21) outside.push(`${name}: ${command} ends at ${x} ${y}`);
+    }
+  }
+  assert.deepEqual(outside, []);
+});
+
+test("every icon of the set is one the app draws", async () => {
+  const { iconPaths } = await import("./brand.mjs");
+  const app = new URL("../../src/app/", import.meta.url);
+  const text = readdirSync(app, { recursive: true })
+    .filter((file) => /\.(ts|html)$/.test(file) && !file.endsWith("icon-paths.ts"))
+    .map((file) => readFileSync(new URL(file, app), "utf8"))
+    .join("\n");
+  const unused = Object.keys(iconPaths()).filter((name) => !new RegExp(`["'\`]${name}["'\`]`).test(text));
+  assert.deepEqual(unused, [], "icons nothing draws: delete them");
 });

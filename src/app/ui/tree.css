@@ -85,8 +85,8 @@
   height: 28px;
   border-radius: 50%;
   color: var(--ctl-surface-muted);
-  /* The glyph fills half of its box: 28px draws it as large as the old 16px chevron. */
-  font-size: 1.75rem;
+  /* 16 px, as every icon beside a row's text: its stroke is the text's (D2.4, U-127). */
+  font-size: 1rem;
 }
 
 .ui-tree-row--selected .ui-tree-toggle {

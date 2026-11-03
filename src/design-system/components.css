@@ -582,8 +582,8 @@ pre,
 
 /* ── Icon system ─────────────────────────────────────────── */
 /* <app-icon> renders an inline SVG sized 1em, so these classes size it
-   through font-size and colour it through currentColor. Glyphs are Material
-   Symbols Outlined, weight 300 (see src/app/shared/icon/icon-paths.ts). */
+   through font-size and colour it through currentColor. Glyphs are Wayfarer's
+   own set (packages/tokens/brand/icons), stroked 2 of 24 units (D2.4, U-127). */
 .app-icon {
   display: inline-flex;
   align-items: center;

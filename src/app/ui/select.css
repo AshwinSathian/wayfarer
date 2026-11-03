@@ -47,7 +47,7 @@
   justify-content: center;
   width: var(--ctl-height-lg);
   color: var(--ctl-chevron);
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 /* The list, as wide as the CDK's pane, which is as wide as the select. */

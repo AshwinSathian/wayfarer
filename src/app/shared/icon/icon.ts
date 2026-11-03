@@ -2,15 +2,23 @@ import { ChangeDetectionStrategy, Component, computed, input } from "@angular/co
 import { ICON_PATHS, IconName } from "./icon-paths";
 
 /**
- * Inline SVG icon, sized by the surrounding font-size (the `icon-*` classes)
- * and coloured by `currentColor`. Replaces the Material Symbols webfont,
- * which loaded from Google and whose ligature text ("bolt") became the
- * accessible name of icon-only buttons (F18, F33). Always decorative: name
- * the owning button with `aria-label`.
+ * Inline SVG icon from Wayfarer's set (packages/tokens/brand/icons, D2.4), sized by the surrounding font-size
+ * (the `icon-*` classes) and stroked in `currentColor`, 2 of 24 units wide: an icon at its text's size has the
+ * text's weight (U-127). Always decorative: name the owning button with `aria-label`.
  */
 @Component({
   selector: "app-icon",
-  template: `<svg viewBox="0 -960 960 960" width="1em" height="1em" fill="currentColor" focusable="false">
+  template: `<svg
+    viewBox="0 0 24 24"
+    width="1em"
+    height="1em"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    focusable="false"
+  >
     <path [attr.d]="path()" />
   </svg>`,
   host: { class: "app-icon", "aria-hidden": "true" },

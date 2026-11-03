@@ -52,6 +52,14 @@ way (three runs, the median), beside its row above.
 | 2 | Import a Postman collection with scripts and run it | D4-h (#503) | 11 | 11 | 0 | 0 | 1.87 | 1.93, 1.64, 1.87 |
 | 5a | Find why a request failed: CORS | D4-h (#504) | 46 (+2 in a terminal) | 6 | 0 | 40 | 0.35 | 0.36, 0.35, 0.33 |
 | 5b | Find why a request failed: DNS | D4-h (#504) | 43 (+2 in a terminal) | 6 | 0 | 37 | 0.33 | 0.33, 0.33, 0.31 |
+| 2 | Import a Postman collection with scripts and run it | D4-i (#510, #511) | 11 | 11 | 0 | 0 | 1.75 | 1.89, 1.75, 1.75 |
+| 7 | Run a collection with a data file and read the report | D4-i (#510 to #513) | 5 | 5 | 0 | 0 | 0.51 | 0.51, 0.52, 0.51 |
+
+D4-i left tasks 2 and 7 their inputs: the run's setup folds after a run, so
+the report the task reads is first on the screen, and a row now opens its
+request. Task 2 still runs once without the collection's scripts; the
+run now offers their review in place, and a second run runs them (U-039),
+which the task does not count.
 
 D4-h left tasks 2, 5a and 5b their inputs. Task 2's review now lists each
 item on one line and says which variables nothing in the file sets; its

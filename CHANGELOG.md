@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what session D4-i built.** The plan's row 1.59
+  lists the nine changes to the runner, its reports and the CLI, and the
+  baseline gives tasks 2 and 7 measured again.
+
 - **The CLI's HTML report is checked as the app's views are.** An e2e
   opens a report in Chromium, Firefox and WebKit, light and dark, at 320,
   390, 820 and 1,440 px: no WCAG 2.2 AA violation, and nothing wider than

@@ -208,16 +208,14 @@
         />
         <!-- On a phone, Environments and History are rows of the drawer, by name (U-097). -->
         @if (!isMobile()) {
+        <!-- Named, not a server's icon alone, which no one could read (U-006). -->
         <button
           type="button"
-          uiButton="icon"
-          class="btn-plain"
+          uiButton
+          class="btn-secondary env-open shrink-0 whitespace-nowrap"
           (click)="openEnvironmentsTab()"
-          uiTooltip="Environments"
-          aria-label="Environments"
+          ><app-icon name="dns" class="icon-sm" /> Environments</button
         >
-          <app-icon name="dns" class="icon-md" />
-        </button>
         }
 
         <!-- Divider -->

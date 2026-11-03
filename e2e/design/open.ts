@@ -473,7 +473,6 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await expect(page.getByRole("alertdialog", { name: "Reset all data?" })).toBeVisible();
   },
   "settings-general": (page) => settingsPane(page, "General"),
-  "settings-requests": (page) => settingsPane(page, "Requests"),
   "settings-history": (page) => settingsPane(page, "History"),
   "settings-data": (page) => settingsPane(page, "Data and storage"),
   "settings-vault": (page) => settingsPane(page, "Vault"),

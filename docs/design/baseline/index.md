@@ -105,8 +105,7 @@ row below.
 | `vault-unlock` | The dialog that unlocks the vault after a reload. |
 | `secrets-manager` | The secrets manager, the vault not made yet. |
 | `confirm-dialog` | A confirmation: deleting a request from the tree. |
-| `settings-general` | Settings, General. |
-| `settings-requests` | Settings, Requests. |
+| `settings-general` | Settings, General: the theme, and how a request is sent. |
 | `settings-history` | Settings, History. |
 | `settings-data` | Settings, Data and storage. |
 | `settings-vault` | Settings, Vault. |

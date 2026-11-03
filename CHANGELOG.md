@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Settings opens on more than one row.** General now holds the theme
+  and how a request is sent (the timeout, and whether a request with an
+  unset variable is held back); the Requests section, which held those
+  two, is gone. Diagnostics says its self-test asks the app's own server
+  for a file (it said "Nothing leaves this machine"), the empty cookie jar
+  and the empty diagnostics say what goes there, and the Local Bridge's
+  field is its "Bridge address".
+
 - **The import review says which variables nothing in the file sets.**
   A collection whose requests use `{{base}}` with no value anywhere in
   the file now says so before you import, with how many requests use it:

@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The installed app's window matches the app.** Its title bar takes
+  the colour of the theme you chose, not black or a grey of the system's;
+  the manifest names and describes the app; on a phone with a notch the
+  app keeps out of it and the home indicator; the page says it is in
+  British English; and Settings › About says "Trust centre".
+
 - **The toolbar's Environments button says Environments.** It was a
   server's icon alone, named only by its tooltip.
 

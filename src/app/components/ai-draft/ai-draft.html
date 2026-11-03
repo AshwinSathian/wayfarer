@@ -1,0 +1,100 @@
+<ui-dialog
+  header="Draft a request"
+  [visible]="calls.draftOpen()"
+  (visibleChange)="calls.draftOpen.set($event)"
+  width="560px"
+>
+  @if (calls.draftOpen()) {
+  <div class="flex flex-col gap-4">
+    @if (call(); as prepared) {
+    <app-model-call
+      heading="Ask the model to draft a request"
+      [call]="prepared"
+      [preparing]="redrawing()"
+      (answered)="answered($event)"
+      (cancelled)="back()"
+    >
+      <p class="type-footnote text-label-secondary">✓ The description you typed</p>
+      @if (names().length) {
+      <label class="ui-checkbox-label type-footnote"
+        ><input
+          type="checkbox"
+          uiCheckbox
+          [checked]="withNames()"
+          (change)="tickNames($any($event.target).checked)"
+        />The names of the variables in use (no values)</label
+      >
+      }
+    </app-model-call>
+    @if (proposal(); as proposal) {
+    <section class="ai-proposal" aria-labelledby="ai-draft-proposal">
+      <h3 id="ai-draft-proposal" class="type-headline m-0">Proposed request</h3>
+      <ul class="ai-fields" role="list">
+        @for (field of proposal.fields; track field.name) {
+        <li class="flex flex-col gap-1">
+          <span class="type-footnote text-label-secondary">{{ field.name }}</span>
+          @if (field.now) {
+          <s class="ai-field type-mono-body font-mono text-label-tertiary"
+            ><span class="sr-only">Now: </span>{{ field.now }}</s
+          >
+          }
+          <span class="ai-field ai-diff-added type-mono-body font-mono"
+            ><span class="sr-only">Proposed: </span>{{ field.proposed }}</span
+          >
+        </li>
+        } @empty {
+        <li class="type-footnote text-label-secondary">The proposal is the request as it is.</li>
+        }
+      </ul>
+      <div class="flex justify-end gap-2">
+        <button uiButton type="button" (click)="close()">Discard</button>
+        <button uiButton="filled" type="button" (click)="accept()">Accept</button>
+      </div>
+    </section>
+    } @if (refused(); as refused) {
+    <p class="type-footnote text-status-warning">{{ refused.text }}</p>
+    <pre class="ai-diff type-mono-body font-mono" tabindex="0" aria-label="What the model wrote">
+{{
+      refused.answer
+    }}</pre>
+    } } @else {
+    <p class="type-body text-label-secondary"
+      >Describe the request. The model drafts it; nothing is sent until you send it.</p
+    >
+    <div class="flex flex-col gap-1.5">
+      <label for="ai-draft-description" class="type-footnote text-label-secondary">Description</label>
+      <textarea
+        uiInput
+        cdkFocusInitial
+        id="ai-draft-description"
+        class="font-sans w-full"
+        rows="6"
+        placeholder="e.g. Create a pet named Rex, with the tag dog, on the Petstore API"
+        [value]="description()"
+        (input)="typed($any($event.target).value)"
+      ></textarea>
+    </div>
+    @if (names().length) {
+    <label class="ui-checkbox-label type-footnote"
+      ><input
+        type="checkbox"
+        uiCheckbox
+        [checked]="withNames()"
+        (change)="withNames.set($any($event.target).checked)"
+      />The names of the variables in use: <span class="font-mono">{{ namesLine() }}</span> (no values)</label
+    >
+    } @else {
+    <p class="type-footnote text-label-secondary">No variables are in use.</p>
+    }
+    <div class="flex justify-end gap-2">
+      <button uiButton type="button" (click)="close()">Cancel</button>
+      <span [uiTooltip]="description().trim() ? '' : 'Describe the request to preview it.'"
+        ><button uiButton="filled" type="button" [disabled]="!description().trim()" (click)="preview()"
+          >Preview…</button
+        ></span
+      >
+    </div>
+    }
+  </div>
+  }
+</ui-dialog>

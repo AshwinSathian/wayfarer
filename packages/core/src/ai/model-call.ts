@@ -228,7 +228,12 @@ export function requestProposal(answer: string): { request: RequestContent } | {
       : [],
     ...(typeof body === "string" && body && { body: { mode: "raw", raw: { language: "text", text: body } } }),
   };
-  if (!request.url || validateRequestContent(request, "request").length)
+  // A line break in a header would be a second header, or a request of its own, on the wire.
+  if (
+    !request.url ||
+    validateRequestContent(request, "request").length ||
+    request.headers.some((row) => /[\r\n]/.test(row.key + row.value))
+  )
     return { refused: "The answer is not a request the app can read." };
   // On the values the JSON gave, not on its text: `\u0024` is a dollar once parsed (AI-10, C-007's check).
   const wire = {

@@ -148,6 +148,10 @@ describe("a model call (D4.10)", () => {
     expect(requestProposal('{"method": "GET", "url": "{{$secret.x}}"}')).toHaveProperty("refused");
     expect(requestProposal('{"method": "G E T", "url": "https://x"}')).toHaveProperty("refused");
     expect(requestProposal("no json here")).toHaveProperty("refused");
+    // A header that would split into two on the wire is refused, as an imported one is.
+    expect(
+      requestProposal('{"method": "GET", "url": "https://x", "headers": [["A", "one\\r\\nB: two"]]}'),
+    ).toHaveProperty("refused");
     // The check reads what the JSON says, not how it is written: an escaped dollar is still a reference.
     expect(requestProposal('{"method": "GET", "url": "https://x/{{\\u0024secret.x}}"}')).toHaveProperty("refused");
     expect(

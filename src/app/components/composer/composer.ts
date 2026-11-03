@@ -49,6 +49,9 @@ import { VariableChips } from "./variable-chips";
  * and the response beside or below them. The request itself is the draft in
  * `WorkspaceStore`; `ComposerView` holds which panel is open.
  */
+import { AiDrafted } from "../ai-draft/ai-drafted";
+import { AiSettings } from "../../services/ai-settings";
+import { ModelCalls } from "../../services/model-calls";
 @Component({
   selector: "app-composer",
   imports: [
@@ -77,6 +80,7 @@ import { VariableChips } from "./variable-chips";
     TabStrip,
     RunView,
     SocketView,
+    AiDrafted,
   ],
   providers: [ComposerView],
   // The request tabs' container: their list is in the strip, the open one's panel here.
@@ -90,6 +94,8 @@ export class Composer {
   protected readonly view = inject(ComposerView);
   private readonly requestSave = inject(RequestSave);
   protected readonly importPipeline = inject(ImportPipeline);
+  protected readonly ai = inject(AiSettings);
+  protected readonly modelCalls = inject(ModelCalls);
 
   readonly newRequest = output<void>();
   /** A run asked for the Local Bridge's settings (U-014): the shell holds Settings. */

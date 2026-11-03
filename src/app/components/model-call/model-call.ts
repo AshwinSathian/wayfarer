@@ -19,6 +19,8 @@ import { recordDiagnostic } from "../../services/diagnostics";
 import { UiButton } from "../../ui/button";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 
+let previews = 0;
+
 const ROUTE_WORDS = {
   auto: "Route: auto. From this page; the Local Bridge only if the page gets no response and you agree.",
   direct: "Route: direct. From this page.",
@@ -36,9 +38,11 @@ const ROUTE_WORDS = {
   templateUrl: "./model-call.html",
   styleUrl: "./model-call.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "model-call block", role: "region", "[attr.aria-labelledby]": "'model-call-heading'" },
+  host: { class: "model-call block", role: "region", "[attr.aria-labelledby]": "headingId" },
 })
 export class ModelCall {
+  /** Two previews may be in the page at once (the Tests tab's, under the Draft dialog): each heading has its own id. */
+  protected readonly headingId = `model-call-heading-${++previews}`;
   private readonly calls = inject(ModelCalls);
   private readonly injector = inject(Injector);
   protected readonly ai = inject(AiSettings);

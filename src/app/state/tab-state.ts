@@ -124,6 +124,8 @@ export class TabState {
   readonly streamNote = signal("");
   /** The phases and sizes of the last send's request, as the browser measured them. */
   readonly inspection = signal<ResponseInspection | null>(null);
+  /** A request a model drafted, accepted into this tab (D4.10): the draft before it, for Undo, while the draft is `after`. */
+  readonly drafted = signal<{ before: Draft; after: Draft } | null>(null);
 
   /** The tab's WebSocket (P5.7), for an address that starts with `ws:` or `wss:`. */
   readonly socket = new SocketState();

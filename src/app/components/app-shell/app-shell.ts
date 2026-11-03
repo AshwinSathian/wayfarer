@@ -54,10 +54,14 @@ import { VariableFocus } from "../../services/variable-focus";
 import { UiSelect } from "../../ui/select";
 
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "../collections/inherited-settings-dialog";
+import { AiSettings } from "../../services/ai-settings";
+import { ModelCalls } from "../../services/model-calls";
+import { AiDraft } from "../ai-draft/ai-draft";
 @Component({
   selector: "app-shell",
   imports: [
     InheritedSettingsDialog,
+    AiDraft,
     UiInput,
     NgTemplateOutlet,
     Icon,
@@ -232,6 +236,8 @@ export class AppShell implements OnInit {
       });
   });
   readonly settingsDialogVisible = signal(false);
+  protected readonly ai = inject(AiSettings);
+  protected readonly modelCalls = inject(ModelCalls);
 
   /** The pane Settings opens at. */
   readonly settingsSection = signal<SettingsSection>("general");
@@ -323,6 +329,16 @@ export class AppShell implements OnInit {
         label: "Settings",
         run: () => this.openSettings(),
       },
+      // Only with a provider and the action on (AI-1).
+      ...(this.ai.offers().draft
+        ? [
+            {
+              id: "ai-draft",
+              label: "Draft a request from a description…",
+              run: () => this.modelCalls.draftOpen.set(true),
+            },
+          ]
+        : []),
     ];
   }
 

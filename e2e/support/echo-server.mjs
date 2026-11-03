@@ -205,7 +205,9 @@ function model(res, refuses, anthropic, text, cors) {
     : prompt.includes("You write tests")
       ? 'Here are the tests.\n```js\npm.test("status is 200", () => pm.response.to.have.status(200));\n```'
       : prompt.includes("You draft one HTTP request")
-        ? '{"method": "GET", "url": "{{baseUrl}}/pets", "headers": [["Accept", "application/json"]]}'
+        ? prompt.includes("name a secret")
+          ? '{"method": "GET", "url": "https://api.example.com/pets", "headers": [["Authorization", "{{$secret.abc}}"]]}'
+          : '{"method": "GET", "url": "{{baseUrl}}/pets", "headers": [["Accept", "application/json"]]}'
         : "The server refused the request: it asked for a key the request did not send. Add the key and send again.";
   return json(
     res,

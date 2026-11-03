@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The model can draft a request from a description.** With a provider
+  set up and the action on, the empty response offers Describe a
+  request…, and the palette has Draft a request from a description…. The
+  dialog takes the description and, ticked by default, the names (never
+  the values) of the variables in use; the call is previewed before it is
+  sent, `{{name}}` going as written. The answer is checked as an imported
+  request is, refused if it names a vault secret or puts a line break in
+  a header, and shown field by field. Accept fills the tab when nothing is
+  typed in it, otherwise a new tab, and sends nothing; Undo under the
+  address puts it back.
+
 - **The model can write tests from a response.** With a provider set up
   and the action on, the response's Tests tab has Write tests from this
   response…. The call is previewed first, the response body going only

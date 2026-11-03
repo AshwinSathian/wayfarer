@@ -505,6 +505,10 @@
 ></app-settings>
 
 <app-palette [(open)]="paletteOpen" [items]="paletteItems" />
+<!-- Draft a request (D4.10): only with a provider and the action on (AI-1), fetched when first opened. -->
+@if (ai.offers().draft) { @defer (when modelCalls.draftOpen()) {
+<app-ai-draft />
+} }
 
 <!-- Undo (U-080): in the page from the first render, so a screen reader hears each line it says (U-075). The pointer
      or focus on it keeps it there (WCAG 2.2.1). -->

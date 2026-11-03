@@ -31,6 +31,10 @@
 //   /oauth/issued?token=… | ?refresh_token=…   what was issued with that token, for a test to read:
 //                                  a browser does not always hand a test the body of a token answer
 //   /big/:mb                       mb MiB of bytes, streamed
+//   /model/v1/chat/completions     a model (D4.10), OpenAI's shape: keeps the body it received, answers each action in kind
+//   /model/v1/messages             the same, Anthropic's shape
+//   /model-refuses/v1/…            401 with the provider's own message
+//   /model/received                the bodies the model received, oldest first; DELETE forgets them
 // Postman Echo–compatible routes (Newman's fixtures) are served on their own
 // origin, 127.0.0.1:4302, with Postman's paths unchanged (see rewritePostmanEcho).
 //
@@ -182,6 +186,37 @@ function b64url(buffer) {
   return buffer.toString("base64url");
 }
 
+/** What the mock model received, oldest first (D4.10): a test compares it with what the preview showed. */
+const modelReceived = [];
+
+/** A model that answers each of the app's actions in kind, so a test can see a proposal made of its answer. */
+function model(res, refuses, anthropic, text, cors) {
+  modelReceived.push(text);
+  if (refuses) return json(res, 401, { error: { message: "Incorrect API key provided." } }, cors);
+  let prompt = "";
+  try {
+    const value = JSON.parse(text);
+    prompt = `${value.system ?? ""}\n${JSON.stringify(value.messages ?? [])}`;
+  } catch {
+    prompt = text;
+  }
+  const answer = prompt.includes("Reply with the word OK.")
+    ? "OK"
+    : prompt.includes("You write tests")
+      ? 'Here are the tests.\n```js\npm.test("status is 200", () => pm.response.to.have.status(200));\n```'
+      : prompt.includes("You draft one HTTP request")
+        ? '{"method": "GET", "url": "{{baseUrl}}/pets", "headers": [["Accept", "application/json"]]}'
+        : "The server refused the request: it asked for a key the request did not send. Add the key and send again.";
+  return json(
+    res,
+    200,
+    anthropic
+      ? { content: [{ type: "text", text: answer }] }
+      : { choices: [{ message: { role: "assistant", content: answer } }] },
+    cors,
+  );
+}
+
 async function handle(req, res, { postmanEcho: postman = false } = {}) {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "127.0.0.1"}`);
   const path = url.pathname;
@@ -211,6 +246,12 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
 
   let m;
   if (path === "/echo") return json(res, 200, reflect(req, url, body), cors);
+  if (path === "/model/received") {
+    if (req.method === "DELETE") modelReceived.length = 0;
+    return json(res, 200, modelReceived, cors);
+  }
+  if ((m = /^\/(model|model-refuses)\/v1\/(chat\/completions|messages)$/.exec(path)) && req.method === "POST")
+    return model(res, m[1] === "model-refuses", m[2] === "messages", body.toString("utf8"), cors);
   if ((m = /^\/content\/(\w+)$/.exec(path))) {
     const entry = CONTENT[m[1]];
     if (!entry) return json(res, 404, { error: `unknown content type ${m[1]}` }, cors);

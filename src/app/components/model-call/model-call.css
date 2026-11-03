@@ -1,0 +1,26 @@
+/* The preview of a model call (D4.10): its body as sent, wrapping, never wider than the pane, 24 lines at most. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 12px;
+  border-top: 1px solid var(--separator);
+}
+
+.model-call-sent {
+  max-height: calc(24 * 1.5em);
+  margin: 0;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-elevated);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.model-call-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

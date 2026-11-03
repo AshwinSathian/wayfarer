@@ -316,8 +316,10 @@
       } @case ('bridge') {
       <app-bridge-pane />
       } @case ('ai') {
+      <!-- Fetched when its section opens: nothing of AI is in the first download (D4.10). -->
+      @defer {
       <app-ai-pane />
-      } @case ('cookies') {
+      } } @case ('cookies') {
       <app-cookies-pane />
       } @case ('shortcuts') {
       <div class="settings-group">

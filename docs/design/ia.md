@@ -597,6 +597,10 @@ it is.
 | `ai-pane.html: Explain a failed response` | — | Settings, AI (D4.10) | D4-k |
 | `ai-pane.html: Remove provider…` | — | Settings, AI (D4.10) | D4-k |
 | `ai-pane.html: Save` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Test the provider…` | — | Settings, AI: a call of a few bytes, previewed (D4.10) | D4-k |
+| `model-call.html: Cancel` | — | A model call's preview, where its action was asked (D4.10) | D4-k |
+| `model-call.html: Stop` | — | A model call's preview, while the call is on its way (D4.10) | D4-k |
+| `model-call.html: Send to model` | — | A model call's preview: the one road by which a model is called (AI-12) | D4-k |
 | `cookies-pane.html: Delete cookie` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: jar.setValue(cookie, $any($event.target).value)` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: Delete all…` | Settings, Cookies | Settings, Cookies | D4-h |

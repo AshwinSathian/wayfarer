@@ -74,7 +74,12 @@ export interface PastRequest {
   error?: string;
   /** What the send did (D4.12), made from this entry after the redactor: it holds nothing the entry does not. */
   record?: ExchangeRecord;
+  /** A call to an AI model (D4.10, AI-13): which action asked for it, and the model's name. Absent for a send. */
+  model?: { action: ModelAction; model: string };
 }
+
+/** What a model call was for: one of the three actions, or Settings › AI's test of the provider. */
+export type ModelAction = "tests" | "draft" | "explain" | "test";
 
 /**
  * Thrown when a request must not reach the network. The message is
@@ -709,7 +714,7 @@ function holderOf(scope: VariableScope, ports: ExchangePorts, spec: RequestExecu
  * masked already: what it says was masked is where the kept text differs
  * from what was sent and received. Nothing of `raw` is put in the record.
  */
-function recordOf(
+export function recordOf(
   history: PastRequest,
   raw: {
     sentHeaders: [string, string][];

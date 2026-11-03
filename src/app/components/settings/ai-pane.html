@@ -149,6 +149,7 @@
   <div class="settings-row">
     @if (ai.provider()) {
     <button uiButton class="btn-danger btn-sm" type="button" (click)="removeProvider()">Remove provider…</button>
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="test()">Test the provider…</button>
     }
     <span class="flex-1"></span>
     <button uiButton="filled" type="button" [disabled]="!!cannotSave()" (click)="save()">Save</button>
@@ -158,4 +159,14 @@
 <p class="settings-note">{{ cannotSave() }}</p>
 } @else if (said()) {
 <p class="settings-note">{{ said() }}</p>
-} }
+} @if (testCall(); as call) {
+<app-model-call heading="Test the provider" [call]="call" (answered)="tested($event)" (cancelled)="testCall.set(null)">
+  <p class="type-footnote text-label-secondary"
+    >✓ A few words, with no part of any request: "Reply with the word OK."</p
+  >
+</app-model-call>
+} @if (testResult(); as result) {
+<p class="settings-note">{{ result.text }}</p>
+@if (result.quote) {
+<p class="settings-note font-mono">{{ result.quote }}</p>
+} } }

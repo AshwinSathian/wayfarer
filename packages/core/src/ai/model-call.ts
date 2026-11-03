@@ -17,6 +17,10 @@ export interface AiProvider {
   model: string;
 }
 
+/** A model on a laptop takes longer than an API: a call is given two minutes. */
+export const MODEL_CALL_TIMEOUT_MS = 120_000;
+/** The largest prompt the app sends, in bytes of its body. */
+export const MAX_PROMPT_BYTES = 128 * 1024;
 /** A text body goes into a prompt cut to this many characters. */
 export const PROMPT_BODY_CHARS = 16 * 1024;
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -130,6 +134,9 @@ export function draftPrompt(description: string, variableNames: readonly string[
 export function explainPrompt(exchange: PastRequest, withResponseBody: boolean): Prompt {
   return { system: EXPLAIN_INSTRUCTION, user: exchangeText(exchange, withResponseBody) };
 }
+
+/** Test the provider: a few bytes, with no part of any request in them (setup.md). */
+export const PROVIDER_TEST_PROMPT: Prompt = { system: "", user: "Reply with the word OK." };
 
 /** The answer's text: OpenAI's first choice, or Anthropic's text blocks joined. Undefined when there is none. */
 export function answerText(kind: AiProviderKind, body: string): string | undefined {

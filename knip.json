@@ -19,7 +19,7 @@
       "project": ["**/*.js"]
     },
     "packages/core": {
-      "entry": ["src/index.ts", "src/**/*.spec.ts"],
+      "entry": ["src/index.ts", "src/ai/index.ts", "src/**/*.spec.ts"],
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["@stryker-mutator/command-runner"],
       "ignoreBinaries": ["xmllint"]

@@ -68,3 +68,63 @@ test("a provider's key is kept only in the vault, and removing the provider dele
   await expect.poll(async () => JSON.stringify((await dumpIdb(page))["secrets"])).not.toContain("AI provider key");
   expect(await page.evaluate(() => localStorage.getItem("wayfarer:ai"))).toBeNull();
 });
+
+// AI-3 on the provider's test: the preview's body is the body the model received, byte for byte; nothing goes before
+// Send to model, and the answer and a refusal are said in the pane.
+test("Test the provider previews the call, and the model receives exactly what was shown", async ({
+  page,
+  request,
+}) => {
+  await request.delete("http://127.0.0.1:4300/model/received");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  const settings = await openSettings(page, "AI");
+  await settings.getByRole("button", { name: "Add a provider" }).click();
+  await settings.getByLabel("Address").fill("http://127.0.0.1:4300/model/v1");
+  await settings.getByLabel("Model").fill("test-model");
+  await settings.getByRole("button", { name: "Save", exact: true }).click();
+  await settings.getByRole("button", { name: "Test the provider…" }).click();
+  const preview = settings.getByRole("region", { name: "Test the provider" });
+  await expect(preview).toContainText("Sends to http://127.0.0.1:4300/model/v1/chat/completions");
+  await expect(preview).toContainText("No key is sent.");
+  const shown = (await preview.getByLabel(/^What is sent/).textContent()) ?? "";
+  // Shown, not sent.
+  expect(await (await request.get("http://127.0.0.1:4300/model/received")).json()).toEqual([]);
+  await preview.getByRole("button", { name: "Send to model" }).click();
+  await expect(settings).toContainText("The provider answered:");
+  await expect(settings.locator(".settings-note.font-mono")).toHaveText("OK");
+  const received = (await (await request.get("http://127.0.0.1:4300/model/received")).json()) as string[];
+  expect(received).toHaveLength(1);
+  expect(shown.slice(shown.indexOf("\n\n") + 2)).toBe(received[0]);
+  expect(JSON.parse(received[0])).toMatchObject({
+    model: "test-model",
+    messages: [{ role: "user", content: "Reply with the word OK." }],
+  });
+  // Kept in history as a model call with its record (AI-13).
+  await expect
+    .poll(async () => JSON.stringify((await dumpIdb(page))["history"]))
+    .toContain('"model":{"action":"test","model":"test-model"}');
+});
+
+test("a provider that refuses the key is said in its own words, with the key masked everywhere it is kept", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await createVault(page);
+  const settings = await openSettings(page, "AI");
+  await settings.getByRole("button", { name: "Add a provider" }).click();
+  await settings.getByLabel("Address").fill("http://127.0.0.1:4300/model-refuses/v1");
+  await settings.getByLabel("Model").fill("test-model");
+  await settings.getByLabel("Key", { exact: true }).fill(KEY);
+  await settings.getByRole("button", { name: "Save", exact: true }).click();
+  await settings.getByRole("button", { name: "Test the provider…" }).click();
+  const preview = settings.getByRole("region", { name: "Test the provider" });
+  await expect(preview.getByLabel(/^What is sent/)).toContainText("Authorization: Bearer ***");
+  await expect(preview.getByLabel(/^What is sent/)).not.toContainText(KEY);
+  await preview.getByRole("button", { name: "Send to model" }).click();
+  await expect(settings).toContainText("127.0.0.1:4300 refused the key: 401 Unauthorized.");
+  await expect(settings).toContainText("Incorrect API key provided.");
+  await expect.poll(async () => JSON.stringify((await dumpIdb(page))["history"])).toContain('"action":"test"');
+  expect(JSON.stringify((await dumpIdb(page))["history"])).not.toContain(KEY);
+});

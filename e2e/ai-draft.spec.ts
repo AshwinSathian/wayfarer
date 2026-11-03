@@ -41,7 +41,7 @@ async function describe(page: Page, text: string) {
   return dialog;
 }
 
-test("a drafted request goes into a new tab only on Accept, its prompt is sent as written, and Undo empties it", async ({
+test("@claim:C-071 @claim:C-073 @claim:C-076 a drafted request goes into a new tab only on Accept, its prompt is sent as written, and Undo empties it", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -101,7 +101,7 @@ test("a tab with nothing typed is filled by Accept, not joined by another", asyn
   await expect(page.locator(".status-badge")).toHaveCount(0);
 });
 
-test("a description that names a vault secret is not sent", async ({ page }) => {
+test("@claim:C-077 a description that names a vault secret is not sent", async ({ page }) => {
   await page.goto("/app/");
   await page.getByRole("button", { name: "Describe a request…" }).click();
   const dialog = await describe(page, "Send {{$secret.abc}} as the token");
@@ -110,7 +110,7 @@ test("a description that names a vault secret is not sent", async ({ page }) => 
   expect(await received(page)).toHaveLength(0);
 });
 
-test("an answer that names a vault secret is refused, and the draft is unchanged", async ({ page }) => {
+test("@claim:C-078 an answer that names a vault secret is refused, and the draft is unchanged", async ({ page }) => {
   await page.goto("/app/");
   await page.getByRole("button", { name: "Describe a request…" }).click();
   const dialog = await describe(page, "A request that would name a secret");
@@ -121,7 +121,7 @@ test("an answer that names a vault secret is refused, and the draft is unchanged
   await expect(page.locator("input.address-url")).toHaveValue("");
 });
 
-test("with no provider, there is no Describe a request… and no palette command", async ({ page }) => {
+test("@claim:C-069 with no provider, there is no Describe a request… and no palette command", async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem("wayfarer:ai"));
   await page.goto("/app/");
   await expect(page.getByText("Send a request and its response shows here.")).toBeVisible();

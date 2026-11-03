@@ -137,8 +137,8 @@ prompt holds nothing history would not.
 
 Each spec lists the claims its flow adds, as testable sentences with the
 test that would prove each. `ai.md`'s five are AI-1 to AI-5; the specs add
-AI-6 onward. They get C-numbers in `docs/claims.md` when they are built
-(the ledger's last is C-068 today).
+AI-6 onward. Built, AI-1 to AI-15 are C-069 to C-083 in `docs/claims.md`,
+in the same order; `docs/ai.md` is the user's page for them.
 
 | Id | Claim | In |
 |---|---|---|

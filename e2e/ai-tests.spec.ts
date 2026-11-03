@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }, info) => {
   );
 });
 
-test("Write tests from this response proposes tests, Accept adds them, and Undo puts the script back", async ({
+test("@claim:C-071 @claim:C-072 @claim:C-073 Write tests from this response proposes tests, Accept adds them, and Undo puts the script back", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -81,7 +81,7 @@ test("Write tests from this response proposes tests, Accept adds them, and Undo 
   expect(second[1]).not.toContain('\\"query\\"');
 });
 
-test("with no provider, the Tests tab offers no AI action", async ({ page }) => {
+test("@claim:C-069 with no provider, the Tests tab offers no AI action", async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem("wayfarer:ai"));
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);

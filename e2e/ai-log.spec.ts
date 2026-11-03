@@ -50,7 +50,7 @@ async function writeTests(page: Page): Promise<void> {
   await expect(page.getByRole("region", { name: "Proposed tests" })).toBeVisible();
 }
 
-test("a model call is a history entry with its record, masked, that opens in place and exports with no key", async ({
+test("@claim:C-081 @claim:C-083 a model call is a history entry with its record, masked, that opens in place and exports with no key", async ({
   page,
 }) => {
   test.slow();
@@ -113,7 +113,7 @@ test("a model call is a history entry with its record, masked, that opens in pla
   expect((JSON.parse(har) as { log: { entries: unknown[] } }).log.entries).toHaveLength(1);
 });
 
-test("with response bodies off in history, a model call keeps no prompt that quoted one, and says so", async ({
+test("@claim:C-082 with response bodies off in history, a model call keeps no prompt that quoted one, and says so", async ({
   page,
 }) => {
   test.slow();

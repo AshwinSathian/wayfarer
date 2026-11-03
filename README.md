@@ -84,6 +84,21 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - The command line runs a collection file's scripts only when told to (`--allow-scripts`): without it, a collection that has a script is not run, and nothing is sent. <!-- claim:C-066 -->
 - The app can be used by keyboard alone: the core flow (a collection, a new tab, an address, a header, send, save, run) needs no pointer, every stop Tab reaches shows a focus ring, a dialog opens on the field it asks for, and closing one gives focus back to what opened it. <!-- claim:C-067 -->
 - Settings → Diagnostics shows the app's errors and what the Content-Security-Policy blocked, with self-tests; the report it copies, and the GitHub issue it opens, hold no address, header, body or vault secret of a request sent before. <!-- claim:C-068 -->
+- AI is off until a provider is added in Settings › AI: until then no AI control is drawn, the palette has no AI command, and no request goes to a model. <!-- claim:C-069 -->
+- A prompt sent to a model holds no vault secret's plaintext and no credential: it quotes the exchange as history keeps it, masked. <!-- claim:C-070 -->
+- What is sent to a model is shown before it is sent, byte for byte, and nothing is sent until Send to model. <!-- claim:C-071 -->
+- A response body goes into a prompt only when it is ticked for that call; the tick starts unticked every time. <!-- claim:C-072 -->
+- A model's proposal changes nothing until it is accepted, and Undo puts the script or the request back as it was. <!-- claim:C-073 -->
+- The AI provider's key is kept only as a vault secret. <!-- claim:C-074 -->
+- Removing the AI provider deletes its key from the vault and turns AI off again. <!-- claim:C-075 -->
+- A prompt is never a template: `{{name}}` in it is sent as written, not as its value. <!-- claim:C-076 -->
+- A prompt that names a vault secret's reference (`{{$secret.…}}`) is not sent. <!-- claim:C-077 -->
+- A model's proposal that names a vault secret's reference is refused and not offered. <!-- claim:C-078 -->
+- Tests a model wrote run only where the request's scripts may run: accepting them lifts no hold on the scripts of a request not yet reviewed. <!-- claim:C-079 -->
+- Nothing calls a model but Send to model: not a send, a reload or a preview that is cancelled. <!-- claim:C-080 -->
+- Each model call is a History entry with its exchange record, masked as a send is, and opens in History without loading into a tab. <!-- claim:C-081 -->
+- With response bodies off in history, a model call whose prompt quoted a response body keeps neither that prompt nor the answer. <!-- claim:C-082 -->
+- A HAR export of model calls holds no key and nothing history masked. <!-- claim:C-083 -->
 <!-- features:end -->
 
 Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).
@@ -124,6 +139,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Scripts](docs/scripts.md): the sandbox, what `pm` offers, which scripts may run, and collection runs
 - [Postman compatibility](docs/postman-compatibility.md): each part of Postman's script API, generated from the tests
 - [GraphQL](docs/graphql.md): the query editor and the schema
+- [AI](docs/ai.md): a model you set up writes tests, drafts requests and explains failures, each call shown before it is sent
 - [Import](docs/import.md): every format, and the report before anything is stored
 - [Export](docs/export.md): cURL, code, HAR and Postman files
 - [Collections schema](docs/collections-schema.md): the collection and environments files

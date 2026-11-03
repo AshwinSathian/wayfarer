@@ -41,7 +41,7 @@ async function sendTo(page: Page, path: string) {
   await send(page);
 }
 
-test("Explain this response shows the call first, sends the body only when ticked, and shows the answer as text", async ({
+test("@claim:C-071 @claim:C-072 Explain this response shows the call first, sends the body only when ticked, and shows the answer as text", async ({
   page,
 }) => {
   await sendTo(page, "/status/422");
@@ -102,7 +102,7 @@ test("the palette asks for Explain and Write tests where their controls are", as
   expect(await received(page)).toHaveLength(0);
 });
 
-test("with no provider, a failed response offers no Explain", async ({ page }) => {
+test("@claim:C-069 with no provider, a failed response offers no Explain", async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem("wayfarer:ai"));
   await sendTo(page, "/status/500");
   await page.locator(".record-toggle").click();

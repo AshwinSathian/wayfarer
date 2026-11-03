@@ -88,14 +88,14 @@ describe("a model call (D4.10)", () => {
   });
 
   // AI-8: nothing in a prompt is resolved.
-  it("sends {{name}} as written", () => {
+  it("@claim:C-076 sends {{name}} as written", () => {
     expect(draftPrompt("Get {{baseUrl}}/pets", ["baseUrl"]).user).toBe(
       "Get {{baseUrl}}/pets\n\nVariables that have values: baseUrl.",
     );
   });
 
   // AI-9: a prompt that names a vault secret's reference is not sent.
-  it("finds a vault secret's reference in the prompt, as the wire check does", () => {
+  it("@claim:C-077 finds a vault secret's reference in the prompt, as the wire check does", () => {
     const call = modelRequest(openai, draftPrompt("use {{$secret.abc}}"));
     expect(promptNamesSecret(call)).toBe(true);
     expect(promptNamesSecret(modelRequest(openai, draftPrompt("use {{token}}")))).toBe(false);
@@ -130,7 +130,7 @@ describe("a model call (D4.10)", () => {
   });
 
   // AI-10: a proposal that names a vault secret's reference is refused; a request proposal is checked as an import.
-  it("makes a proposal of an answer, and refuses one that names a vault secret or is no request", () => {
+  it("@claim:C-078 makes a proposal of an answer, and refuses one that names a vault secret or is no request", () => {
     expect(scriptProposal("Here:\n```js\npm.test('ok', () => {});\n```")).toEqual({
       script: "pm.test('ok', () => {});",
     });

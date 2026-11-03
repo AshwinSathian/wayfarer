@@ -35,7 +35,7 @@ const call = (outcome: ResponseEnvelope | TransportError, keepBodies = true, quo
 
 describe("a model call as history keeps it (D4.10)", () => {
   // AI-13: masked as a send is; the key is in no field as itself, and the record names the vault secret.
-  it("keeps the call with its record, the key *** everywhere, the answer read", () => {
+  it("@claim:C-081 keeps the call with its record, the key *** everywhere, the answer read", () => {
     const echoed = JSON.stringify({ choices: [{ message: { content: `Here, and the key was ${KEY}` } }] });
     const { history, answer } = call(envelope(200, echoed));
     expect(JSON.stringify(history)).not.toContain(KEY);
@@ -53,7 +53,7 @@ describe("a model call as history keeps it (D4.10)", () => {
   });
 
   // AI-14: with response bodies off in history, a prompt that quoted one is not kept, nor the answer's body.
-  it("keeps no prompt that quoted a response body when history keeps no bodies", () => {
+  it("@claim:C-082 keeps no prompt that quoted a response body when history keeps no bodies", () => {
     const { history } = call(envelope(200, JSON.stringify({ choices: [{ message: { content: "OK" } }] })), false, true);
     expect(history.sent.bodyPreview).toBeUndefined();
     expect(history.template.body).toEqual({ mode: "none" });

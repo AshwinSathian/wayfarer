@@ -15,6 +15,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   app keeps out of it and the home indicator; the page says it is in
   British English; and Settings › About says "Trust centre".
 
+- **The design docs say what session D4-g built.** The plan's row 1.57
+  lists the eight changes to environments, variables and the vault, the
+  audit's notes close their findings, and the baseline gives tasks 3 and 4
+  measured again: each takes two inputs fewer and about half the time.
+
 - **The toolbar's Environments button says Environments.** It was a
   server's icon alone, named only by its tooltip.
 

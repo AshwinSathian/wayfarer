@@ -107,7 +107,7 @@
   margin-top: 0.75rem;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 64em) {
   .env-editor {
     padding-inline-start: 24px;
     border-inline-start: 1px solid var(--separator);

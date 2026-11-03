@@ -274,14 +274,14 @@ pre,
 }
 
 /* Below the desktop width the toolbar shares the row with the pinned sidebar, or is on a phone. */
-@media (max-width: 1023px) {
+@media (width < 64em) {
   .ds-toolbar {
     padding: 0 12px;
   }
 }
 
 /* At 320 px (WCAG 1.4.10, U-065) the toolbar's buttons ran 2 px past the window: less padding and gap. */
-@media (max-width: 359px) {
+@media (width < 22.5em) {
   .ds-toolbar {
     gap: 8px;
     padding: 0 8px;

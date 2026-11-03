@@ -575,7 +575,8 @@ test.describe("the toolbar", () => {
 test("at 200% text and 1440 px no response tab's label is cut", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  // A browser's text size setting is the root's font size.
+  // The root's font size at 200%, as text-only zoom sets it. The browser's default text size, which a media query
+  // reads, is text-size.spec.ts's (U-153).
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
   await page.getByRole("button", { name: "Send request" }).click();

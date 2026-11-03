@@ -118,12 +118,15 @@ export class App implements OnInit {
   private updateViewportFlags(): void {
     const wasOverlay = this.sidebarOverlay();
     // Media queries, as the stylesheet's breakpoints are: WebKit takes the
-    // scrollbar off the width a query sees, and not off innerWidth.
-    const wide = matchMedia("(min-width: 1200px)").matches;
-    const room = matchMedia("(min-width: 1024px)").matches;
+    // scrollbar off the width a query sees, and not off innerWidth. In em, as
+    // the boxes are in rem: a reader whose text is twice the size has a window
+    // half as wide to the layout (U-153). 75, 64 and 48 em are 1,200, 1,024 and
+    // 768 px at the default 16 px.
+    const wide = matchMedia("(min-width: 75em)").matches;
+    const room = matchMedia("(min-width: 64em)").matches;
     this.canPin.set(room && !wide);
     const overlay = !wide && !(room && this.pinned());
-    this.isMobile.set(!matchMedia("(min-width: 768px)").matches);
+    this.isMobile.set(!matchMedia("(min-width: 48em)").matches);
     this.sidebarOverlay.set(overlay);
 
     // On the first pass, and each time the window crosses the line: pinned

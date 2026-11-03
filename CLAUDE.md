@@ -419,7 +419,12 @@ code errors.
   1024 px window cut off the composer's fourth tab.
 - Both are read with `matchMedia`, not `innerWidth`: WebKit takes a classic
   scrollbar off the width a media query sees, so the two disagreed over
-  15 px. An e2e test of a layout "from N px" therefore uses N + 20.
+  15 px. Every breakpoint, in a stylesheet or a `matchMedia`, is in em
+  (75, 64 and 48 em are 1,200, 1,024 and 768 px at the default 16 px): a
+  reader whose default text is twice the size has a window half as wide
+  to the layout, as the boxes in rem grow with it (U-153; the token test
+  fails on one in px, and `e2e/text-size.spec.ts` sets Firefox's default
+  size). An e2e test of a layout "from N px" therefore uses N + 20.
 - The toolbar holds the environment, Environments, History and Settings
   (S4). From 768 px the status bar under the panes holds the Local Bridge,
   the vault's lock, the secrets and the theme: each an icon button that

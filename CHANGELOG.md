@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A larger text size in the browser gives the narrower layout, as zoom
+  does.** With the browser's default text at twice its size, a 1,440 px
+  window kept the wide layout: the collections tree beside the page took
+  half of it, and the address, the toolbar and the status bar were cut
+  off. The layout's widths now grow with the text, so that window is laid
+  out as a 720 px one. At the default size nothing moves.
+
 - **A request opened from history gets a tab of its own.** It replaced
   the open request's tab with no sign it had, and the collections tree
   kept showing the replaced request as selected. It now opens beside it,

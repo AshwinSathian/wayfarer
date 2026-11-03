@@ -228,7 +228,7 @@
 }
 
 /* A phone: the list is the dialog, and a section opens in its place. */
-@media (max-width: 767.98px) {
+@media (width < 48em) {
   .settings {
     grid-template-columns: minmax(0, 1fr);
     height: min(640px, calc(90vh - 100px));

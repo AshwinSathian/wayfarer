@@ -140,6 +140,7 @@ locked", "Route: Auto"); the toolbar holds the sidebar's toggle, the
 environment, Environments, History and Settings at every width from 768 px.
 Environments' icon (`dns`, a server) is the one a newcomer cannot read;
 [`ia.md`](ia.md) leaves it to D4-g.
+**2026-11-03:** Environments' half fixed in #PRNUM (D4-g): the toolbar's Environments is a button with its word beside the icon, from 768 px (on a phone it is a named row of the drawer, #489).
 
 **U-007. The pinned sidebar looks like a drawer.** Severity 3. H4.
 It casts `rgba(0,0,0,0.5) 4px 0 32px`, the shadow of a panel over the

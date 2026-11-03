@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The toolbar's Environments button says Environments.** It was a
+  server's icon alone, named only by its tooltip.
+
 - **A variable with no value can be added to the collection.** For a
   saved request, the chip of a variable nothing sets asks where it goes:
   the environment, or the request's collection, whose settings open at

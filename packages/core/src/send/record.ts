@@ -42,8 +42,12 @@ export interface ExchangeRecord {
   host: string;
   secrets: FilledSecret[];
   masked: MaskedParts;
-  /** What the exchange's entry keeps: the request always, the response's status and headers when one came, and its body when kept. */
-  kept: { response: boolean; body: boolean };
+  /**
+   * What the exchange's entry keeps: the request always, the response's status and headers when one came, and its
+   * body when kept. `quoteLeftOut`: a model call's prompt quoted a response body, and response bodies are not kept
+   * in history, so the prompt is not kept either (D4.10, AI-14).
+   */
+  kept: { response: boolean; body: boolean; quoteLeftOut?: true };
   /** No response arrived. `reported` is what the browser or the bridge said, as it said it; `summary` is the app's first sentence. */
   failure?: { kind: "network" | "timeout" | "aborted" | "bridge"; reported: string; summary: string };
 }
@@ -140,11 +144,15 @@ export function recordLines(record: ExchangeRecord, keeper: "history" | "run" = 
     ? ["Masked with *** in what is kept: ", ...listed(parts), "."]
     : ["Nothing was masked."];
   const who = keeper === "history" ? "History kept" : "The run kept";
+  // Only a model call's entry leaves out its quote, and only with response bodies off: no response body is kept then.
+  const request = record.kept.quoteLeftOut ? "the request without the response body it quoted" : "the request";
   const kept = !record.kept.response
-    ? `${who} the request. No response came.`
+    ? `${who} ${request}. No response came.`
     : record.kept.body
-      ? `${who} the request and the response.`
-      : `${who} the request and the response's status and headers, not its body.`;
+      ? `${who} ${request} and the response.`
+      : record.kept.quoteLeftOut
+        ? `${who} ${request}, and the response's status and headers, not its body.`
+        : `${who} ${request} and the response's status and headers, not its body.`;
   return [
     { field: "route", parts: route },
     { field: "secrets", parts: secrets },
@@ -222,7 +230,7 @@ export function recordProblems(value: unknown, path: string): string[] {
       responseHeaders: texts,
       responseBody: optional(yes),
     }),
-    kept: nested({ response: flag, body: flag }),
+    kept: nested({ response: flag, body: flag, quoteLeftOut: optional(yes) }),
     failure: optional(
       nested({
         kind: (field) => typeof field === "string" && FAILURE_KINDS.includes(field),

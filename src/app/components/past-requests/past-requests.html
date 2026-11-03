@@ -1,4 +1,5 @@
 <section class="history h-full w-full">
+  <p class="sr-only" role="status">{{ said() }}</p>
   @if (loading()) {
   <!-- Rows to come, as rows: no box inside the drawer's box (U-093). -->
   <div class="flex flex-col gap-3 px-3 py-2">
@@ -24,10 +25,21 @@
         uiInput
         type="search"
         aria-label="Search history"
-        placeholder="Search by address, method or status"
+        [placeholder]="hasModelCalls() ? 'Search by address, method, status or model' : 'Search by address, method or status'"
         [value]="query()"
         (input)="query.set($any($event.target).value)"
       />
+      @if (hasModelCalls()) {
+      <div class="flex items-center gap-2">
+        <span id="history-kind-label" class="type-footnote text-label-secondary">Show</span>
+        <ui-segmented
+          aria-labelledby="history-kind-label"
+          [options]="kinds"
+          [value]="kind()"
+          (valueChange)="chooseKind($event)"
+        />
+      </div>
+      }
       <div class="flex flex-wrap items-center gap-2">
         @if (selecting()) {
         <button uiButton type="button" class="btn-sm" (click)="chooseShown()"
@@ -58,7 +70,10 @@
       </div>
     </div>
     @if (!groups().length) {
-    <p class="type-footnote text-label-secondary px-3">No request in history matches.</p>
+    <p class="type-footnote text-label-secondary px-3">
+      {{ hasModelCalls() && kind() === "models" ? (query().trim() ? "No model call matches." : "Calls to a model are
+      listed here, each with what was sent.") : "No request in history matches." }}
+    </p>
     } @for (group of groups(); track group.label) {
     <div role="group" [attr.aria-label]="group.label">
       <div class="px-3 pb-1">
@@ -78,7 +93,30 @@
             (change)="choose(request, $any($event.target).checked)"
           />
           }
-          <!-- The row opens the entry: its exchange record and its request (D4.12). -->
+          <!-- The row opens the entry: its exchange record and its request (D4.12). A model call's opens in place. -->
+          @if (request.model; as model) {
+          <button
+            type="button"
+            class="history-open"
+            [attr.aria-expanded]="expanded() === request.id"
+            [attr.aria-label]="modelName(request)"
+            (click)="load(request)"
+          >
+            <span class="history-line">
+              <span class="method-badge history-model-badge shrink-0">Model</span>
+              <span class="history-address">{{ actionWords[model.action] }}</span>
+            </span>
+            <span class="history-facts type-footnote">
+              <span class="font-mono history-model-name">{{ hostOf(request) }} · {{ model.model }}</span>
+              @if (request.response) {
+              <span class="font-mono tabular-nums">{{ request.response.status }}</span>
+              } @else {
+              <span class="text-status-error">No response</span>
+              }
+              <span>{{ relativeTime(request.createdAt) }}</span>
+            </span>
+          </button>
+          } @else {
           <button type="button" class="history-open" [uiTooltip]="details" (click)="load(request)">
             <span class="history-line">
               <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0"
@@ -101,6 +139,7 @@
               <span>{{ relativeTime(request.createdAt) }}</span>
             </span>
           </button>
+          }
           <button
             type="button"
             uiButton="icon"
@@ -124,6 +163,44 @@
               <p class="text-label-secondary">{{ request.createdAt | date: "medium" }}</p>
             </div>
           </ng-template>
+          @if (request.model && expanded() === request.id && request.record) {
+          <div class="history-model-record">
+            <section class="exchange-record type-footnote" aria-label="Exchange record">
+              <app-exchange-record [record]="request.record" [actions]="false" />
+            </section>
+            <div class="flex flex-wrap gap-2">
+              <button
+                uiButton
+                type="button"
+                class="btn-sm"
+                [attr.aria-expanded]="showing() === 'sent'"
+                (click)="showing.set(showing() === 'sent' ? null : 'sent')"
+                >Show what was sent</button
+              >
+              @if (request.response?.body) {
+              <button
+                uiButton
+                type="button"
+                class="btn-sm"
+                [attr.aria-expanded]="showing() === 'answer'"
+                (click)="showing.set(showing() === 'answer' ? null : 'answer')"
+                >Show the answer</button
+              >
+              }
+            </div>
+            @if (showing() === "sent") {
+            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="What was sent, as kept">
+{{
+            request.sent.method + " " + request.sent.url + "\n" + headerLines(request) + "\n\n" + (request.sent.bodyPreview ?? "")
+          }}</pre>
+            } @else if (showing() === "answer") {
+            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The answer, as kept">
+{{
+            request.response?.body?.text
+          }}</pre>
+            }
+          </div>
+          }
         </li>
         }
       </ul>

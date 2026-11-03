@@ -9,6 +9,7 @@
 
 .history-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   padding-inline: 6px 4px;
@@ -24,9 +25,11 @@
   flex: none;
 }
 
+/* Its basis is 0, so a long address never pushes the delete button onto a line of its own: only an opened model
+   call's record takes the next line. */
 .history-open {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
@@ -56,7 +59,8 @@
 
 .history-facts {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 0 10px;
   color: var(--label-secondary);
 }
 
@@ -73,4 +77,36 @@
 
 .history-delete:hover {
   color: var(--status-error-text);
+}
+
+/* A model call (D4.10): "Model" with no method hue, since the method is always POST and says nothing. */
+.history-model-badge {
+  border: 1px solid var(--ctl-boundary);
+  color: var(--label-secondary);
+}
+
+.history-model-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A model call opened in place: its record, and the kept texts, wrapping. */
+.history-model-record {
+  display: flex;
+  flex: 1 0 100%;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px 10px;
+}
+
+.history-kept {
+  max-height: calc(24 * 1.5em);
+  margin: 0;
+  padding: 8px 10px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

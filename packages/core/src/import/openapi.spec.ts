@@ -26,9 +26,12 @@ const v2 = (paths: Loose, more: Loose = {}) => ({
 });
 const ok = { responses: { 200: { description: "OK" } } };
 const read = (file: unknown) => importText(JSON.stringify(file));
+/** The importer's own warnings: the one of variables nothing sets is the whole file's (U-133), tested in import.spec. */
+const own = (warnings: { message: string }[]) =>
+  warnings.filter((warning) => !/^{{.*}} (has|have) no value in the file, and /.test(warning.message));
 const only = (file: unknown) => {
   const imported = read(file);
-  return { ...imported.collections[0].payload, warnings: imported.report.warnings };
+  return { ...imported.collections[0].payload, warnings: own(imported.report.warnings) };
 };
 /** The one request of a file with one operation. */
 const one = (file: unknown) => {

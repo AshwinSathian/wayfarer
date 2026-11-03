@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The import review says which variables nothing in the file sets.**
+  A collection whose requests use `{{base}}` with no value anywhere in
+  the file now says so before you import, with how many requests use it:
+  before, the first send failed. The review lists each item on one line
+  with its name exactly as it will be stored (it showed "Status And Body"
+  for "Status and body"), and its counts agree with their nouns.
+
 - **The installed app's window matches the app.** Its title bar takes
   the colour of the theme you chose, not black or a grey of the system's;
   the manifest names and describes the app; on a phone with a notch the

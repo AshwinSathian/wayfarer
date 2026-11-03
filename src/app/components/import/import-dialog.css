@@ -1,0 +1,23 @@
+/* The plan (U-015): one line an item, its kind, its name as stored, and whether it is new or replaces one. */
+.import-plan {
+  margin: 0;
+  padding: 4px 0;
+  border-top: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator);
+  list-style: none;
+}
+
+.import-plan-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 2px;
+}
+
+.import-plan-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

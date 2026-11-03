@@ -24,5 +24,13 @@ exports[`Insomnia files other people wrote (P4.4) > the whole set: what is impor
   "Its unit tests are left out: the app imports requests, folders and environments.": 1,
   "Its variable cascadeVar is also in the environment "…". Insomnia uses the folder's value; the app uses the environment's when that environment is active.": 1,
   "What the file holds that is not a request, a folder or an environment is left out (…).": 2,
+  "{{assert}}, {{asyncTaskDone}}, {{atob}}, {{bodyFromAwait}}, {{bodyFromCallback}} and N more have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{auth_token}} and {{base_url}} have no value in the file, and all N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{auth_token}}, {{base_url}}, {{departure_date}} and {{flight_number}} have no value in the file, and all N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{base_url}} has no value in the file, and all N requests use it: give it a value in an environment or in the collection's settings before you send.": 4,
+  "{{global-base}} and {{global-sub}} have no value in the file, and its request uses them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{item}} and {{prefix}} have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{orderId}} has no value in the file, and N of its N requests use it: give it a value in an environment or in the collection's settings before you send.": 2,
+  "{{vault.foo}}, {{vault.hello}} and {{vault.secret}} have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
 }
 `;

@@ -15,6 +15,7 @@ import { Dialog } from "../../ui/dialog";
   selector: "app-import-dialog",
   imports: [Dialog, FormsModule, UiButton, UiCheckbox, UiSpinner],
   templateUrl: "./import-dialog.html",
+  styleUrl: "./import-dialog.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportDialog {
@@ -33,7 +34,7 @@ export class ImportDialog {
     const refused = this.pipeline.refused();
     if (!refused) return "";
     const issues = refused.issues.map((issue) => (issue.path ? `${issue.path} — ` : "") + issue.message);
-    return [`Unable to import "${this.pipeline.fileName()}":`, refused.message, ...issues].join(" ");
+    return [`"${this.pipeline.fileName()}" was not imported:`, refused.message, ...issues].join(" ");
   });
   protected readonly reportText = computed(() => {
     const imported = this.pipeline.imported();
@@ -43,6 +44,16 @@ export class ImportDialog {
     if (warnings) said.push(`${warnings} ${warnings === 1 ? "thing" : "things"} to know before you import.`);
     return said.join(" ");
   });
+
+  /** "1 folder", "3 variables": a count with its noun agreeing (U-098). */
+  protected plural(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`;
+  }
+
+  /** The kind of an item of the plan, as a word of a sentence: "Collection", "Folder", "Request". */
+  protected kindOf(type: string): string {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  }
 
   /** "1 collection, 2 folders and 5 requests": the kinds the file has any of. */
   protected readonly counts = computed(() => {

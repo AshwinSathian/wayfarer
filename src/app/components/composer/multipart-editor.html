@@ -4,7 +4,7 @@
     <input
       type="checkbox"
       uiCheckbox
-      [attr.aria-label]="'Send part ' + (index + 1)"
+      [attr.aria-label]="'Send ' + (part.key || 'this part')"
       [(ngModel)]="part.enabled"
       (ngModelChange)="partChange.emit()"
     />
@@ -14,11 +14,11 @@
       placeholder="Name"
       [(ngModel)]="part.key"
       (ngModelChange)="partChange.emit()"
-      [attr.aria-label]="'Part name, row ' + (index + 1)"
+      [attr.aria-label]="'Part name, ' + (index + 1) + ' of ' + parts().length"
     />
     <ui-select
       class="w-24"
-      [attr.aria-label]="'Part type, row ' + (index + 1)"
+      [attr.aria-label]="'Type of ' + (part.key || 'this part')"
       [options]="kinds"
       [value]="part.kind"
       (valueChange)="kindChange.emit({ index, kind: $event })"
@@ -32,18 +32,23 @@
         placeholder="Value"
         [(ngModel)]="part.value"
         (ngModelChange)="partChange.emit()"
-        [attr.aria-label]="'Part value, row ' + (index + 1)"
+        [attr.aria-label]="'Value of ' + (part.key || 'this part')"
       />
       } @else {
       <ui-file
         class="min-w-0 flex-1"
-        [label]="'File for part ' + (index + 1)"
+        [label]="'File for ' + (part.key || 'this part')"
         [fileName]="part.fileName"
         (picked)="filePicked.emit({ index, file: $event })"
         (cleared)="kindChange.emit({ index, kind: 'file' })"
       />
       }
-      <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove part" (click)="remove.emit(index)"
+      <button
+        uiButton="icon"
+        class="btn-plain"
+        type="button"
+        [attr.aria-label]="'Remove ' + (part.key || 'this part')"
+        (click)="remove.emit(index)"
         ><app-icon name="close"
       /></button>
     </div>

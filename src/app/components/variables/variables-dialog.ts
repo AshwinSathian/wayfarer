@@ -16,7 +16,7 @@ import { RowsEditor } from "../composer/rows-editor/rows-editor";
     <ui-dialog [header]="header()" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="560px">
       <p class="type-footnote text-label-secondary mb-3">{{ hint() }}</p>
       <app-rows-editor
-        [context]="header()"
+        noun="variable"
         [items]="rows()"
         [switches]="false"
         addLabel="Add variable"

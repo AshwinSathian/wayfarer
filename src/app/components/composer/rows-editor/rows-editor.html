@@ -7,7 +7,7 @@
     <input
       type="checkbox"
       uiCheckbox
-      [attr.aria-label]="'Send ' + context().toLowerCase() + ' row ' + (index + 1)"
+      [attr.aria-label]="'Send ' + (item.key || 'this ' + noun())"
       [(ngModel)]="item.enabled"
       (ngModelChange)="itemChange.emit()"
     />
@@ -18,7 +18,7 @@
       placeholder="Name"
       [(ngModel)]="item.key"
       (ngModelChange)="itemChange.emit()"
-      [attr.aria-label]="context() + ' name, row ' + (index + 1)"
+      [attr.aria-label]="title() + ' name, ' + (index + 1) + ' of ' + items().length"
     />
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-48 items-center gap-2">
@@ -28,14 +28,14 @@
         placeholder="Value"
         [(ngModel)]="item.value"
         (ngModelChange)="itemChange.emit()"
-        [attr.aria-label]="context() + ' value, row ' + (index + 1)"
+        [attr.aria-label]="'Value of ' + (item.key || 'this ' + noun())"
       />
       <!-- Grey until hovered: red is for the one destructive action in view, not one on every row (U-018). -->
       <button
         uiButton="icon"
         class="btn-plain"
         type="button"
-        [attr.aria-label]="'Remove ' + context().toLowerCase() + ' row ' + (index + 1)"
+        [attr.aria-label]="'Remove ' + (item.key || 'this ' + noun())"
         (click)="remove.emit(index)"
         ><app-icon name="close"
       /></button>

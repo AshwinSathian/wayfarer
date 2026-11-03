@@ -1470,12 +1470,12 @@ test("checkbox: Tab reaches each one in every engine and passes over a disabled 
   const box = (name: string) => page.getByRole("checkbox", { name, exact: true });
   await box("Follow redirects").focus();
   // Plain Tab, in WebKit too: without its tabindex, WebKit's Tab (Safari's by default) passed over a checkbox.
-  for (const name of ["Do not verify the server's certificate", "Send parameter 1"]) {
+  for (const name of ["Do not verify the server's certificate", "Send page"]) {
     await page.keyboard.press("Tab");
     await expect(box(name), name).toBeFocused();
   }
   await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Parameter name, row 1")).toBeFocused();
+  await expect(page.getByLabel("Parameter name, 1 of 1")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(box("Hold back a request with a variable that has no value")).toBeFocused();
   await expect(box("Stop on the first failure")).toBeDisabled();

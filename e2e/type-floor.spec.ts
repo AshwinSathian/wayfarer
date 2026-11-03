@@ -63,8 +63,8 @@ test("what a user typed or a server sent is monospace; names and prose are not",
   expect(await family(page.getByLabel("Filter the JSON by path")), "the path filter").toMatch(mono);
   await page.getByRole("tab", { name: "Headers" }).first().click();
   await page.getByRole("button", { name: "Add Header" }).click();
-  expect(await family(page.getByLabel(/name, row 1$/)), "a header's name").toMatch(mono);
-  expect(await family(page.getByLabel(/value, row 1$/)), "a header's value").toMatch(mono);
+  expect(await family(page.getByLabel(/^Header name, 1 of /)), "a header's name").toMatch(mono);
+  expect(await family(page.getByLabel("Value of this header")), "a header's value").toMatch(mono);
   const environments = await openEnvironments(page);
   await environments
     .getByRole("button", { name: /New environment|Create/ })

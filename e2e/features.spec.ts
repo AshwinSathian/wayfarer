@@ -459,8 +459,8 @@ test("a copy says what it was copied as, and that a credential in it was masked"
   await expect(note).toHaveText("Copied as cURL.");
 
   await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
-  await page.getByLabel("Headers name, row 1").fill("Authorization");
-  await page.getByLabel("Headers value, row 1").fill("Bearer abcdef123");
+  await page.getByLabel("Header name, 1 of 1").fill("Authorization");
+  await page.getByLabel("Value of Authorization").fill("Bearer abcdef123");
   await copy.click();
   await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
   await expect(note).toHaveText("Copied as cURL. Its credentials are replaced by ***.");

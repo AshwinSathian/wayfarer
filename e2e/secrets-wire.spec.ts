@@ -590,7 +590,7 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
   const sent = requests;
   await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
   await page
-    .getByRole("textbox", { name: "Headers value, row 1" })
+    .getByRole("textbox", { name: "Value of X-Plain" })
     .fill("{{nowhere}} {{$secret.00000000-0000-4000-8000-00000000d5d5}}");
   await send(page);
   const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });

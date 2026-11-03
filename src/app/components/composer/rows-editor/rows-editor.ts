@@ -14,8 +14,8 @@ import { Icon } from "../../../shared/icon/icon";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RowsEditor {
-  /** What the rows are, in the accessible names: "Headers name, row 1". */
-  readonly context = input("Headers");
+  /** What one row is, in the accessible names: "Header name, 1 of 3", and "Value of this header" before it has a name (U-071). */
+  readonly noun = input("header");
   readonly items = input<Row[]>([]);
   readonly addLabel = input("Add row");
   /** Whether each row has its "send" switch. Variables have none: a variable is there or it is not. */
@@ -28,6 +28,10 @@ export class RowsEditor {
   readonly itemChange = output<void>();
   readonly add = output<void>();
   readonly remove = output<number>();
+
+  protected title(): string {
+    return this.noun().charAt(0).toUpperCase() + this.noun().slice(1);
+  }
 
   /** No second blank row. */
   protected addDisabled(): boolean {

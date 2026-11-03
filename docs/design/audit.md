@@ -1130,7 +1130,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **2026-11-02:** The palette's half fixed in #484 (D4-f): its rows are plain rows in one floating list, no boxes inside it.
 **2026-11-02:** History's skeleton fixed in #485 (D4-f): rows to come are lines, not boxes.
 **2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
-**2026-11-03:** Settings' share fixed in #PRNUM (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
+**2026-11-03:** Settings' share fixed in #507 (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
 
 ### Environments, the vault and the runner
 

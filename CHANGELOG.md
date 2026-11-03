@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A variable with no value can be added to the collection.** For a
+  saved request, the chip of a variable nothing sets asks where it goes:
+  the environment, or the request's collection, whose settings open at
+  Variables with a row of that name. Before, it could only go into the
+  environment.
+
 - **A send that needs the vault says why it asks for the passphrase.**
   The unlock dialog names the request and its secrets ("Sending "Get pet"
   needs token from the vault."); it said only "unlock encrypted secrets".

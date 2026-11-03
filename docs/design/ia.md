@@ -601,6 +601,11 @@ it is.
 | `model-call.html: Cancel` | — | A model call's preview, where its action was asked (D4.10) | D4-k |
 | `model-call.html: Stop` | — | A model call's preview, while the call is on its way (D4.10) | D4-k |
 | `model-call.html: Send to model` | — | A model call's preview: the one road by which a model is called (AI-12) | D4-k |
+| `ai-tests.html: Write tests from this response…` | — | The response's Tests tab, with a provider and the action on (D4.10) | D4-k |
+| `ai-tests.html: The response body` | — | The preview of Write tests: a tick, unticked each time (AI-4) | D4-k |
+| `ai-tests.html: Discard` | — | A proposal of tests (D4.10) | D4-k |
+| `ai-tests.html: Accept` | — | A proposal of tests: writes into the tab it was asked in (AI-5) | D4-k |
+| `ai-tests.html: Undo` | — | After Accept: puts the post-response script back (AI-5) | D4-k |
 | `cookies-pane.html: Delete cookie` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: jar.setValue(cookie, $any($event.target).value)` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: Delete all…` | Settings, Cookies | Settings, Cookies | D4-h |

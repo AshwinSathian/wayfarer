@@ -17,6 +17,8 @@ import { EventList } from "./event-list";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
+import { AiSettings } from "../../services/ai-settings";
+import { AiTests } from "../ai-tests/ai-tests";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
@@ -78,6 +80,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
 @Component({
   selector: "app-response-viewer",
   imports: [
+    AiTests,
     UiInput,
     EventList,
     ExchangeRecordView,
@@ -113,6 +116,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
 // signal-based response state itself.
 export class ResponseViewer {
   private readonly diagnostics = inject(Diagnostics);
+  protected readonly ai = inject(AiSettings);
   private readonly jsonWorker = inject(JsonWorkerClient);
 
   readonly loading = input(false);

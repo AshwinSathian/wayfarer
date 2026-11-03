@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The model can write tests from a response.** With a provider set up
+  and the action on, the response's Tests tab has Write tests from this
+  response…. The call is previewed first, the response body going only
+  when ticked for that call; the answer is a proposal shown as lines added
+  to the post-response script, and nothing changes until Accept. Undo puts
+  the script back. An accepted script runs only where the request's
+  scripts may run, as one typed there would.
+
 - **A model call is shown before it is sent, and kept like a send.**
   Settings › AI's Test the provider… opens the preview every model call
   will have: where it goes, by which route, with the key as ***, and the

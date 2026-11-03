@@ -47,6 +47,8 @@ export class ModelCall {
   readonly call = input.required<PreparedCall>();
   /** What the Redactor put *** in, of what the prompt quotes: "Nothing was masked." with nothing. */
   readonly masked = input("Nothing was masked.");
+  /** The caller is redrawing the call after a tick: Send waits, so what is sent is what is shown (AI-3). */
+  readonly preparing = input(false);
   readonly answered = output<ModelCallOutcome>();
   readonly cancelled = output<void>();
 
@@ -83,7 +85,7 @@ export class ModelCall {
   }
 
   protected async send(): Promise<void> {
-    if (this.sending() || this.call().blocked) return;
+    if (this.sending() || this.call().blocked || this.preparing()) return;
     this.sending.set(true);
     this.said.set("Asking the model…");
     this.controller = new AbortController();

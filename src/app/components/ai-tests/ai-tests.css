@@ -1,0 +1,31 @@
+/* A proposal (D4.10): the script as it is, and the lines the model would add, tinted as added lines are. */
+.ai-proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 12px;
+  border-top: 1px solid var(--separator);
+}
+
+.ai-diff {
+  max-height: calc(24 * 1.5em);
+  margin: 0;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-elevated);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ai-diff-kept {
+  color: var(--label-secondary);
+}
+
+.ai-diff-added {
+  display: block;
+  background: var(--status-success-fill);
+  box-shadow: inset 2px 0 0 var(--status-success);
+  color: var(--label-primary);
+}

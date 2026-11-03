@@ -24,15 +24,18 @@ const v4 = (resources: Loose[]) => ({
   ],
 });
 const read = (file: unknown) => importText(JSON.stringify(file));
+/** The importer's own warnings: the one of variables nothing sets is the whole file's (U-133), tested in import.spec. */
+const own = (warnings: { message: string }[]) =>
+  warnings.filter((warning) => !/^{{.*}} (has|have) no value in the file, and /.test(warning.message));
 const only = (file: unknown) => {
   const imported = read(file);
   return {
     ...imported.collections[0].payload,
-    warnings: imported.report.warnings,
+    warnings: own(imported.report.warnings),
     environments: imported.environments,
   };
 };
-const messages = (file: unknown) => read(file).report.warnings;
+const messages = (file: unknown) => own(read(file).report.warnings);
 
 describe("an Insomnia export (P4.4)", () => {
   it("is known by what it says it is, in both formats, and before a Postman file is asked for", () => {

@@ -207,6 +207,71 @@ function added(payload: CollectionExport): ImportedCollection {
  * nothing and stores nothing. Throws `ImportError`, and nothing else.
  */
 export function importText(text: string, options: ImportOptions = {}): Imported {
+  const imported = readText(text, options);
+  return {
+    ...imported,
+    report: {
+      ...imported.report,
+      warnings: [...imported.report.warnings, ...unsetVariableWarnings(imported.collections, imported.environments)],
+    },
+  };
+}
+
+/** A name the resolver treats as a variable whatever holds it: not a dynamic one (`$guid`) or a secret's reference. */
+const PLAIN_VARIABLE = /^[\w.-]+$/;
+const PLACEHOLDERS = /{{([^{}]*)}}/g;
+/** What a script names in a `set`: `pm.environment.set("token", …)` gives `token` a value before a send. */
+const SCRIPT_SETS = /\.set\(\s*["'`]([^"'`]+)["'`]/g;
+
+/**
+ * U-133: the variables a collection's requests use that nothing in the file gives a value (not the collection, a
+ * folder, an environment of the same file or a script's `set`): each request that uses one is sent with its name in
+ * it, or stopped to ask. Said once per collection.
+ */
+function unsetVariableWarnings(collections: ImportedCollection[], environments: EnvironmentDoc[]): ImportWarning[] {
+  return collections.flatMap(({ payload }) => {
+    const set = new Set<string>([
+      ...[payload.collection, ...payload.folders].flatMap((holder) => holder.variables.map((row) => row.key)),
+      ...environments.flatMap((environment) => environment.vars.map((row) => row.key)),
+    ]);
+    const scripts = [payload.collection, ...payload.folders, ...payload.requests].flatMap(({ scripts }) => [
+      scripts.pre,
+      scripts.post,
+    ]);
+    for (const script of scripts) for (const [, name] of script.matchAll(SCRIPT_SETS)) set.add(name);
+    const uses = payload.requests.map(({ url, headers, body, auth }) => {
+      const text = JSON.stringify({ url, headers, body, auth });
+      return new Set(
+        [...text.matchAll(PLACEHOLDERS)].map(([, name]) => name.trim()).filter((name) => PLAIN_VARIABLE.test(name)),
+      );
+    });
+    const unset = [...new Set(uses.flatMap((names) => [...names]))].filter((name) => !set.has(name)).sort();
+    if (!unset.length) return [];
+    const using = uses.filter((names) => unset.some((name) => names.has(name))).length;
+    const total = payload.requests.length;
+    // Five by name: a file that uses many has a sentence, not a list.
+    const listed = unset.slice(0, unset.length > 5 ? 5 : unset.length).map((name) => `{{${name}}}`);
+    if (unset.length > 5) listed.push(`${unset.length - 5} more`);
+    const names = listed.length < 2 ? listed[0] : `${listed.slice(0, -1).join(", ")} and ${listed.at(-1)}`;
+    const which =
+      using === total
+        ? total === 1
+          ? "its request uses"
+          : total === 2
+            ? "both requests use"
+            : `all ${total} requests use`
+        : `${using} of its ${total} requests ${using === 1 ? "uses" : "use"}`;
+    const it = unset.length === 1 ? "it" : "them";
+    return [
+      {
+        item: `collection "${payload.collection.name}"`,
+        message: `${names} ${unset.length === 1 ? "has" : "have"} no value in the file, and ${which} ${it}: give ${it} a value in an environment or in the collection's settings before you send.`,
+      },
+    ];
+  });
+}
+
+function readText(text: string, options: ImportOptions): Imported {
   if (isOversizedImport(text)) throw new ImportError(IMPORT_TOO_LARGE);
   // A byte order mark is not part of the file's text. A browser takes it off as it reads the file; Node does not.
   if (text.startsWith("\uFEFF")) text = text.slice(1);

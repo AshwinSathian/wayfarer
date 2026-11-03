@@ -17,6 +17,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   and the empty diagnostics say what goes there, and the Local Bridge's
   field is its "Bridge address".
 
+- **The import review says which variables nothing in the file sets.**
+  A collection whose requests use `{{base}}` with no value anywhere in
+  the file now says so before you import, with how many requests use it:
+  before, the first send failed. The review lists each item on one line
+  with its name exactly as it will be stored (it showed "Status And Body"
+  for "Status and body"), and its counts agree with their nouns.
+
 - **The installed app's window matches the app.** Its title bar takes
   the colour of the theme you chose, not black or a grey of the system's;
   the manifest names and describes the app; on a phone with a notch the
@@ -304,6 +311,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   test keeps that list equal to the app's.
 
 ### Fixed
+
+- **The Local Bridge's own error is no longer shown as the server's.**
+  When the bridge could not reach a server (a name that does not
+  resolve), the response showed "502" and the bridge's message as if a
+  server had sent them, while the record said no response came. It now
+  says "No response" with the bridge's words, as for any failed send.
 
 - **A switched-off query parameter is kept.** Opening a request, editing
   its address or saving it dropped every parameter whose box was

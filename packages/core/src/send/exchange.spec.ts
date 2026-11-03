@@ -1357,7 +1357,9 @@ describe("exchange", () => {
     }
   });
 
-  it("shows the Local Bridge's own failure with the status it answered", async () => {
+  // U-152: the bridge's own status (its 502 when the server could not be reached, a 401 for its token) is not the
+  // server's: no server answered, so there is no status and no body, and the bridge's words are the error.
+  it("shows the Local Bridge's own failure as no response, its words the error, not as the server's status", async () => {
     transport.setResponse(new TransportError("bridge", "invalid or missing bridge token", 401));
 
     const result = await service.execute({
@@ -1370,8 +1372,9 @@ describe("exchange", () => {
     });
 
     expect(result.response).toEqual(
-      expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" }),
+      expect.objectContaining({ isError: true, statusCode: undefined, errorText: "invalid or missing bridge token" }),
     );
+    expect(result.history.response?.status).toBeUndefined();
   });
 
   describe("what only the Local Bridge can do (P6.1)", () => {

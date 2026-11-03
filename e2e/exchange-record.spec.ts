@@ -316,3 +316,21 @@ test("the chip for a variable with no value can add it to the request's collecti
   await expect(settings).toBeHidden();
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
 });
+
+// U-152: when the bridge cannot reach the server, the 502 it answers is its own: no status badge, no "502", and
+// the response says "No response" as the record does, as for a direct send that failed.
+test("a host the bridge cannot reach is no response, not a 502 from a server", async ({ page }) => {
+  const bridge = await startBridge();
+  try {
+    await page.goto("/app/");
+    await routeThroughBridge(page, bridge);
+    await page.locator("input.address-url").fill("http://no-such-host.invalid/");
+    await send(page);
+    await expect(page.locator(".record-failure")).toContainText("ENOTFOUND", { timeout: 15_000 });
+    await expect(page.locator(".status-badge")).toHaveCount(0);
+    await expect(page.locator("app-response-viewer")).toContainText("No response");
+    await expect(page.locator("app-response-viewer")).not.toContainText("502");
+  } finally {
+    bridge.stop();
+  }
+});

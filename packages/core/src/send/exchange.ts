@@ -797,7 +797,9 @@ function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
  */
 function shapeFailure(failure: TransportError, page: string | undefined, online: boolean | undefined): Shaped {
   const network = failure.kind === "network";
-  const statusCode = failure.kind === "bridge" ? failure.status : undefined;
+  // A failure has no response: the Local Bridge's own status (its 502 when it could not reach the server, its 401
+  // for a token) is the bridge's, not a server's, and its words are the error, not a body (U-152).
+  const said = network || failure.kind === "bridge";
   const errorText = !network
     ? failure.message
     : page === undefined
@@ -806,7 +808,7 @@ function shapeFailure(failure: TransportError, page: string | undefined, online:
         ? OFFLINE_TEXT
         : NO_RESPONSE_TEXT;
   return {
-    body: network ? undefined : failure.message,
+    body: said ? undefined : failure.message,
     headers: {},
     headerList: [],
     historyError: network
@@ -818,7 +820,7 @@ function shapeFailure(failure: TransportError, page: string | undefined, online:
       : failure.message,
     response: {
       isError: true,
-      statusCode,
+      statusCode: undefined,
       statusText: "",
       bodyIsJson: false,
       dataText: "",

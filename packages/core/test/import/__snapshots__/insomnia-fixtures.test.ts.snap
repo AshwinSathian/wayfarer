@@ -11,7 +11,6 @@ exports[`Insomnia files other people wrote (P4.4) > the whole set: what is impor
 
 exports[`Insomnia files other people wrote (P4.4) > the whole set: what is imported, and the kinds of warning 2`] = `
 {
-  "A query parameter that is switched off (…) is kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.": 4,
   "It is not an HTTP request (…) and is left out.": 17,
   "It uses a template of Insomnia's (…), which the app does not have: the text is kept as written.": 35,
   "Its API specification is left out: the app imports requests, folders and environments.": 6,
@@ -24,7 +23,6 @@ exports[`Insomnia files other people wrote (P4.4) > the whole set: what is impor
   "Its pre-request script is left out: an Insomnia script calls Insomnia's own "…" object, which the app does not have.": 48,
   "Its unit tests are left out: the app imports requests, folders and environments.": 1,
   "Its variable cascadeVar is also in the environment "…". Insomnia uses the folder's value; the app uses the environment's when that environment is active.": 1,
-  "N query parameters that are switched off are kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.": 9,
   "What the file holds that is not a request, a folder or an environment is left out (…).": 2,
 }
 `;

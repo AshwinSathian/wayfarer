@@ -227,12 +227,6 @@ function address(value: unknown, item: string, warnings: Warning[]): { url: stri
       enabled,
     };
   });
-  const off = params.filter((row) => !row.enabled).map((row) => row.key);
-  if (off.length)
-    warnings.push({
-      item,
-      message: `${off.length === 1 ? `A query parameter that is switched off (${off[0]}) is` : `${off.length} query parameters that are switched off are`} kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.`,
-    });
   const host = field(value, "host");
   if (host === undefined)
     return { url: text(field(value, "raw")), params: params.length ? params : inText(text(field(value, "raw"))) };

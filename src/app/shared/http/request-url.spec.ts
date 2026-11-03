@@ -15,6 +15,22 @@ describe("Params tab <-> URL field", () => {
     expect(parseParamsFromUrl("")).toEqual([row("", "")]);
   });
 
+  // U-139: a switched-off row is not in the address, so reading the address again kept none of them.
+  it("keeps the switched-off rows it was given, where they stood among the address's", () => {
+    const before = [row("a", "1"), row("off", "x", false), row("b", "2"), row("last", "y", false)];
+    expect(parseParamsFromUrl("https://api.test/x?a=1&b=2", before)).toEqual(before);
+    // The address changed: its rows are read again, the switched-off ones stay in their places.
+    expect(parseParamsFromUrl("https://api.test/x?a=9&b=2&c=3", before)).toEqual([
+      row("a", "9"),
+      row("off", "x", false),
+      row("b", "2"),
+      row("last", "y", false),
+      row("c", "3"),
+    ]);
+    // An address with no query keeps them too, and no blank row is added beside them.
+    expect(parseParamsFromUrl("https://api.test/x", before)).toEqual([row("off", "x", false), row("last", "y", false)]);
+  });
+
   it("rewrites only the query, from the enabled, keyed rows", () => {
     const rows = [row("a", "1"), row("off", "x", false), row("", "ignored"), row("q", "two words&more")];
 

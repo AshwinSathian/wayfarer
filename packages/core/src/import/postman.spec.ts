@@ -590,21 +590,11 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     ).toBe("The path variables :a, :b are replaced by their values in the address: the app has no path variables.");
   });
 
-  it("a query parameter that is switched off is kept, and the report says the composer does not show it", () => {
-    expect(one({ url: { host: ["h"], query: [{ key: "off", value: "1", disabled: true }] } }).warnings[0].message).toBe(
-      "A query parameter that is switched off (off) is kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.",
-    );
-    expect(
-      one({
-        url: {
-          host: ["h"],
-          query: [
-            { key: "a", disabled: true },
-            { key: "b", disabled: true },
-          ],
-        },
-      }).warnings[0].message,
-    ).toContain("2 query parameters that are switched off are kept");
+  // U-139: the composer has a switch for each parameter and keeps one that is off: there is nothing to warn of.
+  it("a query parameter that is switched off is kept as one, and nothing is said of it", () => {
+    const imported = one({ url: { host: ["h"], query: [{ key: "off", value: "1", disabled: true }] } });
+    expect(imported.warnings).toEqual([]);
+    expect(imported.payload.requests[0].params).toEqual([{ key: "off", value: "1", enabled: false }]);
   });
 
   it("a request the app cannot hold is left out and said; a bare address is a GET; a method is upper case", () => {

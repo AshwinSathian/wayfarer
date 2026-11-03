@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A run's row opens its request.** Each row has Open, which puts the
+  request in a tab of its own; the run keeps its results. Before, the
+  request had to be found in the tree.
+
 - **A run offers the review its scripts wait for, and the bridge its
   errors need.** A run of a collection whose scripts had not been
   reviewed said to open a request and find Review scripts; it now has

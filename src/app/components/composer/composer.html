@@ -16,7 +16,12 @@
       <app-environments-manager (requestUnlock)="unlockVault()" />
     </section>
     } @else if (tabs.active().run; as run) {
-    <app-run-view class="block space-y-5" [run]="run" (openBridge)="openBridge.emit()" />
+    <app-run-view
+      class="block space-y-5"
+      [run]="run"
+      (openBridge)="openBridge.emit()"
+      (openRequest)="loadCollectionRequest($event)"
+    />
     } @else {
 
     <!-- Wraps by the room it has, not by the window's width: beside the pinned

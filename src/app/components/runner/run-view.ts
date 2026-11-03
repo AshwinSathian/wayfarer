@@ -19,6 +19,7 @@ import { Icon } from "../../shared/icon/icon";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { saveFile } from "../../shared/save-file";
 import { RunState } from "../../state/run-state";
+import type { RequestDoc } from "../../models/collections";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 
@@ -85,6 +86,15 @@ export class RunView {
       .sort((a, b) => b[1] - a[1])
       .map(([error, count]) => ({ error, count, network: network.has(error) }));
   });
+
+  /** A row's request, opened in a tab of its own (U-076); the run's tab is never loaded into. */
+  readonly openRequest = output<RequestDoc>();
+
+  /** The saved request a result was sent from, if it is still there. */
+  protected requestOf(id: string): RequestDoc | undefined {
+    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === this.run().target.collectionId);
+    return tree?.requests.find((request) => request.meta.id === id);
+  }
 
   /** Set up the Local Bridge: the shell opens its settings (U-014). */
   readonly openBridge = output<void>();

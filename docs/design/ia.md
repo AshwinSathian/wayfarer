@@ -399,6 +399,7 @@ it is.
 | `run-view.html: Change` | A run's tab, after a run | A run's tab: opens the folded setup (U-096) | D4-i, done |
 | `run-view.html: Review scripts…` | A run's tab, when its scripts wait for a review | A run's tab: the review of the run's collection, in place (U-039) | D4-i, done |
 | `run-view.html: Set up the Local Bridge…` | A run's tab, under an error the page got no response for | Settings, Local Bridge (U-014) | D4-i, done |
+| `run-view.html: Open` | A run's row | A run's row: its request, in a tab of its own (U-076) | D4-i, done |
 | `run-view.html: setIterations($any($event.target).value)` | A run's tab | A run's tab | D4-i |
 | `run-view.html: setDelay($any($event.target).value)` | A run's tab | A run's tab | D4-i |
 | `run-view.html: Stop on the first failure` | A run's tab | A run's tab | D4-i |

@@ -140,6 +140,22 @@ describe("Composer", () => {
     expect(store.draft().method).toBe("GET");
   });
 
+  // U-140: history keeps what a request that is not saved sent, so closing its tab need not ask, and the tab is not
+  // marked unsaved. An edit after the send is a change again.
+  it("a send that history keeps leaves a tab that is not saved clean, until it is edited", async () => {
+    store.patch({ url: "https://example.com/scratch" });
+    const tab = TestBed.inject(Tabs).active();
+    expect(tab.dirty()).toBe(true);
+    const pending = component.sendRequest();
+    httpMock
+      .expectOne("https://example.com/scratch")
+      .flush(jsonBytes({ ok: true }), { status: 200, headers: JSON_HEADERS });
+    await pending;
+    expect(tab.dirty()).toBe(false);
+    store.patch({ url: "https://example.com/scratch?again=1" });
+    expect(tab.dirty()).toBe(true);
+  });
+
   it("should send POST requests and record errors", async () => {
     const mockCreatedAt = 1_800_000_000_000;
     vi.spyOn(Date, "now").mockReturnValue(mockCreatedAt);

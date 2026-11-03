@@ -1673,11 +1673,13 @@ Every ad-hoc send leaves an unsaved dot, so the dot stops meaning
 anything.
 Evidence: [`hig-review/1440-light-rt-24-close-scratch-tab.png`](hig-review/1440-light-rt-24-close-scratch-tab.png).
 **Status:** Open, D4-f (D4.4). Review row N11.
+**2026-11-04:** Fixed in D5-a: a send that history keeps leaves a tab that is not saved clean (`WorkspaceStore.send`): no unsaved dot, and closing it asks nothing. An edit after the send marks it again; a saved request's tab is unchanged, since history does not write back to the collection. `composer.spec.ts` holds it.
 
 **U-142. The fifth tab is cut under the tab actions at 1,440 px with no
 overflow cue.** Severity 3. H1. SD, QA.
 Evidence: [`hig-review/1440-light-rt-23-after-history-load.png`](hig-review/1440-light-rt-23-after-history-load.png).
 **Status:** Open, D4-f (D4.4). Review row N13.
+**2026-11-04:** Fixed in D5-a: a tab bar that scrolls fades 3 rem on the side that holds tabs out of view (`uiTabList` marks the sides; `tabs.css`), the composer's request tabs and every other bar. `tabs.spec.ts` and `e2e/tabs.spec.ts` hold it in three engines.
 
 **U-144. Opening a request from history replaces the current clean tab
 with no cue, and the tree keeps the old selection.** Severity 3. H1, H3.

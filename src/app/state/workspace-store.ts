@@ -458,6 +458,8 @@ export class WorkspaceStore {
       return false;
     }
 
+    // What history will keep of a request that is not saved (U-140): the draft as it was sent.
+    const sent = tab.snapshot();
     tab.loadingState.set(true);
     tab.sendingSince.set(Date.now());
     const controller = new AbortController();
@@ -513,6 +515,8 @@ export class WorkspaceStore {
       );
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.historyRepository.add(result.history, this.settings.historyCap())) ?? undefined);
+    // History keeps it: a tab that is not saved has nothing to lose, and is not marked unsaved for it (U-140).
+    if (!tab.bound() && tab.historyKey() !== undefined) tab.baseline.set(sent);
     return true;
   }
 

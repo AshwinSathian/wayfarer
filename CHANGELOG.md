@@ -442,6 +442,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   follows the open tab: its request, or none when the tab holds a
   request that is not saved.
 
+- **A request you sent and never saved is not marked unsaved.** History
+  keeps every send, yet a tab whose request was never saved kept its
+  unsaved dot after each send, and closing it asked whether to discard
+  changes history already had. After a send that history keeps, such a
+  tab is clean until you edit it again.
+
+- **A tab bar with more tabs than fit says so.** The bar scrolls
+  sideways with no scrollbar, so the fifth request tab at 1,440 px was
+  cut off under New tab with nothing to say more were there. The side
+  that holds tabs out of view now fades.
+
 - **A screen reader names each row by what it holds.** In Params,
   Headers, a form body, a multipart body and the variables dialogs, a
   row's controls were named by their place ("Send parameter 2", "Headers

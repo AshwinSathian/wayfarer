@@ -103,7 +103,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.getByRole("button", { name: "Create environment" }).click();
       await page.getByRole("button", { name: "Export environments" }).click();
       const dialog = page.getByRole("dialog", { name: "Export environments" });
-      const choices = dialog.getByRole("radiogroup", { name: "Protected variables" });
+      const choices = dialog.getByRole("radiogroup", { name: "Secret variables" });
       await expect(choices.getByRole("radio", { name: "Leave out" })).toBeChecked();
       const fits = await choices.evaluate((group) => {
         const room = group.parentElement!.getBoundingClientRect();

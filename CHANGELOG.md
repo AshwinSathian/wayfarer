@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Creating a vault says a forgotten passphrase cannot be recovered.**
+  The vault's passphrase fields have labels that stay while you type; they
+  had only placeholders, gone at the first key. A wrong passphrase reads
+  "That is not the vault's passphrase.", a file that is not JSON says so
+  plainly, the export's choice is named "Secret variables", and an empty
+  Secrets list says what is kept there.
+
 - **The environments open in a tab, beside your requests.** The
   Environments button, the palette and a variable's chip open an
   Environments tab: the list and the selected environment's variables,

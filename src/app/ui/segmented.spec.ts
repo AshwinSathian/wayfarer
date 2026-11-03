@@ -11,12 +11,7 @@ type Mode = "strip" | "references" | "plain";
   imports: [UiSegmented],
   template: `
     <ui-segmented aria-label="File for" [options]="formats" [value]="format()" (valueChange)="setFormat($event)" />
-    <ui-segmented
-      aria-label="Protected variables"
-      [options]="modes()"
-      [value]="mode()"
-      (valueChange)="mode.set($event)"
-    />
+    <ui-segmented aria-label="Secret variables" [options]="modes()" [value]="mode()" (valueChange)="mode.set($event)" />
   `,
 })
 class TestHost {
@@ -64,12 +59,12 @@ describe("ui-segmented", () => {
     expect(radio(formats, "Postman").labels?.[0]?.textContent?.trim()).toBe("Postman");
     expect(formats.querySelector("app-icon")?.getAttribute("aria-hidden")).toBe("true");
     expect(checked(formats)).toEqual(["Wayfarer"]);
-    expect(checked(group("Protected variables"))).toEqual(["With the vault"]);
+    expect(checked(group("Secret variables"))).toEqual(["With the vault"]);
   });
 
   it("tells its user of a choice, and follows a value set by code", async () => {
     const { fixture, host, group, radio, checked } = await setup();
-    const modes = group("Protected variables");
+    const modes = group("Secret variables");
     radio(modes, "Plain text").click();
     await fixture.whenStable();
     expect(host.mode()).toBe("plain");
@@ -83,7 +78,7 @@ describe("ui-segmented", () => {
   // took them as one group, and choosing a format unchecked the mode.
   it("keeps two groups apart", async () => {
     const { fixture, group, radio, checked } = await setup();
-    const [formats, modes] = [group("File for"), group("Protected variables")];
+    const [formats, modes] = [group("File for"), group("Secret variables")];
     expect(radio(formats, "Wayfarer").name).not.toBe(radio(modes, "Leave out").name);
     radio(modes, "Plain text").click();
     await fixture.whenStable();
@@ -93,7 +88,7 @@ describe("ui-segmented", () => {
   // The browser's arrows: in WebKit they stopped at the ends, where WAI-ARIA's wrap.
   it("moves and chooses with the arrows, wrapping at both ends", async () => {
     const { fixture, host, group, radio, checked } = await setup();
-    const modes = group("Protected variables");
+    const modes = group("Secret variables");
     const press = (from: HTMLInputElement, key: string, shiftKey = false) => {
       from.focus();
       const event = new KeyboardEvent("keydown", { key, shiftKey, bubbles: true, cancelable: true });
@@ -128,7 +123,7 @@ describe("ui-segmented", () => {
     radio(group("File for"), "Postman").click();
     await fixture.whenStable();
     expect(host.mode()).toBe("strip");
-    expect(checked(group("Protected variables"))).toEqual(["Leave out"]);
-    expect(radio(group("Protected variables"), "With the vault")).toBeUndefined();
+    expect(checked(group("Secret variables"))).toEqual(["Leave out"]);
+    expect(radio(group("Secret variables"), "With the vault")).toBeUndefined();
   });
 });

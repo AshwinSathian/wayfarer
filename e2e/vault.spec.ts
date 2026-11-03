@@ -124,7 +124,7 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await secrets.getByLabel("Confirm new passphrase").fill("a new passphrase");
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
   await expect(
-    secrets.getByRole("alert").filter({ hasText: "Incorrect passphrase. Nothing was changed." }),
+    secrets.getByRole("alert").filter({ hasText: "That is not the vault's passphrase. Nothing was changed." }),
   ).toBeVisible();
 
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
@@ -174,7 +174,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
 
   await secrets.getByRole("button", { name: "Delete API_TOKEN" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(secrets.getByText("No secrets yet")).toBeVisible();
+  await expect(secrets.getByText("Secrets you mark in Environments are kept here.")).toBeVisible();
   // The deleted row's button is gone: focus stays in the dialog.
   await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
 

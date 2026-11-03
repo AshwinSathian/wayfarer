@@ -421,35 +421,45 @@
         class="icon-md text-label-tertiary mt-0.5 shrink-0"
       />
       <p class="type-callout text-label-secondary leading-relaxed">
-        @if (isFirstVaultSetup()) { Create a passphrase to encrypt your secrets. You'll need it to access them in future
-        sessions. } @else { Enter your passphrase to unlock encrypted secrets for this session. }
+        @if (isFirstVaultSetup()) { The passphrase encrypts your secrets, and opens them each time the app is opened. A
+        forgotten passphrase cannot be recovered, and nor can the secrets. } @else { The passphrase opens your secrets
+        until the app is closed or locked. }
       </p>
     </div>
 
     <div class="flex flex-col gap-3">
-      <input
-        class="font-sans w-full"
-        uiInput
-        cdkFocusInitial
-        type="password"
-        [ngModel]="unlockPassphrase()"
-        (ngModelChange)="unlockPassphrase.set($event)"
-        [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
-        [attr.aria-label]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
-        [attr.aria-invalid]="unlockError() ? 'true' : null"
-        [attr.aria-describedby]="unlockError() ? 'vault-error' : null"
-        (keydown.enter)="unlockSecrets()"
-      />
+      <!-- Labels above the fields: a placeholder goes once typing starts (U-026). -->
+      <div>
+        <label for="vault-passphrase" class="ds-form-label"
+          >{{ isFirstVaultSetup() ? "Choose a passphrase" : "Passphrase" }}</label
+        >
+        <input
+          id="vault-passphrase"
+          [attr.aria-label]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+          class="font-sans w-full"
+          uiInput
+          cdkFocusInitial
+          type="password"
+          [ngModel]="unlockPassphrase()"
+          (ngModelChange)="unlockPassphrase.set($event)"
+          [attr.aria-invalid]="unlockError() ? 'true' : null"
+          [attr.aria-describedby]="unlockError() ? 'vault-error' : null"
+          (keydown.enter)="unlockSecrets()"
+        />
+      </div>
       @if (isFirstVaultSetup()) {
-      <input
-        class="font-sans w-full"
-        uiInput
-        type="password"
-        [ngModel]="confirmPassphrase()"
-        (ngModelChange)="confirmPassphrase.set($event)"
-        placeholder="Confirm passphrase"
-        (keydown.enter)="unlockSecrets()"
-      />
+      <div>
+        <label for="vault-passphrase-confirm" class="ds-form-label">Confirm passphrase</label>
+        <input
+          id="vault-passphrase-confirm"
+          class="font-sans w-full"
+          uiInput
+          type="password"
+          [ngModel]="confirmPassphrase()"
+          (ngModelChange)="confirmPassphrase.set($event)"
+          (keydown.enter)="unlockSecrets()"
+        />
+      </div>
       }
     </div>
 

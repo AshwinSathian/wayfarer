@@ -94,14 +94,14 @@ export class VaultActions {
     } else if (await this.vault.changePassphrase(this.current(), next)) {
       this.finish("Passphrase changed. The old one no longer opens the vault.");
     } else {
-      this.error.set("Incorrect passphrase. Nothing was changed.");
+      this.error.set("That is not the vault's passphrase. Nothing was changed.");
     }
   }
 
   private async exportVault(): Promise<void> {
     const json = await this.vault.exportFile(this.current());
     if (json === null) {
-      this.error.set("Incorrect passphrase. Nothing was exported.");
+      this.error.set("That is not the vault's passphrase. Nothing was exported.");
       return;
     }
     const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));

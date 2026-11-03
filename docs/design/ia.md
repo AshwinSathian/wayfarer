@@ -295,7 +295,7 @@ it is.
 |---|---|---|---|
 | `environment-export-dialog.html: File for` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Environment` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environment-export-dialog.html: Protected variables` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environment-export-dialog.html: Secret variables` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Cancel` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Export file` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Global variables` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |

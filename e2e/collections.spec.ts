@@ -222,11 +222,11 @@ test("a switched-off query parameter stays through opening, an edit of the addre
       ],
     },
   );
-  const off = page.getByRole("checkbox", { name: "Send parameter 2" });
+  const off = page.getByRole("checkbox", { name: "Send off", exact: true });
   await expect(off).not.toBeChecked();
   await page.locator("input.address-url").fill(`${ECHO}/echo?a=1&b=2`);
   await expect(off).not.toBeChecked();
-  await expect(page.getByRole("checkbox", { name: "Send parameter 3" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Send b", exact: true })).toBeChecked();
   await page.keyboard.press("ControlOrMeta+s");
   await expect(page.getByRole("img", { name: "Unsaved changes" })).toHaveCount(0);
   await expect

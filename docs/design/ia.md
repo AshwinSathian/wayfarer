@@ -459,15 +459,15 @@ it is.
 | `composer.html: Scripts` | Composer | Composer | D4-d |
 | `composer.html: Settings` | Composer | Composer | D4-d |
 | `headers-panel.html: Edit as rows / Edit as text` | Headers tab | Composer, Headers tab | D4-d |
-| `multipart-editor.html: Send part` | Body tab, multipart form | Composer, Body tab | D4-d |
-| `multipart-editor.html: Part type, row` | Body tab, multipart form | Composer, Body tab | D4-d |
-| `multipart-editor.html: Remove part` | Body tab, multipart form | Composer, Body tab | D4-d |
+| `multipart-editor.html: Send` | Body tab, multipart form | Composer, Body tab | D4-d |
+| `multipart-editor.html: Type of` | Body tab, multipart form | Composer, Body tab | D4-d |
+| `multipart-editor.html: Remove` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Add part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `oauth-token.html: Get token` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
 | `oauth-token.html: Cancel sign-in` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
 | `oauth-token.html: Forget token` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
-| `params-panel.html: Send parameter` | Params tab | Composer, Params tab | D4-d |
-| `params-panel.html: Remove parameter` | Params tab | Composer, Params tab | D4-d |
+| `params-panel.html: Send` | Params tab | Composer, Params tab | D4-d |
+| `params-panel.html: Remove` | Params tab | Composer, Params tab | D4-d |
 | `params-panel.html: Add parameter` | Params tab | Composer, Params tab | D4-d |
 | `rows-editor.html: Send` | Rows of a key-value editor (headers, a collection's variables) | Same rows | D4-d |
 | `rows-editor.html: Remove` | Rows of a key-value editor (headers, a collection's variables) | Same rows | D4-d |

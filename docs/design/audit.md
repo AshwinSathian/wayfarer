@@ -961,6 +961,7 @@ Evidence: `params-panel.html:13, 32`; `rows-editor.html:10`;
 **Status:** Open, D4-g (the rows editors are shared; D4-g takes all of
 them). Review row W-14.
 **2026-11-03:** The environment editor's rows fixed in #493 (D4-g): "Variable name, n of m", "Value of {name}", "Mark {name} as secret", "Remove {name}".
+**2026-11-04:** Fixed in D5-a: Params, the rows editor (headers, a form body's fields, a collection's and the global variables) and the multipart editor name each row by its content the same way: "Send {name}", "Header name, n of m", "Value of {name}", "Type of {name}", "File for {name}", "Remove {name}", and "this header" (or parameter, field, variable, part) before the row has a name. `row-names.spec.ts` holds the three.
 
 **U-072. The status bar's words are not its controls.** Severity 2. H4,
 H1. All.

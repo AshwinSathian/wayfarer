@@ -298,8 +298,8 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           >
           <label class="ui-checkbox-label"><input type="checkbox" uiCheckbox disabled checked />With history</label>
           <div class="catalogue-row">
-            <input type="checkbox" uiCheckbox checked aria-label="Send parameter 1" />
-            <input uiInput class="font-mono" aria-label="Parameter name, row 1" value="page" />
+            <input type="checkbox" uiCheckbox checked aria-label="Send page" />
+            <input uiInput class="font-mono" aria-label="Parameter name, 1 of 1" value="page" />
           </div>
           <div class="catalogue-row">
             <label for="catalogue-check-hold" class="type-callout"
@@ -320,7 +320,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <ui-file label="File to send" [fileName]="file()" (picked)="file.set($event.name)" (cleared)="file.set('')" />
           <ui-file label="Data file" fileName="customers.csv" />
           <ui-file
-            label="File for part 1"
+            label="File for upload"
             fileName="a-very-long-name-of-a-capture-taken-on-the-twenty-second-of-october.har"
           />
           <ui-file label="Vault file" [disabled]="true" />

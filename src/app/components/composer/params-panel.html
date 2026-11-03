@@ -10,7 +10,7 @@
   <input
     type="checkbox"
     uiCheckbox
-    [attr.aria-label]="'Send parameter ' + (i + 1)"
+    [attr.aria-label]="'Send ' + (param.key || 'this parameter')"
     [(ngModel)]="param.enabled"
     (ngModelChange)="store.paramsEdited()"
   />
@@ -20,6 +20,7 @@
     [(ngModel)]="param.key"
     (ngModelChange)="store.paramsEdited()"
     placeholder="Key"
+    [attr.aria-label]="'Parameter name, ' + (i + 1) + ' of ' + store.draft().params.length"
   />
   <input
     class="font-mono w-full"
@@ -27,9 +28,15 @@
     [(ngModel)]="param.value"
     (ngModelChange)="store.paramsEdited()"
     placeholder="Value"
+    [attr.aria-label]="'Value of ' + (param.key || 'this parameter')"
   />
   <div class="flex justify-end md:block">
-    <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove parameter" (click)="store.removeParam(i)"
+    <button
+      uiButton="icon"
+      class="btn-plain"
+      type="button"
+      [attr.aria-label]="'Remove ' + (param.key || 'this parameter')"
+      (click)="store.removeParam(i)"
       ><app-icon name="close"
     /></button>
   </div>

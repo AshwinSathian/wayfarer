@@ -59,8 +59,8 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await page.getByRole("tab", { name: "Headers", exact: true }).click();
-  await page.getByLabel("Headers name, row 1").fill("Accept");
-  await page.getByLabel("Headers value, row 1").fill("*/*");
+  await page.getByLabel("Header name, 1 of 1").fill("Accept");
+  await page.getByLabel("Value of Accept").fill("*/*");
 
   const bulk = page.getByRole("button", { name: "Edit as text" });
   await bulk.focus();
@@ -74,9 +74,9 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   const rows = page.getByRole("button", { name: "Edit as rows" });
   await rows.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByLabel("Headers name, row 3")).toHaveValue("Accept");
-  await expect(page.getByLabel("Headers value, row 3")).toHaveValue("text/plain");
-  await expect(page.getByRole("checkbox", { name: "Send headers row 2" })).not.toBeChecked();
+  await expect(page.getByLabel(/^Header name, 3 of /)).toHaveValue("Accept");
+  await expect(page.getByLabel("Value of Accept").last()).toHaveValue("text/plain");
+  await expect(page.getByRole("checkbox", { name: "Send X-Off" })).not.toBeChecked();
 
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true }).first();
@@ -89,7 +89,7 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await expect(page.locator(".monaco-editor").first()).toBeVisible({ timeout: 10_000 });
   await page.keyboard.press("ArrowDown");
   await expect(type).toContainText("Form (URL-encoded)");
-  await expect(page.getByLabel("Body name, row 1")).toBeVisible();
+  await expect(page.getByLabel("Field name, 1 of 1")).toBeVisible();
 });
 
 test("phone composer: Enter and Space open a section, one at a time, and a closed section is out of reach", async ({
@@ -115,7 +115,7 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
   await page.keyboard.press("Space");
   await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
   await expect(header("Auth")).toHaveAttribute("aria-expanded", "false");
-  await expect(page.getByLabel("Headers name, row 1")).toBeVisible();
+  await expect(page.getByLabel("Header name, 1 of 1")).toBeVisible();
 });
 
 // The method was a select of seven until P2.16. It is a text field now, so

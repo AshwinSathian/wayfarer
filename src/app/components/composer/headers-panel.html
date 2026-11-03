@@ -19,7 +19,7 @@
 ></textarea>
 } @else {
 <app-rows-editor
-  context="Headers"
+  noun="header"
   [items]="store.draft().headers"
   addLabel="Add header"
   (itemChange)="store.headersEdited()"

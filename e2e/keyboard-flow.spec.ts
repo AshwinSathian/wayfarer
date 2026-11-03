@@ -115,10 +115,10 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   for (let step = 0; step < 6 && !(await headers.evaluate((element) => element === document.activeElement)); step++)
     await page.keyboard.press("ArrowLeft");
   await expect(headers).toBeFocused();
-  await tabTo(page, page.getByLabel("Headers name, row 1"));
+  await tabTo(page, page.getByLabel("Header name, 1 of 1"));
   await page.keyboard.type("X-By");
   await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Headers value, row 1")).toBeFocused();
+  await expect(page.getByLabel("Value of X-By")).toBeFocused();
   await page.keyboard.type("keyboard");
 
   // Send: Tab goes on round the page to it.

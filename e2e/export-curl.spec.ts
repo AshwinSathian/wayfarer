@@ -165,10 +165,10 @@ const FIXTURES: Fixture[] = [
     named: [],
     prepare: async (page) => {
       await body(page);
-      await page.getByRole("combobox", { name: "Part type, row 2", exact: true }).click();
+      await page.getByRole("combobox", { name: "Type of upload", exact: true }).click();
       await page.getByRole("option", { name: "File", exact: true }).click();
       await page
-        .getByLabel("File for part 2")
+        .getByLabel("File for upload")
         .setInputFiles({ name: "upload file.bin", mimeType: "application/octet-stream", buffer: FILE });
       await expect(page.getByText("upload file.bin")).toBeVisible();
     },

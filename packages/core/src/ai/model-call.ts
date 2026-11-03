@@ -167,11 +167,27 @@ export function providerMessage(body: string): string {
 
 const SECRET_REFERENCE = /\{\{\s*\$secret\./i;
 
+/**
+ * A script's text as far as a reference in it can be found by reading: string escapes of a character decoded, and
+ * string literals joined across a `+`. A check over code cannot be complete (a script can build any text at run
+ * time): the control is the person's review, which accepting a proposal is (AI-11). This catches the plain cases.
+ */
+function readable(script: string): string {
+  return script
+    .replace(
+      /\\u\{([0-9a-f]+)\}|\\u([0-9a-f]{4})|\\x([0-9a-f]{2})/gi,
+      (_, braced?: string, four?: string, two?: string) =>
+        String.fromCodePoint(parseInt(braced ?? four ?? two ?? "0", 16)),
+    )
+    .replace(/["'`]\s*\+\s*["'`]/g, "");
+}
+
 /** A proposed script: the answer's first fenced block, else the answer. Refused when it names a vault secret (AI-10). */
 export function scriptProposal(answer: string): { script: string } | { refused: string } {
   const fenced = /```(?:js|javascript)?\s*\n([\s\S]*?)```/.exec(answer);
   const script = (fenced ? fenced[1] : answer).trim();
-  if (SECRET_REFERENCE.test(script)) return { refused: "The answer names a vault secret, and is not shown." };
+  if (SECRET_REFERENCE.test(script) || SECRET_REFERENCE.test(readable(script)))
+    return { refused: "The answer names a vault secret, and is not shown." };
   return { script };
 }
 
@@ -207,5 +223,12 @@ export function requestProposal(answer: string): { request: RequestContent } | {
   };
   if (!request.url || validateRequestContent(request, "request").length)
     return { refused: "The answer is not a request the app can read." };
+  // On the values the JSON gave, not on its text: `\u0024` is a dollar once parsed (AI-10, C-007's check).
+  const wire = {
+    url: request.url,
+    headers: request.headers.map((row): [string, string] => [row.key, row.value]),
+    body: request.body.mode === "raw" ? request.body.raw?.text : undefined,
+  };
+  if (containsSecretPlaceholder(wire)) return { refused: "The answer names a vault secret, and is not shown." };
   return { request };
 }

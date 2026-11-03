@@ -148,5 +148,17 @@ describe("a model call (D4.10)", () => {
     expect(requestProposal('{"method": "GET", "url": "{{$secret.x}}"}')).toHaveProperty("refused");
     expect(requestProposal('{"method": "G E T", "url": "https://x"}')).toHaveProperty("refused");
     expect(requestProposal("no json here")).toHaveProperty("refused");
+    // The check reads what the JSON says, not how it is written: an escaped dollar is still a reference.
+    expect(requestProposal('{"method": "GET", "url": "https://x/{{\\u0024secret.x}}"}')).toHaveProperty("refused");
+    expect(
+      requestProposal('{"method": "GET", "url": "https://x", "headers": [["A", "{{\\u0024secret.x}}"]]}'),
+    ).toHaveProperty("refused");
+    expect(requestProposal('{"method": "POST", "url": "https://x", "body": "{{\\u0024secret.x}}"}')).toHaveProperty(
+      "refused",
+    );
+    // A script's reference written in pieces or with an escape: joined and decoded before the check.
+    expect(scriptProposal('```js\npm.environment.set("t", "{{$" + "secret.x}}");\n```')).toHaveProperty("refused");
+    expect(scriptProposal('```js\npm.environment.set("t", "{{\\u0024secret.x}}");\n```')).toHaveProperty("refused");
+    expect(scriptProposal('```js\npm.environment.set("t", "{{\\x24secret.x}}");\n```')).toHaveProperty("refused");
   });
 });

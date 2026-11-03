@@ -36,6 +36,8 @@ import { UiSelect, type UiSelectOption } from "../../ui/select";
 export interface InheritedSettingsTarget {
   collectionId: string;
   folderId?: string;
+  /** Opened from a variable's chip (U-132): the Variables tab first. */
+  variable?: string;
 }
 
 /**
@@ -119,7 +121,7 @@ export class InheritedSettingsDialog {
       if (!this.target()) return;
       const node = untracked(this.node);
       if (!node) return;
-      this.tab.set("auth");
+      this.tab.set(untracked(this.target)?.variable ? "variables" : "auth");
       this.showPassword.set(false);
       this.auth.set(structuredClone(node.auth));
       this.rows.set(node.variables.map((row) => ({ ...row })));

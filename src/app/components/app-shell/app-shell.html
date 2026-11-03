@@ -70,6 +70,7 @@
         class="h-full w-full"
         (loadRequest)="handleLoadCollectionRequest($event)"
         (run)="handleRun($event)"
+        (openSettings)="settingsOf.set($event)"
       ></app-collections-sidebar>
     </div>
   </div>
@@ -530,3 +531,6 @@
   /></button>
   }
 </div>
+
+<!-- A collection's or a folder's settings: here, not in the sidebar, whose drawer may be closed (U-132). -->
+<app-inherited-settings-dialog [target]="settingsOf()" (closed)="settingsOf.set(null)" />

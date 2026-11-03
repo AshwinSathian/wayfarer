@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A variable's chip opens where its value is set.** In the preview
+  before Send, a chip of a collection's or a folder's variable opens its
+  settings at Variables, a global's opens the global variables, a secret's
+  opens the vault's secrets, and a variable with no value, with no
+  environment in use, starts a new environment with it as the first row.
+  Only an environment's chip and a missing one did anything before.
+
 - **Creating a vault says a forgotten passphrase cannot be recovered.**
   The vault's passphrase fields have labels that stay while you type; they
   had only placeholders, gone at the first key. A wrong passphrase reads

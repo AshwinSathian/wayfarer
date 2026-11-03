@@ -2,7 +2,15 @@ import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestFiles } from "./request-files";
 import { StoragePersistence } from "./storage-persistence";
-import { ancestorsOf, folderChain, scriptDigest, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
+import {
+  ancestorsOf,
+  folderChain,
+  scriptDigest,
+  scriptsOf,
+  variablesByName,
+  type Ancestor,
+  type RequestContent,
+} from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { Tabs, forwarded } from "../state/tabs";
 import { recordDiagnostic } from "./diagnostics";
@@ -51,6 +59,21 @@ export class RequestSave {
       bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
     return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
   }
+  /**
+   * The collection, or the innermost folder, that gives the bound request the variable `name`: where a chip of that
+   * scope opens (U-132). The resolver's order: a folder nearer the request hides one farther out.
+   */
+  holderOf(name: string, scope: "collection" | "folder"): { collectionId: string; folderId?: string } | null {
+    const bound = this.loadedCollectionRequest();
+    if (!bound) return null;
+    if (scope === "collection") return { collectionId: bound.collectionId };
+    const tree = this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const folder = folderChain(tree?.folders ?? [], bound.folderId)
+      .reverse()
+      .find((held) => variablesByName(held.variables).has(name));
+    return folder ? { collectionId: bound.collectionId, folderId: folder.meta.id } : null;
+  }
+
   /** Where the bound request is kept: its collection's name, then its folders' from the outside in. */
   readonly breadcrumb: Signal<string[]> = computed(() => {
     const bound = this.loadedCollectionRequest();

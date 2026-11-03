@@ -260,3 +260,38 @@ test("a history entry keeps its record: loaded from History it opens into it, an
   expect(await openRecord(page)).toEqual(sent);
   await expect(page.getByRole("region", { name: "Exchange record" })).not.toContainText(plaintext);
 });
+
+// U-132: a chip opens where its value is set. A folder's variable opens that folder's settings, on Variables.
+test("the preview's chip for a folder's variable opens the folder's settings at its variables", async ({ page }) => {
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/{{page}}`,
+      collection: { variables: { page: "outer" } },
+      folder: { variables: { page: "inner" } },
+    },
+  );
+  await page.getByRole("button", { name: /^page folder "Tripwire folder"/ }).press("Enter");
+  const settings = page.getByRole("dialog", { name: /Tripwire folder/ });
+  await expect(settings).toBeVisible();
+  await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
+  await expect(settings.getByPlaceholder("name")).toHaveValue("page");
+});
+
+// U-132: with no environment, a missing variable's chip makes one, the variable its first row.
+test("with no environment, the chip for a variable with no value makes one with it", async ({ page }) => {
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/{{nowhere}}`);
+  const chip = page.getByRole("button", { name: /^nowhere Missing/ });
+  await chip.press("Enter");
+  const region = page.getByRole("region", { name: "Environments", exact: true });
+  await expect(page.locator("#new-env-name-input")).toBeFocused();
+  await page.keyboard.type("Local");
+  await page.keyboard.press("Enter");
+  await expect(region.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
+  await region.getByPlaceholder("Value", { exact: true }).last().fill("echo");
+  await closeEnvironments(page);
+  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+});

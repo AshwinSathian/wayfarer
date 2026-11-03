@@ -69,8 +69,8 @@ wayfarer-cli run <file> [options]
 | `-d`, `--data <file>` | A data file, CSV or JSON. Each row is one iteration. |
 | `-n`, `--iterations <n>` | How many iterations. Default: one per row of the data file, or 1. |
 | `--collection <name>` | Which collection to run, from a file that holds several. |
-| `--reporter <list>` | `cli`, `json`, `junit`, comma-separated. Default `cli`. |
-| `--out <dir>` | Where `json` and `junit` reports go. Default: the current folder. |
+| `--reporter <list>` | `cli`, `json`, `junit`, `html`, comma-separated. Default `cli`. |
+| `--out <dir>` | Where the `json`, `junit` and `html` reports go. Default: the current folder. |
 | `--bail` | Stop at the first failure. |
 | `--timeout <ms>` | Give up on a request after this long. Default: no limit. |
 | `--insecure` | Don't verify TLS certificates, for every request of the run. |
@@ -135,6 +135,10 @@ requests and data-file iterations. That order is checked against
 golden files written by Newman.
 
 ## Reports
+
+`--reporter html` writes `wayfarer-run.html`: one page that says what the
+app's run view says, in the app's colours (light or dark, as the system
+is), with the same table. It holds no script and loads nothing.
 
 `--reporter json` writes `wayfarer-run.json` and `--reporter junit` writes
 `wayfarer-run.junit.xml`, the same files the app's run view saves. Both go

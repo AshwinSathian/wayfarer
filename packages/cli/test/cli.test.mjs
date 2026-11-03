@@ -130,12 +130,17 @@ test("the P5.2 fixture with its data file gives Newman's results, writes both re
     join(RUN_FIXTURES, "data.csv"),
     "--allow-scripts",
     "--reporter",
-    "cli,json,junit",
+    "cli,json,junit,html",
   ]);
   assert.equal(run.code, 1, run.stderr);
   assert.match(run.stdout, /15 results in 5 iterations; 2 failed; 38 of 40 tests passed\.\n$/);
   assert.match(run.stdout, /✗ only an admin is let in: expected false to equal true/);
 
+  // D4.9: the HTML report says what the terminal says, as a page with no script.
+  const page = await readFile(join(folder, "wayfarer-run.html"), "utf8");
+  assert.match(page, /15 results in 5 iterations; 2 failed; 38 of 40 tests passed\./);
+  assert.match(page, /only an admin is let in: expected false to equal true/);
+  assert.doesNotMatch(page, /<script/i);
   const golden = JSON.parse(readFileSync(join(RUN_FIXTURES, "data.golden.json"), "utf8"));
   const report = JSON.parse(await readFile(join(folder, "wayfarer-run.json"), "utf8"));
   assert.equal(report.$id, "wayfarer/run");
@@ -410,7 +415,7 @@ test("what cannot be run is said, with exit code 2", async () => {
   const cases = [
     [["run", join(folder, "missing.json")], /could not be read/],
     [["run", await file("bad.json", "{}")], /This is not a file Wayfarer can import/],
-    [["run", path, "--reporter", "html"], /Unknown reporter "html"/],
+    [["run", path, "--reporter", "xml"], /Unknown reporter "xml": choose from cli, json, junit and html/],
     [["run", path, "-n", "x"], /--iterations takes a whole number/],
     [["run", path, "--collection", "Other"], /has no collection named "Other"/],
     [["run", path, "--unknown"], /Unknown option '--unknown'/],

@@ -356,7 +356,7 @@ Evidence: `baseline/1440-light-p-10-import-review.png`.
 **Status:** Open, D4-h.
 2026-10-23 (hig-review, W-41e, W-28): confirmed. The counts that disagree
 with their noun are U-098; "id" beside "ID" is part of U-083.
-**2026-11-03:** Fixed in #PRNUM (D4-h, D4.7): the review lists each item on one line, its kind, its name as it will be stored (the `capitalize` that wrote "Status And Body" is gone) and New or Replaces; "ID" is written one way.
+**2026-11-03:** Fixed in #503 (D4-h, D4.7): the review lists each item on one line, its kind, its name as it will be stored (the `capitalize` that wrote "Status And Body" is gone) and New or Replaces; "ID" is written one way.
 
 ### First run
 
@@ -1181,7 +1181,7 @@ Evidence: `app-shell.html:302, 351`; `app-shell.ts:194, 369, 373, 412`;
 `script-review-dialog.html:52`.
 **Status:** D4-e's share fixed in #458 (the composer's OAuth and script review strings, the socket's and the script worker's errors). The shell's, the vault's, the environments', import's and the backup's remain with D4-f, D4-g and D4-h. Review row W-26.
 **2026-11-03:** The vault's share fixed in #494 (D4-g): "That is not the vault's passphrase." for "Incorrect passphrase", and "The file is not JSON." twice (the vault's import and the backup's restore). The shell's words were fixed in D4-f. Import's remain with D4-h.
-**2026-11-03:** Import's share fixed in #PRNUM (D4-h): "{file} was not imported:" for "Unable to import". The backup's and the shell's remain with D4-h's Settings PR.
+**2026-11-03:** Import's share fixed in #503 (D4-h): "{file} was not imported:" for "Unable to import". The backup's and the shell's remain with D4-h's Settings PR.
 
 **U-083. One thing goes by several names.** Severity 3. H4. All.
 Address is also "URL" and "Load … into composer"; secret is also
@@ -1220,7 +1220,7 @@ Severity 3. H4. TP.
 "{n} environment(s) detected.", "{n} variable(s)", "1 folders".
 Evidence: `import/import-dialog.html:74, 126, 133`.
 **Status:** Open, D4-h (with U-015). Review row W-41e.
-**2026-11-03:** Fixed in #PRNUM (D4-h): every count agrees with its noun ("1 folder", "3 variables", "2 environments in the file").
+**2026-11-03:** Fixed in #503 (D4-h): every count agrees with its noun ("1 folder", "3 variables", "2 environments in the file").
 
 **U-100. The page says it is American English, and names are built by
 concatenation.** Severity 3. H4. None today.
@@ -1618,7 +1618,7 @@ nothing imported defines; the first send fails.
 Evidence: [`hig-review/1440-light-rt-07-import-review.png`](hig-review/1440-light-rt-07-import-review.png),
 [`hig-review/1440-light-rt-09-imported-request.png`](hig-review/1440-light-rt-09-imported-request.png).
 **Status:** Open, D4-h (D4.7). Review row N4.
-**2026-11-03:** Fixed in #PRNUM (D4-h, D4.7): `importText` adds one line per collection naming the variables its requests use that nothing in the file gives a value (the collection, a folder, an environment of the same file, a script's `set`), and how many requests use them; five by name, then a count.
+**2026-11-03:** Fixed in #503 (D4-h, D4.7): `importText` adds one line per collection naming the variables its requests use that nothing in the file gives a value (the collection, a folder, an environment of the same file, a script's `set`), and how many requests use them; five by name, then a count.
 
 **U-139. Disabled Postman query parameters are lost on save, and the
 import note contradicts the app.** Severity 2. H4, H5. TP.

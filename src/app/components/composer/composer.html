@@ -24,9 +24,8 @@
     />
     } @else {
 
-    <!-- Wraps by the room it has, not by the window's width: beside the pinned
-       sidebar a 1024 px window leaves this row 544 px. The bar asks for 20rem;
-       when the buttons do not fit beside that, they go on the next line. -->
+    <!-- Wraps by the room it has, not by the window's width: beside the pinned sidebar a 1024 px window leaves this row
+       544 px. The bar asks for 20rem; when the buttons do not fit beside that, they go on the next line. -->
     <app-address-row class="flex flex-wrap items-start gap-3" (send)="sendRequest()" />
 
     @if (loadedCollectionRequest(); as bound) {
@@ -46,8 +45,7 @@
     >
     <p class="sr-only" role="status">{{ pasteNotesText() }}</p>
     <p class="sr-only" role="status">{{ warningsText() }}</p>
-    <!-- The response's live region (U-061): "Sending…", then the status line's words. There before the first send,
-         also on a phone, where the response is a tab of its own. -->
+    <!-- The response's live region (U-061): "Sending…", then the status line's words, also on a phone. -->
     <p class="response-announcement sr-only" role="status">{{ announcement() }}</p>
     <!-- A save that did not land (U-066), said by a region there from the first render. -->
     <p class="sr-only" role="alert">{{ store.saveError() }}</p>
@@ -75,16 +73,13 @@
     </div>
     }
 
+    <app-ai-drafted (undone)="focusUrl()" />
     <app-request-warnings class="block space-y-2 empty:hidden" />
 
-    <!-- The preview before Send (D4.12): shown while the address, a header, the body or the auth holds a variable, or
-         an auth is sent. -->
+    <!-- The preview before Send (D4.12): while the address, a header, the body or the auth holds a variable, or auth. -->
     @if (store.variableTokens().length || store.sentAuthSource().auth.type !== 'none') {
     <app-variable-chips />
-    }
-
-    <!-- ── Request config + response ────────────────────────── -->
-    @if (socket.isSocket()) {
+    } @if (socket.isSocket()) {
     <app-socket-view class="block space-y-5" />
     } @else if (isMobile()) {
     <!-- A phone (U-028): the request and the response are two panes, not one column; a send shows the response. -->
@@ -114,8 +109,7 @@
       </div>
     </div>
     } @else {
-    <!-- Desktop: a resizable split between the request's parts and the response. The split is kept in
-       localStorage under a wayfarer: key (see theme.ts). -->
+    <!-- Desktop: a resizable split between the request's parts and the response, kept under a wayfarer: key. -->
     <ui-splitter
       class="composer-response-splitter"
       storageKey="wayfarer:composer-split"
@@ -191,6 +185,11 @@
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importFile.click()"
         >Import a collection…</button
       >
+      @if (ai.offers().draft) {
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="modelCalls.draftOpen.set(true)"
+        >Describe a request…</button
+      >
+      }
       <input
         #importFile
         type="file"

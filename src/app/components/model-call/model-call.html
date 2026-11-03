@@ -1,5 +1,5 @@
 <p class="sr-only" role="status">{{ said() }}</p>
-<h3 #headingRef id="model-call-heading" class="type-headline m-0" tabindex="-1">{{ heading() }}</h3>
+<h3 #headingRef [id]="headingId" class="type-headline m-0" tabindex="-1">{{ heading() }}</h3>
 @if (record(); as record) {
 <app-exchange-record [record]="record" />
 } @else {

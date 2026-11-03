@@ -544,6 +544,7 @@ it is.
 | `palette: open-local-bridge-settings` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: reset-all-data` | Palette; Settings, Danger zone | Same | — |
 | `palette: open-settings` | Palette; toolbar | Same | — |
+| `palette: ai-draft` | — | Palette, with a provider and the action on (D4.10) | D4-k |
 | `palette: new-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-request-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
@@ -606,6 +607,14 @@ it is.
 | `ai-tests.html: Discard` | — | A proposal of tests (D4.10) | D4-k |
 | `ai-tests.html: Accept` | — | A proposal of tests: writes into the tab it was asked in (AI-5) | D4-k |
 | `ai-tests.html: Undo` | — | After Accept: puts the post-response script back (AI-5) | D4-k |
+| `composer.html: Describe a request…` | — | The empty response's offer, with a provider and the action on (D4.10) | D4-k |
+| `ai-draft.html: The names of the variables in use: (no values)` | — | Draft a request: a tick, ticked, names only | D4-k |
+| `ai-draft.html: Cancel` | — | Draft a request's first step | D4-k |
+| `ai-draft.html: Preview…` | — | Draft a request: opens the model call's preview in the dialog | D4-k |
+| `ai-draft.html: The names of the variables in use (no values)` | — | The preview of Draft a request | D4-k |
+| `ai-draft.html: Discard` | — | A proposed request (D4.10) | D4-k |
+| `ai-draft.html: Accept` | — | A proposed request: fills a tab with nothing typed, else a new tab (AI-5) | D4-k |
+| `ai-drafted.ts: Undo` | — | Under the address after Accept: puts the draft back (AI-5) | D4-k |
 | `cookies-pane.html: Delete cookie` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: jar.setValue(cookie, $any($event.target).value)` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: Delete all…` | Settings, Cookies | Settings, Cookies | D4-h |

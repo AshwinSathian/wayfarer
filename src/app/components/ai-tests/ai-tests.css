@@ -1,4 +1,5 @@
-/* A proposal (D4.10): the script as it is, and the lines the model would add, tinted as added lines are. */
+/* A proposal (D4.10), Write tests' and Draft a request's: what is there, and what the model would add, tinted as
+   added lines are. */
 .ai-proposal {
   display: flex;
   flex-direction: column;
@@ -28,4 +29,20 @@
   background: var(--status-success-fill);
   box-shadow: inset 2px 0 0 var(--status-success);
   color: var(--label-primary);
+}
+
+/* Draft a request: each field that differs, the value now struck through above the proposed one. */
+.ai-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-field {
+  padding: 4px 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

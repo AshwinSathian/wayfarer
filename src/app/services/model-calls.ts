@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import { TransportError, type ModelAction } from "@wayfarer/core";
 import type { ModelCallOutcome } from "@wayfarer/core/ai";
 import { HistoryRepository } from "../data/history-repository";
@@ -31,6 +31,9 @@ export class ModelCalls {
   private readonly router = inject(TransportRouter);
   private readonly history = inject(HistoryRepository);
   private readonly settings = inject(RequestSettings);
+
+  /** The Draft a request dialog is open (the empty response's offer and the palette open it). */
+  readonly draftOpen = signal(false);
 
   /** The call a prompt makes, for the preview. Null with no provider: no AI is offered then (AI-1). */
   async prepare(

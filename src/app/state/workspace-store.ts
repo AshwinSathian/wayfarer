@@ -204,6 +204,16 @@ export class WorkspaceStore {
       ...(tab.iteration && { data: tab.iteration.data }),
     };
   }
+  /** The names of the variables the open tab can use, each once, sorted: what Draft a request may name (D4.10). */
+  readonly variableNames = computed(() =>
+    [
+      ...new Set(
+        Object.values(this.scopes()).flatMap((rows) =>
+          (rows ?? []).filter((row) => row.enabled && row.key.trim()).map((row) => row.key.trim()),
+        ),
+      ),
+    ].sort(),
+  );
   /** What the draft's auth is when it inherits, and from where (P4.9). */
   readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
   /**

@@ -1555,6 +1555,7 @@ vault.** Severity 3. H1, H2. PE.
 names no request or secret.
 Evidence: [`hig-review/1440-light-rt-27-send-vault-locked.png`](hig-review/1440-light-rt-27-send-vault-locked.png).
 **Status:** Open, D4-g (D4.5). Review row N14.
+**2026-11-03:** Fixed in #497 (D4-g): the unlock dialog a send opens says what asked and for which secrets, by their names: "Sending "Get pet" needs token from the vault." (or "this request" for one not saved; "Getting the token" for Get token). The vault is not read for it: the names are stored in the clear.
 
 ### The send, the route and the bridge
 

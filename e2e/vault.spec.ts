@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { closeEnvironments, openEnvironments, openSettings } from "./support/app";
+import { ECHO } from "./support/echo";
 
 // P2.6, vault v2 (F09): one data key wrapped by the passphrase. Each test
 // also holds the page to its CSP and Trusted Types policy (plan risk R15):
@@ -191,4 +192,20 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await secrets.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(secrets.getByText("exported-encrypted-7c1")).toBeVisible();
   expect(await violations(page)).toEqual([]);
+});
+
+// U-143: the passphrase asked for by a send says which send and which secret want it.
+test("a send with the vault locked asks for the passphrase naming the request's secret", async ({ page }) => {
+  await page.goto("/app/");
+  await createVault(page);
+  await protect(page, "token", "locked-send-secret-77");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?t={{token}}`);
+  await lockButton(page).click();
+  await expect(unlockButton(page)).toBeVisible();
+  await page.getByRole("button", { name: "Send request" }).click();
+  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  await expect(dialog).toContainText("Sending this request needs token from the vault.");
+  await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
+  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200");
 });

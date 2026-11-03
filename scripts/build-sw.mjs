@@ -31,7 +31,7 @@ export function precacheList(root) {
         .join("/"),
     );
   const extra = files.filter((f) =>
-    /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.ico$/.test(f),
+    /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.(ico|svg)$/.test(f),
   );
   return ["/", ...new Set([...referenced, ...extra].map((f) => `/${f.replace(/^\//, "")}`))].sort();
 }

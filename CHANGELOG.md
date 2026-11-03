@@ -586,6 +586,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The mark is drawn in the theme's ink, and the installed app has icons
+  cut for each use.** The app's sidebar and the site show the mark in the
+  colour Send is drawn in, light on the dark theme and dark on the light
+  one, where it was a blue-to-violet gradient in both. The favicon follows
+  the browser's light or dark scheme. The manifest lists the full mark at
+  192 and 512 px for places that show an icon as it is, and one 512 px
+  maskable icon, padded for the platform's cut; before, every icon was
+  marked both, so the cut art was shown where the full mark belonged.
+
 - **The size budgets are reset to the first download as it is now.**
   The first download is 1,113,075 B raw and 311,316 B gzip; the budgets
   are reset to it as before (raw × 1.05 to warn, × 1.10 to fail, gzip

@@ -47,6 +47,7 @@ import { CollectionsSidebar, PaletteAction } from "../collections/collections-si
 import { SecretsManager } from "../secrets/secrets-manager";
 import { Settings, type SettingsSection } from "../settings/settings";
 import { Icon } from "../../shared/icon/icon";
+import { Mark } from "../../shared/icon/mark";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 import type { RunTarget } from "../../state/run-state";
@@ -66,6 +67,7 @@ import { Tabs } from "../../state/tabs";
     UiInput,
     NgTemplateOutlet,
     Icon,
+    Mark,
     UiModal,
     UiButton,
     UiSelect,

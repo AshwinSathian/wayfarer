@@ -103,8 +103,11 @@ code errors.
   `next/link`.
 - The site's theme and mark are the app's: the layout loads
   `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
-  mark is `/app/icons/logo.svg` (`public/icons/logo.svg`, which the app
-  shell shows too).
+  mark is the brand's (`packages/tokens/brand/`, D2.4): drawn inline in
+  each theme's ink (`app-mark`, the site's `Mark`), the favicon and the
+  installed app's icons copied from that folder into the app's build
+  (`angular.json`'s assets). A brand file is written from the tokens
+  (`npm run gen:tokens`, `npm run gen:brand`), never by hand.
 - A sentence of the site that says what Wayfarer does names its claims
   (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`);
   `e2e/site.spec.ts` holds every ID named to `docs/claims.md`. The

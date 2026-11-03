@@ -36,3 +36,20 @@ test("the shell pads the safe area and is as tall as the dynamic viewport", () =
   assert.match(shell, /'safe-area flex min-h-dvh /);
   assert.match(shell, /'safe-area flex h-dvh /);
 });
+
+// U-101 (D2.4): the full mark where a platform shows the icon as it is, and art for the safe zone only where it cuts.
+test("the manifest's icons: the mark at 192 and 512 px for `any`, and one 512 px `maskable` icon", () => {
+  const { icons } = JSON.parse(read("public/manifest.webmanifest"));
+  assert.deepEqual(
+    icons.map(({ sizes, purpose }) => `${sizes} ${purpose}`),
+    ["192x192 any", "512x512 any", "512x512 maskable"],
+  );
+  for (const { src } of icons)
+    readFileSync(new URL(`../packages/tokens/brand/app/${src.replace(/^icons\//, "")}`, import.meta.url));
+});
+
+test("the mark drawn inline in the app and on the site is the brand's glyph", async () => {
+  const { ROUTE } = await import("../packages/tokens/brand.mjs");
+  for (const file of ["src/app/shared/icon/mark.ts", "packages/site/src/components/Mark.tsx"])
+    assert.ok(read(file).includes(`d="${ROUTE}"`), `${file} does not draw the brand's glyph`);
+});

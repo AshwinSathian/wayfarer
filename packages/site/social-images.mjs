@@ -12,7 +12,7 @@ import { pathToFileURL } from "node:url";
 import { ogImagePath } from "./src/og-path.mjs";
 
 const FONTS = "../../node_modules/@fontsource/atkinson-hyperlegible-next/files";
-const MARK = "../../public/icons/logo.svg";
+const MARK = "../tokens/brand/mark.svg";
 
 const unescape = (text) =>
   text.replace(

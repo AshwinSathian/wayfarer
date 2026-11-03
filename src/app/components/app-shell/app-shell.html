@@ -10,7 +10,7 @@
     <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
       <!-- Brand logomark + name -->
       <div class="flex items-center gap-2.5">
-        <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="26" height="26" />
+        <app-mark class="size-6.5" />
         <div class="flex flex-col">
           <span class="type-title-3 text-label-primary" style="line-height: 1.1"> Wayfarer </span>
         </div>
@@ -177,7 +177,7 @@
         <!-- The name once: the pinned sidebar carries it. -->
         @if (sidebarOverlay() || !drawerVisible()) {
         <div class="hidden lg:flex items-center gap-2">
-          <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="22" height="22" />
+          <app-mark class="size-5.5" />
           <span class="type-title-3 text-label-secondary" style="font-weight: 500">Wayfarer</span>
         </div>
         }

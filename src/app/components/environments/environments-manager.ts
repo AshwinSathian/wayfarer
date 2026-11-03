@@ -173,9 +173,19 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
 
     effect(() => {
       const token = this.variableFocus.pending();
-      if (token?.source !== "environment" && token?.source !== "missing") return;
+      if (token?.source !== "environment" && token?.source !== "missing" && token?.source !== "global") return;
       untracked(() => {
         this.variableFocus.pending.set(null);
+        if (token.source === "global") {
+          this.globalsVisible.set(true);
+          return;
+        }
+        // Missing, with no environment in use: a new one, and the variable is its first row (U-132).
+        if (token.source === "missing" && !token.environmentId) {
+          this.openNewEnvironmentDialog();
+          this.firstVariable = token.key;
+          return;
+        }
         if (token.environmentId && token.environmentId !== this.selectedId()) {
           this.selectEnvironment(token.environmentId);
         }
@@ -209,7 +219,11 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     this.focusedVariableKey.set(null);
   }
 
+  /** The variable a missing chip asked for, given to the environment being named as its first row. */
+  private firstVariable: string | null = null;
+
   openNewEnvironmentDialog(): void {
+    this.firstVariable = null;
     this.newEnvForm.set({ name: "", description: "" });
     this.newEnvDialogVisible.set(true);
     // A row of the list, not a dialog: nothing reads cdkFocusInitial here (C-067).
@@ -244,6 +258,12 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     });
     this.newEnvDialogVisible.set(false);
     this.selectEnvironment(doc.meta.id);
+    const first = this.firstVariable;
+    this.firstVariable = null;
+    if (first) {
+      this.editorTab.set("pairs");
+      this.addVariable(first);
+    }
   }
 
   closeNewEnvironmentDialog(): void {

@@ -53,9 +53,11 @@ import type { RunTarget } from "../../state/run-state";
 import { VariableFocus } from "../../services/variable-focus";
 import { UiSelect } from "../../ui/select";
 
+import { InheritedSettingsDialog, type InheritedSettingsTarget } from "../collections/inherited-settings-dialog";
 @Component({
   selector: "app-shell",
   imports: [
+    InheritedSettingsDialog,
     UiInput,
     NgTemplateOutlet,
     Icon,
@@ -199,16 +201,35 @@ export class AppShell implements OnInit {
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
+  /** The collection or the folder whose settings are open. */
+  readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
   /** The environments editor, a dialog: the page holds the request and its response only. */
   /** The Environments tab (D4.5): it replaced the dialog that lost edits and stacked dialogs (U-060, U-085). */
   protected openEnvironmentsTab(): void {
     this.composer().openEnvironments();
   }
   private readonly variableFocus = inject(VariableFocus);
-  /** A variable chip or the secrets list asks to see an environment's variable, or to add a missing one: the editor opens for it. */
+  /**
+   * A variable chip or the secrets list asks to see a variable: an environment's, a global or a missing one opens the
+   * Environments tab, which shows it; a secret's opens the secrets, and a collection's or a folder's its settings at
+   * Variables (U-132).
+   */
   private readonly openForVariable = effect(() => {
-    const source = this.variableFocus.pending()?.source;
-    if (source === "environment" || source === "missing") untracked(() => this.openEnvironmentsTab());
+    const token = this.variableFocus.pending();
+    const source = token?.source;
+    if (token?.holder) {
+      const { holder, key } = token;
+      untracked(() => {
+        this.variableFocus.pending.set(null);
+        this.settingsOf.set({ ...holder, variable: key });
+      });
+    } else if (source === "environment" || source === "missing" || source === "global")
+      untracked(() => this.openEnvironmentsTab());
+    else if (source === "secret")
+      untracked(() => {
+        this.variableFocus.pending.set(null);
+        this.secretsDialogVisible.set(true);
+      });
   });
   readonly settingsDialogVisible = signal(false);
 

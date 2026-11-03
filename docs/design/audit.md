@@ -1593,6 +1593,7 @@ build; may be unfinished.
 Evidence: `composer/variable-chips.ts:17-23`;
 [`hig-review/1440-light-rt-10-missing-chip-click.png`](hig-review/1440-light-rt-10-missing-chip-click.png).
 **Status:** Open, D4-g (D4.5). Since D4-l (D4.12's preview, 2026-10-27) a missing chip adds the variable to the active environment and an environment's chip shows it there; a collection's, a folder's, a global's, a secret's and a dynamic chip still do nothing, and "Add {name} to" the collection is D4.5's. Review row N3.
+**2026-11-03:** Fixed in #PRNUM (D4-g, D4.5): each chip opens where its value is set. A collection's or a folder's opens that holder's settings at Variables (the folder that gives the value, nearest the request first); a global's opens the global variables; a secret's opens the vault's secrets; a missing one with no environment in use makes an environment with the variable as its first row. The settings dialog moved from the sidebar to the shell, since below 1200 px the sidebar's closed drawer could not show it. A dynamic variable has nothing to set, and its chip says "New value each send".
 
 ### Import
 

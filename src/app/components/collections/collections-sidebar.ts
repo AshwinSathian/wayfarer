@@ -36,7 +36,7 @@ import {
 } from "../../shared/collections/collection-tree-nodes";
 import { CollectionNodeAction, buildContextItems } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
+import type { InheritedSettingsTarget } from "./inherited-settings-dialog";
 import { ExportDialog } from "./export-dialog";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
@@ -55,20 +55,7 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [
-    UiButton,
-    UiInput,
-    Icon,
-    FormsModule,
-    Tree,
-    UiMenu,
-    MenuTrigger,
-    Dialog,
-    UiTooltip,
-    UiSelect,
-    InheritedSettingsDialog,
-    ExportDialog,
-  ],
+  imports: [UiButton, UiInput, Icon, FormsModule, Tree, UiMenu, MenuTrigger, Dialog, UiTooltip, UiSelect, ExportDialog],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -105,8 +92,8 @@ export class CollectionsSidebar implements OnInit {
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
-  /** The collection or the folder whose settings are open. */
-  readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
+  /** Settings… of a collection or a folder: the shell holds the dialog, which a closed drawer could not show. */
+  readonly openSettings = output<InheritedSettingsTarget>();
   /** The collection whose Export… dialog is open (U-016). */
   readonly exportOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
@@ -301,9 +288,9 @@ export class CollectionsSidebar implements OnInit {
     }
     if (action === "settings") {
       const data = node.data as NodeData;
-      if (data.type === "collection") this.settingsOf.set({ collectionId: data.ref.meta.id });
+      if (data.type === "collection") this.openSettings.emit({ collectionId: data.ref.meta.id });
       else if (data.type === "folder")
-        this.settingsOf.set({ collectionId: data.ref.collectionId, folderId: data.ref.meta.id });
+        this.openSettings.emit({ collectionId: data.ref.collectionId, folderId: data.ref.meta.id });
       return;
     }
     void this.handleAction(action, node);

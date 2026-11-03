@@ -217,6 +217,16 @@
             (click)="openRecord.set(openRecord() === row.number ? null : row.number)"
             >Record</button
           >
+          } @if (requestOf(result.id); as doc) {
+          <!-- Its request, in a tab of its own: the run keeps its results (U-076). -->
+          <button
+            uiButton
+            class="btn-plain btn-sm"
+            type="button"
+            [attr.aria-label]="'Open ' + result.name"
+            (click)="openRequest.emit(doc)"
+            >Open</button
+          >
           }
         </td>
         <td

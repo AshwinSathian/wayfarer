@@ -218,7 +218,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await opens("Search or run a command", page.getByPlaceholder("Search or run a command"));
-  // New environment is in the Environments tab: its dialog opens on its field, and Escape gives focus back to the button.
+  // New environment is in the Environments tab: its row opens on its field, and Escape gives focus back to the button.
   await page.getByRole("button", { name: "Environments", exact: true }).click();
   const newEnvironment = page.getByRole("button", { name: "New environment", exact: true }).first();
   await newEnvironment.focus();

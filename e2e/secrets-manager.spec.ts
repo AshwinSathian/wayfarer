@@ -26,7 +26,7 @@ test.describe("Secrets management view", () => {
     await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).first().click();
     await page.locator("#new-env-name-input").fill("Secrets E2E Env");
-    await page.getByRole("button", { name: "Create environment" }).click();
+    await page.locator("#new-env-name-input").press("Enter");
     await expect(page.locator(".env-item", { hasText: "Secrets E2E Env" })).toBeVisible();
 
     // Scoped to the environment editor's own KEY/Value inputs (exact,
@@ -34,14 +34,14 @@ test.describe("Secrets management view", () => {
     // shown, keeps its lowercase "key"/"value" placeholders mounted and
     // hidden, which a loose, case-insensitive match would collide with.
     await page.getByRole("button", { name: "Add variable" }).click();
-    await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
+    await page.getByPlaceholder("Name", { exact: true }).fill("API_TOKEN");
     await page
       .getByRole("region", { name: "Environments", exact: true })
       .getByPlaceholder("Value", { exact: true })
       .fill("super-secret-value");
 
     // With no vault, the row asks for a passphrase itself, makes the vault and marks the variable (U-135, U-136).
-    await page.getByRole("button", { name: "Mark variable as secret" }).click();
+    await page.getByRole("button", { name: /^Mark .* as secret$/ }).click();
     const dialog = page.getByRole("region", { name: "Environments", exact: true });
     await dialog.getByLabel("Passphrase", { exact: true }).fill("correct horse battery staple");
     await dialog.getByLabel("Confirm passphrase", { exact: true }).fill("correct horse battery staple");

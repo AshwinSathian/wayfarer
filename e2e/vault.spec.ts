@@ -40,14 +40,14 @@ async function protect(page: Page, name: string, plaintext: string): Promise<voi
   await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill("Vault env");
-  await page.getByRole("button", { name: "Create environment" }).click();
+  await page.locator("#new-env-name-input").press("Enter");
   await page.getByRole("button", { name: "Add variable" }).click();
-  await page.getByPlaceholder("KEY", { exact: true }).fill(name);
+  await page.getByPlaceholder("Name", { exact: true }).fill(name);
   await page
     .getByRole("region", { name: "Environments", exact: true })
     .getByPlaceholder("Value", { exact: true })
     .fill(plaintext);
-  await page.getByRole("button", { name: "Mark variable as secret" }).click();
+  await page.getByRole("button", { name: /^Mark .* as secret$/ }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await closeEnvironments(page);
 }

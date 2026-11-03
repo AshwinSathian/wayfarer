@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A deleted environment can be put back.** Deleting an environment
+  goes at once and says so, with Undo for ten seconds; the browser's own
+  "are you sure" box asked before. A new environment is named in the list
+  itself and made with Enter, where a dialog with a Create button opened
+  before. The environment in use is said once, the rows keep their room
+  when the editor is narrow, each field is named for its variable to a
+  screen reader, and the vault's passphrase fields have labels and say a
+  forgotten passphrase cannot be recovered.
+
 - **The environments open in a tab, beside your requests.** The
   Environments button, the palette and a variable's chip open an
   Environments tab: the list and the selected environment's variables,

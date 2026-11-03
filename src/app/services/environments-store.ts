@@ -100,8 +100,15 @@ export class EnvironmentsStore {
     return doc;
   }
 
-  async deleteEnvironment(id: string): Promise<void> {
-    await this.environmentsRepository.deleteEnvironment(id);
+  /** Gives back what went, which `restoreEnvironment` puts back (U-080). */
+  async deleteEnvironment(id: string): Promise<{ doc: EnvironmentDoc; wasActive: boolean } | null> {
+    const removed = await this.environmentsRepository.deleteEnvironment(id);
+    await this.refresh();
+    return removed;
+  }
+
+  async restoreEnvironment(removed: { doc: EnvironmentDoc; wasActive: boolean }): Promise<void> {
+    await this.environmentsRepository.restoreEnvironment(removed);
     await this.refresh();
   }
 

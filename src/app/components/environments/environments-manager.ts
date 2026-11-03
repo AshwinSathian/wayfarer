@@ -1,3 +1,4 @@
+import { UndoNotice } from "../../services/undo-notice";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,7 +19,6 @@ import {
 import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
 import { UiButton } from "../../ui/button";
-import { Dialog } from "../../ui/dialog";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import { UiTooltip } from "../../ui/tooltip";
@@ -76,7 +76,6 @@ interface EnvironmentDraft {
     TabPanel,
     Tabs,
     UiTabList,
-    Dialog,
     UiTooltip,
     JsonEditor,
     VariablesDialog,
@@ -88,6 +87,7 @@ interface EnvironmentDraft {
 })
 export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly envService = inject(EnvironmentsStore);
+  private readonly undo = inject(UndoNotice);
   private readonly secretsService = inject(SecretsVault);
   private readonly variableFocus = inject(VariableFocus);
   /** Every file picked here goes down the one import road (P4.1). */
@@ -97,6 +97,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");
   private readonly valueInputs = viewChildren<ElementRef<HTMLInputElement>>("valueInput");
   private readonly vaultPassphraseInput = viewChild<ElementRef<HTMLInputElement>>("vaultPassphraseField");
+  private readonly newEnvField = viewChild<ElementRef<HTMLInputElement>>("newEnvField");
 
   readonly requestUnlock = output<void>();
 
@@ -211,14 +212,25 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   openNewEnvironmentDialog(): void {
     this.newEnvForm.set({ name: "", description: "" });
     this.newEnvDialogVisible.set(true);
+    // A row of the list, not a dialog: nothing reads cdkFocusInitial here (C-067).
+    afterNextRender(() => this.newEnvField()?.nativeElement.focus(), { injector: this.injector });
   }
 
   onNewEnvNameChange(value: string): void {
     this.newEnvForm.update((form) => ({ ...form, name: value }));
   }
 
-  onNewEnvDescriptionChange(value: string): void {
-    this.newEnvForm.update((form) => ({ ...form, description: value }));
+  /** The inline row's keys (U-044): Enter makes the environment, Escape puts the row away and focus back on New. */
+  protected newEnvKey(event: KeyboardEvent, newButton: HTMLElement): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void this.submitNewEnvironment();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      this.closeNewEnvironmentDialog();
+      newButton.focus();
+    }
   }
 
   async submitNewEnvironment(): Promise<void> {
@@ -252,14 +264,17 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     }
   }
 
+  /** Deletes at once and offers Undo (U-080, DQ9: "Removed {name}. Undo"); the browser's own confirm() asked before. */
   async remove(env: EnvironmentDoc): Promise<void> {
-    if (!confirm(`Delete environment "${env.name}"?`)) {
-      return;
-    }
-    await this.envService.deleteEnvironment(env.meta.id);
+    const removed = await this.envService.deleteEnvironment(env.meta.id);
     const remaining = this.environments();
     this.selectedId.set(remaining.length ? remaining[0].meta.id : null);
     this.draft.set(remaining.length ? this.toDraft(remaining[0]) : null);
+    if (removed)
+      this.undo.offer(`Removed ${env.name}.`, async () => {
+        await this.envService.restoreEnvironment(removed);
+        this.selectEnvironment(removed.doc.meta.id);
+      });
   }
 
   async setActive(env: EnvironmentDoc): Promise<void> {

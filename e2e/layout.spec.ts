@@ -100,7 +100,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await openEnvironments(page);
       await page.getByRole("button", { name: "New environment" }).first().click();
       await page.locator("#new-env-name-input").fill("Phone");
-      await page.getByRole("button", { name: "Create environment" }).click();
+      await page.locator("#new-env-name-input").press("Enter");
       await page.getByRole("button", { name: "Export environments" }).click();
       const dialog = page.getByRole("dialog", { name: "Export environments" });
       const choices = dialog.getByRole("radiogroup", { name: "Protected variables" });
@@ -129,7 +129,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).first().click();
     await page.locator("#new-env-name-input").fill("A much longer environment name that has to be cut somewhere");
-    await page.getByRole("button", { name: "Create environment" }).click();
+    await page.locator("#new-env-name-input").press("Enter");
     await expect(page.locator("#new-env-name-input")).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 900 });
@@ -265,8 +265,8 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.goto("/app/");
     await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).first().click();
-    await page.getByPlaceholder("Environment name").fill("Wide");
-    await page.getByRole("button", { name: "Create environment" }).click();
+    await page.locator("#new-env-name-input").fill("Wide");
+    await page.locator("#new-env-name-input").press("Enter");
     await page.getByRole("tab", { name: "JSON", exact: true }).click();
     await expect(page.getByText("Loading editor…")).toHaveCount(0);
     await page.waitForTimeout(1000);

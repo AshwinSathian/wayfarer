@@ -304,20 +304,19 @@ it is.
 | `environments-manager.html: New environment` | Environments dialog (toolbar) | Environments tab (D4.5); and its empty list's button (D4-c, U-022) | D4-g |
 | `environments-manager.html: importPipeline.pick($event)` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: selectEnvironment(env.meta.id)` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Use for requests` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Use` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Duplicate` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Delete` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Key / Value` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: JSON` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Reveal` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Mark variable as secret` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Remove variable` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Mark` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Remove` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Add variable` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
 | `environments-manager.html: Confirm passphrase` | The same (Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
 | `environments-manager.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
 | `environments-manager.html: Cancel` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Create environment` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `past-requests.html: Select none / Select all` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: exportChosen()` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Select` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |

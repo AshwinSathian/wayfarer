@@ -188,6 +188,7 @@ export {
   type RunRequest,
   type RunResult,
 } from "./run/runner";
+export { runCounts, runEnding, sharedErrorHeading, sharedErrors } from "./run/words";
 export { containsSecretPlaceholder } from "./send/wire";
 export { runAssertions, type AssertionResponseContext, type TestResult } from "./send/assertions";
 export {

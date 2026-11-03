@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The CLI says what the app's run view says.** Its summary starts with
+  how the run ended ("The run is complete."), an error many requests
+  share is written once and then "Same error as before.", and the summary
+  ends with it and how many requests it stopped. The app and the CLI take
+  these sentences from one place.
+
 - **A run's row opens its request.** Each row has Open, which puts the
   request in a tab of its own; the run keeps its results. Before, the
   request had to be found in the tree.

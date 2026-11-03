@@ -97,11 +97,26 @@
 <p class="type-footnote text-status-error flex items-center gap-1.5"
   ><app-icon name="error" class="icon-xs" /> {{ state.dataError() }}</p
 >
-} @if (state.scriptsSkipped()) {
-<p class="type-footnote text-status-warning flex items-center gap-1.5">
-  <app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests were sent
-  without them. Open a request and choose Review scripts.
+} @if (state.scriptsSkipped() && !state.running()) {
+<!-- The review is here, not four clicks away in a request's Scripts tab (U-039). -->
+<p class="type-footnote flex flex-wrap items-center gap-x-3 gap-y-1">
+  @if (reviewed()) {
+  <span class="text-label-secondary flex items-center gap-1.5"
+    ><app-icon name="check_circle" class="icon-xs" /> Scripts reviewed. Run again to run them.</span
+  >
+  } @else {
+  <span class="text-status-warning flex items-center gap-1.5"
+    ><app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests were sent
+    without them.</span
+  >
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="review()">Review scripts…</button>
+  }
 </p>
+<app-script-review-dialog
+  [visible]="reviewing()"
+  (visibleChange)="reviewClosed($event)"
+  (approved)="reviewed.set(true)"
+/>
 }
 
 <div role="status" class="type-callout text-label-secondary flex flex-wrap items-center gap-2">
@@ -160,6 +175,12 @@
       {{ shared.error }}</span
     >
   </p>
+  @if (shared.network) {
+  <!-- One cause, one fix: the bridge, set up from here (U-014). -->
+  <button uiButton="outlined" class="btn-secondary btn-sm mt-2" type="button" (click)="openBridge.emit()"
+    >Set up the Local Bridge…</button
+  >
+  }
 </div>
 }
 

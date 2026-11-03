@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
@@ -13,6 +13,8 @@ import {
 } from "@wayfarer/core";
 import { CollectionRunner } from "../../services/collection-runner";
 import { CollectionsStore } from "../../services/collections-store";
+import { ScriptTrust } from "../../services/script-trust";
+import { ScriptReviewDialog } from "../composer/script-review-dialog";
 import { Icon } from "../../shared/icon/icon";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { saveFile } from "../../shared/save-file";
@@ -27,7 +29,7 @@ import { ExchangeRecordView } from "../exchange-record/exchange-record";
  */
 @Component({
   selector: "app-run-view",
-  imports: [ExchangeRecordView, Icon, UiButton, UiCheckbox, UiInput, UiSpinner, HarExportDialog],
+  imports: [ExchangeRecordView, Icon, ScriptReviewDialog, UiButton, UiCheckbox, UiInput, UiSpinner, HarExportDialog],
   templateUrl: "./run-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -68,13 +70,40 @@ export class RunView {
    */
   protected readonly sharedErrors = computed(() => {
     const counts = new Map<string, number>();
-    for (const { error } of this.run().results())
-      if (error !== undefined) counts.set(error, (counts.get(error) ?? 0) + 1);
+    // An error the page got no response for: the Local Bridge is what can send it, and says why (U-014).
+    const network = new Set<string>();
+    const records = this.run().records();
+    this.run()
+      .results()
+      .forEach(({ error }, index) => {
+        if (error === undefined) return;
+        counts.set(error, (counts.get(error) ?? 0) + 1);
+        if (records[index]?.failure?.kind === "network") network.add(error);
+      });
     return [...counts]
       .filter(([, count]) => count >= 2)
       .sort((a, b) => b[1] - a[1])
-      .map(([error, count]) => ({ error, count }));
+      .map(([error, count]) => ({ error, count, network: network.has(error) }));
   });
+
+  /** Set up the Local Bridge: the shell opens its settings (U-014). */
+  readonly openBridge = output<void>();
+  private readonly trust = inject(ScriptTrust);
+  /** The review of the run's collection's scripts, from the run (U-039). */
+  protected readonly reviewing = signal(false);
+  /** Set once the review in this run's view approved the scripts: the note says to run again. */
+  protected readonly reviewed = signal(false);
+
+  protected review(): void {
+    this.trust.reviewOf.set(this.run().target.collectionId);
+    this.reviewing.set(true);
+  }
+
+  protected reviewClosed(open: boolean): void {
+    if (open) return;
+    this.reviewing.set(false);
+    this.trust.reviewOf.set(null);
+  }
   protected readonly failedOnly = signal(false);
   /** The row whose exchange record is open under it, by its number in the run (U-076). */
   protected readonly openRecord = signal<number | null>(null);

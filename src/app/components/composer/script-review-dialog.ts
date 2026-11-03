@@ -58,6 +58,8 @@ export class ScriptReviewDialog {
 
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
+  /** The scripts were approved: a run that sent without them can say to run again (U-039). */
+  readonly approved = output<void>();
 
   protected readonly saving = signal(false);
   protected readonly count = computed(() =>
@@ -110,6 +112,7 @@ export class ScriptReviewDialog {
     this.saving.set(true);
     try {
       await this.trust.approve();
+      this.approved.emit();
       this.visibleChange.emit(false);
     } finally {
       this.saving.set(false);

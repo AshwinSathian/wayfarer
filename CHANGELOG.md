@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A run offers the review its scripts wait for, and the bridge its
+  errors need.** A run of a collection whose scripts had not been
+  reviewed said to open a request and find Review scripts; it now has
+  Review scripts… in place, and says to run again once they are trusted.
+  When many requests fail with no response, the run offers Set up the
+  Local Bridge…, which opens its settings.
+
 - **A run's results come first.** Once a run starts, its setup folds to
   one line ("2 iterations, no delay") with Change, so the counts and
   results are at the top. Run and Cancel run are one button, so a double

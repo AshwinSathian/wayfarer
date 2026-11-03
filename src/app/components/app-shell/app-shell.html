@@ -336,6 +336,7 @@
           [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'"
           [isMobile]="isMobile()"
           (newRequest)="newRequest.emit()"
+          (openBridge)="openBridgeSettings()"
         ></app-composer>
       </div>
     </main>

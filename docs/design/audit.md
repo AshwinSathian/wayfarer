@@ -287,6 +287,7 @@ report says it 42 times and offers no action.
 **Status:** Open, D4-i. Since #372 the shared cause is said once and names
 the Local Bridge, but the banner has no action: it offers no way to turn the
 bridge on or open its settings.
+**2026-11-03:** Fixed in #PRNUM (D4-i): a shared error the page got no response for (the record's failure is `network`) has **Set up the Local Bridge…**, which opens Settings at the Local Bridge.
 
 ### Command palette
 
@@ -507,6 +508,7 @@ clicks elsewhere (a request, its Scripts tab, Review scripts, I trust these
 scripts), then the run again. Postman and Newman run the scripts.
 Evidence: D0.2's task 2 (`docs/design/baseline.md`).
 **Status:** Open, D4-i.
+**2026-11-03:** Fixed in #PRNUM (D4-i): the run's note has **Review scripts…**, the same review dialog for the run's collection (`ScriptTrust.reviewOf`; approval still only through that dialog), and once it approves the note says "Scripts reviewed. Run again to run them."; the next run runs them. One run still goes without them: a run does not wait for a review it was not asked for.
 
 **U-040. The review is one editor of every script, run together.**
 Severity 3. H6, H1. QA, TP.

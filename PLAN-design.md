@@ -316,8 +316,11 @@ maintainer available.
   eight tasks of D1.4).
   - AC: a table in `docs/design/baseline.md` with events and seconds per
     task, three runs each, median given.
-- [ ] **D0.3** Split D1 to D5 into sessions against the repository.
+- [x] **D0.3** Split D1 to D5 into sessions against the repository.
   - AC: a section 14 row with the split.
+  - Done (row 1.64): row 1.9 ordered D2 and D3, row 1.35 placed D1's
+    remaining work and D4 in sessions, rows 1.42 to 1.45 and 1.48 added to
+    them, and row 1.64 splits D5.
 
 ### Phase D1: Adversarial audit and research (2 sessions)
 
@@ -329,6 +332,7 @@ architectural decisions made.
   read each rival's docs on onboarding, sharing and AI.
   - AC: each point of the research doc has a primary source or is marked
     unverified; a dated changelog at its end.
+  - Placed (row 1.64): session D5-b, with D1.4's sections 2, 4 and 8.
 - [x] **D1.2** Hostile review of every screen in D0.1's index: Nielsen's
   ten heuristics, plus the questions "what would a Postman user try
   first here, and does it work?" and "what does this screen say that the
@@ -341,6 +345,8 @@ architectural decisions made.
   and, for each, their first ten minutes and their tenth day.
   - AC: five walkthroughs in `docs/design/personas.md`; every step that
     fails is a finding in the audit.
+  - Placed (row 1.64): session D5-b, before D5.1's review, on the app as
+    it will be released.
 - [ ] **D1.4** Rival benchmark. Eight tasks, written before measuring:
   first request from nothing; import a Postman collection with scripts and
   run it; add an environment and switch it; use a secret without it
@@ -365,6 +371,9 @@ architectural decisions made.
     brought up to date from the fourth pass's landscape
     (`docs/design/hig-review-2026-10-26.md`, section 4), or marked stale
     where it disagrees.
+  - Placed (row 1.64): session D5-b writes `docs/design/benchmark.md`:
+    `baseline.md`'s tasks restated as actions and run again on `main`
+    with a recording each, beside the rivals' documented steps.
 - [x] **D1.5** Decide the widget layer. Build a tree with drag and
   keyboard reorder, a select with a null option, and a context menu in
   Angular Material (as today), Angular Aria and the platform primitives;
@@ -400,6 +409,11 @@ architectural decisions made.
     the audit; the screen-reader and the U-060 items are done in D4-e, the
     rest before D5.1. NVDA and the installed app on Windows and iOS are
     the maintainer's owner step where the session has no such machine.
+  - Placed (row 1.64): the Firefox and WebKit captures of the stress
+    states and the 2.5.8 targets measured without ancestors are session
+    D5-a's. VoiceOver with Safari on send, unlock and a banner gates D5.2;
+    NVDA with Firefox and the installed app do not, and each ticks when
+    recorded.
 
 - [ ] **D1.9** (Dropped, row 1.55: recruiting is a non-goal, section 3.) The fourth pass's smallest experiments (rows 1.49 and 1.52):
   DQ8 to DQ10 are answered, so these tune the designs rather than decide
@@ -426,13 +440,16 @@ reason, or out of scope); D1.5 to D1.7 are decided.
 **Goal:** the maintainer chooses how Wayfarer looks, sounds and is
 called.
 
-- [ ] **D2.1** Two or three directions, each a working prototype of the
+- [x] **D2.1** Two or three directions, each a working prototype of the
   composer, the response, the sidebar and the runner, in both themes
   (for example: a native professional tool; a dense keyboard-first tool;
   a calmer explanatory one). Each states what it gives up.
   - AC: each direction runs from a branch; screenshots at 1,440 and
     390 px in both themes are in `docs/design/directions/`; the
     maintainer's choice is a section 14 row.
+  - Closed (row 1.64): chosen in row 1.9 from static mockups in
+    `docs/design/directions/`, not branches; the app built on that choice
+    since is its prototype, so the branches are not made.
 - [x] **D2.2** Voice and tone guide, written with `humanizing-writing`:
   how the app names things, says an error, asks a question, explains a
   limit.
@@ -750,15 +767,29 @@ fourth pass's (U-130 to U-151, row 1.48) among them.
     is seen on macOS, Windows and iOS (D1.8) with captures in
     `docs/design/hig-review/`.
 
-### Phase D5: Validation and release (1 session)
+### Phase D5: Validation and release (4 sessions, split in row 1.64)
 
 - [ ] **D5.1** Repeat D1.2's hostile review, the hig-review of
   2026-10-23 (with its logo-off and competitor-swap tests, on D1.4's
   captures of the rivals) and D1.4's benchmark on the new app.
   - AC: the success numbers of section 1 hold, or the gap is a recorded
     decision of the maintainer.
+  - Note (row 1.64): sessions D5-b (the measures) and D5-c (what they
+    find). The rivals' numbers are their documentation's and their
+    public screenshots, dated and linked, not copied (row 1.55); seconds
+    are compared only where a rival publishes them. Section 1's team
+    measure is Phase T's, after D5, and is recorded as not measured here.
+    D2.5 ticks when the logo-off test, on the primary screen (a sent
+    request and its response at 1,440 px, both themes), quotes the
+    exchange record's own words, the preview under the address and the
+    status line's "Direct to {host}", and the competitor swap finds that
+    record in no rival; if it does not, U-077 stays open and a row says
+    what replaces it.
 - [ ] **D5.2** Release v3.0.0 with the site (W4).
   - AC: tag, changelog, release notes written with `humanizing-writing`.
+  - AC (row 1.64): VoiceOver with Safari is recorded on send, unlock and a
+    banner (D1.8) before the tag; the release notes say what was not
+    checked (NVDA, the installed app) where it was not.
 
 ### Phase W: The website (3 sessions; W1 may run before D)
 
@@ -830,6 +861,12 @@ has never heard of it and gets them into the app.
   the app's, so the two read as one product in both themes.
   - AC: the site's stylesheet holds no colour or font literal outside the
     tokens' output; `scripts/contrast.test.mjs` checks the site's pairs too.
+  - AC (row 1.64): `packages/tokens` writes the site's CSS, with the
+    site's type scale (D3.2's second scale); the indigo route and the
+    display face (Bricolage Grotesque) go, as DQ11 and row 1.62 ask; the
+    social cards take the same colours; no page is wider than a 320 px
+    window, and the header's name does not run under Menu at 320 px with
+    the web fonts blocked (row 1.63).
 - [ ] **W5.2** The landing shows the redesigned app working, not a still:
   the first request, the inspector saying where it went, a run's report.
   Recorded from the real app by a script (`scripts/site-screenshot.mjs`
@@ -848,6 +885,10 @@ has never heard of it and gets them into the app.
   versions.
   - AC: each number links to its recording and its row in
     `docs/design/benchmark.md`.
+  - AC (row 1.64, replaces the recordings per rival): Wayfarer's numbers
+    link to their recordings; a rival's are the steps its documentation
+    gives, each with its source and date and marked as such, with no
+    seconds unless the maintainer runs the rival.
 - [ ] **W5.5** A "What changed in 3.0" page and post: before and after,
   screen by screen, from `docs/design/baseline/` and the new captures,
   each change tied to its audit finding.
@@ -995,3 +1036,4 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-11-03 | 1.61 | **Correction: D4-j was closed by row 1.56, so Phase D4's sessions are all held.** D4-j was D1.6, decided in row 1.55, then D4.8, designed in #488 and ticked in row 1.56. The "Next: D4-j" that rows 1.58 to 1.60 carry is stale. What is open of D4 (D4.3 to D4.7, D4.10 to D4.13) waits only for the screen reader's checks (VoiceOver with Safari, NVDA with Firefox; the maintainer's owner step, D1.8), and for D4.13 the installed app seen on macOS, Windows and iOS. **Next:** D2.4 (the logo, wordmark, app icon, favicon, social image and the one-style icon set, in `packages/tokens/brand/`; none exists), which W5.1 and D5 need. Then D5, re-read and split against `main` before it starts (as D0.3 asks), with what of D1.1, D1.3, D1.4 and D1.8 it needs. |
 | 2026-11-04 | 1.62 | **D2.4's look decided (session D2-b), under the maintainer's instruction of 2026-11-02 (row 1.55): each option argued against, then chosen.** **The mark: the glyph kept, its gradient replaced by the ink.** (a) Keep it as it is, a blue-to-violet gradient tile: against it, its two hues would be the only chroma outside a method or a status anywhere in the product, which DQ11 rules out, and a gradient tile is one of the review's AI-template tells. (b) Keep the glyph on a tile of the ink, the glyph in the colour on it (`--ink`, `--on-ink`: Send's fill): against it, a tile without hue reads as any dark tool's, and the light theme's dark tile is faint in a dark tab strip; the favicon is an SVG that follows `prefers-color-scheme`, and in the dark theme the mark is light, as Send is. (c) A new mark: against it, the hig-review waived the mark and found no fault in it, its glyph (a path that sets out and turns to the host it reaches) is the subject the exchange record answers, where a request went, and a change spends the recognition the site and the installed app have built for nothing a review found. **Chosen: (b).** **The wordmark:** the mark and the name as the sidebar sets them, Atkinson Hyperlegible Next SemiBold (`type-title-3`) at 15 beside the 26 px mark, outlined. Against it, the site's display face (Bricolage Grotesque) is the more distinctive name; but it is not the app's, and W5.1 builds the site from the app's tokens, so one name is drawn one way. **The installed app (U-101):** the `any` icons are the mark itself at 192 and 512 px, corners clear; one 512 px `maskable` icon fills the square with the tile and keeps the glyph at the mark's size, 148 of the 205 px the safe zone allows; Apple's touch icon is the full square at 180 px; the six sizes from 72 to 384 px go, as Chromium asks only for 192 and 512. **The icon set: drawn here, one style.** (a) Material Symbols at weight 400, which is near the labels' weight: against it, the review's "library default" and Material-clone tells stay, and its weights are filled outlines, so its stroke follows the font's axis, not the labels. (b) A stroke library whose width can be set (Lucide, Tabler): against it, the stroke can match the labels, but Lucide is shadcn's set, the review's "shadcn default" channel, and either is another library default. (c) A set drawn for Wayfarer: against it, 44 glyphs drawn in one session may be uneven; answered by one grid and rules a test holds (24 units, 2 of padding, one stroke, round caps and joins, paths only) and by each glyph checked at 16, 20 and 24 px at 1x and 2x. **Chosen: (c).** **The weight (U-127):** Atkinson Hyperlegible Next Regular's stems measured at 1,000 px in Chromium: 0.084 em (l), 0.094 (H), 0.090 (o); Material Symbols 300's stroke is 45 of 960 units, 0.047 em, half of it. The set's stroke is 2 of 24 units, 0.083 em, so an icon at its text's size has its text's weight: at 14 px beside 13 px labels, 1.17 px against 1.14. **The social image:** `brand/social.png` is the wordmark and the home page's line on the app's light canvas. The site's pages keep their own cards (W3.1) and the site keeps its palette, its indigo route among it, until W5.1 builds the site from the app's tokens: against changing them now, a card in the app's colours would not match the page it opens. Both take the new mark, the site's in its own ink. **Order:** one PR each: the brand files in `packages/tokens/brand/`, written from the tokens; the app's icons and manifest; the icon set; the site's mark and social images, and its screenshots where the app's look moved. |
 | 2026-11-04 | 1.63 | **Session D2-b closed: D2.4, the brand files and the icon set, in five PRs; D2.4 ticked.** Each PR merged on green CI under the maintainer's authority for the session; the choices and the arguments against them are row 1.62. **#530** the brand files in `packages/tokens/brand/`: `brand.mjs` writes the mark (light and dark), the wordmark (the name outlined in Atkinson Hyperlegible Next SemiBold, as the sidebar sets it), the favicon (following `prefers-color-scheme`) and the maskable icon from the tokens, and `check:tokens` holds them; `npm run gen:brand` draws the PNGs, the ICO and `social.png` in Chromium; the mark keeps its glyph on the ink, Send's fill, in place of the blue-to-violet gradient (DQ11). **#531** the app and the site take them (U-101): the mark is drawn inline in each theme's ink (`app-mark`, the site's `Mark`); `angular.json` copies the favicon and the installed app's icons from that folder, and `public/icons` goes; the manifest lists the mark at 192 and 512 px as `any` and one 512 px `maskable` icon, the glyph 148 of the 205 px the safe zone allows (`brand.test.mjs`, `installed-app.test.mjs`). **#532** the icon set (U-127): 44 icons drawn for Wayfarer, one path each on a 24-unit grid, stroked 2 units with round caps and joins, 0.083 em against the labels' measured stems of 0.084 to 0.094 em (Material Symbols 300 drew 0.047); `gen:tokens` writes `icon-paths.ts` from them; a test holds the 2 units of padding and that the app draws each; each icon read at 16, 20 and 24 px, at 1x and 2x, beside 13 px text, light and dark (`brand/icons-1x.png`, `icons-2x.png`), and `key` and `router` redrawn after that reading; icons beside a button's words are 16 px and alone 18 px, and the tree's, a select's and a section's chevrons 16 px, where they were 22 to 28 px to make up for Material's padded glyphs; Material Symbols leaves `THIRD_PARTY_NOTICES.md`. **#533** the site's pictures of the app taken again (`scripts/site-screenshot.mjs`): they still showed the app before D3-b. **#534** fixed what the first `e2e.yml` run on `main` found: #531's inline mark counted in the site header's narrowest width where the `<img>` had not, and CI's runner, drawing the 404 pages in a fallback face, put the header 9 px past a 360 px window (`/404.html at 360 px`, `Received: 9`, run 41708640928); bisected with `e2e.yml` on `6acbefe` (green, run 41713146894); `min-w-0` gives the brand link back its squeeze, and a test with the web fonts blocked failed at 320 px before it (`Received: 17`). **Captures:** every PR that moved pixels compared before and after and read the differences; the Chromium design captures were retaken in `mcr.microsoft.com/playwright:v1.64.1-noble`. Retaking them showed that plain `--update-snapshots` rewrites only a capture past the 200 px tolerance, so small changes had been left stale (two 820 px dark captures still showed the toolbar before #489 and #499, some "Status Code" before #512); #532 retook all 392 with `--update-snapshots=all`, which `docs/design/baseline/index.md` now names. **Measured:** no benchmark task of `docs/design/baseline.md` changes: the session changed no control, word or step. **`e2e.yml`:** on `main` at `f0307c2` (after #534, run 41719139083) green: e2e in Chromium (757 passed, 1 skipped), Firefox (685 passed) and WebKit (684 passed), no flaky test, and the design capture in three engines; Chromium's capture job reported `response-record` at 1,440 px light 228 pixels from its committed image (the job never fails the run): one vertical line, the Monaco editor's overview ruler at its right edge, drawn in one run and not the other; the run before #534 (41708640928) matched it on the same app, and #534 changed only the site. **Ticked:** D2.4: the files are in `packages/tokens/brand/`, each icon is checked at 16, 20 and 24 px at 1x and 2x, the manifest lists the `any` icons with the full mark and one 512 px `maskable` icon inside the safe zone (U-101 fixed), and the icon set's weight is the labels' (U-127 fixed). **Left:** the site's header is cramped below about 340 px in a fallback face (the name runs under "Menu", as before #531), and the site keeps its own palette and social cards: W5.1's. **Next:** D5, re-read and split against `main` before it starts (row 1.61). |
+| 2026-11-04 | 1.64 | **Session D5-0: Phase D5 and W5.1 to W5.5 re-read against `main` at `ba9d8ad` and split into seven sessions and one owner step; D0.3 done, D2.1 closed.** Each open choice was argued against and then taken, under the maintainer's instruction of 2026-11-02 (row 1.55). **The audit, counted** (a script over `docs/design/audit.md`, reading each finding's last status line, dated or not): 150 findings, U-001 to U-152 (U-029 and U-034 were never given): 4 of severity 1, 48 of 2, 84 of 3, 14 of 4. All four of severity 1 are fixed. Of severity 2, the lines leave two open: U-049 ("Open, D4-f", the palette's shortcut) and U-071 (rows named by their number; only the environment editor's were fixed, #493). On `main` U-049 is fixed (#484: the palette is the shell's, `app-shell.ts:453`), and U-071 is open: `params-panel.html:13` names a row "Send parameter " + (i + 1), `rows-editor.html:10` and `multipart-editor.html:7` the same; D4-g took the environment editor only. Of severity 3, eight lines say "Open": U-079 and U-121 to U-123 are fixed on `main` by #442 (D3.7; `e2e/motion.spec.ts:69`, `tokens.test.mjs:73`, `theme.ts:58`, and `motion.md`'s table names each); U-140, U-142 and U-144 (D4-f's) have no later line and hold on `main`: closing a tab with changes asks (`tab-strip.ts:117`), the tab bar scrolls with no cue (`tabs.css` has no fade or mask), and `loadPastRequest` replaces a clean tab; U-077 closes with D5.1's tests. U-100's remainder (names joined from parts, plurals by ternary) waits for "a plan that takes up translation", which no plan has. None of severity 4 is open. **So one finding of severity 1 or 2 is open at D5, U-071, owner D4-g,** and section 1's "none open at D5" fails until it is fixed; three of severity 3 keep D4.4's "findings closed or accepted" from holding, though row 1.56 said it held all but the screen reader. **Tasks of D4 and earlier not ticked, and why:** D0.3 (no row said the split was done; this row is its last part: ticked). D1.1 (the research has no dated changelog and no primary source for each point; never run). D1.3 (`docs/design/personas.md` does not exist; never run). D1.4 (`docs/design/benchmark.md` and `docs/design/benchmark/` do not exist; the rivals' half is their documentation, row 1.55; `baseline.md` still counts characters, so row 1.50's restatement as actions is not done: task 1 is 35 inputs, Hoppscotch's documented 2). D1.8 (the screen readers and the installed app are the maintainer's owner step; the Firefox and WebKit captures of the stress states and the 2.5.8 targets were to run "before D5.1" and have not: `docs/design/hig-review/` holds Chromium's only). D1.9 (dropped, row 1.55). D2.1 (the directions were static mockups, not branches, row 1.9). D2.5 (waits for D5.1's logo-off test, row 1.54). D4.3, D4.5, D4.6, D4.7, D4.10, D4.11, D4.12 (each holds every AC but the screen reader's check, rows 1.53, 1.54, 1.57 to 1.60; D4.12 also D5.1's logo-off test). D4.4 (the same, row 1.56, and U-140, U-142 and U-144, above). D4.13 (the installed app on macOS, Windows and iOS, row 1.58). **Which block D5.2:** D1.4, D1.3 and D1.1's update are D5.1's inputs; D1.8's captures run before D5.1, as its AC says; VoiceOver with Safari on send, unlock and a banner gates the tag (below). They do not block: NVDA with Firefox, the installed app (D4.13), and the D4 ticks that wait for them; D2.1 and D1.9. **Choices.** (1) *Does W5 precede or follow D5.1?* For before: row 1.9 puts W5 "after D4 and before D5.2's release", and the site does not change the app. Against: W5.2 and W5.3 take pictures of the app, and D5.1's fixes would make them stale; W5.4 needs D5.1's benchmark and W5.5 its final audit. Chosen: split by dependency. W5.1 (the site's identity) depends on nothing of D5 and runs before D5.1, so that section 1's Lighthouse measure is read on the site that ships; W5.2 and W5.3 run after D5.1's fixes; W5.4 and W5.5 after D5.1. (2) *Do the screen-reader checks gate the release?* For: section 1 lists them, U-061, U-062 and U-075 were fixed in D4-e and are tested by structure only; axe cannot hear an announcement; and v3.0.0 is the release that claims WCAG 2.2 AA. Against: the session cannot make them (row 1.53: System Events error 1002, VoiceOver's AppleScript -1712), and a gate on an owner step that needs a Windows machine can hold the release forever, while `e2e` already holds each live region present from the first render. Chosen: VoiceOver with Safari on send, unlock and a banner (section 1's three) gates the tag: it needs only the maintainer's Mac. NVDA with Firefox does not: the release notes say it was not checked, and its D4 tasks tick when it is recorded. (3) *Does the installed app gate the release?* Against gating: section 1 does not measure it, and D4.13's fields are tested. Chosen: no. (4) *D1.3, run or drop?* For dropping: D1.9 was dropped for recruiting, and the scripted tasks measure steps. Against: a walkthrough recruits no one, section 1 says each screen is judged against each persona, and it never ran. Chosen: run it in D5-b, before the review, so a failing step is a finding before the release, not after. (5) *The rivals' screenshots: copy or link?* Copying them into this MIT repository puts another company's images under its licence. Chosen: link each with its date; the swap quotes what it read. W5.4's AC is changed to match: a rival's numbers are its documentation's, marked so, with no seconds. (6) *The site's faces and colours.* For keeping Bricolage Grotesque and the indigo route: a site may speak louder than a tool, and the route is the landing's picture. Against: D3.6's AC says the site takes the app's faces and colours, row 1.62 draws the name one way, and DQ11 gives hue to protocol only. Chosen: both go in W5.1. `packages/tokens` has no site output and no site type scale today (D3.2's second scale was never built); W5.1 adds both. (7) *U-140, U-142, U-144: fix or accept?* Accepting needs a reason, and each costs a daily user (a confirm on every scratch tab, a hidden tab, a replaced tab). Chosen: fix, in D5-a. (8) *U-100's remainder.* Against fixing: names joined from parts read correctly in English, the only language, and a fix without a translation plan is scaffolding. Chosen: accepted with that reason, in D5-a's audit PR, to reopen with a translation plan. (9) *D2.1.* Ticking an unmet AC hides a gap; but the branches would prototype a direction that has been built. Chosen: closed with a note. **The split, one PR per cause.** **D5-a, what is still open** (depends on nothing): the audit's status lines brought up to date for U-049, U-079 and U-121 to U-123 (fixed, with their PRs) and U-100 (accepted); D1.8's Firefox and WebKit captures of the stress states (320 px, 200% text, RTL, forced colours, the error states) and the 2.5.8 targets measured without ancestors, into `docs/design/hig-review/` with the review's section 6 marked; U-071 (rows named by their content in Params, Headers and the multipart editor); U-144; U-140; U-142; any finding of severity 1 or 2 the captures find. Measures: task 8 (U-144), the e2e each fix touches in three engines. **W5-a, W5.1** (depends on nothing; after D5-a or beside it): the site's CSS from `packages/tokens`, Bricolage and the indigo go, the site's pairs in `contrast.test.mjs`; the header at 320 px in a fallback face (row 1.63) with 320 added to the site's width test; the social cards in the same colours. Measures: Lighthouse `--site` (95, 100, 100), the site's width and axe tests, captures of the pages before and after. **D5-b, D5.1's measures** (after D5-a and W5-a): D1.4's `benchmark.md` (actions restated, the eight tasks run on `main` with a recording each, the rivals' documented steps and dated public screenshots, linked) with D1.1's sources and changelog and research sections 2, 4 and 8; D1.3's `personas.md`; then the review: D1.2's pass over D0.1's index retaken in three engines, both hig-reviews repeated with the logo-off and competitor-swap tests, Lighthouse, and `e2e.yml`'s axe and width sweep, in a new review document and the audit's fifth pass. **D5-c, what D5-b found** (after D5-b): each finding of severity 1 or 2 fixed, one PR per cause; the rest fixed, accepted with a reason or given to a later phase; D5.1 ticked when section 1's numbers hold or each gap is recorded; D2.5 ticked by the logo-off test as D5.1's note says. **W5-b, W5.2 and W5.3** (after D5-c): the landing's recording from the app's build (`scripts/site-screenshot.mjs` grown into a recorder, which still waits for a fade D3.7 removed: "The response fades in (C-050)"), the pictures of the site and the docs taken again, and the check of control names. **W5-c, W5.4 and W5.5** (after D5-c): the benchmark on the comparison pages as W5.4's changed AC says, and "What changed in 3.0", every finding of severity 1 and 2 with its before and after. **Owner step** (the maintainer, any time before D5-d): VoiceOver with Safari on send, unlock and a banner (gates D5.2); NVDA with Firefox and the installed app on macOS, Windows and iOS (do not). **D5-d, D5.2 and W4** (after all of them): v3.0.0's tag, changelog and release notes (`humanizing-writing`), the deploy from the tag (the maintainer's), W3.1's outside validators on the live site, and W4: the synthetic monitor already checks `/` and `/app/` (the deployed release's `@smoke` tests in `e2e/smoke.spec.ts`; run 41644247710 green on 2026-11-03), and one rollback (`docs/deployment.md`, "Roll back") returns both, since one Worker serves them (section 11's "a broken site must not take the app with it" is W1.1's tests). **Measured:** nothing of the app changed, so no task of `baseline.md` changes. **Next:** D5-a. |

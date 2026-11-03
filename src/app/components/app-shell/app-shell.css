@@ -86,7 +86,7 @@
   flex: none;
 }
 
-@media (width < 768px) {
+@media (width < 48em) {
   .palette-trigger {
     display: none;
   }

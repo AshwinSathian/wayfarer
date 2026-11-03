@@ -231,3 +231,19 @@ test("no monospace text is set under 13 px", () => {
       assert.ok(token.$value.fontSize.value * 16 >= 13, `${key} is under 13 px`);
   assert.deepEqual(small, []);
 });
+
+// U-153: the layout follows the reader's text size. A breakpoint in px kept a 1,440 px window's wide layout for a reader
+// whose default text is twice the size, where the boxes in rem had grown to fill it. In em, a query and the rem of the
+// boxes are the same size: the browser's default text size.
+test("no breakpoint is in px: a media query and a matchMedia are in em", () => {
+  const px = [];
+  for (const [file, text] of sources(/\.(css|scss|ts)$/))
+    for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1]))
+      if (
+        /(@media|matchMedia)[^{]*\b(min|max)?-?width\s*[:<>=]+\s*[\d.]+px|(@media|matchMedia)[^{]*[\d.]+px\s*[<>=]+\s*width/.test(
+          line,
+        )
+      )
+        px.push(`${file}:${n}: ${line.trim()}`);
+  assert.deepEqual(px, []);
+});

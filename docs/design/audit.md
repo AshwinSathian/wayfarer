@@ -1753,6 +1753,30 @@ Severity 4. H8. All.
 **Status:** Open, D4-g (D4.5). Review row N17.
 **2026-11-03:** Fixed in #493 (D4-g): New environment is a plain icon in the header's line, beside Global variables, Import and Export.
 
+## D1.8's captures in three engines, 2026-11-04
+
+Session D5-a took the stress states the third pass ran in Chromium alone
+(320 px, 200% text, RTL, forced colours, the error states) in Chromium,
+Firefox and WebKit.
+
+**U-153. At a larger default text size the wide layout stays.** Severity 2.
+H4, H7. Everyone who sets a larger text size in the browser.
+The boxes and the type are in rem since #479 (U-073), so they grow with the
+browser's default text size, but every breakpoint was in px: the three of
+`App.updateViewportFlags`, the composer's split and five stylesheets. In
+Firefox with its default size at 32 px, a 1,440 px window kept the tree
+pinned beside the page at 704 px; the address showed "tp://127.0.0.1:4300",
+the response pane's search field "Se", the toolbar "Sear…" and "N…", and the
+status bar's words were cut in half. Text-only zoom, which sets the root's
+font size, does not reach a media query either, which is why #479's test at
+200% did not see it. Zoom passes 1.4.4; a larger default size did not.
+Evidence: Firefox 157 (Playwright 1.64.1) with `font.size.variable.x-western`
+at 32, 1,440 × 900, `main` at `470fc07`; `app.ts:122-126`.
+**Status:** Fixed in D5-a: every breakpoint is in em, the same as before at
+16 px. At 32 px a 1,440 px window is laid out as a 720 px one: the tree a
+drawer, the composer's sections stacked. The token test fails on a
+breakpoint in px; `e2e/text-size.spec.ts` sets Firefox's default size.
+
 ## Every screen of D0.1, and its findings
 
 Each screen of [`baseline/index.md`](baseline/index.md), with the open or

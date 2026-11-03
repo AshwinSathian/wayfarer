@@ -83,7 +83,7 @@
 /* Below 480 px a dialog is the window's width, and three options at their
    own width did not fit in one: the track takes the row, and the options
    their room less padding. */
-@media (width < 480px) {
+@media (width < 30em) {
   .segmented {
     display: flex;
     width: 100%;

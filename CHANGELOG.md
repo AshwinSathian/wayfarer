@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A larger text size in the browser gives the narrower layout, as zoom
+  does.** With the browser's default text at twice its size, a 1,440 px
+  window kept the wide layout: the collections tree beside the page took
+  half of it, and the address, the toolbar and the status bar were cut
+  off. The layout's widths now grow with the text, so that window is laid
+  out as a 720 px one. At the default size nothing moves.
+
 - **A request you sent and never saved is not marked unsaved.** History
   keeps every send, yet a tab whose request was never saved kept its
   unsaved dot after each send, and closing it asked whether to discard

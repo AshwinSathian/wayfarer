@@ -112,7 +112,7 @@ export class Composer {
    * The split until one is chosen (U-003). From 1,440 px the response gets the larger part: beside the pinned
    * sidebar it was 432 px to the composer's 530. Below that the composer keeps it, so its six tabs fit.
    */
-  protected readonly splitSizes: readonly [number, number] = matchMedia("(min-width: 1440px)").matches
+  protected readonly splitSizes: readonly [number, number] = matchMedia("(min-width: 90em)").matches
     ? [45, 55]
     : [55, 45];
 

@@ -68,7 +68,7 @@ test.describe("Transport on fetch (P2.3)", () => {
 
   test("@claim:C-042 a request that outlasts the timeout set in Settings says so", async ({ page }) => {
     await open(page);
-    await openSettings(page, "Requests");
+    await openSettings(page, "General");
     const timeout = page.getByLabel("Request timeout");
     await expect(timeout).toHaveValue("0");
     await timeout.fill("1000");

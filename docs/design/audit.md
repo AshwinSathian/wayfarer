@@ -346,6 +346,7 @@ entrance).
 Evidence: `baseline/1440-light-06-settings-General.png`.
 **Status:** Open, D4-h. The faint rectangle is gone (#389 made dialogs
 opaque); General still holds the theme alone.
+**2026-11-03:** Fixed in #PRNUM (D4-h): General holds the theme and what was Requests (the timeout, holding back a request with an unset variable, and where requests leave from); the Requests section, and its capture, are gone.
 
 **U-015. The import review renames what it shows.** Severity 2. H1, H4. TP.
 The review lists "Request · Status And Body" for a request the file names
@@ -777,6 +778,7 @@ Reset all data in D4-h.
 **2026-11-02:** History's confirms fixed in #485 (D4-f): Clear history asks "Clear history? Every entry is deleted; collections are not touched. This cannot be undone." with Clear history and Cancel; an entry's Delete names the entry. The shared confirm's default and the tree's confirm are the next D4-f PR's.
 **2026-11-03:** The shared confirm and the tree's fixed in #487 (D4-f): `acceptLabel` is required (no "Proceed"), the glyph and the centred template are gone; the tree no longer asks (U-080); Reset all data and Delete the secret {name} say what goes and the act.
 **2026-11-03:** Delete secret was fixed with the shared confirm in #487 (D4-f): "Delete the secret {name}?" with **Delete**; checked in D4-g. Reset all data remains with D4-h.
+**2026-11-03:** Reset all data checked in D4-h: its confirm says what goes, "This cannot be undone", and its button is **Reset all data** (#487). Every confirm of this row names its act.
 
 ### Found later
 
@@ -1196,6 +1198,7 @@ bridge, Settings). Review row W-28.
 **2026-11-02:** History's names fixed in #485 (D4-f): one act, Delete from history; one Clear, Clear history; a row opens its entry. The secrets', import's, the bridge's and Settings' remain with D4-g and D4-h.
 **2026-11-02:** The tree's names fixed in #486 (D4-f): a request is never "New Item".
 **2026-11-03:** The secrets' name fixed in #494 (D4-g): the environment export's choice is "Secret variables", not "Protected variables".
+**2026-11-03:** The bridge's and Settings' names fixed in #PRNUM (D4-h): "Bridge address"; Settings' history row says Clear history (#485). Every name of this row is now one.
 
 **U-084. Empty places say what is missing, not what goes there.**
 Severity 3. H6, H10. OC.
@@ -1205,6 +1208,7 @@ Evidence: `response-viewer.html:329, 344, 488, 525`; `cookies-pane.html:56`;
 `diagnostics-pane.html:65, 77`; `secrets-manager.html:38-40`.
 **Status:** D4-e's share fixed in #458 (the response's Headers, Timings and Tests). Secrets (D4-g), cookies and diagnostics (D4-h) remain. Review row W-29.
 **2026-11-03:** Secrets fixed in #494 (D4-g): the empty list says "Secrets you mark in Environments are kept here." and how a variable is marked. Cookies and diagnostics remain with D4-h.
+**2026-11-03:** Cookies and diagnostics fixed in #PRNUM (D4-h): "Cookies that responses set through the Local Bridge are kept here.", "No errors since this page loaded." and "No content was blocked since this page loaded." Every empty place of the audit now says what goes there.
 
 **U-092. Diagnostics says "Nothing leaves this machine" and fetches a
 file.** Severity 3. H2. PE.
@@ -1212,6 +1216,7 @@ Its self-test asks the server the app came from for the app's own
 manifest.
 Evidence: `diagnostics-pane.html`; `diagnostics-pane.ts:158`.
 **Status:** Open, D4-h. Review row W-37.
+**2026-11-03:** Fixed in #PRNUM (D4-h): the self-test says what it does, "asks the server this app came from for one of its own files", and "Nothing goes anywhere else"; the section's line says what is listed leaves only if copied.
 
 **U-098. Counts in the import review disagree with their noun.**
 Severity 3. H4. TP.
@@ -1771,8 +1776,7 @@ screenshot.
 | `vault-unlock` | U-026, U-062 |
 | `secrets-manager` | U-063, U-084 |
 | `confirm-dialog` | U-056 |
-| `settings-general` | U-025, U-053, U-093 |
-| `settings-requests` | U-057 |
+| `settings-general` | U-025, U-053, U-057, U-093 |
 | `settings-history` | U-057 |
 | `settings-data` | No finding |
 | `settings-vault` | U-057 |

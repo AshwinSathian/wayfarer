@@ -24,8 +24,8 @@
       </button>
     </div>
     <p class="type-footnote text-label-tertiary"
-      >Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the
-      Local Bridge, if one is used. Nothing leaves this machine.</p
+      >Runs a script, encrypts and decrypts, writes and deletes a record, asks the server this app came from for one of
+      its own files, and asks the Local Bridge, if one is used. Nothing goes anywhere else.</p
     >
     @if (tests().length) {
     <ul class="diagnostics-tests space-y-1" aria-live="polite">
@@ -62,7 +62,7 @@
       }
     </ul>
     } @else {
-    <p class="type-callout text-label-secondary">None.</p>
+    <p class="type-callout text-label-secondary">No errors since this page loaded.</p>
     }
   </div>
   <div class="settings-row settings-row-stacked">
@@ -74,7 +74,7 @@
       }
     </ul>
     } @else {
-    <p class="type-callout text-label-secondary">None.</p>
+    <p class="type-callout text-label-secondary">No content was blocked since this page loaded.</p>
     }
   </div>
 </div>

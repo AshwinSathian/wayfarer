@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Settings opens on more than one row.** General now holds the theme
+  and how a request is sent (the timeout, and whether a request with an
+  unset variable is held back); the Requests section, which held those
+  two, is gone. Diagnostics says its self-test asks the app's own server
+  for a file (it said "Nothing leaves this machine"), the empty cookie jar
+  and the empty diagnostics say what goes there, and the Local Bridge's
+  field is its "Bridge address".
+
 - **The installed app's window matches the app.** Its title bar takes
   the colour of the theme you chose, not black or a grey of the system's;
   the manifest names and describes the app; on a phone with a notch the

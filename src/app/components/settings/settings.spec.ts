@@ -33,10 +33,9 @@ describe("Settings", () => {
     await settle();
   });
 
-  it("lists eleven sections, the danger zone last, and opens at General", () => {
+  it("lists ten sections, the danger zone last, and opens at General", () => {
     expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual([
       "General",
-      "Requests",
       "History",
       "Data and storage",
       "Vault",
@@ -49,15 +48,16 @@ describe("Settings", () => {
     ]);
     expect(heading()).toBe("General");
     expect(item("General").getAttribute("aria-current")).toBe("page");
-    expect(item("Requests").getAttribute("aria-current")).toBeNull();
+    expect(item("History").getAttribute("aria-current")).toBeNull();
   });
 
   it("a section's pane replaces the one before it, and only its controls are there", async () => {
-    expect(dialog().querySelector("#request-timeout")).toBeNull();
-    item("Requests").click();
-    await settle();
-    expect(heading()).toBe("Requests");
+    // General holds the theme and how a request is sent (U-025).
     expect(dialog().querySelector("#request-timeout")).not.toBeNull();
+    item("History").click();
+    await settle();
+    expect(heading()).toBe("History");
+    expect(dialog().querySelector("#request-timeout")).toBeNull();
     expect(dialog().classList.contains("settings-pane-open")).toBe(true);
     item("Danger zone").click();
     await settle();
@@ -84,7 +84,7 @@ describe("Settings", () => {
       (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
     item("General").focus();
     press("ArrowDown");
-    expect(document.activeElement).toBe(item("Requests"));
+    expect(document.activeElement).toBe(item("History"));
     press("ArrowUp");
     press("ArrowUp");
     expect(document.activeElement).toBe(item("Danger zone"));

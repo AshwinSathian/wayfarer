@@ -49,6 +49,16 @@ way (three runs, the median), beside its row above.
 | 8 | Find a request sent last week | D4-f (#485) | 9 | 3 | 0 | 6 | 0.54 | 0.54, 0.50, 0.55 |
 | 3 | Add an environment and switch to it | D4-g (#492 to #498) | 43 | 7 | 1 | 35 | 0.62 | 0.63, 0.62, 0.37 |
 | 4 | Use a secret without it touching disk | D4-g (#492 to #498) | 133 | 13 | 1 | 119 | 1.11 | 1.12, 1.09, 1.11 |
+| 2 | Import a Postman collection with scripts and run it | D4-h (#503) | 11 | 11 | 0 | 0 | 1.87 | 1.93, 1.64, 1.87 |
+| 5a | Find why a request failed: CORS | D4-h (#504) | 46 (+2 in a terminal) | 6 | 0 | 40 | 0.35 | 0.36, 0.35, 0.33 |
+| 5b | Find why a request failed: DNS | D4-h (#504) | 43 (+2 in a terminal) | 6 | 0 | 37 | 0.33 | 0.33, 0.33, 0.31 |
+
+D4-h left tasks 2, 5a and 5b their inputs. Task 2's review now lists each
+item on one line and says which variables nothing in the file sets; its
+seconds are within the spread of the runs before. Task 5b's screen now says
+"No response" with the bridge's words where it drew the bridge's own 502 as
+the server's status (U-152): the cause is named the same way, and the two
+halves of the screen no longer disagree.
 
 D4-g took two clicks from tasks 3 and 4: the environments open in a tab,
 not a dialog, and a new environment is named in the list and made with

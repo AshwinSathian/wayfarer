@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what session D4-h built.** The plan's row 1.58
+  lists the seven changes to settings, the Local Bridge, import and the
+  installed app, and the baseline gives tasks 2, 5a and 5b measured again.
+
 - **Settings has no boxes inside it.** Each section's rows sit between
   thin lines on the dialog itself, where they were drawn as cards inside
   the dialog.

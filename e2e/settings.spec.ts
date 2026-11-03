@@ -75,6 +75,7 @@ test.describe("Settings surface", () => {
       /Data and storage/,
       /Vault/,
       /Local Bridge/,
+      /AI/,
       /Cookies/,
       /Shortcuts/,
       /Diagnostics/,

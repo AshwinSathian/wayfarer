@@ -18,6 +18,7 @@ import { UiInput } from "../../ui/input";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme, type ThemeChoice } from "../../services/theme";
+import { AiPane } from "./ai-pane";
 import { BridgePane } from "./bridge-pane";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { CookiesPane } from "./cookies-pane";
@@ -43,7 +44,17 @@ interface KeyboardShortcut {
 
 /** The panes of Settings, by the id a caller opens one with. */
 export type SettingsSection =
-  "general" | "history" | "data" | "vault" | "bridge" | "cookies" | "shortcuts" | "diagnostics" | "about" | "danger";
+  | "general"
+  | "history"
+  | "data"
+  | "vault"
+  | "bridge"
+  | "ai"
+  | "cookies"
+  | "shortcuts"
+  | "diagnostics"
+  | "about"
+  | "danger";
 
 interface SectionEntry {
   id: SettingsSection;
@@ -69,6 +80,12 @@ const SECTIONS: SectionEntry[] = [
     label: "Local Bridge",
     icon: "router",
     about: "An optional relay on your own machine, for APIs a browser cannot reach.",
+  },
+  {
+    id: "ai",
+    label: "AI",
+    icon: "bolt",
+    about: "A model you choose, for tests, drafts and explanations. Off until you add one.",
   },
   {
     id: "cookies",
@@ -110,6 +127,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
     UiCheckbox,
     UiInput,
     Dialog,
+    AiPane,
     BridgePane,
     CookiesPane,
     DiagnosticsPane,

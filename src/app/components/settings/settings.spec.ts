@@ -33,13 +33,14 @@ describe("Settings", () => {
     await settle();
   });
 
-  it("lists ten sections, the danger zone last, and opens at General", () => {
+  it("lists eleven sections, the danger zone last, and opens at General", () => {
     expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual([
       "General",
       "History",
       "Data and storage",
       "Vault",
       "Local Bridge",
+      "AI",
       "Cookies",
       "Shortcuts",
       "Diagnostics",

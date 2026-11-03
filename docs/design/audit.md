@@ -746,6 +746,7 @@ tree, dialogs and tab badge, D4-g the environments, D4-i the assertion
 builder.
 **2026-11-02:** The tree's menu, the create dialogs' titles and the palette's commands (#484) fixed in #486 (D4-f). The environments' (D4-g) and the assertion builder's (D4-i) remain.
 **2026-11-03:** The environments' share checked in D4-g: the editor's and the list's labels are sentence case ("Add variable", "Key / Value", "New environment", "Global variables"), the "KEY" placeholder is "Name" (#493). The assertion builder's remains with D4-i.
+**2026-11-03:** The assertion builder's "Status Code" is "Status code" in #512 (D4-i), its last label in title case; a scan of every template and every label, title, header and placeholder in code finds none but proper names (GitHub, Local Bridge, OAuth). Every label of this row is sentence case.
 
 ### Found on the other screens
 

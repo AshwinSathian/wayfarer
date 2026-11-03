@@ -3,7 +3,7 @@ import { AssertionOperator, AssertionTarget } from "@wayfarer/core";
 /** Static option lists + pure eligibility rules for the composer's Tests (assertion builder) tab. */
 
 export const ASSERTION_TARGET_OPTIONS: { label: string; value: AssertionTarget }[] = [
-  { label: "Status Code", value: "status" },
+  { label: "Status code", value: "status" },
   { label: "Body", value: "body" },
   { label: "Header", value: "header" },
   { label: "Duration (ms)", value: "duration" },

@@ -72,7 +72,7 @@ test("@claim:C-081 @claim:C-083 a model call is a history entry with its record,
   await drawer.getByRole("radio", { name: "Model calls" }).click();
   await expect(drawer.getByRole("status")).toHaveText("1 entry.");
   await expect(drawer.getByRole("button", { name: `Delete from history` })).toHaveCount(1);
-  const row = drawer.getByRole("button", { name: /^Model call, Write tests, 127\.0\.0\.1:4300, 200, / });
+  const row = drawer.getByRole("button", { name: /^Model call, Write tests 127\.0\.0\.1:4300 · .* 200 / });
   await expect(row).toContainText(`127.0.0.1:4300 · ${model}`);
 
   // It opens into its record, in place: the tab strip is as it was.

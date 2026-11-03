@@ -234,6 +234,20 @@ for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
   });
 }
 
+// #534: the inline mark (#531) counted in the header's narrowest width, where the <img> before it did not, and a
+// header set in a fallback face (CI's runner drew the 404 pages so) went 9 px past a 360 px window.
+test("the header fits the window when the web fonts do not load", async ({ page }) => {
+  await page.route(/\.(woff2?|ttf)$/, (route) => route.abort());
+  for (const width of [320, 360]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/404.html");
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+      `at ${width} px`,
+    ).toBeLessThanOrEqual(0);
+  }
+});
+
 // W2.2: every file of docs/ is a page, and the search, the site's one script, finds them.
 test("every doc of the repository is a page of the site, its links leading to pages", async ({ page }) => {
   const docs = readdirSync("docs", { recursive: true })

@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The site's header fits a narrow window again when its fonts do not
+  load.** Since the mark became an inline drawing, a header set in a
+  fallback face could be 9 px wider than a 360 px window, so the page
+  scrolled sideways.
+
 - **A model call's row in History is named by what it shows.** Its name
   for a screen reader was a sentence of its own that left out the model's
   name, so the words on the row were not all in it (WCAG 2.5.3); it is

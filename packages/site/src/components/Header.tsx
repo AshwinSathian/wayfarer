@@ -17,7 +17,8 @@ export function Header() {
   return (
     <header className="border-b border-line bg-paper">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
-        <a href="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-ink">
+        {/* min-w-0: the row may squeeze the name, as it did when the mark was an <img> (#534). */}
+        <a href="/" className="flex min-w-0 items-center gap-2 font-display text-lg font-bold tracking-tight text-ink">
           <Mark className="size-7" />
           Wayfarer
         </a>

@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what session D4-i built.** The plan's row 1.59
+  lists the eight changes to the runner, its reports and the CLI, and the
+  baseline gives tasks 2 and 7 measured again.
+
 - **The CLI writes an HTML report.** `--reporter html` writes
   `wayfarer-run.html`: the run as the app's run view shows it, in its
   words and colours, light or dark as the system is. It holds no script

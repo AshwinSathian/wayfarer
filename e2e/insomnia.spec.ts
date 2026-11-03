@@ -243,7 +243,7 @@ test("a YAML file written to grow without end as it is read is refused with a me
 
   await pick(page, "bomb.yaml", `type: collection.insomnia.rest/5.0\n${bomb}\ncollection: *i\n`);
   const refused = dialog(page, "Import");
-  await expect(refused.getByRole("alert")).toContainText('Unable to import "bomb.yaml"');
+  await expect(refused.getByRole("alert")).toContainText('"bomb.yaml" was not imported');
   await expect(refused.getByRole("alert")).toContainText(
     "The YAML file repeats parts of itself through aliases 100 times or more and is refused: a file written that way grows without end as it is read.",
   );

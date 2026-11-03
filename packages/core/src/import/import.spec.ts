@@ -49,6 +49,54 @@ function refused(text: string): ImportError {
 }
 
 describe("importText: one road from a file's text to the app's model", () => {
+  // U-133: every request of shop.postman_collection.json uses {{base}}, which nothing imported gives a value.
+  it("says once per collection which variables its requests use and nothing in the file sets", () => {
+    const item = (name: string, raw: string, exec: string[] = []) => ({
+      name,
+      request: { method: "GET", url: raw },
+      ...(exec.length && { event: [{ listen: "prerequest", script: { exec } }] }),
+    });
+    const file = (items: unknown[], variable: unknown[] = []) =>
+      JSON.stringify({
+        info: { name: "Shop", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+        item: items,
+        variable,
+      });
+    const said = (text: string) =>
+      importText(text).report.warnings.filter((warning) => warning.message.includes("no value in the file"));
+
+    expect(said(file([item("a", "{{base}}/a"), item("b", "{{base}}/b?t={{token}}")]))).toEqual([
+      {
+        item: 'collection "Shop"',
+        message:
+          "{{base}} and {{token}} have no value in the file, and both requests use them: give them a value in an environment or in the collection's settings before you send.",
+      },
+    ]);
+    // The collection's own variable, a script's set, a dynamic variable and a secret's reference are not said.
+    expect(
+      said(
+        file(
+          [
+            item("a", "{{base}}/a?id={{$guid}}&s={{$secret.abc}}"),
+            item("b", "{{base}}/b?t={{token}}", ['pm.environment.set("token", "x");']),
+            item("c", "https://x.test/{{page}}"),
+          ],
+          [{ key: "base", value: "https://api.test" }],
+        ),
+      ),
+    ).toEqual([
+      {
+        item: 'collection "Shop"',
+        message:
+          "{{page}} has no value in the file, and 1 of its 3 requests uses it: give it a value in an environment or in the collection's settings before you send.",
+      },
+    ]);
+    expect(said(file([item("a", "https://x.test/a")]))).toEqual([]);
+    expect(said(file([item("a", "https://x.test/{{a}}{{b}}{{c}}{{d}}{{e}}{{f}}{{g}}")]))[0].message).toMatch(
+      /^{{a}}, {{b}}, {{c}}, {{d}}, {{e}} and 2 more have no value in the file/,
+    );
+  });
+
   it("a Wayfarer collection file gives its collection, a plan and a report with its counts", () => {
     const imported = importText(JSON.stringify(collectionFile()));
 

@@ -119,7 +119,7 @@ test("a file of no known format is refused with a message that names the formats
 
   await pick(page, file("unknown.json", { raml: "1.0", title: "Not a format the app reads" }));
   const refused = dialog(page, "Import");
-  await expect(refused.getByRole("alert")).toContainText('Unable to import "unknown.json"');
+  await expect(refused.getByRole("alert")).toContainText('"unknown.json" was not imported');
   await expect(refused.getByRole("alert")).toContainText(
     'It reads a Wayfarer collection ("$id": "wayfarer/collection"), a Wayfarer environments file ("$id": "wayfarer/environments"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.',
   );
@@ -143,7 +143,7 @@ test("one road: a collection file picked with the Environments panel's Import is
     .locator('app-environments-manager input[type="file"]')
     .setInputFiles(file("shared.json", collection([request("r-1", "Plain")])));
   await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
-  await expect(page.getByText("Imported collection", { exact: true })).toBeVisible();
+  await expect(page.getByRole("tree").getByText("Imported collection", { exact: true })).toBeVisible();
 });
 
 test("the worker and the importers are not in the page the server sends, and are fetched when a file is picked", async ({
@@ -400,4 +400,46 @@ test("@claim:C-058 a Postman environment imports as an environment, and Postman'
     { key: "host", value: "staging.test", enabled: true },
     { key: "old", value: "x", enabled: false },
   ]);
+});
+
+// U-015, U-098, U-133: the review shows each item as it will be stored, one line each, counts that agree with their
+// noun, and the variables the requests use that nothing in the file gives a value.
+test("the review lists each item as it is stored and says which variables the file leaves without a value", async ({
+  page,
+}) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const folder = {
+    id: "f-1",
+    meta: meta("f-1"),
+    collectionId: "col-import",
+    name: "Orders",
+    order: 0,
+    variables: [],
+    auth: { type: "inherit" },
+    scripts: none,
+  };
+  await pick(
+    page,
+    file(
+      "shop.json",
+      collection(
+        [
+          request("r-1", "Status and body", { url: "{{base}}/status", folderId: "f-1" }),
+          request("r-2", "List orders", { url: "{{base}}/orders" }),
+        ],
+        [folder],
+      ),
+    ),
+  );
+  const review = dialog(page);
+  const plan = review.getByRole("list", { name: "What is imported" });
+  await expect(plan.getByRole("listitem")).toHaveCount(4);
+  await expect(plan.getByRole("listitem").filter({ hasText: "Status and body" })).toHaveText(
+    /^Request\s*Status and body\s*Replaces$/,
+  );
+  await expect(review).toContainText("1 folder · 2 requests");
+  await expect(review).toContainText(
+    "{{base}} has no value in the file, and both requests use it: give it a value in an environment or in the collection's settings before you send.",
+  );
 });

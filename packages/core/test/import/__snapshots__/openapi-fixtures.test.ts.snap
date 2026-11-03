@@ -16,5 +16,12 @@ exports[`OpenAPI descriptions other people wrote (P4.3) > the whole set: what is
   "Its auth is OAuth N.N with a grant the app does not have (…) and is left out: it is sent with no auth.": 19,
   "Its body is described in N media types (…): the request has the application/json one.": 7,
   "The file gives no full address for its server (…): give the collection's variable baseUrl the server's address before you send.": 3,
+  "{{apiKey}} and {{petId}} have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{apiKey}} has no value in the file, and N of its N requests uses it: give it a value in an environment or in the collection's settings before you send.": 1,
+  "{{apiKey}}, {{orderId}}, {{petId}} and {{username}} have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 2,
+  "{{dataset}} and {{version}} have no value in the file, and N of its N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
+  "{{id}} has no value in the file, and N of its N requests use it: give it a value in an environment or in the collection's settings before you send.": 2,
+  "{{petId}} has no value in the file, and N of its N requests uses it: give it a value in an environment or in the collection's settings before you send.": 3,
+  "{{pid}}, {{slug}} and {{username}} have no value in the file, and all N requests use them: give them a value in an environment or in the collection's settings before you send.": 1,
 }
 `;

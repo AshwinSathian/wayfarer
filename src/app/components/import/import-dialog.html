@@ -36,7 +36,7 @@
   </div>
   } @else if (pipeline.refused(); as refused) {
   <div class="import-refused space-y-2 type-callout text-status-error">
-    <p class="font-semibold">Unable to import "{{ pipeline.fileName() }}":</p>
+    <p class="font-semibold">"{{ pipeline.fileName() }}" was not imported:</p>
     <p>{{ refused.message }}</p>
     @if (refused.issues.length) {
     <ul class="list-disc pl-5 space-y-1">
@@ -71,7 +71,7 @@
       <p class="ds-section-label mb-1.5">Collection</p>
       <p class="type-title-3 text-label-primary">{{ entry.payload.collection.name }}</p>
       <p class="type-footnote text-label-tertiary mt-0.5">
-        {{ entry.payload.folders.length }} folders · {{ entry.payload.requests.length }} requests
+        {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
       </p>
     </div>
     @if (imported.report.format === 'wayfarer-collection') {
@@ -81,7 +81,7 @@
     >
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
-        <p class="type-footnote text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5">Keeps the original, and gives every item a new ID.</p>
       </div>
       <input
         type="checkbox"
@@ -96,41 +96,35 @@
     }
     <!-- Every document of a small file; of a large one the counts above say it. -->
     @if (entry.plan.length <= 200) {
-    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-lg border border-separator p-2">
+    <!-- One line each, the name as it will be stored (U-015): a long collection is a list, not a scroll of cards. -->
+    <ul class="import-plan max-h-56 overflow-y-auto" aria-label="What is imported">
       @for (item of entry.plan; track item.id) {
-      <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
-        <div>
-          <p class="type-subhead text-label-primary capitalize">{{ item.type }} · {{ item.name }}</p>
-          <p class="type-footnote text-label-tertiary"
-            >{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p
-          >
-        </div>
+      <li class="import-plan-row">
+        <span class="import-plan-kind type-footnote text-label-tertiary">{{ kindOf(item.type) }}</span>
+        <span class="import-plan-name type-callout text-label-primary">{{ item.name }}</span>
         <span
-          class="rounded-full px-2.5 py-0.5 type-footnote uppercase font-semibold"
-          [class]="item.action === 'create'
-            ? 'bg-status-success-fill border border-status-success-border text-status-success'
-            : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
-          >{{ item.action }}</span
+          class="import-plan-action type-footnote"
+          [class]="item.action === 'create' ? 'text-label-secondary' : 'text-status-warning'"
+          >{{ item.action === 'create' ? 'New' : 'Replaces' }}</span
         >
-      </div>
+      </li>
       }
-    </div>
+    </ul>
     } @else {
     <p class="type-footnote text-label-tertiary">
-      {{ entry.plan[0].action === 'create' ? 'Every document is created new.' : 'A document here with the same id is
-      overwritten.' }}
+      {{ entry.plan[0].action === 'create' ? 'Every item is new.' : 'An item here with the same ID is replaced.' }}
     </p>
     } } @if (pipeline.environmentEntries().length) {
     <div class="space-y-3">
       <p class="type-callout text-label-secondary"
-        >{{ pipeline.environmentEntries().length }} environment(s) detected.</p
+        >{{ plural(pipeline.environmentEntries().length, "environment") }} in the file.</p
       >
       @for (entry of pipeline.environmentEntries(); track entry.doc.meta.id; let idx = $index) {
       <div class="rounded-lg border border-separator bg-canvas-elevated p-4">
         <div class="flex items-center justify-between gap-2">
           <div>
             <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
-            <p class="type-footnote text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
+            <p class="type-footnote text-label-tertiary">{{ plural(entry.doc.vars.length, "variable") }}</p>
           </div>
           @if (entry.targetId) {
           <span

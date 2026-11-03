@@ -193,7 +193,9 @@ test("@claim:C-060 a Swagger 2.0 description in JSON imports: its host as the co
   const report = dialog(page);
   await expect(report.locator(".import-report")).toContainText("OpenAPI description");
   await expect(report.locator(".import-report")).toContainText("will add 1 collection and 2 requests.");
-  await expect(report.locator(".import-warnings")).toHaveCount(0);
+  // The one thing to know: the path's id and the API key are variables the file gives no value (U-133).
+  await expect(report.locator(".import-warnings li")).toHaveCount(1);
+  await expect(report.locator(".import-warnings li")).toContainText("no value in the file");
   await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
 
@@ -242,7 +244,7 @@ test("a description of a version the app does not read, and one with no operatio
   ]) {
     await pick(page, name, content);
     const refused = dialog(page, "Import");
-    await expect(refused.getByRole("alert")).toContainText(`Unable to import "${name}"`);
+    await expect(refused.getByRole("alert")).toContainText(`"${name}" was not imported`);
     await expect(refused.getByRole("alert")).toContainText(message);
     await refused.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(refused).toHaveCount(0);

@@ -333,6 +333,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Tests tab says "Status code".** It was the last label in title
+  case.
+
 - **The question about a moved request says what Yes allows.** When a
   script sends a request with a vault secret to another host, the button
   names the host ("Send to api.example.com"), and in a run it says the

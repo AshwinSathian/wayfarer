@@ -228,6 +228,7 @@ test.describe("Accessibility (primary flows)", () => {
         "Data and storage",
         "Vault",
         "Local Bridge",
+        "AI",
         "Shortcuts",
         "Diagnostics",
         "About",

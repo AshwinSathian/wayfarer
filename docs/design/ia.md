@@ -587,6 +587,16 @@ it is.
 | `bridge-pane.html: Discard` | Settings, Local Bridge | Settings, Local Bridge | D4-h |
 | `bridge-pane.html: Save` | Settings, Local Bridge | Settings, Local Bridge | D4-h |
 | `bridge-pane.html: Setup and security model` | Settings, Local Bridge | Settings, Local Bridge | D4-h |
+| `ai-pane.html: Add a provider` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Provider` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Change key` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Hide key / Show key` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Route` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Write tests from a response` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Draft a request from a description` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Explain a failed response` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Remove provider…` | — | Settings, AI (D4.10) | D4-k |
+| `ai-pane.html: Save` | — | Settings, AI (D4.10) | D4-k |
 | `cookies-pane.html: Delete cookie` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: jar.setValue(cookie, $any($event.target).value)` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: Delete all…` | Settings, Cookies | Settings, Cookies | D4-h |

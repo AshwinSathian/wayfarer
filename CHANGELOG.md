@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Settings › AI: a provider can be added, and AI is still off until
+  one is.** The pane says nothing is sent to a model until a provider is
+  added, and offers to add one: an OpenAI-compatible endpoint (OpenAI,
+  Ollama, LM Studio) or Anthropic's API, its address, its model, a route
+  and which actions may be offered. The key is kept only in the vault, and
+  removing the provider deletes it. The actions themselves come next:
+  nothing calls a model yet.
+
 - **The engine of the AI flows, not yet reachable.** `@wayfarer/core`
   can now write a model call (OpenAI's chat completions or Anthropic's
   Messages API) from what history keeps of an exchange, so a secret is

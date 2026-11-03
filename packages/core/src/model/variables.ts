@@ -12,6 +12,8 @@ export interface VariableChange {
    * holds also when the app's own copy of the rows was a moment old.
    */
   keepSecret?: true;
+  /** Set, but switched off: the value is kept and not used (U-041). Absent is on. */
+  enabled?: false;
 }
 
 /** A protected variable's value: one reference to a vault secret and nothing else. */
@@ -24,7 +26,7 @@ export function protectedSecretId(value: string | undefined): string | null {
 
 /**
  * The rows with the changes applied. A set replaces every row of that name
- * with one enabled row, where the first of them stood, or adds a row at the
+ * with one row, enabled unless the change says `enabled: false`, where the first of them stood, or adds a row at the
  * end; a removal takes every row of that name. Rows the changes do not name
  * are left exactly as they are. A set marked `keepSecret` is left out when a
  * row of that name holds a vault secret's reference.
@@ -37,8 +39,8 @@ export function protectedSecretId(value: string | undefined): string | null {
  */
 export function applyVariableChanges(rows: Row[], changes: VariableChange[]): Row[] {
   let next = rows;
-  for (const { key, value, keepSecret, json } of changes) {
-    const made = (): Row => ({ key, value: value ?? "", enabled: true, ...(json && { json }) });
+  for (const { key, value, keepSecret, json, enabled } of changes) {
+    const made = (): Row => ({ key, value: value ?? "", enabled: enabled ?? true, ...(json && { json }) });
     const first = next.findIndex((row) => row.key === key);
     if (value !== null && keepSecret && next.some((row) => row.key === key && SECRET_REFERENCE.test(row.value)))
       continue;
@@ -69,12 +71,28 @@ export function scriptVariables(rows: Row[]): ScriptVariable[] {
   return [...byName.values()];
 }
 
-/** The changes that turn the variables of `before` into those of `after`: what an editor did to the rows it was given. */
+/**
+ * Each named row's state: the last enabled row of the name, else its last switched-off one. What a variable is, used or
+ * not, as an editor shows it.
+ */
+function statesByName(rows: Row[]): Map<string, { value: string; enabled: boolean }> {
+  const states = new Map<string, { value: string; enabled: boolean }>();
+  for (const { key, value, enabled } of rows)
+    if (key && (enabled || !states.get(key)?.enabled)) states.set(key, { value, enabled });
+  return states;
+}
+
+/**
+ * The changes that turn the variables of `before` into those of `after`: what an editor did to the rows it was given.
+ * A row switched off is a set with `enabled: false`, so that its value is kept; a name no row has any more is removed.
+ */
 export function variableChanges(before: Row[], after: Row[]): VariableChange[] {
-  const was = variablesByName(before);
-  const is = variablesByName(after);
+  const was = statesByName(before);
+  const is = statesByName(after);
   return [
-    ...[...is].filter(([key, value]) => was.get(key) !== value).map(([key, value]) => ({ key, value })),
+    ...[...is]
+      .filter(([key, state]) => was.get(key)?.value !== state.value || was.get(key)?.enabled !== state.enabled)
+      .map(([key, { value, enabled }]): VariableChange => ({ key, value, ...(!enabled && { enabled: false }) })),
     ...[...was.keys()].filter((key) => !is.has(key)).map((key) => ({ key, value: null })),
   ];
 }

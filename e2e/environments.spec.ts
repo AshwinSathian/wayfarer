@@ -155,3 +155,24 @@ test("a deleted environment comes back by Undo, in use again", async ({ page }) 
   await expect(region.locator(".env-item", { hasText: "Tripwire env" })).toContainText("In use");
   await expect(page.getByRole("combobox", { name: "Environment" })).toContainText("Tripwire env");
 });
+
+// U-041: a variable can be switched off and keeps its value; the request then has none, and a reload keeps both.
+test("a variable switched off keeps its value and is not used", async ({ page }) => {
+  await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
+  const region = await openEnvironments(page);
+  const use = region.getByRole("checkbox", { name: "Use host" });
+  await expect(use).toBeChecked();
+  await use.uncheck();
+  await expect
+    .poll(async () => JSON.stringify((await dumpIdb(page))["environments"]))
+    .toContain('"key":"host","value":"example.com","enabled":false');
+  await closeEnvironments(page);
+  await expect(page.getByRole("button", { name: /^host Missing/ })).toBeVisible();
+  await page.reload();
+  const again = await openEnvironments(page);
+  await expect(again.getByRole("checkbox", { name: "Use host" })).not.toBeChecked();
+  await expect(again.getByPlaceholder("Value", { exact: true })).toHaveValue("example.com");
+  await again.getByRole("checkbox", { name: "Use host" }).check();
+  await closeEnvironments(page);
+  await expect(page.getByRole("button", { name: /^host environment/ })).toBeVisible();
+});

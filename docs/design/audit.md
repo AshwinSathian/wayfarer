@@ -539,6 +539,7 @@ are named only by their placeholders, "KEY" and "Value", and the columns
 have no headings: each input gets a name ("Key", "Value of apiKey") and
 the rows a visible header, as Params has (`params-panel.html:1-6`).
 Evidence: [`hig-review/1440-dark-36-environments-rows.png`](hig-review/1440-dark-36-environments-rows.png).
+**2026-11-03:** Fixed in #PRNUM (D4-g): each variable of the environment editor has a box that switches it on or off, its value kept either way (`variableChanges` in `@wayfarer/core` says a row switched off as a set with `enabled: false`; it was a removal), and the columns are headed Name and Value where they sit side by side. The fields' names were fixed in #493 (U-071).
 
 **U-042. At 390 px a variable's name and value are 60 px wide.**
 Severity 3 (phones). H8. OC.

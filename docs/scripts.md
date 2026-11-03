@@ -412,8 +412,8 @@ it with the variables as they were, and as its pre-request script left it,
 with the variables as they are now. If the two differ and the request uses
 a vault secret, a dialog names both hosts before the vault is read:
 
-- **Send** sends the request where the script pointed it.
-- **Don't send** sends nothing, and puts back every variable that script
+- **Send to {host}** sends the request where the script pointed it.
+- **Do not send** sends nothing, and puts back every variable that script
   set, and the old value of a vault secret it replaced, so that pressing
   Send again asks again.
 
@@ -434,9 +434,9 @@ script of one request sets the host of the next. When the run starts, the
 app keeps the variables as they are. Each request's host is worked out
 under those, with the row of the data file, and again as the request is
 built. If the two differ and the request uses a vault secret, the run
-pauses with the same question, naming the request. **Send** holds for that
-host until the run ends: the next request to it is not asked about. **Don't
-send** sends nothing and ends the run. A request without a vault secret is
+pauses with the same question, naming the request. **Send to {host} for
+this run** says what it allows: every later request of the run may go to
+that host without asking. **Do not send** sends nothing and ends the run. A request without a vault secret is
 not asked about, and a host that came from the data file is not a change.
 The next run starts from the variables as they are by then: what an earlier
 run stored is that run's baseline.
@@ -513,7 +513,7 @@ error is a failed row, and the ones after it still run.
 The question about another host (above) compares the request before the
 first of these scripts with the request after the last, so a collection's
 script that moves a request is asked about like the request's own. On
-"Don't send", what every one of them set is put back.
+"Do not send", what every one of them set is put back.
 
 ## Which scripts may run
 

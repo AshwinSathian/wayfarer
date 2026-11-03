@@ -84,7 +84,7 @@ test.describe("through a Local Bridge", () => {
       await expect(question).toContainText("may have sent it");
       // No preflight for a form: the browser sent the POST, and the server received it.
       expect(await seen(page, path)).toEqual({ POST: 1 });
-      await question.getByRole("button", { name: "Don't send" }).click();
+      await question.getByRole("button", { name: "Do not send" }).click();
       await expect(page.locator("app-response-viewer")).toContainText("The request got no response.");
       // The answer was no: the request went from the page alone.
       await expect(page.locator(".record-toggle")).toHaveText("Direct to 127.0.0.1:4300");

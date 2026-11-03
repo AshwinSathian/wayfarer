@@ -600,7 +600,7 @@ export class WorkspaceStore {
           title: "Send through the Local Bridge?",
           message: `The browser got no answer to ${draft.method} ${draft.url}, and may have sent it: the server may have received it. Sent again through the Local Bridge, it may be received twice.`,
           acceptLabel: "Send through the bridge",
-          rejectLabel: "Don't send",
+          rejectLabel: "Do not send",
         }),
       inherited,
       folderVariables: () => this.scopesOf(tab).folder ?? [],
@@ -870,10 +870,11 @@ export class WorkspaceStore {
         this.confirm.confirm({
           title: "Send to a different host?",
           message: composed?.accepted
-            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Yes holds for ${to} until the run ends.`
+            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Allowed, every later request of this run may send to ${to} without asking.`
             : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
-          acceptLabel: "Send",
-          rejectLabel: "Don't send",
+          // The act says what one click allows (U-069): in a run, the host for the rest of the run.
+          acceptLabel: composed?.accepted ? `Send to ${to} for this run` : `Send to ${to}`,
+          rejectLabel: "Do not send",
         }),
       oauthToken: (auth, key, renew) => this.oauthTokens.tokenFor(auth, key, { renew, signal: tab.inFlight?.signal }),
       renewToken,

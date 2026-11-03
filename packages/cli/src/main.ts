@@ -29,7 +29,7 @@ import {
 } from "@wayfarer/core";
 import { parseDataFile } from "@wayfarer/core/data-file";
 import { importText } from "@wayfarer/core/import";
-import { junitXml, runReportJson } from "@wayfarer/core/run-report";
+import { junitXml, runReportHtml, runReportJson } from "@wayfarer/core/run-report";
 import { runCollection, type OpenVault, type RunInput } from "./run";
 
 declare const VERSION: string;
@@ -51,9 +51,10 @@ Options:
   -n, --iterations <n>      How many iterations (default: one per row of the
                             data file, or 1).
       --collection <name>   Which collection of a file that holds several.
-      --reporter <list>     cli, json, junit, comma-separated (default cli).
-                            json writes wayfarer-run.json and junit writes
-                            wayfarer-run.junit.xml, in --out.
+      --reporter <list>     cli, json, junit, html, comma-separated (default
+                            cli). json writes wayfarer-run.json, junit
+                            wayfarer-run.junit.xml and html wayfarer-run.html,
+                            in --out.
       --out <dir>           Where the reports are written (default: here).
       --bail                Stop at the first failure.
       --timeout <ms>        Give up on a request after this long (default: no
@@ -268,8 +269,8 @@ async function main(argv: string[]): Promise<number> {
 
   const reporters = new Set(values.reporter.split(",").map((name) => name.trim()));
   for (const name of reporters)
-    if (!["cli", "json", "junit"].includes(name))
-      throw new Refusal(`Unknown reporter "${name}": choose from cli, json and junit.`);
+    if (!["cli", "json", "junit", "html"].includes(name))
+      throw new Refusal(`Unknown reporter "${name}": choose from cli, json, junit and html.`);
   const number = (text: string | undefined, flag: string): number | undefined => {
     if (text === undefined) return undefined;
     if (!/^\d+$/.test(text)) throw new Refusal(`--${flag} takes a whole number, not "${text}".`);
@@ -303,7 +304,7 @@ async function main(argv: string[]): Promise<number> {
 
   const startedAt = new Date().toISOString();
   // Before anything is sent: a folder that cannot be made stops the run while nothing has been run.
-  if (reporters.has("json") || reporters.has("junit")) {
+  if (reporters.has("json") || reporters.has("junit") || reporters.has("html")) {
     await mkdir(values.out, { recursive: true }).catch((error: unknown) => {
       throw new Refusal(`--out ${values.out}: ${error instanceof Error ? error.message : String(error)}`);
     });
@@ -332,6 +333,7 @@ async function main(argv: string[]): Promise<number> {
   if (reporters.has("json"))
     await writeFile(join(values.out, "wayfarer-run.json"), `${JSON.stringify(runReportJson(report, info), null, 2)}\n`);
   if (reporters.has("junit")) await writeFile(join(values.out, "wayfarer-run.junit.xml"), junitXml(report, info));
+  if (reporters.has("html")) await writeFile(join(values.out, "wayfarer-run.html"), runReportHtml(report, info));
   return report.results.some(runFailed) ? 1 : 0;
 }
 

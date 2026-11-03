@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The CLI writes an HTML report.** `--reporter html` writes
+  `wayfarer-run.html`: the run as the app's run view shows it, in its
+  words and colours, light or dark as the system is. It holds no script
+  and loads nothing.
+
 - **The CLI says what the app's run view says.** Its summary starts with
   how the run ended ("The run is complete."), an error many requests
   share is written once and then "Same error as before.", and the summary

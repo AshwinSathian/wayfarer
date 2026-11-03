@@ -1,4 +1,5 @@
-import type { RunReport, RunResult } from "./runner";
+import { runFailed, type RunReport, type RunResult } from "./runner";
+import { runCounts, runEnding, sharedErrorHeading, sharedErrors } from "./words";
 
 const RUN_REPORT_FORMAT = "wayfarer/run";
 
@@ -85,4 +86,122 @@ export function junitXml(report: RunReport, info: RunInfo): string {
     `</testsuites>`,
     "",
   ].join("\n");
+}
+
+/**
+ * The app's colours for the report (D4.9): its canvas, its labels and its status texts, light and dark. They are the
+ * tokens' values as `src/design-system/tokens.ts` has them; `scripts/run-report.test.mjs` holds them equal. The core
+ * reads no stylesheet of the app.
+ */
+const REPORT_COLOURS = {
+  light: {
+    canvas: "#FBFAF8",
+    panel: "#F6F5F2",
+    primary: "#26231E",
+    secondary: "#55524D",
+    tertiary: "#726F69",
+    line: "#DEDAD3",
+    error: "#A51F1E",
+  },
+  dark: {
+    canvas: "#161513",
+    panel: "#22211E",
+    primary: "#EBE9E4",
+    secondary: "#C0BDB6",
+    tertiary: "#9A9790",
+    line: "#423F39",
+    error: "#F7958A",
+  },
+} as const;
+
+/** Text as HTML holds it, between tags or in an attribute: a name is the user's and an error may be a server's. */
+function html(text: string): string {
+  return text.replace(
+    /[&<>"']/g,
+    (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char,
+  );
+}
+
+const palette = (colours: Record<string, string>) =>
+  Object.entries(colours)
+    .map(([name, value]) => `--${name}: ${value};`)
+    .join(" ");
+
+/**
+ * A run as one HTML page, in the app's words and colours (D4.9): how it ended, its counts, each error several requests
+ * shared said once, and the run view's table. It holds no script and loads nothing: every value is escaped text, and
+ * its style is in the page.
+ */
+export function runReportHtml(report: RunReport, info: RunInfo): string {
+  const shared = sharedErrors(report.results);
+  const sharedNote = (error: string) => {
+    const index = shared.findIndex((entry) => entry.error === error);
+    return index < 0 ? error : shared.length === 1 ? "Same error as above" : `Same error as ${index + 1} above`;
+  };
+  const rows = report.results
+    .map((result, index) => {
+      const failed = result.tests.filter((test) => !test.passed);
+      const problems = [
+        ...(result.error === undefined ? [] : [sharedNote(result.error)]),
+        ...failed.map((test) => (test.error ? `${test.name}: ${test.error}` : test.name)),
+      ];
+      const status = result.skipped
+        ? "Skipped"
+        : result.status
+          ? `${result.status} ${result.statusText ?? ""}`.trim()
+          : "No response";
+      return `<tr${runFailed(result) ? ' class="failed"' : ""}>
+<td>${index + 1}</td><td>${result.iteration + 1}</td>
+<td>${html(result.name)}${problems.map((problem) => `<p class="problem">${html(problem)}</p>`).join("")}</td>
+<td>${html(status)}</td><td>${result.durationMs === undefined ? "—" : `${result.durationMs} ms`}</td>
+<td>${result.tests.length ? `${result.tests.length - failed.length} of ${result.tests.length} passed` : "—"}</td>
+</tr>`;
+    })
+    .join("\n");
+  const sharedBlocks = shared
+    .map(
+      ({ error, count }, index) =>
+        `<p class="shared">${shared.length > 1 ? `<b>${index + 1}.</b> ` : ""}<b>${html(sharedErrorHeading(count))}</b> ${html(error)}</p>`,
+    )
+    .join("\n");
+  return `<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+<title>Run ${html(info.name)}</title>
+<style>
+:root { color-scheme: light dark; ${palette(REPORT_COLOURS.light)} }
+@media (prefers-color-scheme: dark) { :root { ${palette(REPORT_COLOURS.dark)} } }
+body { margin: 0; padding: 24px 16px; background: var(--canvas); color: var(--primary);
+  font: 14px/1.5 "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; }
+h1 { margin: 0 0 4px; font-size: 1.375rem; font-weight: 600; }
+.meta, .counts { margin: 0 0 16px; color: var(--secondary); }
+.shared { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--error); border-radius: 8px; color: var(--error); }
+table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+th { text-align: start; font-weight: 500; color: var(--tertiary); }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+td:nth-child(4), td:nth-child(5) { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.problem { margin: 4px 0 0; color: var(--error); font-size: 0.75rem; }
+tr.failed td:first-child { box-shadow: inset 2px 0 0 var(--error); }
+</style>
+</head>
+<body>
+<main>
+<h1>Run ${html(info.name)}</h1>
+<p class="meta">Started ${html(info.startedAt)}</p>
+<p class="counts">${html(runEnding(report))} ${html(runCounts(report))}</p>
+${sharedBlocks}
+<table>
+<thead><tr><th scope="col">#</th><th scope="col">Iteration</th><th scope="col">Request</th><th scope="col">Status</th><th scope="col">Time</th><th scope="col">Tests</th></tr></thead>
+<tbody>
+${rows}
+</tbody>
+</table>
+</main>
+</body>
+</html>
+`;
 }

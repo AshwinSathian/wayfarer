@@ -224,7 +224,6 @@ test.describe("Accessibility (primary flows)", () => {
       await button("Settings").click();
       const appSettings = page.getByRole("dialog", { name: "Settings", exact: true });
       for (const section of [
-        "Requests",
         "History",
         "Data and storage",
         "Vault",

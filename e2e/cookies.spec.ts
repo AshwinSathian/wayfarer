@@ -102,7 +102,9 @@ test("a sign-in that answers with a redirect: the cookie it sets goes out with t
       .getByRole("alertdialog", { name: "Delete all cookies?" })
       .getByRole("button", { name: "Delete all", exact: true })
       .click();
-    await expect(settings.locator(".cookies-empty")).toHaveText("The jar is empty.");
+    await expect(settings.locator(".cookies-empty")).toHaveText(
+      "Cookies that responses set through the Local Bridge are kept here.",
+    );
     expect((await dumpIdb(page))["cookies"]).toEqual([]);
   } finally {
     bridge.stop();

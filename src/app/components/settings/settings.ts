@@ -43,17 +43,7 @@ interface KeyboardShortcut {
 
 /** The panes of Settings, by the id a caller opens one with. */
 export type SettingsSection =
-  | "general"
-  | "requests"
-  | "history"
-  | "data"
-  | "vault"
-  | "bridge"
-  | "cookies"
-  | "shortcuts"
-  | "diagnostics"
-  | "about"
-  | "danger";
+  "general" | "history" | "data" | "vault" | "bridge" | "cookies" | "shortcuts" | "diagnostics" | "about" | "danger";
 
 interface SectionEntry {
   id: SettingsSection;
@@ -64,8 +54,8 @@ interface SectionEntry {
 }
 
 const SECTIONS: SectionEntry[] = [
-  { id: "general", label: "General", icon: "settings", about: "How the app looks." },
-  { id: "requests", label: "Requests", icon: "bolt", about: "How a request is sent." },
+  // One pane for how the app looks and how a request is sent: the theme alone was a pane of one row (U-025).
+  { id: "general", label: "General", icon: "settings", about: "How the app looks, and how a request is sent." },
   { id: "history", label: "History", icon: "history", about: "What is kept of the requests you send." },
   {
     id: "data",
@@ -91,7 +81,8 @@ const SECTIONS: SectionEntry[] = [
     id: "diagnostics",
     label: "Diagnostics",
     icon: "rule",
-    about: "What is running, self-tests, and what went wrong. Nothing leaves this page unless you copy it.",
+    about:
+      "What is running, self-tests, and what went wrong. What is listed here leaves this page only if you copy it.",
   },
   { id: "about", label: "About", icon: "info", about: "This version, and where to read more." },
   { id: "danger", label: "Danger zone", icon: "warning", about: "What cannot be undone." },

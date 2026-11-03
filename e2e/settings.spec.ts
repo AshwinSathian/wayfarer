@@ -71,7 +71,6 @@ test.describe("Settings surface", () => {
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
     await expect(list.getByRole("button")).toHaveText([
       /General/,
-      /Requests/,
       /History/,
       /Data and storage/,
       /Vault/,
@@ -83,10 +82,10 @@ test.describe("Settings surface", () => {
       /Danger zone/,
     ]);
     for (const [section, control] of [
-      ["Requests", "Request timeout"],
+      ["General", "Request timeout"],
       ["History", "History size"],
       ["Vault", "Lock the vault when idle"],
-      ["Local Bridge", "Bridge URL"],
+      ["Local Bridge", "Bridge address"],
     ] as const) {
       await list.getByRole("button", { name: section, exact: true }).click();
       await expect(list.getByRole("button", { name: section, exact: true })).toHaveAttribute("aria-current", "page");
@@ -97,7 +96,7 @@ test.describe("Settings surface", () => {
     // The list is walked with the arrow keys.
     await list.getByRole("button", { name: "General", exact: true }).focus();
     await page.keyboard.press("ArrowDown");
-    await expect(list.getByRole("button", { name: "Requests", exact: true })).toBeFocused();
+    await expect(list.getByRole("button", { name: "History", exact: true })).toBeFocused();
     await page.keyboard.press("End");
     await expect(list.getByRole("button", { name: "Danger zone", exact: true })).toBeFocused();
   });
@@ -187,7 +186,7 @@ test.describe("Settings surface", () => {
 
     await page.getByRole("button", { name: /^Route: / }).click();
     await expect(dialog.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
-    await expect(dialog.getByLabel("Bridge URL")).toHaveValue("http://127.0.0.1:7717");
+    await expect(dialog.getByLabel("Bridge address")).toHaveValue("http://127.0.0.1:7717");
   });
 
   test("@claim:C-033 exports environments as a JSON file", async ({ page }) => {

@@ -271,7 +271,7 @@ test.describe("Accessibility (primary flows)", () => {
       await button("New environment").first().click();
       await scan("new environment");
       await page.locator("#new-env-name-input").fill("Swept env");
-      await button("Create environment").click();
+      await page.locator("#new-env-name-input").press("Enter");
       await expect(page.locator("#new-env-name-input")).toHaveCount(0);
       await scan("environments, one open");
       await button("Export environments").click();

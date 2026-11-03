@@ -12,13 +12,10 @@
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-sm);
   background-color: transparent;
-  border: 1px solid transparent;
   color: var(--label-primary);
   cursor: pointer;
   text-align: left;
-  transition:
-    border-color var(--dur-quick) var(--ease-standard),
-    background-color var(--dur-quick) var(--ease-standard);
+  transition: background-color var(--dur-quick) var(--ease-standard);
 }
 
 /* The button that selects the row. Its ::after covers the row, so a click anywhere on it selects; the row's own buttons sit above that. */
@@ -57,22 +54,36 @@
   position: relative;
 }
 
+/* Rows as the tree's are (U-093): no box, a fill under the pointer, the selected one with an ink mark at its start.
+   Which is in use is said once, by its tag (U-043). */
 .env-item:hover {
   background-color: var(--fill-hover);
-  border-color: var(--separator);
 }
 
 .env-item.active {
-  border-color: var(--ink);
   background-color: var(--fill-selected);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 .env-item.active:hover {
-  background-color: var(--fill-selected);
+  background-color: var(--fill-active);
 }
 
-.env-item.current {
-  border-color: var(--status-success-border);
+/* A row's buttons are quiet until it is hovered, focused or chosen. */
+.env-item-actions {
+  opacity: 0.6;
+}
+
+.env-item:hover .env-item-actions,
+.env-item:focus-within .env-item-actions,
+.env-item.active .env-item-actions {
+  opacity: 1;
+}
+
+@media (forced-colors: active) {
+  .env-item.active {
+    border-inline-start: 4px solid Highlight;
+  }
 }
 
 /* A row's lock asked for a vault: its passphrase is asked for under the row. */
@@ -94,4 +105,11 @@
 .env-live-text {
   display: block;
   margin-top: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .env-editor {
+    padding-inline-start: 24px;
+    border-inline-start: 1px solid var(--separator);
+  }
 }

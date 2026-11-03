@@ -9,7 +9,7 @@ async function createEnvironment(page: Page, name: string): Promise<void> {
   await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill(name);
-  await page.getByRole("button", { name: "Create environment" }).click();
+  await page.locator("#new-env-name-input").press("Enter");
   await expect(page.locator("app-environments-manager").getByText(name, { exact: true })).toBeVisible();
 }
 
@@ -17,7 +17,7 @@ async function addVariable(page: Page, key: string, value: string): Promise<void
   // Add variable puts the keyboard in the new row's name (U-145). The editor writes as a field is left, so the
   // other tab's rows can arrive while this one types: the row is found by the focus, not by counting rows.
   await page.getByRole("button", { name: "Add variable" }).click();
-  await expect(page.locator("input[placeholder='KEY']:focus")).toHaveValue("");
+  await expect(page.locator("input[placeholder='Name']:focus")).toHaveValue("");
   await page.keyboard.type(key);
   await page.keyboard.press("Tab");
   await expect(page.locator("input[placeholder='Value']:focus")).toBeVisible();
@@ -63,7 +63,7 @@ test("two tabs save different variables of one environment at the same moment, a
   // Tab B opens the environment as it is now; then each tab adds its own variable.
   await pageB.goto("/app/");
   await openEnvironments(pageB);
-  await expect(pageB.locator("input[placeholder='KEY']")).toHaveValue("base");
+  await expect(pageB.locator("input[placeholder='Name']")).toHaveValue("base");
   await addVariable(pageA, "fromA", "1");
   await addVariable(pageB, "fromB", "2");
 
@@ -80,6 +80,6 @@ test("two tabs save different variables of one environment at the same moment, a
   await expect.poll(stored).toEqual(["base=kept", "fromA=1", "fromB=2"]);
   // Each tab shows the other's variable without a reload.
   for (const page of [pageA, pageB]) {
-    await expect(page.locator("input[placeholder='KEY']")).toHaveCount(3);
+    await expect(page.locator("input[placeholder='Name']")).toHaveCount(3);
   }
 });

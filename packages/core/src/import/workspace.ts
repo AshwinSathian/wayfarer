@@ -130,6 +130,17 @@ export function validateWorkspaceFile(value: unknown): string[] {
       );
       // The exchange record (D4.12): every field as the app writes it, and none it does not.
       if (Object.hasOwn(entry, "record")) errors.push(...recordProblems(entry["record"], `${path}.record`));
+      // A model call (D4.10): what it was for, and the model's name.
+      if (Object.hasOwn(entry, "model")) {
+        const model = entry["model"];
+        if (
+          !isObject(model) ||
+          !["tests", "draft", "explain", "test"].includes(String(model["action"])) ||
+          typeof model["model"] !== "string" ||
+          Object.keys(model).some((key) => key !== "action" && key !== "model")
+        )
+          errors.push(`${path}.model: Value must be the action and the model's name.`);
+      }
     });
   }
   return errors;

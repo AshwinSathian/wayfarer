@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@a
 import { FormsModule } from "@angular/forms";
 import type { Route } from "@wayfarer/core";
 import type { AiProviderKind } from "@wayfarer/core/ai";
+import type { ModelCallOutcome } from "@wayfarer/core/ai";
 import { AiSettings, type AiActions } from "../../services/ai-settings";
+import { ModelCalls, type PreparedCall } from "../../services/model-calls";
+import { ModelCall } from "../model-call/model-call";
 import { SecretsVault } from "../../services/secrets-vault";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
@@ -18,7 +21,7 @@ const ANTHROPIC_ADDRESS = "https://api.anthropic.com";
  */
 @Component({
   selector: "app-ai-pane",
-  imports: [FormsModule, UiButton, UiCheckbox, UiInput, UiSegmented],
+  imports: [FormsModule, ModelCall, UiButton, UiCheckbox, UiInput, UiSegmented],
   templateUrl: "./ai-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },
@@ -27,6 +30,7 @@ export class AiPane {
   protected readonly ai = inject(AiSettings);
   protected readonly vault = inject(SecretsVault);
   private readonly confirm = inject(Confirm);
+  private readonly calls = inject(ModelCalls);
 
   protected readonly kinds: UiSegment<AiProviderKind>[] = [
     { value: "openai", label: "OpenAI-compatible" },
@@ -154,5 +158,35 @@ export class AiPane {
 
   protected edited(): void {
     this.said.set("");
+  }
+
+  /** Test the provider…: the saved provider, previewed like any call. */
+  protected readonly testCall = signal<PreparedCall | null>(null);
+  /** What the test came to, in the pane's words (setup.md). */
+  protected readonly testResult = signal<{ text: string; quote?: string } | null>(null);
+
+  protected async test(): Promise<void> {
+    this.testResult.set(null);
+    this.testCall.set(await this.calls.prepareTest());
+  }
+
+  protected tested(outcome: ModelCallOutcome): void {
+    const host = outcome.history.record?.host ?? "";
+    const status = outcome.history.response;
+    const result = !status
+      ? { text: outcome.problem ?? "The request got no response." }
+      : outcome.answer !== undefined
+        ? { text: "The provider answered:", quote: outcome.answer.slice(0, 200) }
+        : status.status >= 200 && status.status < 300
+          ? { text: "The provider answered with no text. The model may need a longer reply limit, or another name." }
+          : status.status === 401 || status.status === 403
+            ? { text: `${host} refused the key: ${status.status} ${status.statusText}.`, quote: outcome.problem }
+            : status.status === 404
+              ? { text: `${host} has no such address or model: 404 ${status.statusText}.`, quote: outcome.problem }
+              : { text: `${host} answered ${status.status} ${status.statusText}.`, quote: outcome.problem };
+    this.testResult.set(result);
+    this.said.set(
+      result.quote && outcome.answer !== undefined ? `The provider answered: ${result.quote}.` : result.text,
+    );
   }
 }

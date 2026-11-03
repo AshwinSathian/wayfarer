@@ -203,6 +203,7 @@ export {
   type ExchangePorts,
   type ExchangeResult,
   type HistoryBody,
+  type ModelAction,
   type PastRequest,
   type RequestExecutionResponse,
   type RequestExecutionSpec,

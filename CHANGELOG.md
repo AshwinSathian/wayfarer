@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A model call is shown before it is sent, and kept like a send.**
+  Settings › AI's Test the provider… opens the preview every model call
+  will have: where it goes, by which route, with the key as ***, and the
+  body exactly as it will be sent. Nothing leaves until Send to model.
+  Afterwards the preview becomes the call's exchange record, and the call
+  is a History entry of its own, with the key masked wherever it is kept.
+  The provider's answer, or its refusal in its own words, is shown in
+  Settings.
+
 - **Settings › AI: a provider can be added, and AI is still off until
   one is.** The pane says nothing is sent to a model until a provider is
   added, and offers to add one: an OpenAI-compatible endpoint (OpenAI,

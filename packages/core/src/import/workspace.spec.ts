@@ -95,6 +95,22 @@ describe("validateWorkspaceFile", () => {
     });
     const problems = (value: unknown) => validateWorkspaceFile(file({ history: [entry({ record: value })] }));
 
+    // D4.10: a model call is an entry with what it was for and the model's name, and nothing else there.
+    it("reads a model call's entry, and refuses one whose model field the app does not write", () => {
+      expect(validateWorkspaceFile(file({ history: [entry({ model: { action: "tests", model: "m-1" } })] }))).toEqual(
+        [],
+      );
+      for (const model of [
+        { action: "jailbreak", model: "m" },
+        { action: "tests" },
+        { action: "tests", model: "m", key: "k" },
+        "m",
+      ])
+        expect(validateWorkspaceFile(file({ history: [entry({ model })] }))).toEqual([
+          "stores.history[0].model: Value must be the action and the model's name.",
+        ]);
+    });
+
     it("reads a record the app writes, and an entry with none", () => {
       expect(problems(record)).toEqual([]);
       expect(validateWorkspaceFile(file({ history: [entry({})] }))).toEqual([]);

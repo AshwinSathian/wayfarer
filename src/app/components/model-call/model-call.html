@@ -1,0 +1,37 @@
+<p class="sr-only" role="status">{{ said() }}</p>
+<h3 #headingRef id="model-call-heading" class="type-headline m-0" tabindex="-1">{{ heading() }}</h3>
+@if (record(); as record) {
+<app-exchange-record [record]="record" />
+} @else {
+<p class="type-footnote text-label-secondary break-all"
+  >Sends to <span class="font-mono text-label-primary">{{ call().url }}</span></p
+>
+<p class="type-footnote text-label-secondary">
+  Provider: {{ ai.provider()?.kind === "anthropic" ? "Anthropic" : "OpenAI-compatible" }}, model
+  <span class="font-mono">{{ ai.provider()?.model }}</span>
+</p>
+<p class="type-footnote text-label-secondary">{{ routeWords() }}</p>
+<p class="type-footnote text-label-secondary">
+  @if (ai.keyStored()) { Key: <span class="font-mono">{{ keyName }}</span>, from the vault. It is *** below and in what
+  is kept. } @else { No key is sent. }
+</p>
+<div class="model-call-parts">
+  <p class="type-subhead text-label-primary">In the prompt</p>
+  <ng-content />
+  <p class="type-footnote text-label-secondary">{{ masked() }}</p>
+</div>
+<p class="type-subhead text-label-primary">What is sent · {{ size() }}</p>
+<pre class="model-call-sent type-mono-body font-mono" tabindex="0" [attr.aria-label]="'What is sent, ' + size()">
+{{ sent() }}</pre>
+@if (call().blocked) {
+<p class="type-footnote text-status-error">{{ call().blocked }}</p>
+}
+<div class="flex justify-end gap-2">
+  <button uiButton type="button" [disabled]="sending()" (click)="cancelled.emit()">Cancel</button>
+  @if (sending()) {
+  <button uiButton="outlined" class="btn-secondary" type="button" (click)="stop()">Stop</button>
+  } @else {
+  <button uiButton="filled" type="button" [disabled]="!!call().blocked" (click)="send()">Send to model</button>
+  }
+</div>
+}

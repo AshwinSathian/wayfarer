@@ -1170,8 +1170,8 @@ request of the run, and "Don't send" is a contraction.
 Evidence: `state/workspace-store.ts:561, 829-832`.
 **Status:** Open, D4-i (claim C-053's wording stays one run's). Review row
 W-12.
-**2026-11-03:** Fixed in #PRNUM (D4-i): in a run the act says what one click allows, **Send to {host} for this run**, and the message says every later request of the run may send there without asking; a single send's is **Send to {host}**. "Don't send" is **Do not send** in both questions, and in `docs/scripts.md` and the trust centre. C-053's wording stays one run's.
-**2026-11-03:** Fixed in #PRNUM (D4-i): in a run the button says what one click allows, "Send to {host} for this run", and the message says every later request of the run may send there without asking; a single send's is "Send to {host}"; "Don't send" is "Do not send", here and in the bridge's question. C-053 still compares one run.
+**2026-11-03:** Fixed in #509 (D4-i): in a run the act says what one click allows, **Send to {host} for this run**, and the message says every later request of the run may send there without asking; a single send's is **Send to {host}**. "Don't send" is **Do not send** in both questions, and in `docs/scripts.md` and the trust centre. C-053's wording stays one run's.
+**2026-11-03:** Fixed in #509 (D4-i): in a run the button says what one click allows, "Send to {host} for this run", and the message says every later request of the run may send there without asking; a single send's is "Send to {host}"; "Don't send" is "Do not send", here and in the bridge's question. C-053 still compares one run.
 
 ### Words
 

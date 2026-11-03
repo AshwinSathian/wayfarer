@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The engine of the AI flows, not yet reachable.** `@wayfarer/core`
+  can now write a model call (OpenAI's chat completions or Anthropic's
+  Messages API) from what history keeps of an exchange, so a secret is
+  *** in it, read a model's answer, and turn it into a proposed script or
+  request, refusing one that names a vault secret. Nothing in the app
+  calls it yet: AI stays off, and no request goes to a model.
+
 - **The design docs say what session D4-i built.** The plan's row 1.59
   lists the nine changes to the runner, its reports and the CLI, and the
   baseline gives tasks 2 and 7 measured again.

@@ -10,7 +10,9 @@ import {
   OnInit,
   afterNextRender,
   computed,
+  effect,
   signal,
+  untracked,
   viewChild,
   WritableSignal,
   inject,
@@ -38,6 +40,7 @@ import { CollectionNodeAction, buildContextItems } from "../../shared/collection
 import { Icon } from "../../shared/icon/icon";
 import type { InheritedSettingsTarget } from "./inherited-settings-dialog";
 import { ExportDialog } from "./export-dialog";
+import { Tabs } from "../../state/tabs";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
@@ -82,6 +85,27 @@ export class CollectionsSidebar implements OnInit {
     const keydown = (event: KeyboardEvent) => this.handleGlobalKeydown(event);
     window.addEventListener("keydown", keydown, true);
     inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+    // The selected row is the open tab's request, or none for a tab that is not a saved one (U-144): opened from
+    // history, the tree kept the row of the request it replaced. A row chosen by hand stays until the tab changes.
+    const tabs = inject(Tabs);
+    effect(() => {
+      const id = tabs.active().bound()?.meta.id;
+      const tree = this.tree();
+      if (!tree) return;
+      const key = id ? `request:${id}` : null;
+      // A request saved just now is not in the tree yet: read the nodes, so this runs again when it is.
+      if (
+        key &&
+        !this.nodes().some(function has(node): boolean {
+          return node.key === key || !!node.children?.some(has);
+        })
+      )
+        return;
+      untracked(() => {
+        tree.choose(key);
+        if (!key) this.selectedNode.set(null);
+      });
+    });
   }
 
   readonly loadRequest = output<RequestDoc>();

@@ -54,6 +54,11 @@ way (three runs, the median), beside its row above.
 | 5b | Find why a request failed: DNS | D4-h (#504) | 43 (+2 in a terminal) | 6 | 0 | 37 | 0.33 | 0.33, 0.33, 0.31 |
 | 2 | Import a Postman collection with scripts and run it | D4-i (#510, #511) | 11 | 11 | 0 | 0 | 1.75 | 1.89, 1.75, 1.75 |
 | 7 | Run a collection with a data file and read the report | D4-i (#510 to #513) | 5 | 5 | 0 | 0 | 0.51 | 0.51, 0.52, 0.51 |
+| 8 | Find a request sent last week | D5-a (U-144) | 9 | 3 | 0 | 6 | 0.52 | 0.52, 0.53, 0.51 |
+
+D5-a left task 8 its nine inputs: the request found now opens in a tab of
+its own, beside the request that was open (U-144), and the tree no longer
+shows the old request as selected. The task ends on the same address.
 
 D4-i left tasks 2 and 7 their inputs: the run's setup folds after a run, so
 the report the task reads is first on the screen, and a row now opens its

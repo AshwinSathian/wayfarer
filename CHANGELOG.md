@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The CLI's HTML report is checked as the app's views are.** An e2e
+  opens a report in Chromium, Firefox and WebKit, light and dark, at 320,
+  390, 820 and 1,440 px: no WCAG 2.2 AA violation, and nothing wider than
+  the window.
+
 - **The CLI writes an HTML report.** `--reporter html` writes
   `wayfarer-run.html`: the run as the app's run view shows it, in its
   words and colours, light or dark as the system is. It holds no script

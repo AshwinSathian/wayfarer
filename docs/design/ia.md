@@ -395,8 +395,8 @@ it is.
 | `tab-strip.html: Env / Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
 | `tab-strip.html: New tab` | + after the last tab; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f, done |
 | `tab-strip.html: closeFromPointer(tab, $event)` | Each tab's ×, for the pointer; Alt+W, Delete on a focused tab and the tab's menu from the keyboard | Tab strip (U-027) | D4-f, done |
-| `run-view.html: Cancel run` | A run's tab | A run's tab | D4-i |
-| `run-view.html: Run again / Run` | A run's tab | A run's tab | D4-i |
+| `run-view.html: Cancel run / Run again / Run` | A run's tab | A run's tab: one button, Cancel run while it runs (U-091) | D4-i, done |
+| `run-view.html: Change` | A run's tab, after a run | A run's tab: opens the folded setup (U-096) | D4-i, done |
 | `run-view.html: setIterations($any($event.target).value)` | A run's tab | A run's tab | D4-i |
 | `run-view.html: setDelay($any($event.target).value)` | A run's tab | A run's tab | D4-i |
 | `run-view.html: Stop on the first failure` | A run's tab | A run's tab | D4-i |

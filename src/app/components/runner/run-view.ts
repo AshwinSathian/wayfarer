@@ -112,13 +112,36 @@ export class RunView {
   /** The data file being read, if one is: Run pressed in that moment waits for it, or the run would go without it. */
   private reading: Promise<void> = Promise.resolve();
 
-  protected async start(): Promise<void> {
-    await this.reading;
-    await this.runner.start(this.run());
+  /** Whether the setup is shown in full after a run; folded to one line once a run starts (U-096). */
+  protected readonly setupOpen = signal(true);
+
+  /** "2 iterations, 100 ms between requests, stopping on the first failure, data from rows.csv". */
+  protected readonly setupSummary = computed(() => {
+    const state = this.run();
+    const data = state.dataFile();
+    const iterations = state.iterations() ?? (data ? data.rows.length : 1);
+    return [
+      `${iterations} ${iterations === 1 ? "iteration" : "iterations"}`,
+      state.delayMs() ? `${state.delayMs()} ms between requests` : "no delay",
+      ...(state.stopOnFailure() ? ["stopping on the first failure"] : []),
+      ...(data ? [`data from ${data.name}`] : []),
+    ].join(", ");
+  });
+
+  /**
+   * Run, or Cancel while it runs. The second click of a double click is not a second press: it neither stops the run
+   * the first started nor, after a short run, starts another (U-091).
+   */
+  protected runOrCancel(event: MouseEvent): void {
+    if (event.detail > 1) return;
+    if (!this.run().running()) void this.start();
+    else this.runner.cancel(this.run());
   }
 
-  protected cancel(): void {
-    this.runner.cancel(this.run());
+  protected async start(): Promise<void> {
+    this.setupOpen.set(false);
+    await this.reading;
+    await this.runner.start(this.run());
   }
 
   protected setIterations(text: string): void {

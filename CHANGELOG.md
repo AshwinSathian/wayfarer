@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A run's results come first.** Once a run starts, its setup folds to
+  one line ("2 iterations, no delay") with Change, so the counts and
+  results are at the top. Run and Cancel run are one button, so a double
+  click no longer starts a run and stops it, and Cancel run is no longer
+  a red button.
+
 - **The design docs say what session D4-h built.** The plan's row 1.58
   lists the seven changes to settings, the Local Bridge, import and the
   installed app, and the baseline gives tasks 2, 5a and 5b measured again.

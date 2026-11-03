@@ -1159,6 +1159,7 @@ Evidence: `runner/run-view.html:158-191`;
 [`hig-review/1440-dark-34-run.png`](hig-review/1440-dark-34-run.png).
 **Status:** Open, D4-i (each row opens its exchange; plan D4.12's rail
 holds it). Since D4-l (D4.12, 2026-10-27) each row that was sent opens into its exchange record (Record, under the row); opening its request, its response and the failing test is D4-i's. Review row W-20.
+**2026-11-03:** Fixed in #513 (D4-i): each row whose request is still saved has **Open**, which opens it in a tab of its own (a run's tab is never loaded into), and the run keeps its results; the row already lists its failed tests by name and opens into its exchange record, which holds the response the run got. A row leads to its request, its response and its failing test.
 
 **U-096. A run's setup stays above its results.** Severity 3. H8. QA.
 After a run the form (Iterations, Delay, Stop on first failure, Data

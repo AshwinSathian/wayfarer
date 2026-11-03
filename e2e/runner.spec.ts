@@ -792,3 +792,17 @@ test("a run whose scripts wait for a review offers the review, and the next run 
   await expect(status(view)).toContainText("1 of 1 tests passed", { timeout: 15_000 });
   await expect(view).not.toContainText("wait for a review");
 });
+
+// U-076: a row leads to its request. Open puts it in a tab of its own, and the run's tab keeps its results.
+test("a run's row opens its request in a tab of its own, and the run keeps its results", async ({ page }) => {
+  await seedCollection(page, [{ name: "Gone", url: "http://127.0.0.1:9/a" }]);
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+  await view.getByRole("button", { name: "Open Gone", exact: true }).click();
+  await expect(page.locator("input.address-url")).toHaveValue("http://127.0.0.1:9/a");
+  const strip = page.getByRole("tablist", { name: "Open requests" });
+  await expect(strip.getByRole("tab", { name: /Gone/ })).toHaveAttribute("aria-selected", "true");
+  await strip.getByRole("tab", { name: /Run Shop/ }).click();
+  await expect(resultRows(view)).toHaveCount(1);
+});

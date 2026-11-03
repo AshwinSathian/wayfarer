@@ -66,7 +66,7 @@ export class TabState {
   /** The draft as it was when the tab was opened, loaded or saved. */
   readonly baseline = signal("");
   /** The draft differs from what it was opened from or last saved as. */
-  readonly dirty = computed(() => JSON.stringify(contentOf(this.draft())) !== this.baseline());
+  readonly dirty = computed(() => this.snapshot() !== this.baseline());
 
   readonly endpointError = signal("");
   /** Why the tab's last save did not land (U-066): said under the address until a save does. */
@@ -152,9 +152,14 @@ export class TabState {
     this.markClean();
   }
 
+  /** The draft as `baseline` and `dirty` compare it. */
+  snapshot(): string {
+    return JSON.stringify(contentOf(this.draft()));
+  }
+
   /** The draft as it is now is what the tab holds unchanged: it was just opened, loaded or saved. */
   markClean(): void {
-    this.baseline.set(JSON.stringify(contentOf(this.draft())));
+    this.baseline.set(this.snapshot());
   }
 
   /**

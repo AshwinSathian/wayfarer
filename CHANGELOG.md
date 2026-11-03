@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A request you sent and never saved is not marked unsaved.** History
+  keeps every send, yet a tab whose request was never saved kept its
+  unsaved dot after each send, and closing it asked whether to discard
+  changes history already had. After a send that history keeps, such a
+  tab is clean until you edit it again.
+
 - **A screen reader names each row by what it holds.** In Params,
   Headers, a form body, a multipart body and the variables dialogs, a
   row's controls were named by their place ("Send parameter 2", "Headers

@@ -1673,6 +1673,7 @@ Every ad-hoc send leaves an unsaved dot, so the dot stops meaning
 anything.
 Evidence: [`hig-review/1440-light-rt-24-close-scratch-tab.png`](hig-review/1440-light-rt-24-close-scratch-tab.png).
 **Status:** Open, D4-f (D4.4). Review row N11.
+**2026-11-04:** Fixed in D5-a: a send that history keeps leaves a tab that is not saved clean (`WorkspaceStore.send`): no unsaved dot, and closing it asks nothing. An edit after the send marks it again; a saved request's tab is unchanged, since history does not write back to the collection. `composer.spec.ts` holds it.
 
 **U-142. The fifth tab is cut under the tab actions at 1,440 px with no
 overflow cue.** Severity 3. H1. SD, QA.

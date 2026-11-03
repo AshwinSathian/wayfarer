@@ -103,10 +103,19 @@ textarea.ui-input {
 }
 
 /* The browser's own parts that Material's field hid: a search field's clear
-   button and a date's picker. A number keeps its arrows. */
+   button, a date's picker and a number's arrows, which Firefox and WebKit draw
+   in every number field (U-057, nothing looks native). A number keeps its keys:
+   the up and down arrows still step it. */
 .ui-input::-webkit-search-cancel-button,
-.ui-input::-webkit-calendar-picker-indicator {
+.ui-input::-webkit-calendar-picker-indicator,
+.ui-input::-webkit-inner-spin-button,
+.ui-input::-webkit-outer-spin-button {
   display: none;
+  margin: 0;
+}
+
+.ui-input[type="number"] {
+  appearance: textfield;
 }
 
 /* A field inside a tree row, for renaming it in place. */

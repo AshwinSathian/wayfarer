@@ -246,3 +246,44 @@ test.describe("Settings surface", () => {
     expect(await focused.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(2);
   });
 });
+
+// U-053: WebKit drew the focus ring on a dialog's first control when a click opened it: focus set by code was the
+// keyboard's to it. A click opens Settings with no ring; the keyboard opens it with one.
+test("a dialog opened by a click shows no focus ring until a key is pressed in it; one opened by a key is not quieted", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  const settings = page.getByRole("banner").getByRole("button", { name: "Settings", exact: true });
+  // The ring that is drawn, not the browser's opinion of focus-visible: WebKit's says yes after a click.
+  const ringed = () =>
+    page.evaluate(
+      () => (document.activeElement ? getComputedStyle(document.activeElement).outlineStyle : "none") !== "none",
+    );
+  await settings.click();
+  const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.closest("dialog") !== null)).toBe(true);
+  expect(await ringed()).toBe(false);
+  // The keyboard is in use now: the ring is drawn where Tab goes.
+  await page.keyboard.press("Tab");
+  await expect.poll(ringed).toBe(true);
+  // Escape gives focus back to Settings; Enter opens it again, and nothing quiets the ring.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(settings).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).not.toHaveAttribute("data-quiet-focus");
+});
+
+// U-057: Firefox and WebKit drew their own arrows in every number field. None is drawn; the keys still step it.
+test("a number field draws no arrows of the browser's, and the arrow keys still step it", async ({ page }) => {
+  await page.goto("/app/");
+  const dialog = await openSettings(page, "General");
+  const timeout = dialog.getByLabel("Request timeout");
+  expect(await timeout.evaluate((input) => getComputedStyle(input).appearance)).toBe("textfield");
+  await timeout.focus();
+  await page.keyboard.press("ArrowUp");
+  await expect(timeout).toHaveValue("1000");
+});

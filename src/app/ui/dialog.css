@@ -161,3 +161,8 @@ dialog.ui-drawer-end[open] {
     transform: translateX(100%);
   }
 }
+
+/* A dialog a click opened: no ring on the control focus starts on, until a key is pressed (U-053, UiModal). */
+dialog[data-quiet-focus] :focus-visible {
+  outline: none;
+}

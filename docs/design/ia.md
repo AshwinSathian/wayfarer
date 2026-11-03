@@ -615,6 +615,10 @@ it is.
 | `ai-draft.html: Discard` | — | A proposed request (D4.10) | D4-k |
 | `ai-draft.html: Accept` | — | A proposed request: fills a tab with nothing typed, else a new tab (AI-5) | D4-k |
 | `ai-drafted.ts: Undo` | — | Under the address after Accept: puts the draft back (AI-5) | D4-k |
+| `ai-explain.html: Explain this response…` | — | The exchange record of a status of 400 or more, with a provider and the action on (D4.10) | D4-k |
+| `ai-explain.html: The response body` | — | The preview of Explain: a tick, unticked each time (AI-4) | D4-k |
+| `ai-explain.html: Close` | — | The model's answer (D4.10) | D4-k |
+| `ai-explain.html: Ask again…` | — | The model's answer: the preview again | D4-k |
 | `cookies-pane.html: Delete cookie` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: jar.setValue(cookie, $any($event.target).value)` | Settings, Cookies | Settings, Cookies | D4-h |
 | `cookies-pane.html: Delete all…` | Settings, Cookies | Settings, Cookies | D4-h |

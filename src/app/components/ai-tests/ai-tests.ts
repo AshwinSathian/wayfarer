@@ -59,6 +59,14 @@ export class AiTests {
       const withBody = this.withBody();
       if (entry) untracked(() => void this.prepare(entry, withBody));
     });
+    // The palette's Write tests from the response… asks here.
+    effect(() => {
+      if (this.calls.asked() !== "tests") return;
+      untracked(() => {
+        this.calls.asked.set(null);
+        void this.ask();
+      });
+    });
   }
 
   protected async ask(): Promise<void> {

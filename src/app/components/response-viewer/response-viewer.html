@@ -118,6 +118,10 @@
       aria-label="Exchange record"
     >
       <app-exchange-record [record]="rec" (sendThroughBridge)="sendThroughBridge.emit()" />
+      <!-- Explain (D4.10): a status of 400 or more, with a provider and the action on (AI-1); fetched when drawn. -->
+      @if (ai.offers().explain && (responseStatusCode() ?? 0) >= 400) { @defer {
+      <app-ai-explain class="mt-3" />
+      } }
     </section>
     } } @if (redirects(); as hops) { @if (hops.chain.length || redirectNote()) {
     <!-- The redirects followed through the Local Bridge (P5.4). A direct request has none to show: the browser follows them unseen. -->

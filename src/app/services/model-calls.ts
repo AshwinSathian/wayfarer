@@ -34,6 +34,8 @@ export class ModelCalls {
 
   /** The Draft a request dialog is open (the empty response's offer and the palette open it). */
   readonly draftOpen = signal(false);
+  /** The palette asked for Write tests or Explain: the open tab's control asks, once drawn, and clears this. */
+  readonly asked = signal<"tests" | "explain" | null>(null);
 
   /** The call a prompt makes, for the preview. Null with no provider: no AI is offered then (AI-1). */
   async prepare(

@@ -239,18 +239,6 @@ export class PastRequests {
     return request.sent.headers.map(([name, value]) => `${name}: ${value}`).join("\n");
   }
 
-  /** A model call's row as a screen reader names it: "Model call, Write tests, api.openai.com, 200, just now". */
-  protected modelName(request: PastRequest): string {
-    const parts = [
-      "Model call",
-      request.model ? MODEL_ACTION_WORDS[request.model.action] : "",
-      hostOf(request),
-      request.response ? String(request.response.status) : "No response",
-      this.relativeTime(request.createdAt),
-    ];
-    return parts.filter(Boolean).join(", ");
-  }
-
   async confirmDelete(req: PastRequest, event: Event): Promise<void> {
     const id = req.id;
     if (typeof id === "undefined") return;

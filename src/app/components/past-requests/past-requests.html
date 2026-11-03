@@ -99,11 +99,10 @@
             type="button"
             class="history-open"
             [attr.aria-expanded]="expanded() === request.id"
-            [attr.aria-label]="modelName(request)"
             (click)="load(request)"
           >
             <span class="history-line">
-              <span class="method-badge history-model-badge shrink-0">Model</span>
+              <span class="method-badge history-model-badge shrink-0">Model<span class="sr-only"> call,</span></span>
               <span class="history-address">{{ actionWords[model.action] }}</span>
             </span>
             <span class="history-facts type-footnote">

@@ -428,6 +428,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A model call's row in History is named by what it shows.** Its name
+  for a screen reader was a sentence of its own that left out the model's
+  name, so the words on the row were not all in it (WCAG 2.5.3); it is
+  now the row's text, starting "Model call,". The AI views are checked
+  with axe and against the window's width at 320, 390, 820 and 1,440 px,
+  in both themes and three engines.
+
 - **The Tests tab says "Status code".** It was the last label in title
   case.
 

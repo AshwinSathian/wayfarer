@@ -326,7 +326,7 @@ it is.
 | `past-requests.html: details` | History drawer, a row: opens the entry with its exchange record; its card says the status, the time and when | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f, done |
 | `past-requests.html: Delete from history` | Each row's end, grey until its row is hovered or focused, asked first | Toolbar, History drawer | D4-f, done |
 | `past-requests.html: Show` | History drawer, above the list, only while history holds a model call: All, Requests, Model calls (D4.10) | Toolbar, History drawer | D4-k |
-| `past-requests.html: modelName(request)` | History drawer, a model call's row: opens it in place into its record; it loads into no tab (D4.10) | Toolbar, History drawer | D4-k |
+| `past-requests.html: Model call,` | History drawer, a model call's row: opens it in place into its record; it loads into no tab (D4.10) | Toolbar, History drawer | D4-k |
 | `past-requests.html: Show what was sent` | An opened model call: the request as kept, masked | Toolbar, History drawer | D4-k |
 | `past-requests.html: Show the answer` | An opened model call, when its answer was kept | Toolbar, History drawer | D4-k |
 | `variables-dialog.ts: Cancel` | Global variables dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |

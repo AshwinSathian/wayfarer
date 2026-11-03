@@ -48,7 +48,7 @@ test("a wrong passphrase is an alert, and the field is marked invalid and descri
   const alert = create.getByRole("alert");
   await expect(alert).toHaveText("");
   await create.getByLabel("Choose a passphrase", { exact: true }).fill("short");
-  await create.getByPlaceholder("Confirm passphrase", { exact: true }).fill("short");
+  await create.getByLabel("Confirm passphrase", { exact: true }).fill("short");
   await create.getByRole("button", { name: "Create vault" }).click();
   await expect(alert).toHaveText("A passphrase needs at least 8 characters.");
   const field = create.getByLabel("Choose a passphrase", { exact: true });

@@ -325,7 +325,8 @@ Evidence: `baseline/1440-light-p-20-vault-create.png`.
 2026-10-23 (hig-review): confirmed; Create vault still does not say that a
 forgotten passphrase cannot be recovered. The wrong passphrase's message
 is not announced: U-062 (D4.11, D4-e). Close this one before v3.0.0.
-**2026-11-03:** Environments' share fixed in #493 (D4-g): the passphrase fields made in a variable's row are labelled above them, and the row says a forgotten passphrase cannot be recovered. The shell's vault dialog remains, with D4-g's next PR.
+**2026-11-03:** Environments' share fixed in #493 (D4-g): the passphrase fields made in a variable's row are labelled above them, and the row says a forgotten passphrase cannot be recovered. The shell's vault dialog is fixed in #494.
+**2026-11-03:** Fixed in #494 (D4-g): the vault dialog's fields have labels above them, and creating a vault says a forgotten passphrase cannot be recovered, nor the secrets.
 
 ### History, settings, import
 
@@ -1173,6 +1174,7 @@ Evidence: `app-shell.html:302, 351`; `app-shell.ts:194, 369, 373, 412`;
 `workspace-backup.ts:59`; `secrets-vault.ts:223, 270`; `oauth-fields.html:22`;
 `script-review-dialog.html:52`.
 **Status:** D4-e's share fixed in #458 (the composer's OAuth and script review strings, the socket's and the script worker's errors). The shell's, the vault's, the environments', import's and the backup's remain with D4-f, D4-g and D4-h. Review row W-26.
+**2026-11-03:** The vault's share fixed in #494 (D4-g): "That is not the vault's passphrase." for "Incorrect passphrase", and "The file is not JSON." twice (the vault's import and the backup's restore). The shell's words were fixed in D4-f. Import's remain with D4-h.
 
 **U-083. One thing goes by several names.** Severity 3. H4. All.
 Address is also "URL" and "Load … into composer"; secret is also
@@ -1188,6 +1190,7 @@ Evidence: `past-requests.html:38, 122, 189, 195`; `past-requests.ts:185-186`;
 bridge, Settings). Review row W-28.
 **2026-11-02:** History's names fixed in #485 (D4-f): one act, Delete from history; one Clear, Clear history; a row opens its entry. The secrets', import's, the bridge's and Settings' remain with D4-g and D4-h.
 **2026-11-02:** The tree's names fixed in #486 (D4-f): a request is never "New Item".
+**2026-11-03:** The secrets' name fixed in #494 (D4-g): the environment export's choice is "Secret variables", not "Protected variables".
 
 **U-084. Empty places say what is missing, not what goes there.**
 Severity 3. H6, H10. OC.
@@ -1196,6 +1199,7 @@ empty.", "None." twice, "No secrets yet … it'll show up here."
 Evidence: `response-viewer.html:329, 344, 488, 525`; `cookies-pane.html:56`;
 `diagnostics-pane.html:65, 77`; `secrets-manager.html:38-40`.
 **Status:** D4-e's share fixed in #458 (the response's Headers, Timings and Tests). Secrets (D4-g), cookies and diagnostics (D4-h) remain. Review row W-29.
+**2026-11-03:** Secrets fixed in #494 (D4-g): the empty list says "Secrets you mark in Environments are kept here." and how a variable is marked. Cookies and diagnostics remain with D4-h.
 
 **U-092. Diagnostics says "Nothing leaves this machine" and fetches a
 file.** Severity 3. H2. PE.

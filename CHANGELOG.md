@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Creating a vault says a forgotten passphrase cannot be recovered.**
+  The vault's passphrase fields have labels that stay while you type; they
+  had only placeholders, gone at the first key. A wrong passphrase reads
+  "That is not the vault's passphrase.", a file that is not JSON says so
+  plainly, the export's choice is named "Secret variables", and an empty
+  Secrets list says what is kept there.
+
 - **A deleted environment can be put back.** Deleting an environment
   goes at once and says so, with Undo for ten seconds; the browser's own
   "are you sure" box asked before. A new environment is named in the list

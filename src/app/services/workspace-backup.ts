@@ -81,7 +81,7 @@ export class WorkspaceBackup {
   async restore(text: string): Promise<string[]> {
     if (isOversizedImport(text)) return [IMPORT_TOO_LARGE];
     const parsed = parseJson(text);
-    if (!parsed.ok) return ["The file is not valid JSON."];
+    if (!parsed.ok) return ["The file is not JSON."];
     const errors = validateWorkspaceFile(parsed.value);
     if (errors.length) return errors;
     const { stores } = parsed.value as WorkspaceFile;

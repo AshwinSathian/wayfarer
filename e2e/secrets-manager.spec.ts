@@ -6,7 +6,7 @@ test.describe("Secrets management view", () => {
     await page.goto("/app/");
     await page.getByRole("button", { name: "Secrets", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
-    await expect(page.getByText("No secrets yet")).toBeVisible();
+    await expect(page.getByText("Secrets you mark in Environments are kept here.")).toBeVisible();
   });
 
   test("opens from the command palette", async ({ page }) => {
@@ -74,6 +74,6 @@ test.describe("Secrets management view", () => {
       .getByRole("alertdialog", { name: "Delete the secret Renamed Token?" })
       .getByRole("button", { name: "Delete", exact: true })
       .click();
-    await expect(page.getByText("No secrets yet")).toBeVisible();
+    await expect(page.getByText("Secrets you mark in Environments are kept here.")).toBeVisible();
   });
 });

@@ -227,7 +227,7 @@ export class SecretsVault {
   async importFile(text: string, filePassphrase: string): Promise<VaultImportResult> {
     if (isOversizedImport(text)) return { error: IMPORT_TOO_LARGE };
     const parsed = parseJson(text);
-    if (!parsed.ok) return { error: "The file is not valid JSON." };
+    if (!parsed.ok) return { error: "The file is not JSON." };
     // An environments file exported "with the vault" carries the vault file inside it.
     const content =
       typeof parsed.value === "object" &&

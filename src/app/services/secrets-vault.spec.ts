@@ -246,7 +246,7 @@ describe("SecretsVault", () => {
       };
       const before = JSON.stringify(await idb.secrets.listAll());
 
-      expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not valid JSON." });
+      expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not JSON." });
       expect(await vault.importFile("{}", "correct horse")).toEqual({
         error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault".',
       });

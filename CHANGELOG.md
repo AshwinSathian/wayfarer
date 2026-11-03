@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **An environment's variable can be switched off.** Each row of the
+  environment editor has a box: a variable switched off keeps its value
+  and is not used. Before, a variable was either there or deleted.
+  The columns are headed Name and Value.
+
 - **A variable's chip opens where its value is set.** In the preview
   before Send, a chip of a collection's or a folder's variable opens its
   settings at Variables, a global's opens the global variables, a secret's

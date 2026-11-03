@@ -18,6 +18,7 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiButton } from "../../ui/button";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
@@ -68,6 +69,7 @@ interface EnvironmentDraft {
   selector: "app-environments-manager",
   imports: [
     UiInput,
+    UiCheckbox,
     Icon,
     FormsModule,
     UiButton,
@@ -316,6 +318,17 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     });
   }
 
+  /** A variable switched on or off is written at once: a click on a box moves no focus out of the editor (U-041). */
+  setEnabled(index: number, enabled: boolean): void {
+    const draft = this.draft();
+    const row = draft?.vars[index];
+    if (!draft || !row) return;
+    draft.vars[index] = { ...row, enabled };
+    this.updateDraft(draft);
+    this.syncJsonFromPairs();
+    void this.commit();
+  }
+
   removeVariable(index: number): void {
     const draft = this.draft();
     if (!draft) {
@@ -474,7 +487,14 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
         value: String(val ?? ""),
         enabled: true,
       }));
-      draft.vars = applyVariableChanges(draft.vars, variableChanges(draft.vars, typed));
+      // Against the rows the JSON shows: a switched-off row is not in it, and is not removed by it.
+      draft.vars = applyVariableChanges(
+        draft.vars,
+        variableChanges(
+          draft.vars.filter((row) => row.enabled),
+          typed,
+        ),
+      );
     }
     this.updateDraft(draft);
   }

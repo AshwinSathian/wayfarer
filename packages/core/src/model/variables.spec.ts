@@ -55,7 +55,7 @@ describe("variable changes", () => {
 
   it("finds what an editor did: values set or changed, names removed, and nothing for rows it left alone", () => {
     const before = [row("keep", "1"), row("change", "old"), row("gone", "x"), row("off", "z", false)];
-    const after = [row("keep", "1"), row("change", "new"), row("added", "+")];
+    const after = [row("keep", "1"), row("change", "new"), row("added", "+"), row("off", "z", false)];
 
     expect(variableChanges(before, after)).toEqual([
       { key: "change", value: "new" },
@@ -63,6 +63,21 @@ describe("variable changes", () => {
       { key: "gone", value: null },
     ]);
     expect(variableChanges(before, before)).toEqual([]);
+  });
+
+  // U-041: a variable switched off keeps its value; one switched on, or changed while off, is said so.
+  it("a row switched off, edited while off, or switched on is a change that keeps its value", () => {
+    const before = [row("a", "1"), row("b", "2", false), row("c", "3", false)];
+    const after = [row("a", "1", false), row("b", "2"), row("c", "new", false)];
+    const changes = variableChanges(before, after);
+    expect(changes).toEqual([
+      { key: "a", value: "1", enabled: false },
+      { key: "b", value: "2" },
+      { key: "c", value: "new", enabled: false },
+    ]);
+    expect(applyVariableChanges(before, changes)).toEqual(after);
+    // A name with an enabled row and a switched-off one is the enabled one's.
+    expect(variableChanges([row("d", "on"), row("d", "off", false)], [row("d", "on")])).toEqual([]);
   });
 
   // The two-tab case: each tab edited the rows it loaded; the second save lands on what the first one stored.

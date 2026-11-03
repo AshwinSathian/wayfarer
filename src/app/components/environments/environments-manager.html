@@ -177,12 +177,29 @@
           <div ngTabPanel value="pairs" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <div class="flex flex-col gap-2">
-                @for (item of form.vars; track $index) {
+                @if (form.vars.length) {
+                <!-- The columns' names, as Params has them (U-041); where the value has its own line, there is no column to name. -->
+                <div
+                  class="env-var-head hidden @md:grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-2 px-1.5 type-footnote text-label-tertiary"
+                  aria-hidden="true"
+                >
+                  <span class="w-[22px]"></span><span>Name</span><span>Value</span><span class="w-[34px]"></span
+                  ><span class="w-[34px]"></span>
+                </div>
+                } @for (item of form.vars; track $index) {
                 <!-- By the editor's own width: on a phone the value takes a line of its own (U-042). -->
                 <div
-                  class="env-var grid grid-cols-[minmax(0,1fr)_auto_auto] @md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg p-1.5"
+                  class="env-var grid grid-cols-[auto_minmax(0,1fr)_auto_auto] @md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg p-1.5"
                   [class]="focusedVariableKey() === item.key ? 'ring-2 ring-ink bg-fill-selected' : ''"
                 >
+                  <!-- On or off, its value kept either way (U-041). -->
+                  <input
+                    type="checkbox"
+                    uiCheckbox
+                    [attr.aria-label]="'Use ' + (form.vars[$index].key || 'this variable')"
+                    [ngModel]="form.vars[$index].enabled"
+                    (ngModelChange)="setEnabled($index, $event)"
+                  />
                   <input
                     #keyInput
                     class="font-mono"

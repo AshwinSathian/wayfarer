@@ -689,6 +689,7 @@ Evidence: `baseline/second-pass/webkit-settings-general-390-light.png`
 against `baseline/design-chromium/settings-general-390-light.png`;
 `baseline/second-pass/webkit-run-390-light.png`.
 **Status:** Open, D4-h.
+**2026-11-03:** Fixed in #506 (D4-h): a dialog a click or a touch opened carries `data-quiet-focus` until a key is pressed in it, and draws no ring inside it meanwhile (`UiModal`, the CDK's `InputModalityDetector`; `dialog.css`). `focus({ focusVisible: false })` was tried first: WebKit does not hold to it. Run again in the run's view is focus moved by the run, not a dialog, and is left for D4-i.
 
 **U-057. Number fields show the browser's arrows in Firefox and WebKit.**
 Severity 3. H4. All.
@@ -701,6 +702,7 @@ Evidence: `baseline/second-pass/firefox-run-390-light.png`,
 `baseline/design-chromium/run-390-light.png`.
 **Status:** Open, D4-h (the field is `uiInput`'s, which the runner and
 Settings share).
+**2026-11-03:** Fixed in #506 (D4-h): `uiInput` hides a number field's arrows in the three engines (`appearance: textfield`, the WebKit spin buttons); the arrow keys still step it.
 
 **U-058. On a phone, header names and values break inside words.**
 Severity 3 (phones). H8. SD, QA.

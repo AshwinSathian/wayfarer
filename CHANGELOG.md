@@ -316,6 +316,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Number fields have no browser arrows, and a dialog opened by a click
+  has no focus ring.** Firefox and Safari drew their own up and down
+  arrows in every number field (the timeout, the history size, a run's
+  iterations); the arrow keys still step the number. Safari drew the
+  keyboard's focus ring on the first control of a dialog opened with the
+  mouse; it now shows once a key is pressed.
+
 - **The Local Bridge's own error is no longer shown as the server's.**
   When the bridge could not reach a server (a name that does not
   resolve), the response showed "502" and the bridge's message as if a

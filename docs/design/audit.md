@@ -633,6 +633,7 @@ the drawer. The field is fixed in #427 (D4-c): the key opens the palette
 from a field too, since the address has focus when the app opens.
 2026-10-23 (hig-review): confirmed; it is a symptom of the modal drawer,
 U-070, and closes with it or with the shell's palette.
+**2026-11-04:** Fixed in #484 (D4-f, D4.4): the palette is the shell's (`app-shell.ts`), and Ctrl+K (⌘K) opens it at every width, the drawer closed included.
 
 **U-050. Copy as cURL says nothing.** Severity 3. H1. TP.
 The command goes to the clipboard and the menu closes; nothing on the
@@ -1249,6 +1250,7 @@ Evidence: `index.html:2`.
 plan that takes up translation; this one has none.
 Review row W-41h.
 **2026-11-03:** `lang="en-GB"` in #501 (D4-h, D4.13). The names built by concatenation and the plurals by ternary wait for a plan that takes up translation, as above.
+**2026-11-04:** The remainder is accepted (plan row 1.64): names joined from parts and plurals by ternary read correctly in English, the app's only language, and a fix without a translation plan would be scaffolding. It reopens with a plan that takes up translation.
 
 **U-105. "Trust center" is the one American spelling on screen.**
 Severity 4. H4. All.
@@ -1415,22 +1417,26 @@ Evidence: `tokens.css`; `styles.css:65-101`.
 A translate with a spring easing, against motion.md's tone.
 Evidence: `components.css:329-337`; `secrets-manager.css:14-27`.
 **Status:** Open, D3.7. Review row DS-21.
+**2026-11-04:** Fixed in #442 (D3.7): a chip changes colour only on hover, no lift (`motion.md`'s table; `e2e/motion.spec.ts`).
 
 **U-122. A theme change fires about 90 transitions.** Severity 3. H8. All.
 motion.md says a theme change is instant.
 Evidence: `styles.css:182-195`; `button.css:39-45`.
 **Status:** Open, D3.7. Review row DS-23.
+**2026-11-04:** Fixed in #442 (D3.7): a theme change is instant, and the controls' own fades are held off for that frame (`theme.ts`; `e2e/motion.spec.ts`).
 
 **U-123. One `transition-all`.** Severity 3. H8. None directly.
 The environment variable row.
 Evidence: `environments-manager.html:151`.
 **Status:** Open, D3.7 (the token test bans it). Review row DS-24.
+**2026-11-04:** Fixed in #442 (D3.7): no `transition-all` is left, and the token test fails on one (`packages/tokens/tokens.test.mjs`, "every transition names the properties it moves").
 
 **U-079. Showing the sidebar slides the page.** Severity 3. H8. All.
 `margin-left` over 300 ms both ways re-lays out Monaco on every frame and
 breaks two rules of motion.md.
 Evidence: `app-shell.html:136`.
 **Status:** Open, D3.7. Review row W-23.
+**2026-11-04:** Fixed in #442 (D3.7): the pinned sidebar moves the page in one frame, with no `margin-left` slide (`motion.md`'s table; `e2e/motion.spec.ts`).
 
 **U-124. Controls have six heights and no scale.** Severity 3. H4. All.
 40, 41, about 35, 34, 32 and 28 px.

@@ -591,6 +591,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design audit's status lines match `main`.** Five findings were
+  still marked open though their fixes had shipped: the palette's
+  shortcut below 1,200 px (U-049, fixed in #484) and four of motion
+  (U-079 and U-121 to U-123, fixed in #442). They now name their fixes.
+  U-100's remainder, names joined from parts, is accepted until a plan
+  takes up translation.
+
 - **The site's picture of the app is the app as it is.** The landing
   page showed the app from before the redesign: the old colours, the old
   mark and icons, a toolbar and a composer that have since changed. It

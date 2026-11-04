@@ -156,6 +156,34 @@ test("a deleted environment comes back by Undo, in use again", async ({ page }) 
   await expect(page.getByRole("combobox", { name: "Environment" })).toContainText("Tripwire env");
 });
 
+// No environment, chosen, lasted until the next read of the environments: an edit, or a reload, put the first back.
+test("No environment, chosen in the toolbar, stays chosen after an edit and a reload", async ({ page }) => {
+  await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
+  const select = page.getByRole("banner").getByRole("combobox", { name: "Environment", exact: true });
+  await expect(select).toContainText("Tripwire env");
+  await select.click();
+  await page.getByRole("option", { name: "No environment" }).click();
+  await expect(select).toHaveText("No environment");
+  await expect.poll(async () => JSON.stringify((await dumpIdb(page))["meta"])).toContain('"activeEnvironmentId":null');
+
+  const region = await openEnvironments(page);
+  const row = region.locator(".env-item", { hasText: "Tripwire env" });
+  await expect(row).not.toContainText("In use");
+  await row.locator(".env-item-select").click();
+  await region.getByRole("checkbox", { name: "Use host" }).uncheck();
+  await expect
+    .poll(async () => JSON.stringify((await dumpIdb(page))["environments"]))
+    .toContain('"key":"host","value":"example.com","enabled":false');
+  await expect(row).not.toContainText("In use");
+  await closeEnvironments(page);
+  await expect(select).toHaveText("No environment");
+
+  await page.reload();
+  await expect(select).toHaveText("No environment");
+  const again = await openEnvironments(page);
+  await expect(again.locator(".env-item", { hasText: "Tripwire env" })).not.toContainText("In use");
+});
+
 // U-041: a variable can be switched off and keeps its value; the request then has none, and a reload keeps both.
 test("a variable switched off keeps its value and is not used", async ({ page }) => {
   await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });

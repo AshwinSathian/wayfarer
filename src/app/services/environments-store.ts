@@ -47,7 +47,8 @@ export class EnvironmentsStore {
       this.environmentsState.set(environments);
       this.globalsState.set(await this.environmentsRepository.getGlobals());
       const active = await this.environmentsRepository.getActiveEnvironmentId();
-      if (active) {
+      // `null` is No environment, chosen (it lasts); `undefined` is no choice yet, and the first is put in use.
+      if (active !== undefined) {
         this.activeIdState.set(active);
       } else if (environments.length) {
         const firstId = environments[0].meta.id;

@@ -444,6 +444,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **No environment, chosen in the toolbar, stays chosen.** Before, the
+  next change to any environment, a change made in another browser tab,
+  or a reload put the first environment back in use, and your requests
+  were sent with its variables again. Making a new environment still puts
+  it in use when none is, and deleting the one in use still hands over to
+  the first.
 - **A response tab chosen while a request is on its way stays chosen.**
   The last response now stays on screen while the next one is sent, and
   its tabs can be clicked. Before, choosing Tests or Headers then did

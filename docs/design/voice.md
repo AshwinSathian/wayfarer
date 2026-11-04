@@ -213,7 +213,7 @@ drawn on the most screens; the count is how many of the 49 show each.
 | 9 | 47 | Headers | Headers | Kept. |
 | 10 | 47 | Auth | Auth | Kept: the trade's short form, as Postman's tab. |
 | 11 | 47 | Scripts | Scripts | Kept. |
-| 12 | 47 | Settings | Settings | Kept. |
+| 12 | 47 | Settings | Network | Settings is the app's dialog; this tab is how the request travels: its route, redirects, the certificate check, what the browser does (D5-e, L-20). |
 | 13 | 46 | Send | Send | Kept; its tooltip shows its keys ("Send request ⌘↵"). |
 | 14 | 39 | value | Value | Sentence case. |
 | 15 | 38 | name | Name | Sentence case. |

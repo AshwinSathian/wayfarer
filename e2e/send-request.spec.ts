@@ -95,7 +95,7 @@ test("searching a response runs in the app's JSON worker, not on the main thread
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
   const before = workerUrls.length;
-  await page.getByLabel("Search the response").fill(":");
+  await page.getByLabel("Search the response, or filter it by path").fill(":");
   await expect(page.getByRole("button", { name: "Next search match" })).toBeEnabled();
 
   // A worker shipped with the app answered: no source file was requested,

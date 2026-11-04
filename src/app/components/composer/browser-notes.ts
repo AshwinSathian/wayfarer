@@ -5,7 +5,7 @@ import { UiCheckbox } from "../../ui/checkbox";
 import { UiSelect, type UiSelectOption } from "../../ui/select";
 
 /**
- * The request's Settings tab: how it is sent (its route, P6.4; redirects,
+ * The request's Network tab: how it is sent (its route, P6.4; redirects,
  * P5.4; the certificate check, P6.1) and what the browser will do to it
  * (P2.14, `WorkspaceStore.browserLimits`). What will go wrong with it is
  * said above the request instead (`RequestWarnings`).

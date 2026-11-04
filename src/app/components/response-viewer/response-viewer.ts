@@ -306,11 +306,17 @@ export class ResponseViewer {
     return chosen && this.views().includes(chosen) ? chosen : this.views()[0];
   });
   readonly xmlText = computed(() => (this.view() === "xml" ? indentXml(this.bodyText()) : ""));
-  /** A dot path into the JSON body, such as `data.items[*].id`. */
-  readonly jsonFilter = signal("");
+  /**
+   * The field's text, when it is a path into the JSON body (L-14): it starts with `$`, `.` or `[`, or has an index
+   * (`[0]`, `[*]`), as `data.items[*].id` does. Any other text is searched for.
+   */
+  readonly jsonFilter = computed(() => {
+    const text = this.searchQuery().trim();
+    return /^[$.[]|\[(\d+|\*)\]/.test(text) ? text.replace(/^\$/, "") : "";
+  });
   /** What the path finds, formatted; "" when it finds nothing; null when there is no path. */
   readonly filteredJson = computed(() => {
-    const path = this.jsonFilter().trim();
+    const path = this.jsonFilter();
     const parsed = path ? parseJson(this.bodyText()) : null;
     if (!parsed?.ok) {
       return null;
@@ -351,7 +357,6 @@ export class ResponseViewer {
         this.previousResponseError = error;
         this.resetSearchState();
         this.viewOverride.set(null);
-        this.jsonFilter.set("");
       }
 
       if (!isJson) {
@@ -608,7 +613,7 @@ export class ResponseViewer {
     this.searchActiveIndex.set(0);
     const trimmed = value.trim();
     const corpus = this.formattedResponseBody;
-    if (!trimmed || !corpus) {
+    if (!trimmed || !corpus || this.jsonFilter()) {
       this.searchResult.set(null);
       this.searchPending.set(false);
       this.searchToken++;

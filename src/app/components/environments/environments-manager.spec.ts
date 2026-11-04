@@ -50,6 +50,8 @@ class EnvironmentsServiceStub {
     this.createCalls.push(payload);
     const doc = makeEnv("new-env", payload.vars ?? {});
     this.environmentsState.update((envs) => [...envs, doc]);
+    // As the store does: a new environment is put in use when none is.
+    if (!this.activeState()) this.activeState.set(doc);
     return doc;
   }
 
@@ -128,6 +130,29 @@ describe("EnvironmentsManager", () => {
 
       expect(component.selectedId()).toBe("e1");
     });
+  });
+
+  // L-19 (D5-e): Enter in the new name left focus on nothing; now it is on the new row, its Use button if it has one.
+  it("gives focus to the new environment's Use button when another is in use, else to its row", async () => {
+    const env = makeEnv("e1");
+    envService.setEnvironments([env]);
+    envService.setActive(env);
+    fixture.detectChanges();
+    const make = async () => {
+      component.openNewEnvironmentDialog();
+      component.onNewEnvNameChange("Staging");
+      await component.submitNewEnvironment();
+      await fixture.whenStable();
+      return document.activeElement as HTMLElement;
+    };
+    expect((await make()).getAttribute("aria-label")).toBe("Use Env new-env for requests");
+
+    envService.setEnvironments([]);
+    envService.setActive(null);
+    fixture.detectChanges();
+    const created = await make();
+    expect(created.classList).toContain("env-item-select");
+    expect(created.textContent).toContain("Env new-env");
   });
 
   describe("writing as it goes", () => {

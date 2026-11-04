@@ -232,7 +232,7 @@ export {
 export { runOutcome } from "./send/run";
 export { previewAddress, previewVariables, type PreviewHolders, type PreviewVariable } from "./send/preview";
 export {
-  formatMs,
+  formatDuration,
   lineText,
   recordHeadline,
   recordLines,

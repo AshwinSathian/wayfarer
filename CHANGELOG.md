@@ -752,6 +752,24 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Sending keeps the last response on screen, and nothing beside Send
+  moves.** Pressing Send used to empty the response pane, and the button
+  turned into a "Cancel" 11 px wider than Send, which pushed the address
+  field left. Now the last response stays where it was. If the answer
+  takes longer than a second, the status line shows a spinner and
+  "Sending… 1.2 s" in place of the status, and the old response under it
+  is dimmed until the new one arrives. The button says Stop, at Send's
+  width. A run's button says Stop run, and a stopped request or run says
+  "You stopped the request." or "You stopped the run."
+
+- **One way to write a duration, and one way to draw a status.** The
+  status line said "18.1 ms", History said "18ms", a run's table said
+  "1534 ms" and Timings said "0.26 ms". Every duration is now whole
+  milliseconds under a second ("18 ms") and tenths of a second from one
+  ("1.5 s"). History and a run's table draw a status code as the status
+  line does, as a badge in its tone. History used to colour 3xx and 4xx
+  alike, and the run's table had no colour at all.
+
 - **The response body has more room.** A JSON body had two rows of
   controls above it: the search with its count and arrows, then a
   separate field for a path. Now there is one field. Type a path such as

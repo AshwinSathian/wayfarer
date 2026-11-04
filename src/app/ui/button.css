@@ -223,6 +223,9 @@
 .ui-button.send-btn {
   --btn-radius: var(--radius-lg);
   height: var(--ctl-height-lg);
+  /* Wide enough for Send and Stop alike: the label changes while a request is out, and the address beside it does
+     not move (D5-e). */
+  min-width: 5.5rem;
   padding: 0 22px;
   border: none;
   background: var(--ink);

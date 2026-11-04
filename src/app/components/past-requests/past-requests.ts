@@ -7,7 +7,8 @@ import { UiButton } from "../../ui/button";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
-import { MODEL_ACTION_WORDS, type PastRequest } from "@wayfarer/core";
+import { MODEL_ACTION_WORDS, formatDuration, type PastRequest } from "@wayfarer/core";
+import { statusTone } from "../../shared/http/status-tone";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
@@ -209,15 +210,8 @@ export class PastRequests {
     return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }
 
-  formatDuration(ms: number | undefined): string {
-    if (!ms || ms <= 0) {
-      return "";
-    }
-    if (ms < 1000) {
-      return `${ms}ms`;
-    }
-    return `${(ms / 1000).toFixed(1)}s`;
-  }
+  protected readonly formatDuration = formatDuration;
+  protected readonly statusTone = statusTone;
 
   /** A send's entry loads into a tab; a model call's opens into its record in place, since Send would use its key. */
   load(req: PastRequest) {

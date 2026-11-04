@@ -167,7 +167,7 @@ export async function withDeadline<T>(
   } catch (cause) {
     if (cause instanceof TransportError) throw cause;
     if (timedOut) throw new TransportError("timeout", `Timed out after ${options.timeoutMs} ms`);
-    if (options.signal.aborted) throw new TransportError("aborted", "The request was cancelled.");
+    if (options.signal.aborted) throw new TransportError("aborted", "You stopped the request.");
     throw new TransportError("network", networkMessage(cause));
   } finally {
     clearTimeout(timer);

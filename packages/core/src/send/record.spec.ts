@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMs, lineText, recordHeadline, recordLines, recordRoute, type ExchangeRecord } from "./record";
+import { formatDuration, lineText, recordHeadline, recordLines, recordRoute, type ExchangeRecord } from "./record";
 
 const record = (fields: Partial<ExchangeRecord> = {}): ExchangeRecord => ({
   status: { code: 200, text: "OK" },
@@ -15,20 +15,22 @@ const record = (fields: Partial<ExchangeRecord> = {}): ExchangeRecord => ({
 const texts = (value: ExchangeRecord, keeper?: "history" | "run") =>
   Object.fromEntries(recordLines(value, keeper).map((line) => [line.field, lineText(line)]));
 
-describe("formatMs", () => {
-  it("formats durations with more precision the smaller they are", () => {
-    expect([undefined, null, 0, -3].map(formatMs)).toEqual(["—", "—", "—", "—"]);
-    expect(formatMs(0.256)).toBe("0.26 ms");
-    expect(formatMs(12.34)).toBe("12.3 ms");
-    expect(formatMs(99.96)).toBe("100.0 ms");
-    expect(formatMs(100)).toBe("100 ms");
-    expect(formatMs(1234.6)).toBe("1235 ms");
+describe("formatDuration", () => {
+  it("writes whole milliseconds under a second and tenths of a second from one, the same everywhere", () => {
+    expect([undefined, null, -3, Number.NaN].map(formatDuration)).toEqual(["—", "—", "—", "—"]);
+    expect(formatDuration(0)).toBe("0 ms");
+    expect(formatDuration(0.256)).toBe("<1 ms");
+    expect(formatDuration(18.1)).toBe("18 ms");
+    expect(formatDuration(999.4)).toBe("999 ms");
+    expect(formatDuration(999.6)).toBe("1.0 s");
+    expect(formatDuration(1534)).toBe("1.5 s");
+    expect(formatDuration(30_000)).toBe("30.0 s");
   });
 });
 
 describe("the record's first line", () => {
   it("is the status, the time and the route to the host", () => {
-    expect(recordHeadline(record())).toBe("200 OK, 16.3 ms, Direct to api.example.com");
+    expect(recordHeadline(record())).toBe("200 OK, 16 ms, Direct to api.example.com");
     expect(recordHeadline(record({ route: "bridge", durationMs: 0, status: { code: 204, text: "" } }))).toBe(
       "204, Local Bridge to api.example.com",
     );

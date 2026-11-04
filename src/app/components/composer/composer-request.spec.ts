@@ -20,9 +20,10 @@ describe("Composer: rows, payloads and variables", () => {
   let view: ComposerView;
   let httpMock: ComposerHarness["httpMock"];
   let environmentsService: ComposerHarness["environmentsService"];
+  let fixture: ComposerHarness["fixture"];
 
   beforeEach(async () => {
-    ({ component, store, view, httpMock, environmentsService } = await setupComposer());
+    ({ component, store, view, httpMock, environmentsService, fixture } = await setupComposer());
   });
 
   afterEach(() => {
@@ -358,9 +359,51 @@ describe("Composer: rows, payloads and variables", () => {
     await pending;
 
     expect(store.loadingState()).toBe(false);
-    expect(store.responseError()).toBe("The request was cancelled.");
+    expect(store.responseError()).toBe("You stopped the request.");
     expect(store.responseStatusCode()).toBeUndefined();
     expect(store.shouldShowResponsePanel).toBe(true);
+  });
+
+  // D5-e (V1, C3): Send says Stop while a request is out, at Send's width: "Cancel" was 11 px wider and moved the address.
+  it("Send says Stop while a request is out, and keeps its width", async () => {
+    store.patch({ url: "https://example.com/slow" });
+    fixture.detectChanges();
+    const button = () => (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(".send-btn")!;
+    const width = button().getBoundingClientRect().width;
+    expect(button().textContent?.trim()).toBe("Send");
+
+    const pending = component.sendRequest();
+    httpMock.expectOne("https://example.com/slow");
+    fixture.detectChanges();
+    expect(button().textContent?.trim()).toBe("Stop");
+    expect(button().getAttribute("aria-label")).toBe("Stop request");
+    expect(button().getBoundingClientRect().width).toBe(width);
+
+    store.cancel();
+    await pending;
+  });
+
+  // D5-e (V1): the pane does not go blank while a request is out. The last response stays until the next one is there.
+  it("keeps the last response while the next send is on its way, and replaces it when the answer comes", async () => {
+    store.patch({ url: "https://example.com/first" });
+    const first = component.sendRequest();
+    httpMock
+      .expectOne("https://example.com/first")
+      .flush(jsonBytes({ first: true }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    await first;
+    expect(store.responseStatusCode()).toBe(200);
+
+    store.patch({ url: "https://example.com/second" });
+    const second = component.sendRequest();
+    const req = httpMock.expectOne("https://example.com/second");
+    expect(store.loadingState()).toBe(true);
+    expect(store.responseStatusCode()).toBe(200);
+    expect(store.responseData()).toContain('"first"');
+
+    req.flush(jsonBytes({ second: true }), { status: 404, statusText: "Not Found", headers: JSON_HEADERS });
+    await second;
+    expect(store.responseStatusCode()).toBe(404);
+    expect(store.responseError() + store.responseData()).not.toContain('"first"');
   });
 
   it('Follow redirects is on unless the request says no, and "on" is not written into the request (P5.4)', () => {
@@ -381,11 +424,12 @@ describe("Composer: rows, payloads and variables", () => {
     await pending;
     expect(store.responseRedirectedTo()).toBe("https://example.com/end");
 
+    // The last response stays while the next is out (D5-e), and is forgotten when that one comes.
     const again = component.sendRequest();
-    expect(store.responseRedirectedTo()).toBeUndefined();
     httpMock
       .expectOne("https://example.com/start")
       .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await again;
+    expect(store.responseRedirectedTo()).toBeUndefined();
   });
 });

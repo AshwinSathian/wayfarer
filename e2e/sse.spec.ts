@@ -27,7 +27,11 @@ test("the five events of a stream are listed with their id, event, data and time
     [1, 2, 3, 4, 5].map((n) => [String(n), "tick", `{"n":${n}}`]),
   );
   // Each arrived after the one before it: the times are the stream's, not the end of the response's.
-  const times = rows.map(([, , , time]) => Number(/^\+(\d+) ms$/.exec(time)?.[1]));
+  // "+18 ms" under a second, "+1.5 s" from one (formatDuration).
+  const times = rows.map(([, , , time]) => {
+    const [, value, unit] = /^\+(\d+(?:\.\d)?) (ms|s)$/.exec(time) ?? [];
+    return Number(value) * (unit === "s" ? 1000 : 1);
+  });
   expect(times.every((time) => Number.isFinite(time))).toBe(true);
   expect([...times].sort((a, b) => a - b)).toEqual(times);
   expect(times[4] - times[0]).toBeGreaterThanOrEqual(300);
@@ -63,7 +67,7 @@ test("an open stream shows its events as they come, is stopped with Stop, and Re
   expect((await reconnect).headers()["last-event-id"]).toBe(String(last));
   await expect(eventRows(page).first()).toBeVisible();
   await expect.poll(async () => (await cells(page))[0]?.[0]).toBe(String(last + 1));
-  await page.getByRole("button", { name: "Cancel request" }).click();
+  await page.getByRole("button", { name: "Stop request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
 });
 

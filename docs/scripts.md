@@ -475,8 +475,8 @@ folder. Nothing is sent until **Run**.
 - **Stop on the first failure** ends the run at a failed test, or at a
   request that got no response. A status such as 500 with no test about it
   is a response.
-- **Cancel run** stops within one request: the one on its way is
-  cancelled, and no other is sent. Nothing but Cancel stops a run whose
+- **Stop run** stops within one request: the one on its way is
+  stopped, and no other is sent. Nothing but Stop run ends a run whose
   scripts send it in a circle.
 - **A run is not history.** Its requests are not written there, and a
   run's tab is not stored: a reload does not bring it back. You may open

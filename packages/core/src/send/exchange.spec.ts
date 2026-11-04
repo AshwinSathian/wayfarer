@@ -1355,7 +1355,7 @@ describe("exchange", () => {
   it("shows a timeout and a cancel as what they are, with no status", async () => {
     for (const failure of [
       new TransportError("timeout", "Timed out after 1000 ms"),
-      new TransportError("aborted", "The request was cancelled."),
+      new TransportError("aborted", "You stopped the request."),
     ]) {
       transport.setResponse(failure);
       const result = await service.execute({

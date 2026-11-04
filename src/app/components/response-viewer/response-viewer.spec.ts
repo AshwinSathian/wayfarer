@@ -44,6 +44,51 @@ describe("ResponseViewer", () => {
     expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("TLS verification off");
   });
 
+  // D5-e (V1): while a request is out the last response stays. For its first second nothing changes (D3.7); then the
+  // status line says it is sending, with a spinner and the time so far, and the old response under it is dimmed.
+  describe("while a request is on its way", () => {
+    const element = () => fixture.nativeElement as HTMLElement;
+    const sending = (since: number) => {
+      fixture.componentRef.setInput("loading", true);
+      fixture.componentRef.setInput("sendingSince", since);
+      fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      fixture.componentRef.setInput("responseStatusCode", 200);
+      fixture.componentRef.setInput("responseStatusText", "OK");
+      fixture.componentRef.setInput("responseData", "the last body");
+      fixture.detectChanges();
+    });
+
+    it("keeps the last response as it was for the first second", () => {
+      sending(Date.now());
+      expect(element().querySelector(".status-badge")?.textContent?.trim()).toBe("200");
+      expect(element().querySelector(".response-stale")).toBeNull();
+      expect(element().querySelector("ui-spinner")).toBeNull();
+      expect(element().querySelector(".response-tabs")).not.toBeNull();
+    });
+
+    it("then says Sending and the time so far in the status line, with a spinner, over the last response dimmed", () => {
+      sending(Date.now() - 1500);
+      const line = element().querySelector(".response-sending");
+      expect(line?.textContent?.trim()).toMatch(/^Sending… 1\.\d s$/);
+      expect(line?.querySelector("ui-spinner")).not.toBeNull();
+      expect(element().querySelector(".status-badge")).toBeNull();
+      // The last response is still there, dimmed: its line is the one replaced, not its body.
+      expect(element().querySelector(".response-main.response-stale .response-tabs")).not.toBeNull();
+      expect(line?.closest(".response-stale")).toBe(element().querySelector(".response-main"));
+    });
+
+    it("with no response before it, draws only that line", () => {
+      fixture.componentRef.setInput("responseStatusCode", undefined);
+      fixture.componentRef.setInput("responseData", "");
+      sending(Date.now() - 1500);
+      expect(element().querySelector(".response-sending")?.textContent?.trim()).toMatch(/^Sending… 1\.\d s$/);
+      expect(element().querySelector(".response-tabs")).toBeNull();
+    });
+  });
+
   it("says where a response came from: the page, or the Local Bridge (P6.4)", () => {
     fixture.componentRef.setInput("responseStatusCode", 200);
     fixture.componentRef.setInput("route", "direct");

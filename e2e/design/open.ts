@@ -268,7 +268,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await page.goto("/app/");
     await address(page).fill(`${ECHO}/delay/60000`);
     await send(page);
-    await expect(button(page, "Cancel request")).toBeVisible();
+    await expect(button(page, "Stop request")).toBeVisible();
     // Past its first second (D3.7): nothing before it, then what it is doing and for how long. The page's
     // clock is fixed; two seconds on, the pane says so.
     await page.clock.setFixedTime((await page.evaluate(() => Date.now())) + 2000);

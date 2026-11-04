@@ -8,39 +8,31 @@
     [live]="true"
     (stop)="stopStream.emit()"
   />
-  } @else if (loading()) {
-  <!-- No indicator for a reply under about a second (D3.7); then what it is doing, and for how long. -->
-  <div class="response-sending p-6">
-    @if (sendingFor(); as sofar) {
-    <p class="type-callout text-label-secondary tabular-nums">Sending… {{ sofar }}</p>
-    }
-  </div>
   } @else {
-  <div class="response-main">
+  <!-- While a request is out the last response stays (D5-e). Nothing changes for its first second (D3.7): a quick
+       answer replaces it in the frame it is ready. After that the status line says it is sending, and for how long,
+       and the last response under it is dimmed: it is the old one, and the new one is drawn at full strength. -->
+  @let sofar = sendingFor(); @let statusCode = responseStatusCode(); @let answered = statusCode !== undefined ||
+  isError();
+  <div class="response-main" [class.response-stale]="!!sofar">
     <!-- ── Status bar ─────────────────────────────────────── -->
-    @let statusCode = responseStatusCode(); @if (statusCode !== undefined || isError()) {
-    <!-- This whole @else branch (and therefore this status bar) is destroyed
-         and recreated on every send — sendRequest() always toggles
-         loading() true then false around each request, so this animation
-         genuinely replays per response rather than only on first mount. -->
+    @if (loading() && (sofar || !answered)) {
+    <div
+      class="response-sending text-label-secondary"
+      [class]="sofar ? 'response-status flex items-center gap-x-2.5 border-b border-separator px-4 py-2' : ''"
+    >
+      @if (sofar) {
+      <ui-spinner /><span class="type-callout tabular-nums">Sending… {{ sofar }}</span>
+      }
+    </div>
+    } @else if (answered) {
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
     <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
       @if (statusCode === undefined) {
       <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
       <span class="status-none type-callout font-semibold text-status-error">No response</span>
       } @else {
-      <!-- Status code badge -->
-      <span
-        class="status-badge"
-        [class]="{
-          'status-2xx': statusCode >= 200 && statusCode < 300,
-          'status-3xx': statusCode >= 300 && statusCode < 400,
-          'status-4xx': statusCode >= 400 && statusCode < 500,
-          'status-5xx': statusCode >= 500,
-          'status-err': isError() && statusCode === 0
-        }"
-        >{{ statusCode }}</span
-      >
+      <span class="status-badge" [class]="statusTone(statusCode)">{{ statusCode }}</span>
       }
 
       <!-- Status text -->
@@ -55,7 +47,7 @@
       <!-- The facts wrap as one line, not one by one. -->
       <span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
         @if (inspData && inspData.duration) {
-        <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
+        <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
         } @if (responseContentLength()) {
         <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
         } @if (record(); as rec) {
@@ -110,7 +102,7 @@
       </div>
       }
     </div>
-    } @if (record(); as rec) { @if (recordOpen()) {
+    } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
     <section
       id="exchange-record"
@@ -409,7 +401,7 @@
                         ><app-icon name="info" class="icon-xs"
                       /></span>
                     </div>
-                    <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
+                    <div class="type-title-3 text-label-primary">{{ formatDuration(inspectionData.duration) }}</div>
                   </div>
                   <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
@@ -512,7 +504,7 @@
                         ></div>
                       </div>
                       <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatMs(phase.duration) }}
+                        {{ formatDuration(phase.duration) }}
                       </span>
                     </div>
                     }
@@ -528,7 +520,7 @@
                         <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
                       </div>
                       <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatMs(bar.duration) }}
+                        {{ formatDuration(bar.duration) }}
                       </span>
                     </div>
                     }
@@ -633,6 +625,7 @@
         </div>
       </div>
     </div>
+    }
   </div>
   }
 </div>

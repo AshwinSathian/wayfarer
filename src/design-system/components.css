@@ -177,7 +177,11 @@ pre,
 }
 
 /* ── Status code badges ──────────────────────────────────── */
-.status-badge {
+/* The one way a status code is drawn (D5-e), its tone from `statusTone`. `.status-badge` is the response's own, the
+   status line's; `.status-tag` is the same badge in a list (history, a run's table), so that the page holds one
+   response status to find. */
+.status-badge,
+.status-tag {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
@@ -188,27 +192,27 @@ pre,
   letter-spacing: 0.01em;
 }
 
-.status-badge.status-2xx {
+.status-2xx {
   background: var(--status-success-fill);
   color: var(--status-success-text);
   border: 1px solid var(--status-success-border);
 }
-.status-badge.status-3xx {
+.status-3xx {
   background: var(--status-info-fill);
   color: var(--status-info-text);
   border: 1px solid var(--status-info-border);
 }
-.status-badge.status-4xx {
+.status-4xx {
   background: var(--status-warning-fill);
   color: var(--status-warning-text);
   border: 1px solid var(--status-warning-border);
 }
-.status-badge.status-5xx {
+.status-5xx {
   background: var(--status-error-fill);
   color: var(--status-error-text);
   border: 1px solid var(--status-error-border);
 }
-.status-badge.status-err {
+.status-err {
   background: var(--status-error-fill);
   color: var(--status-error-text);
   border: 1px solid var(--status-error-border);
@@ -518,6 +522,17 @@ pre,
   width: 10rem;
   height: 0.375rem;
   accent-color: var(--ink);
+}
+
+/* The last response while the next is on its way, after the first second (D5-e): dimmed under the line that says it
+   is sending. At once, with no fade (D3.7), and never the status line or a new response: only what is old. */
+.response-stale > :not(.response-sending) {
+  opacity: 0.45;
+}
+/* The sending line is as tall as the status line it stands in for, whose Export button sets its height: the response
+   under it does not move when the line changes. */
+.response-sending.response-status {
+  min-height: calc(var(--ctl-height-md) + 1rem + 1px);
 }
 
 /* ── The response, filling its pane (S3b) ────────────────── */

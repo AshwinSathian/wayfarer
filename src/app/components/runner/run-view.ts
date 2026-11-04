@@ -6,6 +6,7 @@ import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import {
   IMPORT_TOO_LARGE,
+  formatDuration,
   isOversizedImport,
   readImportText,
   requestsInOrder,
@@ -17,6 +18,7 @@ import {
   type RunResult,
 } from "@wayfarer/core";
 import { CollectionRunner } from "../../services/collection-runner";
+import { statusTone } from "../../shared/http/status-tone";
 import { CollectionsStore } from "../../services/collections-store";
 import { ScriptTrust } from "../../services/script-trust";
 import { ScriptReviewDialog } from "../composer/script-review-dialog";
@@ -44,6 +46,8 @@ export class RunView {
   private readonly collections = inject(CollectionsStore);
 
   readonly run = input.required<RunState>();
+  protected readonly formatDuration = formatDuration;
+  protected readonly statusTone = statusTone;
 
   /** The requests a run would send now, as they are stored. */
   protected readonly requests = computed(() => {
@@ -178,10 +182,10 @@ export class RunView {
   });
 
   /**
-   * Run, or Cancel while it runs. The second click of a double click is not a second press: it neither stops the run
+   * Run, or Stop while it runs. The second click of a double click is not a second press: it neither stops the run
    * the first started nor, after a short run, starts another (U-091).
    */
-  protected runOrCancel(event: MouseEvent): void {
+  protected runOrStop(event: MouseEvent): void {
     if (event.detail > 1) return;
     if (!this.run().running()) void this.start();
     else this.runner.cancel(this.run());

@@ -2,13 +2,13 @@ import { runFailed, type RunReport, type RunResult } from "./runner";
 
 // What a run says, in the app's run view and in the CLI's terminal and reports alike (D4.9): one set of sentences.
 
-/** How the run ended: "The run is complete.", "The run was cancelled." and so on. */
+/** How the run ended: "The run is complete.", "You stopped the run." and so on. */
 export function runEnding(report: Pick<RunReport, "ended" | "reason">): string {
   switch (report.ended) {
     case "completed":
       return "The run is complete.";
     case "cancelled":
-      return "The run was cancelled.";
+      return "You stopped the run.";
     case "failed":
       return "The run stopped at the first failure.";
     case "ended":

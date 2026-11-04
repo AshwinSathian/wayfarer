@@ -1,4 +1,4 @@
-<ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="closed.emit()" width="720px">
+<ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="requestClose()" width="720px">
   <!-- A dialog's content is made with the page; its script editors load Monaco: made while the dialog is open (P7.2). -->
   @if (target() !== null) {
   <div ngTabs class="tabs">
@@ -90,7 +90,7 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="requestClose()">Cancel</button>
       <button uiButton="filled" type="button" [disabled]="saving()" (click)="save()">Save settings</button>
     </div>
   </div>

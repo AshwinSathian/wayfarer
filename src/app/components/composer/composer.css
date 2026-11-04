@@ -25,3 +25,19 @@
 .composer-pane [role="tab"] {
   padding-inline: 12px;
 }
+
+/* The response under the request (L-6, L-7): the line is across, and each pane keeps its room from it above and
+   below. Taller than beside: two panes share the height, and a short window scrolls the panel instead. */
+.composer-response-splitter.ui-splitter--horizontal {
+  min-height: 480px;
+}
+
+.ui-splitter--horizontal .composer-pane {
+  padding-right: 0;
+  padding-bottom: 12px;
+}
+
+.ui-splitter--horizontal .response-pane {
+  padding-left: 0;
+  padding-top: 12px;
+}

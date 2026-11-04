@@ -6,13 +6,15 @@ const LINKS = [
   ["Docs", "/docs/"],
   ["Compare", "/compare/"],
   ["Claims", "/docs/claims/"],
-  ["Blog", "/blog/"],
   ["Changelog", "/changelog/"],
-  ["Roadmap", "/roadmap/"],
   ["GitHub", REPO],
 ] as const;
 
-/** The site's header: the name, the pages a reader looks for, the theme, and the app. Below 1024 px the pages fold into a menu. */
+/**
+ * The site's header: the name, the pages a reader looks for, the theme, and the app (the blog and the roadmap are in
+ * the footer). Below 1024 px the pages and the theme fold into a menu, and below 384 px the name is the mark alone, so
+ * that "Open Wayfarer" keeps to one line at 320 px (D5-e: it took two at 390).
+ */
 export function Header() {
   return (
     <header className="border-b border-line bg-paper">
@@ -20,7 +22,7 @@ export function Header() {
         {/* min-w-0: the row may squeeze the name, as it did when the mark was an <img> (#534). */}
         <a href="/" className="flex min-w-0 items-center gap-2 type-site-lede font-bold text-ink">
           <Mark className="size-7" />
-          Wayfarer
+          <span className="max-[24em]:sr-only">Wayfarer</span>
         </a>
         <nav aria-label="Site" className="hidden gap-6 type-site-small text-ink-muted lg:flex">
           {LINKS.map(([name, href]) => (
@@ -43,12 +45,13 @@ export function Header() {
                   {name}
                 </a>
               ))}
+              <ThemeToggle labelled className="mt-1" />
             </nav>
           </details>
-          <ThemeToggle />
+          <ThemeToggle className="hidden lg:grid" />
           <a
             href="/app/"
-            className="rounded-sm bg-action px-3 py-2 type-site-small font-bold text-on-action hover:opacity-90 sm:px-4"
+            className="rounded-sm bg-action px-3 py-2 type-site-small font-bold whitespace-nowrap text-on-action hover:opacity-90 sm:px-4"
           >
             Open Wayfarer
           </a>

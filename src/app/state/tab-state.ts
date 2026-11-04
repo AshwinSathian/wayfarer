@@ -47,6 +47,12 @@ export function contentOf(draft: Draft): RequestContent {
 }
 
 /** Scripts that wait for a review, and what the review calls them when they are not a history entry's. */
+/** A collection, or a folder in it: what holds auth, variables and scripts for the requests in it (P4.9). */
+export interface HolderTarget {
+  collectionId: string;
+  folderId?: string;
+}
+
 export type HeldScripts = RequestContent["scripts"] & { name?: string };
 
 /**
@@ -136,9 +142,16 @@ export class TabState {
    * over the page. One at most; it is not stored.
    */
   environments = false;
-  /** A tab that holds no request: a run, or the Environments tab. Nothing is sent or saved from it. */
+  /**
+   * A collection's or a folder's settings (D5-e): what it holds for the requests in it, edited where a request is, not
+   * in a dialog over the page. One tab a holder; it is not stored.
+   */
+  holder: HolderTarget | null = null;
+  /** A variable a chip asked to see in this tab (U-132): its row is shown, or made. */
+  readonly reveal = signal<{ key: string } | null>(null);
+  /** A tab that holds no request: a run, the Environments tab or a holder's settings. Nothing is sent or saved from it. */
   get document(): boolean {
-    return !!this.run || this.environments;
+    return !!this.run || this.environments || !!this.holder;
   }
   /** Set on the tab a request of a collection run is sent from (P5.2): which iteration, and the data file's row. Such a tab is in no strip. */
   iteration?: RunIteration;
@@ -152,7 +165,7 @@ export class TabState {
     this.markClean();
   }
 
-  /** A new tab no one has used: no saved request, nothing typed, nothing sent, and no run or environments in it. */
+  /** A new tab no one has used: no saved request, nothing typed, nothing sent, and no document in it. */
   empty(): boolean {
     return (
       !this.document &&
@@ -242,6 +255,7 @@ export class TabState {
     // A second tab of a run is a run of the same requests, not yet started.
     if (this.run) copy.run = new RunState(this.run.target);
     copy.environments = this.environments;
+    copy.holder = this.holder;
     return copy;
   }
 }

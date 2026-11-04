@@ -1,4 +1,4 @@
-import { pageMeta } from "../../../lib/meta";
+import { SITE, pageMeta } from "../../../lib/meta";
 import type { ReactNode } from "react";
 import { Claims } from "../../../components/Claims";
 import { H2, Page } from "../../../components/Page";
@@ -6,14 +6,20 @@ import { Cite, type Source } from "../../../lib/rivals";
 
 export const metadata = pageMeta(
   "/compare/moving-from-postman/",
-  "Moving from Postman: Wayfarer",
-  "Bring your Postman collections, environments and scripts to Wayfarer, step by step, and see what does not come across.",
+  "Move from Postman to Wayfarer: collections, scripts and CI",
+  "Export from Postman, import into Wayfarer, review the scripts, run the collection in CI. What comes across, what does not, and how to go back.",
 );
 
 const POSTMAN_EXPORT: Source = {
   title: "Postman docs: Export data",
   url: "https://learning.postman.com/docs/getting-started/importing-and-exporting/exporting-data/",
-  read: "2026-10-19",
+  read: "2026-11-04",
+};
+
+const BENCHMARK: Source = {
+  title: "Wayfarer benchmark, task 2, with its recording",
+  url: `${SITE}/docs/design/benchmark/#wayfarer-measured`,
+  read: "2026-11-04",
 };
 
 /** The steps, in the order they are done. */
@@ -29,8 +35,8 @@ const STEPS: [string, ReactNode][] = [
   [
     "Import the collection",
     <>
-      In Wayfarer, Import collection in the sidebar, and choose the file. You see what it will add, and what of it could
-      not be kept, before anything is stored. <Claims ids={["C-054", "C-058"]} />
+      In Wayfarer, Import in the sidebar, then File…, and choose the file. You see what it will add, and what of it
+      could not be kept, before anything is stored. <Claims ids={["C-054", "C-058"]} />
     </>,
   ],
   [
@@ -42,8 +48,8 @@ const STEPS: [string, ReactNode][] = [
   [
     "Read the scripts",
     <>
-      A collection&apos;s scripts from a file wait until you have read them and said you trust them: open a request and
-      choose Review scripts. <Claims ids={["C-051"]} />
+      A collection&apos;s scripts from a file wait until you have read them and said you trust them: open a request, its
+      Scripts tab, Review scripts, then Trust these scripts. <Claims ids={["C-051"]} />
     </>,
   ],
   [
@@ -79,8 +85,10 @@ export default function MovingFromPostman() {
       title="Moving from Postman"
       lede={
         <p>
-          A collection, its environments and its scripts come across in a few minutes. Below are the steps, then what
-          does not come across.
+          Export each collection and environment from Postman, import them here, read the scripts, and run the
+          collection. In our scripted benchmark, importing a collection with scripts, trusting them and running it took
+          11 clicks. <Cite source={BENCHMARK} /> Below are the steps, then what does not come across, and how to go
+          back.
         </p>
       }
     >
@@ -109,17 +117,27 @@ export default function MovingFromPostman() {
         </li>
         <li>
           The parts of <code>pm</code> marked not supported in the{" "}
-          <a href="/docs/postman-compatibility/">compatibility document</a>, such as <code>pm.cookies</code>.
+          <a href="/docs/postman-compatibility/">compatibility document</a>, such as <code>pm.cookies</code>.{" "}
+          <Claims ids={["C-040"]} />
         </li>
         <li>
           Requests a browser cannot make (forbidden headers, CORS, relaxed TLS) need the{" "}
-          <a href="/docs/browser-limits/">Local Bridge</a>.
+          <a href="/docs/browser-limits/">Local Bridge</a>; the composer says which before you send.{" "}
+          <Claims ids={["C-049", "C-064"]} />
         </li>
         <li>
           Shared workspaces: a team shares a collection as a file today. See{" "}
           <a href="/compare/#behind">where Wayfarer is behind</a>.
         </li>
       </ul>
+
+      <H2 id="back">Taking it back to Postman</H2>
+      <p className="mt-6 max-w-3xl text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
+        A collection exports as a Postman Collection v2.1 file, and an environment as a Postman environment file, with
+        credentials masked unless you ask for them. <Claims ids={["C-057", "C-014"]} /> See{" "}
+        <a href="/docs/export/">export</a>, and <a href="/compare/postman/">Wayfarer vs Postman</a> for how the two
+        differ.
+      </p>
     </Page>
   );
 }

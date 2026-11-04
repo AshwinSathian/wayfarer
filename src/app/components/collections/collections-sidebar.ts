@@ -38,7 +38,7 @@ import {
 } from "../../shared/collections/collection-tree-nodes";
 import { CollectionNodeAction, buildContextItems } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import type { InheritedSettingsTarget } from "./inherited-settings-dialog";
+import type { HolderTarget } from "../../state/tab-state";
 import { ExportDialog } from "./export-dialog";
 import { Tabs } from "../../state/tabs";
 import type { RunTarget } from "../../state/run-state";
@@ -116,8 +116,8 @@ export class CollectionsSidebar implements OnInit {
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
-  /** Settings… of a collection or a folder: the shell holds the dialog, which a closed drawer could not show. */
-  readonly openSettings = output<InheritedSettingsTarget>();
+  /** Settings… of a collection or a folder: the shell opens its tab (D5-e). */
+  readonly openSettings = output<HolderTarget>();
   /** The collection whose Export… dialog is open (U-016). */
   readonly exportOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
@@ -219,6 +219,11 @@ export class CollectionsSidebar implements OnInit {
           run: () => this.duplicateNode({ type: "collection", ref: data.ref }),
         },
         {
+          id: "settings-collection",
+          label: `Settings of ${data.ref.name}…`,
+          run: () => this.openSettings.emit({ collectionId: data.ref.meta.id }),
+        },
+        {
           id: "export-collection",
           label: `Export ${data.ref.name}…`,
           run: () => this.exportCollection(node),
@@ -242,6 +247,11 @@ export class CollectionsSidebar implements OnInit {
           id: "new-request-folder",
           label: `New request in ${folder.name}`,
           run: () => this.createRequestPrompt(folder.collectionId, folder.meta.id),
+        },
+        {
+          id: "settings-folder",
+          label: `Settings of ${folder.name}…`,
+          run: () => this.openSettings.emit({ collectionId: folder.collectionId, folderId: folder.meta.id }),
         },
         {
           id: "duplicate-folder",

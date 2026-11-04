@@ -225,6 +225,18 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  test(`the splitter, side by side and one above the other, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    await page.getByRole("separator", { name: "Resize one above the other" }).scrollIntoViewIfNeeded();
+    await scanner(page, found)("splitter, both orientations");
+    await page.getByRole("separator", { name: "Resize one above the other" }).hover();
+    await scanner(page, found)("splitter, its line under the pointer");
+    expect(found).toEqual([]);
+  });
+
   // Two tests, not one: each scan reads the whole page, and with every family in it one test took more than its 30 s in Firefox on CI.
   test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
@@ -800,6 +812,41 @@ test("tooltip: with reduced motion it appears at once", async ({ page }) => {
     el.getAnimations().map((animation) => Number(animation.effect?.getComputedTiming().duration)),
   );
   expect(durations.every((ms) => ms <= 0.001)).toBe(true);
+});
+
+// L-6, L-7: the response goes under the request in a narrow work area, with the line across.
+test("splitter: one above the other, Up and Down move the line, Left and Right do not, Home and End stop at the minimums", async ({
+  page,
+}) => {
+  await open(page, "light");
+  const gutter = page.getByRole("separator", { name: "Resize one above the other" });
+  await expect(gutter).toHaveAttribute("aria-orientation", "horizontal");
+  const at = async () => Number(await gutter.getAttribute("aria-valuenow"));
+  const start = page.locator(".catalogue-split-stacked .ui-splitter-pane").first();
+  const height = async () => (await start.boundingBox())!.height;
+  await gutter.focus();
+  const before = await height();
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(height).toBeGreaterThan(before + 3);
+  await page.keyboard.press("ArrowUp");
+  await expect.poll(height).toBeCloseTo(before, 0);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(height).toBeCloseTo(before, 0);
+  await page.keyboard.press("Home");
+  await expect.poll(at).toBe(20);
+  await page.keyboard.press("End");
+  await expect.poll(at).toBe(67);
+  // A drag moves it down the page.
+  const box = (await gutter.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y - 60, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(at).toBeLessThan(50);
+  await expect(page.getByRole("separator", { name: "Resize side by side" })).toHaveAttribute(
+    "aria-orientation",
+    "vertical",
+  );
 });
 
 test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", async ({ page }) => {

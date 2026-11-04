@@ -8,15 +8,17 @@ import { ChangeDetectionStrategy, Component } from "@angular/core";
   selector: "app-mark",
   template: `<svg viewBox="0 0 26 26" width="100%" height="100%" focusable="false">
     <rect class="brand-mark-tile" width="26" height="26" rx="6" />
-    <path
-      class="brand-mark-route"
-      d="M9 17.5V13.5C9 10.7 11.2 8.5 14 8.5H17"
-      fill="none"
-      stroke-width="1.6"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-    <circle class="brand-mark-host" cx="17" cy="8.5" r="1.5" />
+    <g class="brand-mark-glyph">
+      <path
+        d="M5.1 9.2L8.3 18.3L11.9 11.2L15.5 18.3L18.1 12.4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <circle cx="19.1" cy="9.4" r="3" fill="currentColor" />
+    </g>
   </svg>`,
   host: { class: "brand-mark", "aria-hidden": "true" },
   changeDetection: ChangeDetectionStrategy.OnPush,

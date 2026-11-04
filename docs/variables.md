@@ -7,8 +7,10 @@ Write `{{name}}` in the URL, a header, the body or an Auth field, and Wayfarer p
 A name is looked up in this order, and the first place that has it gives the value:
 
 1. **The active environment.** Edit it in Environments, the toolbar button beside the environment, or by clicking one of its variables under the address.
-2. **The folders** the request is in, the nearest folder first. Right-click a folder, choose **Settings**, then **Variables**.
-3. **The collection** the request is saved in. Right-click the collection, choose **Settings**, then **Variables**. A request that is not saved in a collection has none, and no folder's.
+2. **The folders** the request is in, the nearest folder first. Right-click a folder and choose **Settings**: its settings open in a tab, at **Variables**.
+3. **The collection** the request is saved in. Right-click the collection and choose **Settings**, as for a folder. A request that is not saved in a collection has none, and no folder's.
+
+A collection's and a folder's variables are edited as an environment's are: each row has a switch that turns it off without losing its value, a lock that keeps the value in the vault ([Secrets](#secrets)), and a JSON view. A change is written when you leave the field; there is no Save button.
 4. **Global variables.** The **Global variables** button in Environments. They apply whichever environment is active.
 
 Two more scopes are looked up before these and have no editor yet: variables a script sets for one request, and the rows of a data file in a collection run. Both arrive with the features that fill them.

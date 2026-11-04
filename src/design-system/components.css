@@ -389,21 +389,15 @@ pre,
 .brand-mark-tile {
   fill: var(--ink);
 }
-.brand-mark-route {
-  stroke: var(--on-ink);
-}
-.brand-mark-host {
-  fill: var(--on-ink);
+.brand-mark-glyph {
+  color: var(--on-ink);
 }
 @media (forced-colors: active) {
   .brand-mark-tile {
     fill: CanvasText;
   }
-  .brand-mark-route {
-    stroke: Canvas;
-  }
-  .brand-mark-host {
-    fill: Canvas;
+  .brand-mark-glyph {
+    color: Canvas;
   }
 }
 

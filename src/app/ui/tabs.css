@@ -145,6 +145,12 @@
   color: var(--label-secondary);
 }
 
+/* A settings tab's glyph stands where a request's method does, in its colour. */
+.request-tab-glyph {
+  flex: none;
+  color: var(--label-secondary);
+}
+
 .request-tab-name {
   max-width: 14rem;
   overflow: hidden;

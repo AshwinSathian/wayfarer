@@ -6,7 +6,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";
-import { TabState } from "../../state/tab-state";
+import { TabState, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { WorkspaceStore } from "../../state/workspace-store";
 
@@ -114,6 +114,24 @@ export class ComposerView {
     const tab = new TabState();
     tab.environments = true;
     this.tabs.open(tab);
+  }
+
+  /**
+   * Opens the settings tab of a collection or a folder (D5-e): the one that is open, or a new one. `variable`: a chip
+   * asked to see it (U-132), and the Variables pane shows its row.
+   */
+  openHolder(target: HolderTarget, variable?: string): void {
+    const tab =
+      this.tabs
+        .tabs()
+        .find(
+          (open) => open.holder?.collectionId === target.collectionId && open.holder.folderId === target.folderId,
+        ) ?? new TabState();
+    if (!tab.holder) {
+      tab.holder = { collectionId: target.collectionId, ...(target.folderId && { folderId: target.folderId }) };
+      this.tabs.open(tab);
+    } else this.tabs.activate(tab.id);
+    if (variable) tab.reveal.set({ key: variable });
   }
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */

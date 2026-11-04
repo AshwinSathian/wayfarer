@@ -728,6 +728,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   as the site already set it; the app used SemiBold beside the mark and
   a lighter weight in the toolbar.
 
+- **A collection's or a folder's settings open in a tab, and their
+  variables can be secrets.** Settings… in the tree's menu, the palette's
+  "Settings of {name}…" and a variable's chip open the settings as a tab
+  beside your requests, one tab for each collection or folder, as
+  Environments does. Before, they were a dialog over a page you could not
+  reach, with its own Save and a question when you closed it with changes.
+  Now each field is written when you leave it. The variables have the
+  environment editor's rows: a switch that turns one off and keeps its
+  value, a lock that moves its value into the vault, and a JSON view.
+  Before, a collection's token could not be locked, and an export wrote
+  it in plain text; a locked one is exported as its `{{$secret.…}}`
+  reference. Each script editor is 320 px tall, from 150. Editing a collection's
+  or a folder's script that waits for review still does not approve it.
+
 - **The response goes under the request when the two have no room side
   by side.** In a 820 px window, or a 1,024 to 1,400 px window with the
   sidebar pinned, the request and the response were two columns of 300 to

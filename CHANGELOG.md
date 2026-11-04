@@ -629,6 +629,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Five people walk through the app, and each step that fails is in the
+  audit.** A new design doc follows a solo developer, a privacy-bound
+  engineer, a tester, an occasional user and a team leaving Postman
+  through their first ten minutes and their tenth day. Of 69 steps, 18
+  failed, from 12 causes, now findings U-156 to U-167: among them, a run
+  is reached only from a context menu, and the app says the vault is
+  locked before there is one.
+
 - **The design research cites its sources and says what changed.** Each
   point now has the rival's, the standard's or the browser's own page,
   read on 2026-11-04, or is marked unverified, and a dated changelog ends

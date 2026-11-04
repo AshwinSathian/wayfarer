@@ -440,6 +440,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   right-click or Shift+F10. Type "run" in the palette (Ctrl+K or ⌘K) and
   each collection is there, and the selected folder too.
 
+- **Before you make a vault, the app says there is none.** It said
+  "Vault locked" in the status bar, the Secrets dialog and Settings, and
+  offered to change the passphrase or export a vault that did not exist.
+  It now says "No vault", and the Secrets dialog offers to create one.
+
+- **A collection's or folder's settings no longer drop your edits on
+  Escape.** Escape, × or Cancel closed the dialog and lost every change,
+  scripts included, without a word. With changes, closing now asks
+  first, and Keep editing keeps them.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

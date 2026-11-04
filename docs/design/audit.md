@@ -1968,6 +1968,7 @@ Evidence: `baseline/design-chromium/first-run-1440-light.png`,
 `src/app/components/secrets/secrets-manager.html:14-15`.
 **Status:** Open, D5-c.
 **2026-11-04:** Raised to severity 2 in D5-b's fifth pass: the repeated hig-review found the same words in the status bar, the Secrets dialog ("Vault is locked…", with Change passphrase and Export vault) and Settings, under a record that says "No vault secret was filled": it misleads, as severity 2 says.
+**2026-11-04:** Fixed in D5-c: until a passphrase is chosen the status bar says "No vault" (its tooltip and the palette "Make a vault"), the Secrets dialog "No vault yet. Marking a variable as secret makes one, with a passphrase you choose." with Create vault and without Change passphrase or Export vault, and Settings › Vault "No vault has been made in this browser yet." (`SecretsVault.made`). `e2e/vault.spec.ts` holds it.
 
 **U-165. In Safari, the seven-day deletion is said only in Settings.**
 Severity 2. H1, H2. OC, SD.
@@ -2058,6 +2059,7 @@ Evidence: `baseline/design-chromium/collection-settings-1440-light.png`
 `src/app/components/collections/inherited-settings-dialog.ts:71-73`, `:173`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: Escape, × or Cancel with changes asks "Discard the changes to {name}?", Keep editing being the button that has focus; with none, the dialog closes at once. `e2e/inheritance.spec.ts` holds it in three engines.
 
 **U-170. The request's tabs do not say which of them hold anything.**
 Severity 3. H1, H6. TP, QA.

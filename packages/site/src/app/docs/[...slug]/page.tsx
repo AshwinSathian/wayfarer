@@ -41,7 +41,11 @@ export default async function DocPage({ params }: Props) {
       {doc.group !== "Design records" && doc.group !== "Operations" && (
         <JsonLd data={docGraph(doc, docDescription(id), lastChanged(`docs/${id}.md`))} />
       )}
-      <article className="prose" data-pagefind-body dangerouslySetInnerHTML={{ __html: docHtml(id) }} />
+      <article
+        className={id === "claims" ? "prose claims-ledger" : "prose"}
+        data-pagefind-body
+        dangerouslySetInnerHTML={{ __html: docHtml(id) }}
+      />
       <p className="mt-12 type-site-small text-ink-muted">
         <a className="underline underline-offset-4 hover:text-action" href={`${REPO}/blob/main/docs/${id}.md`}>
           This page on GitHub

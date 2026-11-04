@@ -26,6 +26,7 @@ import {
   type Scripts,
 } from "@wayfarer/core";
 import { CollectionsStore } from "../../services/collections-store";
+import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
 import { AuthEditor } from "../composer/auth-editor/auth-editor";
 import { RowsEditor } from "../composer/rows-editor/rows-editor";
@@ -67,6 +68,9 @@ export interface InheritedSettingsTarget {
 })
 export class InheritedSettingsDialog {
   private readonly collections = inject(CollectionsStore);
+  private readonly confirm = inject(Confirm);
+  /** The settings as they were opened, to tell whether closing would lose an edit (U-169). */
+  private opened = "";
 
   /** Null while the dialog is closed. */
   readonly target = input<InheritedSettingsTarget | null>(null);
@@ -131,7 +135,30 @@ export class InheritedSettingsDialog {
       this.rows.set(rows);
       this.scripts.set({ ...node.scripts });
       this.route.set(("route" in node && node.route) || null);
+      this.opened = untracked(() => this.edits());
     });
+  }
+
+  /** What the dialog holds now. The rows editor changes rows in place, so this is read, not a computed signal. */
+  private edits(): string {
+    return JSON.stringify([this.auth(), this.rows(), this.scripts(), this.route()]);
+  }
+
+  /**
+   * Escape, × or Cancel. With changes it asks first: they closed the dialog and dropped every edit, scripts
+   * included (U-169, U-060's pattern).
+   */
+  protected async requestClose(): Promise<void> {
+    if (
+      this.edits() === this.opened ||
+      (await this.confirm.confirm({
+        title: `Discard the changes to ${this.node()?.name ?? "these settings"}?`,
+        message: "What you changed here is not saved.",
+        acceptLabel: "Discard changes",
+        rejectLabel: "Keep editing",
+      }))
+    )
+      this.closed.emit();
   }
 
   protected onAuthType(type: AuthConfig["type"]): void {

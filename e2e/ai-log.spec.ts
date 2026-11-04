@@ -19,7 +19,7 @@ async function textOf(download: Download): Promise<string> {
 
 /** A provider with a key in the vault, as a person adds one in Settings › AI. */
 async function addProvider(page: Page, model: string): Promise<void> {
-  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+  await page.getByRole("button", { name: "No vault", exact: true }).click();
   const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
   await create.locator("input[type='password']").nth(0).fill(PASSPHRASE);
   await create.locator("input[type='password']").nth(1).fill(PASSPHRASE);

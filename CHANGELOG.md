@@ -759,6 +759,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Environments says "none yet" once.** With no environment, the list
+  said what an environment is and offered New environment, and the empty
+  pane beside it said to make one with New environment too. The pane is
+  now empty until there is something to choose; with environments and
+  none open, it says "Choose an environment to edit its variables."
+
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished
   action were drawn in success's green, as a passing test is; they are

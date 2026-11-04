@@ -1,7 +1,7 @@
 @let current = auth();
 <div class="flex flex-col gap-3">
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <span class="ds-form-label basis-full" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
     <ui-select
       class="w-64 max-w-full"
       [id]="idPrefix() + '-oauth-grant'"
@@ -27,8 +27,8 @@
   } @else {
   <p class="type-callout text-label-tertiary">A request that inherits this gets its token in its own Auth tab.</p>
   } @if (current.grant === 'authorization_code') {
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Sign-in address</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-auth-url'">Sign-in address</label>
     <input
       class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
@@ -39,8 +39,8 @@
     />
   </div>
   }
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token address</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-token-url'">Token address</label>
     <input
       class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
@@ -50,8 +50,8 @@
       (ngModelChange)="patch.emit({ tokenUrl: $event })"
     />
   </div>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
     <input
       class="font-mono flex-1 basis-48"
       uiInput
@@ -60,8 +60,8 @@
       (ngModelChange)="patch.emit({ clientId: $event })"
     />
   </div>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
     <div class="flex flex-1 basis-48 items-center gap-2">
       <input
         class="font-mono flex-1"
@@ -81,8 +81,8 @@
       /></button>
     </div>
   </div>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
     <input
       class="font-mono flex-1 basis-48"
       uiInput
@@ -93,8 +93,8 @@
     />
   </div>
   @if (current.grant === 'password') {
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
     <input
       class="font-mono flex-1 basis-48"
       uiInput
@@ -103,8 +103,8 @@
       (ngModelChange)="patch.emit({ username: $event })"
     />
   </div>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
     <input
       class="font-mono flex-1 basis-48"
       uiInput
@@ -115,8 +115,8 @@
     />
   </div>
   }
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <span class="ds-form-label basis-full" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
     <ui-select
       class="w-56 max-w-full"
       [id]="idPrefix() + '-oauth-client-auth'"

@@ -1,5 +1,5 @@
 /* <ui-select>: the box, and its list in the overlay. Not encapsulated: the
-   list is drawn in the overlay, and the toolbar's select is a pill. */
+   list is drawn in the overlay. */
 .ui-select {
   display: inline-flex;
   align-items: center;
@@ -8,7 +8,7 @@
   padding-inline-start: 12px;
   border: 1px solid var(--ctl-boundary);
   border-radius: var(--radius-sm);
-  background: var(--canvas-elevated);
+  background: var(--ctl-surface);
   color: var(--label-primary);
   font-size: var(--type-callout-size);
   font-weight: 400;
@@ -128,16 +128,14 @@
   }
 }
 
-/* The environment in the toolbar: a pill that shrinks on a phone, so the
-   toolbar never outgrows the window. */
+/* The environment in the toolbar: a select of the toolbar's height that shrinks on a phone, so the toolbar never
+   outgrows the window. Its corners and edge are every select's (V17): a pill read as a tag. */
 .ui-select.env-switcher {
   flex: 0 1 160px;
   min-width: 80px;
   max-width: 200px;
   height: var(--ctl-height-md);
   padding-inline-start: 10px;
-  border-radius: var(--radius-full);
-  background: var(--fill-secondary);
   font-size: var(--type-callout-size);
 }
 

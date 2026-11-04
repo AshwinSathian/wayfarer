@@ -11,7 +11,8 @@
   appearance: none;
   /* A control's edge is its own token, 3:1 on every surface (U-109), not a separator's hairline. */
   border: 1px solid var(--ctl-boundary);
-  background: var(--canvas-elevated);
+  /* One surface for every field and select (V16): on a white pane canvas-elevated made a field grey. */
+  background: var(--ctl-surface);
   color: var(--label-primary);
   caret-color: var(--ink);
   font-family: var(--font-sans);

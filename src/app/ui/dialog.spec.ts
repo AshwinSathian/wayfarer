@@ -62,8 +62,8 @@ describe("ui-dialog", () => {
     expect(el.querySelector(".dialog-content #first")).not.toBeNull();
     expect(el.querySelector(".dialog-footer #save")).not.toBeNull();
     expect(el.style.width).toBe("320px");
-    // Its first element is the header's Close, as Material's was.
-    expect(document.activeElement).toBe(el.querySelector('button[aria-label="Close"]'));
+    // Focus starts in the content, not on the header's Close (V7: its ring was the loudest thing at open).
+    expect(document.activeElement).toBe(el.querySelector("#first"));
     fixture.destroy();
   });
 

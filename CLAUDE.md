@@ -393,6 +393,12 @@ code errors.
   selected row's mark and a checked box; only a `method` or `status`
   token carries a hue (the token test fails on chroma above 0.015
   elsewhere). Information is the secondary label with a glyph, not blue.
+  Success's green is a status (a code, a test that passed), never the
+  app's own state ("Connected", "Saved"), and a status's tint is not a
+  card: a test is a row whose glyph carries the hue, a warning a line
+  with its glyph (the token test lists the files that may name green).
+  A status code is `.status-code` with `statusTone(code)`
+  (`src/app/shared/http/status-tone.ts`) wherever it is drawn.
 - The labels, `--ctl-boundary`, the state fills (`--fill-*`), the
   separators and the ink's hover and press are not hand-set: each has a
   `com.wayfarer.derive` extension and `packages/tokens/tokens.mjs` solves
@@ -535,8 +541,10 @@ code errors.
   in the page from the start). What `UiModal` does that the browser does
   not, each with a test in `modal.spec.ts` and the catalogue's e2e:
   - focus starts on the element marked `cdkFocusInitial` (the linter
-    refuses `autofocus`), else the first one Tab reaches (Material's
-    rule). The browser gives it back to what had it on close, in all three
+    refuses `autofocus`) while it can take focus, else the first one Tab
+    reaches past a `ui-dialog`'s header Close (V7: its ring was the
+    loudest thing at open); once drawn, focus that is on no control of the
+    dialog (a mark disabled by its binding) is chosen again. The browser gives it back to what had it on close, in all three
     engines (an explicit return was tried and retired); if that is gone, it
     goes to the dialog still open under it (`keepFocusInDialogs`: Safari does not
     focus a button on a click);

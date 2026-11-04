@@ -15,7 +15,7 @@
         <label [for]="'cookie-value-' + i" class="type-mono-body text-label-primary font-mono break-all"
           >{{ cookie.name }}</label
         >
-        <p class="type-footnote text-label-tertiary break-all"
+        <p class="type-footnote text-label-secondary break-all"
           ><span class="font-mono">{{ cookie.domain }}{{ cookie.path }}</span> · {{ about(cookie) }}</p
         >
       </div>
@@ -38,7 +38,7 @@
       [value]="cookie.value"
       (change)="jar.setValue(cookie, $any($event.target).value)"
     />
-    <p class="type-footnote text-label-tertiary">
+    <p class="type-footnote text-label-secondary">
       @if (cookie.expires === undefined) { Kept until you delete it: the server gave it no end. } @else { Until {{
       until(cookie.expires) }}. } @if (jar.inMemoryOnly(cookie)) {
       <span class="cookie-unstored"

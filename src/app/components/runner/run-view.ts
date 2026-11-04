@@ -73,6 +73,11 @@ export class RunView {
     const run = this.run();
     return this.requests().length * (run.iterations() ?? (run.dataFile()?.rows.length || 1));
   });
+  /** More than one iteration: only then has the table an Iteration column, which on one was all "1" (V15). */
+  protected readonly iterated = computed(() => {
+    const run = this.run();
+    return (run.report()?.iterations ?? run.iterations() ?? (run.dataFile()?.rows.length || 1)) > 1;
+  });
   /**
    * Each error two or more results ended with, the commonest first: a run
    * against a host the page cannot reach gave the same three lines on every

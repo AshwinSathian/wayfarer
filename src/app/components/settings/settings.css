@@ -127,12 +127,20 @@
   margin: 0;
 }
 
-.settings-row .type-subhead {
+/* A row's title is set at the callout size, not smaller than the section list beside it, and its note in the
+   secondary label under it (V8). */
+.settings .settings-title {
   display: block;
+  font-weight: 500;
 }
 
-.settings-row .type-subhead + .type-footnote {
+.settings .settings-title + .type-footnote {
   margin-top: 3px;
+}
+
+/* A segmented choice is as wide as its options: stretched across the pane it was an empty bordered track (V9). */
+.settings .settings-row-stacked > ui-segmented {
+  align-self: flex-start;
 }
 
 /* A row whose control is a box to tick: the box stays beside the words at any width. */

@@ -63,6 +63,7 @@ export interface HistoryGroup {
   host: { "(keydown.escape)": "collapse($event)" },
 })
 export class PastRequests {
+  protected readonly statusTone = statusTone;
   readonly pastRequests = input<PastRequest[]>([]);
   readonly loading = input(false);
   readonly displayHeader = input(true);
@@ -211,7 +212,6 @@ export class PastRequests {
   }
 
   protected readonly formatDuration = formatDuration;
-  protected readonly statusTone = statusTone;
 
   /** A send's entry loads into a tab; a model call's opens into its record in place, since Send would use its key. */
   load(req: PastRequest) {

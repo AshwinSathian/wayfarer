@@ -1,7 +1,7 @@
 @let currentAuth = auth();
 <div class="space-y-4">
-  <div class="flex items-center gap-3">
-    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-type-select-label'">Type</span>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <span class="ds-form-label basis-full" [id]="idPrefix() + '-type-select-label'">Type</span>
     <ui-select
       class="w-48"
       [id]="idPrefix() + '-type-select'"
@@ -13,8 +13,8 @@
   </div>
 
   @if (currentAuth.type === 'bearer') {
-  <div class="flex items-center gap-3">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
+  <div class="flex flex-wrap items-center gap-x-3">
+    <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
     <input
       class="font-mono flex-1"
       uiInput
@@ -25,8 +25,8 @@
   </div>
   } @if (currentAuth.type === 'basic') {
   <div class="flex flex-col gap-3">
-    <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-basic-username'">Username</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-basic-username'">Username</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -36,8 +36,8 @@
         (ngModelChange)="setBasicUsername($event)"
       />
     </div>
-    <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-basic-password'">Password</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-basic-password'">Password</label>
       <div class="flex flex-1 items-center gap-2">
         <input
           class="font-mono flex-1"
@@ -60,8 +60,8 @@
   </div>
   } @if (currentAuth.type === 'apikey') {
   <div class="flex flex-col gap-3">
-    <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -71,8 +71,8 @@
         (ngModelChange)="setApiKeyField({ key: $event })"
       />
     </div>
-    <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -82,8 +82,8 @@
         (ngModelChange)="setApiKeyField({ value: $event })"
       />
     </div>
-    <div class="flex items-center gap-3">
-      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <span class="ds-form-label basis-full" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
       <ui-select
         class="w-40"
         [id]="idPrefix() + '-apikey-addto'"
@@ -96,8 +96,8 @@
   </div>
   } @if (currentAuth.type === 'awsv4') {
   <div class="flex flex-col gap-3">
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-access-key'">Access key</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-aws-access-key'">Access key</label>
       <input
         class="font-mono flex-1 basis-48"
         uiInput
@@ -107,8 +107,8 @@
         (ngModelChange)="setAwsField({ accessKey: $event })"
       />
     </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-secret-key'">Secret key</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-aws-secret-key'">Secret key</label>
       <div class="flex flex-1 basis-48 items-center gap-2">
         <input
           class="font-mono flex-1"
@@ -128,8 +128,8 @@
         /></button>
       </div>
     </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-session-token'">Session token</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-aws-session-token'">Session token</label>
       <input
         class="font-mono flex-1 basis-48"
         uiInput
@@ -140,8 +140,8 @@
         (ngModelChange)="setAwsField({ sessionToken: $event })"
       />
     </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-region'">Region</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-aws-region'">Region</label>
       <input
         class="font-mono flex-1 basis-48 placeholder-mono"
         uiInput
@@ -151,8 +151,8 @@
         (ngModelChange)="setAwsField({ region: $event })"
       />
     </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-service'">Service</label>
+    <div class="flex flex-wrap items-center gap-x-3">
+      <label class="ds-form-label basis-full" [attr.for]="idPrefix() + '-aws-service'">Service</label>
       <input
         class="font-mono flex-1 basis-48 placeholder-mono"
         uiInput

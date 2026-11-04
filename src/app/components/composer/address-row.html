@@ -100,14 +100,16 @@
   <!-- One button each, whose label and action change: a button swapped for another took focus with it. -->
   @if (socket.isSocket()) {
   <!-- An address of a WebSocket (P5.7): it is connected to, not sent. Its state is beside it (U-048). -->
-  <span class="socket-state type-footnote" aria-hidden="true" [class.text-status-success]="socketStatus() === 'open'"
+  <span class="socket-state type-footnote text-label-secondary" aria-hidden="true"
     >{{ socketStatus() === 'connecting' ? 'Connecting…' : socketStatus() === 'open' ? 'Connected' : 'Not connected'
     }}</span
   >
+  <!-- Connected, it is outlined in the same place: Send message is then the one filled button (V19). -->
   <button
     uiButton="filled"
     type="button"
     class="send-btn"
+    [class.send-btn-quiet]="socketStatus() !== 'closed'"
     (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()"
     >{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button
   >

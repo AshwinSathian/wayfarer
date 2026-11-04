@@ -26,8 +26,8 @@
 
 .ai-diff-added {
   display: block;
-  background: var(--status-success-fill);
-  box-shadow: inset 2px 0 0 var(--status-success);
+  background: var(--fill-secondary);
+  box-shadow: inset 2px 0 0 var(--ink);
   color: var(--label-primary);
 }
 

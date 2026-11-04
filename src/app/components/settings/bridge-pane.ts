@@ -28,6 +28,12 @@ export class BridgePane {
     { value: "direct", label: "Direct" },
     { value: "bridge", label: "Local Bridge" },
   ];
+  /** What the chosen route does, in a line under the choice (V8). */
+  protected readonly routeNotes: Record<Route, string> = {
+    auto: "Sends from the page, and through the bridge when the browser could not. A request the server cannot have received is sent again at once; one it may have received, only if you say so.",
+    direct: "Always sends from the page.",
+    bridge: "Sends every request from the bridge on this machine, where CORS and mixed content do not apply.",
+  };
   protected readonly route = signal<Route>(this.bridge.config().route);
   protected readonly url = signal(this.bridge.config().url);
   protected readonly token = signal(this.bridge.config().token);

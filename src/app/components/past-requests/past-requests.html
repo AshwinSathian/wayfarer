@@ -108,7 +108,7 @@
             <span class="history-facts type-footnote">
               <span class="font-mono history-model-name">{{ hostOf(request) }} · {{ model.model }}</span>
               @if (request.response) {
-              <span class="status-tag" [class]="statusTone(request.response.status)"
+              <span class="status-code" [class]="statusTone(request.response.status)"
                 >{{ request.response.status }}</span
               >
               } @else {
@@ -135,7 +135,7 @@
             </span>
             <span class="history-facts type-footnote">
               @if (request.response) {
-              <span class="status-tag" [class]="statusTone(request.response.status)"
+              <span class="status-code" [class]="statusTone(request.response.status)"
                 >{{ request.response.status }}</span
               >
               } @else {

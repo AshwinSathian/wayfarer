@@ -2,7 +2,9 @@ import { InputModalityDetector, InteractivityChecker } from "@angular/cdk/a11y";
 import {
   Directive,
   ElementRef,
+  Injector,
   OnDestroy,
+  afterNextRender,
   booleanAttribute,
   effect,
   inject,
@@ -33,8 +35,8 @@ export function keepFocusInDialogs(): void {
  * in the three engines, or not as a modal of this app should, is here:
  *
  * - focus starts on the element marked `cdkFocusInitial` (the CDK's mark;
- *   `autofocus` is refused by the linter), else the first one Tab reaches
- *   (Material's rule). The browser gives it back to what had it when the
+ *   `autofocus` is refused by the linter) while it can take it, else the
+ *   first one Tab reaches past a `ui-dialog`'s header Close. The browser gives it back to what had it when the
  *   dialog closes (all three engines, measured); if that is gone, it goes
  *   to the dialog still open under it;
  * - Tab and Shift+Tab wrap inside the dialog: the browser's go on to its
@@ -82,6 +84,7 @@ export class UiModal implements OnDestroy {
   readonly element: HTMLDialogElement = inject<ElementRef<HTMLDialogElement>>(ElementRef).nativeElement;
   private readonly modality = inject(InputModalityDetector);
   private readonly checker = inject(InteractivityChecker);
+  private readonly injector = inject(Injector);
   protected pressedOutside = false;
 
   constructor() {
@@ -104,7 +107,25 @@ export class UiModal implements OnDestroy {
         capture: true,
       });
     }
-    (this.element.querySelector<HTMLElement>("[cdkFocusInitial]") ?? this.tabbable()[0] ?? this.element).focus();
+    this.focusFirst();
+    // Content made in the same render as the dialog opened has its bindings after this: a mark that is then disabled
+    // (Import while the file is read) lost focus to the page. Once drawn, focus that is not on a control of the dialog
+    // is chosen again.
+    afterNextRender(
+      () => {
+        if (this.element.open && !this.tabbable().includes(document.activeElement as HTMLElement)) this.focusFirst();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** The control marked `cdkFocusInitial` while it can take focus, else the first Tab reaches past a header's Close. */
+  private focusFirst(): void {
+    const initial = this.element.querySelector<HTMLElement>("[cdkFocusInitial]");
+    const items = this.tabbable();
+    // The header's Close is passed over (V7): the first thing a dialog shows is its content, not the way out of it.
+    const first = items.find((el) => !el.classList.contains("dialog-close")) ?? items[0];
+    (initial && items.includes(initial) ? initial : (first ?? this.element)).focus();
   }
 
   close(): void {

@@ -421,7 +421,7 @@ it is.
 | `run-view.html: JSON` | A run's tab | A run's tab | D4-i |
 | `run-view.html: JUnit XML` | A run's tab | A run's tab | D4-i |
 | `run-view.html: HAR…` | A run's tab | A run's tab | D4-i |
-| `run-view.html: Record of` | — (new in D4-l, D4.12, U-076): a run's row, "Record"; opens the row's exchange record under it | A run's tab, the results | D4-l |
+| `run-view.html: Show record of` | — (new in D4-l, D4.12, U-076): a run's row, "Show record" (D5-e, C32: "Record" read as a verb); opens the row's exchange record under it | A run's tab, the results | D4-l |
 
 ### Composer
 

@@ -309,6 +309,40 @@ test("the shell's device state is not drawn in a status colour", () => {
   assert.deepEqual(found, []);
 });
 
+// V4, V5 (D5-e): green is a status (a status code, a test that passed), never the app's own state ("Connected",
+// "Paired", "Saved") and never a texture. Only the files that draw a status may name success's colour.
+test("success's green is drawn only where a status is", () => {
+  const draws = new Set([
+    "styles.css", // the utility class itself
+    "design-system/components.css", // .text-status-success, a status code, a run's passed count
+    "design-system/controls.css", // btn-success, a tone of the button
+    "app/components/response-viewer/response-viewer.html", // a passing test's glyph
+    "app/components/settings/diagnostics-pane.html", // a self-test that passed
+    "app/shared/monaco/monaco-loader.ts", // a JSON string's colour, the editor's syntax
+  ]);
+  const found = sources(/\.(html|ts|css)$/, (file) =>
+    /\.spec\.ts$|^design-system\/tokens\.|^app\/catalogue\//.test(file),
+  )
+    .filter(([file, text]) => !draws.has(file) && /status-success/.test(text))
+    .map(([file]) => file);
+  assert.deepEqual(found, []);
+});
+
+// V5, V12 (D5-e): a status's tint is not a card. A passing test, a warning in a dialog and an option of an import were
+// each a tinted, bordered box; a test is a row with its glyph, and a warning a line with its glyph.
+test("no test result, import or export report is a tinted card", () => {
+  const found = [];
+  for (const [file, text] of sources(
+    /^app\/components\/(import|collections\/export-dialog|response-viewer)[^/]*\/?[^/]*\.(html|ts|css)$/,
+  ))
+    for (const m of text.matchAll(/(?:bg|border)-status-[a-z]+-(?:fill|border)|--status-[a-z]+-(?:fill|border)/g))
+      found.push(`${file}: ${m[0]}`);
+  const [[, components]] = sources(/^design-system\/components\.css$/);
+  for (const block of components.matchAll(/(\.test-result[^{]*)\{([^}]*)\}/g))
+    if (/background|--status-/.test(block[2])) found.push(`components.css: ${block[1].trim()}`);
+  assert.deepEqual(found, []);
+});
+
 // U-022 (reopened in D5-b): an empty state says what goes there and what to do, with no dashed box around nothing.
 test("no template draws a dashed box", () => {
   const found = [];

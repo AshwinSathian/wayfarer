@@ -4,8 +4,8 @@
 @if (!editing()) {
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary">AI</p>
-    <p class="type-footnote text-label-tertiary"
+    <p class="settings-title type-callout text-label-primary">AI</p>
+    <p class="type-footnote text-label-secondary"
       >Wayfarer sends nothing to a model until you add one here. Each call is shown to you, byte for byte, before it is
       sent.</p
     >
@@ -19,20 +19,20 @@
 } } @else {
 <div class="settings-group" aria-label="Provider">
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary" id="ai-kind-label">Provider</p>
+    <p class="settings-title type-callout text-label-primary" id="ai-kind-label">Provider</p>
     <ui-segmented
       aria-labelledby="ai-kind-label"
       [options]="kinds"
       [value]="kind()"
       (valueChange)="chooseKind($event); edited()"
     />
-    <p class="type-footnote text-label-tertiary"
+    <p class="type-footnote text-label-secondary"
       >{{ kind() === "openai" ? "OpenAI, Ollama, LM Studio and any server that answers OpenAI's chat completions." :
       "Anthropic's Messages API." }}</p
     >
   </div>
   <div class="settings-row settings-row-stacked">
-    <label for="ai-address" class="type-subhead text-label-primary">Address</label>
+    <label for="ai-address" class="settings-title type-callout text-label-primary">Address</label>
     <input
       class="font-mono w-full placeholder-mono"
       uiInput
@@ -47,14 +47,14 @@
       [ngModel]="address()"
       (ngModelChange)="address.set($event); edited()"
     />
-    <p id="ai-address-hint" class="type-footnote text-label-tertiary break-all">
+    <p id="ai-address-hint" class="type-footnote text-label-secondary break-all">
       @if (endpoint()) { Calls go to <span class="font-mono">{{ endpoint() }}</span>. } @else { The address calls go to.
       }
     </p>
     <p id="ai-address-error" class="type-footnote text-status-error">{{ addressError() }}</p>
   </div>
   <div class="settings-row settings-row-stacked">
-    <label for="ai-model" class="type-subhead text-label-primary">Model</label>
+    <label for="ai-model" class="settings-title type-callout text-label-primary">Model</label>
     <input
       class="font-mono w-full"
       uiInput
@@ -67,11 +67,11 @@
       [ngModel]="model()"
       (ngModelChange)="model.set($event); edited()"
     />
-    <p id="ai-model-hint" class="type-footnote text-label-tertiary">The model's name, as the provider writes it.</p>
+    <p id="ai-model-hint" class="type-footnote text-label-secondary">The model's name, as the provider writes it.</p>
     <p id="ai-model-error" class="type-footnote text-status-error">{{ modelError() }}</p>
   </div>
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary" id="ai-key-label">Key</p>
+    <p class="settings-title type-callout text-label-primary" id="ai-key-label">Key</p>
     @if (ai.keyStored() && !changingKey()) {
     <div class="flex flex-wrap items-center gap-3">
       <span class="font-mono" aria-describedby="ai-key-label">*** in the vault</span>
@@ -101,25 +101,25 @@
     } @else if (!vault.isUnlocked()) {
     <p class="type-footnote text-label-secondary">The vault is locked. Unlock it to add or change the key.</p>
     }
-    <p id="ai-key-hint" class="type-footnote text-label-tertiary"
+    <p id="ai-key-hint" class="type-footnote text-label-secondary"
       >Kept in the vault, encrypted. A model on this machine needs none.</p
     >
     <p id="ai-key-error" class="type-footnote text-status-error">{{ keyError() || saveError() }}</p>
   </div>
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary" id="ai-route-label">Route</p>
+    <p class="settings-title type-callout text-label-primary" id="ai-route-label">Route</p>
     <ui-segmented
       aria-labelledby="ai-route-label"
       [options]="routes"
       [value]="route()"
       (valueChange)="route.set($event); edited()"
     />
-    <p class="type-footnote text-label-tertiary"
+    <p class="type-footnote text-label-secondary"
       >Auto sends from this page, and asks before trying the Local Bridge if the page gets no response.</p
     >
   </div>
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary">Actions</p>
+    <p class="settings-title type-callout text-label-primary">Actions</p>
     <label class="ui-checkbox-label"
       ><input
         type="checkbox"
@@ -144,7 +144,7 @@
         (change)="setAction('explain', $any($event.target).checked); edited()"
       />Explain a failed response</label
     >
-    <p class="type-footnote text-label-tertiary">Each call is still shown to you before it is sent.</p>
+    <p class="type-footnote text-label-secondary">Each call is still shown to you before it is sent.</p>
   </div>
   <div class="settings-row">
     @if (ai.provider()) {

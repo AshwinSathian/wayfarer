@@ -3,6 +3,8 @@ import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiSpinner } from "../../ui/spinner";
+import { UiInput } from "../../ui/input";
+import { Icon } from "../../shared/icon/icon";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { CollectionsStore } from "../../services/collections-store";
 import { ScriptTrust } from "../../services/script-trust";
@@ -17,7 +19,7 @@ import { ScriptReviewDialog } from "../composer/script-review-dialog";
  */
 @Component({
   selector: "app-import-dialog",
-  imports: [Dialog, FormsModule, ScriptReviewDialog, UiButton, UiCheckbox, UiSpinner],
+  imports: [Dialog, FormsModule, Icon, ScriptReviewDialog, UiButton, UiCheckbox, UiInput, UiSpinner],
   templateUrl: "./import-dialog.html",
   styleUrl: "./import-dialog.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,10 @@ export class ImportDialog {
   protected readonly pipeline = inject(ImportPipeline);
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);
+  /** A report names an item in lower case (`collection "Shop"`); it starts a sentence here (C44). */
+  protected sentence(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
 
   /**
    * The file is one collection with scripts: the import can end in their review (D5-e), where the person meets them.

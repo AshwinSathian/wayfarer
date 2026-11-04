@@ -24,6 +24,10 @@ export type ExportFormat = "wayfarer" | "postman";
 })
 export class ExportDialog {
   private readonly collections = inject(CollectionsStore);
+  /** A note names an item in lower case (`request "Login"`); it starts a sentence here (C44). */
+  protected sentence(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
 
   /** The collection to export. Null while the dialog is closed. */
   readonly collection = input<{ id: string; name: string } | null>(null);

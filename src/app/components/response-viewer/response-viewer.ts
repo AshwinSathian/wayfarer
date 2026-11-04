@@ -120,6 +120,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
 // a slow parse of a huge payload clobbering a newer, smaller one, plus the
 // signal-based response state itself.
 export class ResponseViewer {
+  protected readonly statusTone = statusTone;
   private readonly diagnostics = inject(Diagnostics);
   protected readonly ai = inject(AiSettings);
   private readonly jsonWorker = inject(JsonWorkerClient);
@@ -186,7 +187,6 @@ export class ResponseViewer {
   readonly recordOpen = input(false);
   readonly recordOpenChange = output<boolean>();
   protected readonly recordRoute = recordRoute;
-  protected readonly statusTone = statusTone;
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
     const redirects = this.redirects();

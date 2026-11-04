@@ -146,8 +146,8 @@ describe("ScriptTrust", () => {
 
     saved.bind(tree.requests[0]);
     expect(trust.toReview()).toEqual([
-      { kind: "collection", name: "Collection Shop", pre: "fromCollection()", post: "" },
-      { kind: "folder", name: "Folder Admin", pre: "", post: "fromFolder()" },
+      { kind: "collection", name: "Shop", pre: "fromCollection()", post: "" },
+      { kind: "folder", name: "Admin", pre: "", post: "fromFolder()" },
     ]);
     await trust.approve();
     expect(trustOf(tree.collection.meta.id)).toEqual({

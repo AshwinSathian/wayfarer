@@ -629,6 +629,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design research cites its sources and says what changed.** Each
+  point now has the rival's, the standard's or the browser's own page,
+  read on 2026-11-04, or is marked unverified, and a dated changelog ends
+  it. Two conclusions changed: Wayfarer is not the only client that sends
+  from a browser tab with nothing installed (Hoppscotch and Scalar do
+  too), and Bruno now holds the position on AI the research gave
+  Wayfarer.
+
 - **The website looks like the app.** The site had its own palette, an
   indigo for links and buttons, and a display face (Bricolage Grotesque)
   the app never uses. It now takes its colours, faces, corners and motion

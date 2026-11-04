@@ -277,9 +277,11 @@ test("no stylesheet or template sets words in upper case; only a method is", () 
   const found = [];
   for (const [file, text] of sources(/\.(css|scss)$/, (f) => /design-system\/tokens\.css$/.test(f)))
     for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
-      if (/text-transform:\s*uppercase/.test(block[2]) && !/method/.test(block[1])) found.push(`${file}: ${block[1].trim()}`);
+      if (/text-transform:\s*uppercase/.test(block[2]) && !/method/.test(block[1]))
+        found.push(`${file}: ${block[1].trim()}`);
   for (const [file, text] of sources(/\.(html|ts)$/))
-    for (const m of text.matchAll(/class(?:Name)?="[^"]*(?<![\w-])uppercase(?![\w-])[^"]*"/g)) found.push(`${file}: ${m[0]}`);
+    for (const m of text.matchAll(/class(?:Name)?="[^"]*(?<![\w-])uppercase(?![\w-])[^"]*"/g))
+      found.push(`${file}: ${m[0]}`);
   assert.deepEqual(found, []);
 });
 
@@ -288,7 +290,10 @@ test("no rule sets the mono face at the footnote size", () => {
   const found = [];
   for (const [file, text] of sources(/\.(css|scss)$/))
     for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
-      if (/font-family:\s*var\(--font-mono\)/.test(block[2]) && /font-size:\s*var\(--type-footnote-size\)/.test(block[2]))
+      if (
+        /font-family:\s*var\(--font-mono\)/.test(block[2]) &&
+        /font-size:\s*var\(--type-footnote-size\)/.test(block[2])
+      )
         found.push(`${file}: ${block[1].trim()}`);
   assert.deepEqual(found, []);
 });

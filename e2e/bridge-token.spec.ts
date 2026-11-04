@@ -51,7 +51,7 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
   await expect(
     page
       .locator(".response-announcement")
-      .filter({ hasText: "The Local Bridge is on, and its token is not in this tab." }),
+      .filter({ hasText: "The Local Bridge is on, and this tab does not have its token." }),
   ).toBeVisible();
   expect(relayed).toBe(0);
   // The pane has no token to show either.
@@ -97,9 +97,9 @@ test("with the vault unlocked the token is a vault secret: after a reload a send
     await page.getByRole("tree").getByText("Tripwire request", { exact: true }).click();
     await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
     await page.getByRole("button", { name: "Send request" }).click();
-    const unlock = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+    const unlock = page.getByRole("dialog", { name: "Unlock vault", exact: true });
     await unlock.locator("input[type='password']").fill(PASSPHRASE);
-    await unlock.getByRole("button", { name: "Unlock secrets" }).click();
+    await unlock.getByRole("button", { name: "Unlock vault" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
     expect(direct).toEqual([]);
     expect(await everythingStored(page)).not.toContain(TOKEN);

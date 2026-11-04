@@ -31,14 +31,14 @@ export class ImportWorkerClient {
   async run(text: string, options: ImportOptions = {}): Promise<Imported> {
     const answer = await this.post({ text, options });
     if ("imported" in answer) return answer.imported;
-    throw new Error("The import worker answered a file with something else.");
+    throw new Error("The file was not imported: the importer stopped unexpectedly. Try again.");
   }
 
   /** A pasted cURL command as one request for the composer. Rejects with `ImportRefused` when it cannot be read. */
   async curl(text: string): Promise<PastedRequest> {
     const answer = await this.post({ text, options: {}, curl: true });
     if ("request" in answer) return answer.request;
-    throw new Error("The import worker answered a command with something else.");
+    throw new Error("The command was not read: the importer stopped unexpectedly. Try again.");
   }
 
   private post(job: Omit<ImportJob, "id">): Promise<ImportAnswer> {

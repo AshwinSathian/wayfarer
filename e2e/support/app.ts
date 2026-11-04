@@ -357,9 +357,9 @@ export async function exportCollectionFile(
 
 /**
  * Clicks a control the toolbar holds from 768 px and the navigation drawer holds on a phone (U-097): Environments,
- * Request history.
+ * History.
  */
-export async function toolbarOrDrawer(page: Page, name: "Environments" | "Request history"): Promise<void> {
+export async function toolbarOrDrawer(page: Page, name: "Environments" | "History"): Promise<void> {
   const inToolbar = page.getByRole("banner").getByRole("button", { name, exact: true });
   if (await inToolbar.count()) return inToolbar.click();
   await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();

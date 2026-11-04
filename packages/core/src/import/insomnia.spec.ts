@@ -919,7 +919,7 @@ describe("a YAML file (P4.4)", () => {
       expect(() => importText(dense.repeat(Math.ceil((MAX_YAML_CHARS + 1) / dense.length)))).toThrow(YAML_TOO_LARGE);
     }
     expect(YAML_TOO_LARGE).toBe(
-      "The file is not JSON, and at more than 1 MB it is too large to be read as YAML: a YAML file takes far more memory to read than a JSON file of its size. If it is YAML, convert it to JSON and import that.",
+      "This file is not JSON, and a YAML file can be 1 MB at most: reading YAML takes far more memory than JSON. Convert it to JSON and import that.",
     );
     // At the limit it is read. JSON has the limit of every import, not this one.
     expect(

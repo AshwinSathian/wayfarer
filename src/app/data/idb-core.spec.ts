@@ -139,7 +139,7 @@ describe("IdbCore", () => {
     (globalThis as unknown as Record<string, unknown>)["indexedDB"] = original;
 
     await expect(svc.ensurePersistentSupport()).rejects.toThrow(
-      "Persistent storage is not available in this environment.",
+      "This browser gives Wayfarer no storage, so nothing can be saved.",
     );
   });
 
@@ -197,7 +197,7 @@ describe("IdbCore", () => {
     });
     try {
       await expect(service.resetDatabase({ untilReload: true })).rejects.toThrow(
-        "Close other Wayfarer tabs and try again.",
+        "Another Wayfarer tab has the data open. Close it, then try again.",
       );
     } finally {
       other.close();
@@ -228,7 +228,7 @@ describe("IdbCore", () => {
 
       try {
         await expect(service.resetDatabase()).rejects.toThrow(DatabaseResetBlockedError);
-        await expect(service.resetDatabase()).rejects.toThrow("Close other Wayfarer tabs and try again");
+        await expect(service.resetDatabase()).rejects.toThrow("Another Wayfarer tab has the data open");
       } finally {
         held.close();
       }

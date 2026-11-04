@@ -768,6 +768,58 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   nothing between them and the handle that resizes them invisible; it is
   now drawn in the text colour, and in the highlight colour under the
   pointer.
+
+- **The collections tree fits more requests.** Each row took 40 px, so a
+  laptop screen showed about a quarter fewer requests than other API
+  clients. Rows are now 32 px apart with a mouse or trackpad. On a touch
+  screen they stay 36 px tall, so a finger still has room. The sidebar's
+  header is lighter too: Import and New are plain text buttons instead of
+  two outlined boxes, and "Collections" is set in a heavier weight so the
+  title still leads.
+
+- **The app calls each thing by one name, and its errors say what to do.**
+  The vault was "secrets" in some places and "vault" in others: the
+  unlock dialog is now "Unlock vault", the phone toolbar's button "Lock
+  vault" or "Unlock vault", and "Make a vault" is "Create vault", as the
+  buttons already said. The History button and drawer are "History", as
+  the Settings section was, not "Request history". A response came back
+  as an "answer" in a few places, and the route badge said "Via bridge";
+  they now say "response" and "Local Bridge". The red pill on a request
+  that skips the certificate check reads "Certificate not checked", the
+  words of the checkbox that sets it, instead of "TLS verification off".
+  Several errors now say what happened and what to do next. A timeout
+  reads "No response within 30.0 s, the request timeout." instead of
+  "Timed out after 30000 ms". A TRACE request names the Network tab
+  where its route is set. A missing bridge token says to pair again in
+  Settings › Local Bridge, where it used to say to type the token in. A
+  file that is not a collection is no longer called "invalid". Long notes
+  are shorter: the script review no longer counts scripts that are
+  listed under it, and the vault's line in Secrets says one thing where
+  three lines said it before. "Folder (optional)" is "Folder", Restore
+  and the environments' Import and Export end in "…" because they open a
+  picker or a dialog, and history's size reads "1 to 5,000".
+
+- **The first screen offers each thing once.** An empty app showed Import
+  three times (the sidebar's Import menu, the empty sidebar's Import… and
+  the response pane's Import a collection…) and New twice. The sidebar's
+  Import and New menus now appear once a collection exists; until then
+  the empty sidebar's New collection and Import… are the way in. The empty
+  response pane keeps Paste a cURL command and drops its import. Both empty
+  states are a line of text at the top, left-aligned where the first row
+  or the status line will be, without the folder picture. A request with
+  an address now reads "Send this request (Ctrl+Enter) and its response
+  shows here." In Params and Headers the empty row is no longer ticked
+  before it has a name, and it is ticked when you type one. Add parameter,
+  Add header and Add field were greyed out while the last row lacked a
+  name or a value, with nothing to say why; they are always enabled now,
+  and with a row that has no name they put the caret in its name.
+
+- **Environments says "none yet" once.** With no environment, the list
+  said what an environment is and offered New environment, and the empty
+  pane beside it said to make one with New environment too. The pane is
+  now empty until there is something to choose; with environments and
+  none open, it says "Choose an environment to edit its variables."
+
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished
   action were drawn in success's green, as a passing test is; they are

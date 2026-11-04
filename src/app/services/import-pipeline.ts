@@ -147,7 +147,11 @@ export class ImportPipeline {
         this.refused.set({ message: error.message, issues: error.issues });
       } else {
         this.diagnostics.record(error, "import: the worker failed");
-        this.refused.set({ message: "The file could not be read: the import stopped with an error.", issues: [] });
+        this.refused.set({
+          message:
+            "The file was not imported: reading it stopped with an error. Settings › Diagnostics has the details.",
+          issues: [],
+        });
       }
     } finally {
       clearTimeout(watch);

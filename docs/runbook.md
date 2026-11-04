@@ -279,7 +279,7 @@ The release deploys nothing: production is `deploy.yml`, a step of its own.
 
 ## Service worker
 
-The app registers `/app/sw.js` with the scope `/app/` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner.
+The app registers `/app/sw.js` with the scope `/app/` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "A new version of Wayfarer is ready" banner.
 
 ### After the first deploy of v2.5.0
 
@@ -308,7 +308,7 @@ seconds from the hosted page, in Chrome, Firefox and Safari**.
 2. Safari does not reach `http://127.0.0.1` from an https page: start the
    bridge with `--cert` and `--key` (the README shows `mkcert`) and repeat.
 3. A request with the route Auto to an address without CORS goes through
-   the bridge and its badge says **Via bridge**.
+   the bridge and its badge says **Local Bridge**.
 4. Write each browser's time and result in
    [#99](https://github.com/AshwinSathian/wayfarer/issues/99) (F42), which
    this closes.

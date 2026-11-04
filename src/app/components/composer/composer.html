@@ -36,9 +36,9 @@
       <app-icon name="folder" class="icon-xs" />
       Editing
       <nav aria-label="Saved request" class="text-label-secondary min-w-0 break-words">
-        @for (holder of breadcrumb(); track $index) {{{ holder }} / }{{ bound.name }}
+        @for (holder of breadcrumb(); track $index) {{{ holder }} / }<span>{{ bound.name }}</span>.
       </nav>
-      — Save writes back to this request.
+      Save writes back to it.
     </div>
     }
     <!-- The address's error and the paste's notes are said by regions there from the first render (U-062, U-075);
@@ -173,35 +173,26 @@
   </ng-template>
 </div>
 
-<!-- First run (D4.2, U-022): the next step, not "nothing here". -->
+<!-- First run (D4.2, U-022): the next step, not "nothing here". Where the status line will be, left-aligned (V2).
+     Import is the sidebar's; a pasted cURL command fills this tab (L-16). -->
 <ng-template #noResponse>
-  <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center px-6">
+  <div class="flex flex-col items-start gap-3 px-4 py-2">
     @if (store.draft().url) {
     <!-- A request ready to send is offered Send, not a cURL command or an import (U-095). -->
-    <p class="type-callout text-label-secondary"
-      >Send it, with Send or <kbd class="keycap">{{ sendKeys }}</kbd>, and its response shows here.</p
+    <p class="type-callout text-label-secondary m-0"
+      >Send this request (<kbd class="keycap">{{ sendKeys }}</kbd>) and its response shows here.</p
     >
     } @else {
-    <p class="type-callout text-label-secondary">Send a request and its response shows here.</p>
-    <div class="flex flex-wrap justify-center gap-2">
+    <p class="type-callout text-label-secondary m-0">Send a request and its response shows here.</p>
+    <div class="flex flex-wrap gap-2">
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
         >Paste a cURL command</button
-      >
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importFile.click()"
-        >Import a collection…</button
       >
       @if (ai.offers().draft) {
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="modelCalls.draftOpen.set(true)"
         >Describe a request…</button
       >
       }
-      <input
-        #importFile
-        type="file"
-        accept="application/json,.json,.har,.yaml,.yml"
-        class="hidden"
-        (change)="importPipeline.pick($event)"
-      />
     </div>
     }
   </div>

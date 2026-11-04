@@ -106,6 +106,24 @@ describe("ui-tree", () => {
     return { fixture, host: fixture.componentInstance, root, rows, labels, row, press, drag, settle };
   }
 
+  it("draws a row 32 px tall with a pointer, and a taller one where the pointer is a finger (V18)", async () => {
+    const { fixture, row } = await setup();
+    const px = (token: string) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(token)) * 16;
+    expect(px("--ctl-height-md")).toBe(32);
+    expect(row("docs").offsetHeight).toBe(px("--ctl-height-md"));
+    expect(row("docs").querySelector<HTMLElement>(".ui-tree-toggle")!.offsetWidth).toBe(24);
+    // The test browser's pointer is fine: the touch rule is read from the stylesheet.
+    const coarse = Array.from(document.styleSheets)
+      .flatMap((sheet) => Array.from(sheet.cssRules))
+      .filter(
+        (rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.conditionText === "(pointer: coarse)",
+      )
+      .flatMap((rule) => Array.from(rule.cssRules) as CSSStyleRule[])
+      .find((rule) => rule.selectorText.startsWith(".ui-tree-row"));
+    expect(coarse?.style.minHeight).toBe("var(--ctl-height-lg)");
+    fixture.destroy();
+  });
+
   it("opens a node on a click and on Enter, not on a click into a field inside its row or an arrow key", async () => {
     const { host, row, press, settle } = await setup();
     row("a.ts").click();

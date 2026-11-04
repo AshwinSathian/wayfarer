@@ -58,7 +58,7 @@
           ><app-icon name="dns" /> Environments</button
         >
         <button uiButton class="btn-secondary drawer-row" type="button" (click)="fromDrawer(openHistoryRow)"
-          ><app-icon name="history" /> Request history</button
+          ><app-icon name="history" /> History</button
         >
       </nav>
       }
@@ -101,7 +101,7 @@
   uiModal
   #historyDrawer="uiModal"
   class="ui-drawer ui-drawer-end"
-  aria-label="Request history"
+  aria-label="History"
   style="width: 27rem"
   [open]="historyDrawerVisible()"
   dismissable
@@ -229,8 +229,8 @@
           uiButton="icon"
           class="btn-plain"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+          [uiTooltip]="secretsUnlocked ? 'Lock vault' : 'Unlock vault'"
+          [attr.aria-label]="secretsUnlocked ? 'Lock vault' : 'Unlock vault'"
         >
           <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
         </button>
@@ -244,8 +244,8 @@
           class="btn-plain"
           [class.bg-fill-selected]="historyDrawerVisible()"
           (click)="openHistory()"
-          uiTooltip="Request history"
-          aria-label="Request history"
+          uiTooltip="History"
+          aria-label="History"
         >
           <app-icon name="history" class="icon-md" />
         </button>
@@ -359,7 +359,7 @@
         uiButton
         class="btn-plain status-control"
         (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : secretsService.made() === false ? 'Make a vault' : 'Unlock the vault'"
+        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : secretsService.made() === false ? 'Create vault' : 'Unlock the vault'"
       >
         <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />{{ secretsUnlocked ? "Vault
         unlocked" : secretsService.made() === false ? "No vault" : "Vault locked" }}
@@ -404,9 +404,9 @@
   </div>
 </div>
 
-<!-- Unlock / setup secrets dialog -->
+<!-- Unlock / set up the vault -->
 <ui-dialog
-  [header]="isFirstVaultSetup() ? 'Create vault passphrase' : 'Unlock secrets'"
+  [header]="isFirstVaultSetup() ? 'Create vault passphrase' : 'Unlock vault'"
   [visible]="lockDialogVisible()"
   (visibleChange)="$event ? lockDialogVisible.set(true) : closeLockDialog()"
   width="400px"
@@ -474,7 +474,7 @@
       <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeLockDialog()">Cancel</button>
       <button
         uiButton="filled"
-        [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock secrets'"
+        [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock vault'"
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
         >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button

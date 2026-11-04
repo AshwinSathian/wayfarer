@@ -81,7 +81,7 @@ export class HolderSettings implements OnDestroy {
   /** Why the last write did not land, said under the panes until the next one does. */
   protected readonly saveError = signal("");
   protected readonly routes: UiSelectOption<Route | null>[] = [
-    { value: null, label: "The device's (Settings, Local Bridge)" },
+    { value: null, label: "The device's (Settings › Local Bridge)" },
     { value: "auto", label: "Auto" },
     { value: "direct", label: "Direct" },
     { value: "bridge", label: "Local Bridge" },

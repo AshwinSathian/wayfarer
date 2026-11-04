@@ -62,7 +62,7 @@ or in the AI setting; the setting holds the secret's id. Four states:
 |---|---|
 | Unlocked, no key | A `uiInput` (`font-mono`, `type="password"`, `autocomplete="off"`) and "Show key" (icon button). The key is written to the vault on Save. |
 | Unlocked, key set | "*** in the vault" (the mask in monospace) and "Change key", which draws the field, empty. There is no Remove key: a key is removed with its provider. |
-| Locked | "The vault is locked. Unlock it to add or change the key." and "Unlock secrets" (the status bar's name). When a key is set, also "*** in the vault": a locked vault still has it. |
+| Locked | "The vault is locked. Unlock it to add or change the key." and "Unlock vault". When a key is set, also "*** in the vault": a locked vault still has it. |
 | No vault | "A key is kept in the vault, and this browser has none yet." and "Set up the vault", which opens Settings › Vault. A provider with no key (a local model) is saved without one. |
 
 ### Test the provider
@@ -142,7 +142,7 @@ can wait so; it may need a list of ids to delete on unlock).
   `aria-invalid`.
 - A screen reader on Key, unlocked with a key: "Key, *** in the vault,
   Change key, button". Locked: "The vault is locked. Unlock it to add or
-  change the key. Unlock secrets, button".
+  change the key. Unlock vault, button".
 - The test's result goes to the status region: "The provider answered:
   OK." or the failure's first sentence.
 

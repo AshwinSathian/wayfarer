@@ -99,9 +99,9 @@ into its record:
 > Asked for by Write tests on `GET https://api.example.com/pets`, 14:02.
 > Accepted.
 >
-> [Show what was sent] [Show the answer] [Delete from history]
+> [Show what was sent] [Show the response] [Delete from history]
 
-"Show what was sent" and "Show the answer" open the kept texts in
+"Show what was sent" and "Show the response" open the kept texts in
 monospace, wrapping, as the preview's box. "Asked for by" names the
 request the call was about, by its method and address as kept (masked);
 for a draft, "Asked for by Draft a request."

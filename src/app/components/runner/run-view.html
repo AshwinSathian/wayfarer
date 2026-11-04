@@ -106,8 +106,8 @@
   >
   } @else {
   <span class="text-status-warning flex items-center gap-1.5"
-    ><app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests {{
-    state.report() ? "were sent" : "are sent" }} without them.</span
+    ><app-icon name="warning" class="icon-xs" /> This collection's scripts are not reviewed yet, so the run {{
+    state.report() ? "sent" : "sends" }} its requests without them.</span
   >
   <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="review()">Review scripts…</button>
   }
@@ -127,10 +127,7 @@
   <span>{{ ending() }}</span>
   <span>{{ counts() }}</span>
   } @else {
-  <span
-    >Nothing is sent until you choose Run. Each request is sent as Send would send it{{ held() ? "." : ", with its
-    scripts." }}</span
-  >
+  <span>Run sends each request as Send does{{ held() ? "." : ", with its scripts." }}</span>
   }
 </div>
 
@@ -265,7 +262,7 @@
 </div>
 } @if (state.report() && !state.running()) {
 <div class="flex flex-wrap items-center gap-3">
-  <span class="type-footnote text-label-secondary">Save the report:</span>
+  <span class="type-footnote text-label-secondary">Download the report:</span>
   <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('json')">JSON</button>
   <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('junit')">JUnit XML</button>
   <button

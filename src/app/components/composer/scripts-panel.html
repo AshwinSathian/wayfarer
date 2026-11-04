@@ -9,7 +9,7 @@
     <p class="type-callout text-status-warning" aria-hidden="true">{{ heldText }}</p>
   </div>
   <button type="button" uiButton="outlined" class="btn-secondary btn-sm" (click)="reviewing.set(true)"
-    >Review scripts</button
+    >Review scripts…</button
   >
 </div>
 <app-script-review-dialog [visible]="reviewing()" (visibleChange)="reviewing.set($event)" />

@@ -166,7 +166,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   for (const opener of [
-    "Request history",
+    "History",
     "Settings",
     "Route: direct",
     "Secrets",

@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A run says before it starts that its scripts wait for a review.**
+  The run view promised each request would be sent "with its scripts"
+  even when an imported collection's scripts had not been reviewed, so
+  the first run tested nothing. It now says the scripts are held and
+  offers the review before you press Run.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

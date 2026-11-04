@@ -1865,6 +1865,7 @@ Evidence: `src/app/components/runner/run-view.html:130`, `:100-113`;
 `e2e/design/tasks.spec.ts` ("A run does not offer the review: it sends
 without the scripts").
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: before the run, when the collection holds scripts that wait for a review (read as stored, `scriptsApproved`), the view says "Scripts of this collection wait for a review, so requests are sent without them." with Review scripts…, and no longer promises "with its scripts". `e2e/runner.spec.ts` holds it.
 
 **U-158. A send whose scripts are held says so only in the response's
 Tests tab.** Severity 2. H1. TP, QA.

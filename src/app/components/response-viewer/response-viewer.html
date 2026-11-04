@@ -150,6 +150,13 @@
     </section>
     } }
 
+    <!-- Above the tabs, whichever is open: inside Tests, a response that opened on Body never showed it (U-158). -->
+    @if (scriptsSkipped()) {
+    <p class="scripts-skipped type-callout text-status-warning mx-4 mt-2 flex items-center gap-1.5">
+      <app-icon name="warning" class="icon-xs shrink-0" />This request's scripts did not run: they have not been
+      reviewed. Open the Scripts tab to review them.
+    </p>
+    }
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="response-tabs px-4 pt-1">
       <div ngTabs class="tabs">
@@ -560,13 +567,7 @@
                 <!-- Drawn only with a provider and the action on (AI-1); fetched when first drawn (D4.10). -->
                 @if (ai.offers().tests && responseStatusCode() !== undefined) { @defer {
                 <app-ai-tests />
-                } } @if (scriptsSkipped()) {
-                <p
-                  class="scripts-skipped type-callout text-status-warning rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
-                >
-                  This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.
-                </p>
-                } @if (!testResults().length) {
+                } } @if (!testResults().length) {
                 <div
                   class="flex items-center gap-2.5 rounded-lg bg-canvas-panel border border-dashed border-separator p-5"
                 >

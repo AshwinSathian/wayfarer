@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **When a request's scripts did not run, the response says so where you
+  look.** The note that its scripts wait for a review was inside the
+  response's Tests tab, while the response opens on Body. It is now under
+  the status line, above the tabs.
+
 - **A run says before it starts that its scripts wait for a review.**
   The run view promised each request would be sent "with its scripts"
   even when an imported collection's scripts had not been reviewed, so

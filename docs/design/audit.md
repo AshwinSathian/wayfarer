@@ -1882,6 +1882,7 @@ Evidence: `src/app/components/response-viewer/response-viewer.html:163-164`,
 `:563-568`; `src/app/components/composer/composer.html:128`;
 `src/app/components/composer/scripts-panel.html:3-16`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the note "This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them." is above the response's tabs, under its status line, whichever tab is open. `e2e/script-trust.spec.ts` holds it on Body.
 
 **U-159. The failure's bridge set-up leaves out what the bridge needs.**
  Severity 2. H10, H9. OC, SD, PE.

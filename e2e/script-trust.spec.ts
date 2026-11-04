@@ -184,3 +184,16 @@ test("a script written here runs without a review, also after it is saved into a
   await tests(page).click();
   await expect(page.locator(".test-result-pass", { hasText: "typed here" })).toBeVisible();
 });
+
+// U-158: a send whose scripts were held said so only inside the response's Tests tab; the response opens on Body, and
+// a person blamed the import or the server. The note is above the tabs, whichever is open.
+test("a send whose scripts are held says so above the response's tabs, on Body too", async ({ page }) => {
+  await captureTarget(page);
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  await importFile(page, 'pm.test("the file\'s script ran", () => {});');
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await expect(page.getByRole("tab", { name: "Body", exact: true }).last()).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".scripts-skipped")).toBeVisible();
+});

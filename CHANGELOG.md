@@ -752,6 +752,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The first screen offers each thing once.** An empty app showed Import
+  three times (the sidebar's Import menu, the empty sidebar's Import… and
+  the response pane's Import a collection…) and New twice. The sidebar's
+  Import and New menus now appear once a collection exists; until then
+  the empty sidebar's New collection and Import… are the way in. The empty
+  response pane keeps Paste a cURL command and drops its import. Both empty
+  states are a line of text at the top, left-aligned where the first row
+  or the status line will be, without the folder picture. A request with
+  an address now reads "Send this request (Ctrl+Enter) and its response
+  shows here." In Params and Headers the empty row is no longer ticked
+  before it has a name, and it is ticked when you type one. Add parameter,
+  Add header and Add field were greyed out while the last row lacked a
+  name or a value, with nothing to say why; they are always enabled now,
+  and with a row that has no name they put the caret in its name.
+
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished
   action were drawn in success's green, as a passing test is; they are

@@ -399,8 +399,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   },
   "import-curl": async (page) => {
     await page.goto("/app/");
-    await sidebarHeaderButton(page, "Import");
-    await page.getByRole("menuitem", { name: "cURL command…", exact: true }).click();
+    // An empty tree has no Import menu (L-16): the response pane offers the paste.
+    await button(page.locator(".response-pane"), "Paste a cURL command").click();
     await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
   },
   "script-review": async (page) => {

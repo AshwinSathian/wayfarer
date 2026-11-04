@@ -4,6 +4,8 @@ import { ImportRefused, ImportWorkerClient } from "../shared/import/import-worke
 import { CollectionsStore } from "./collections-store";
 import { Diagnostics, recordDiagnostic } from "./diagnostics";
 import { EnvironmentsStore } from "./environments-store";
+import { UndoNotice } from "./undo-notice";
+import type { Removed } from "../data/removed";
 
 /** An environment of the file, and what storing it does: a new one, or one that replaces the environment of that name. */
 export interface EnvironmentImportEntry {
@@ -22,6 +24,7 @@ export class ImportPipeline {
   private readonly collections = inject(CollectionsStore);
   private readonly environments = inject(EnvironmentsStore);
   private readonly worker = inject(ImportWorkerClient);
+  private readonly undo = inject(UndoNotice);
   private readonly diagnostics = inject(Diagnostics);
 
   readonly dialogVisible = signal(false);
@@ -87,15 +90,30 @@ export class ImportPipeline {
       return;
     }
     this.storing.set(true);
+    // What the import adds, and what it replaced as it was: its Undo, as a delete in the tree has (U-161).
+    const added: string[] = [];
+    const replaced: Removed[] = [];
     try {
       for (const { payload } of imported.collections) {
-        await this.collections.importCollection(payload, { duplicateAsNew: this.duplicateAsNew() });
+        const stored = await this.collections.importCollection(payload, {
+          duplicateAsNew: this.duplicateAsNew(),
+          replaced: (removed) => replaced.push(removed),
+        });
+        if (stored) added.push(stored.meta.id);
       }
       await this.storeEnvironments();
     } finally {
       this.storing.set(false);
     }
+    const name = this.fileName();
+    // Its environments are merged into the ones here, row by row: an Undo of the collections alone would say more than it does.
+    const environments = this.environmentEntries().length;
     this.close();
+    if (added.length && !environments)
+      this.undo.offer(`Imported ${name}.`, async () => {
+        for (const id of added) await this.collections.deleteCollection(id);
+        for (const removed of replaced) await this.collections.restore(removed);
+      });
   }
 
   close(): void {

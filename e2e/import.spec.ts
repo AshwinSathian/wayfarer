@@ -435,11 +435,64 @@ test("the review lists each item as it is stored and says which variables the fi
   const review = dialog(page);
   const plan = review.getByRole("list", { name: "What is imported" });
   await expect(plan.getByRole("listitem")).toHaveCount(4);
+  // Nothing of it is stored yet: every item is new (U-160), not "Replaces".
   await expect(plan.getByRole("listitem").filter({ hasText: "Status and body" })).toHaveText(
-    /^Request\s*Status and body\s*Replaces$/,
+    /^Request\s*Status and body\s*New$/,
   );
   await expect(review).toContainText("1 folder · 2 requests");
   await expect(review).toContainText(
     "{{base}} has no value in the file, and both requests use it: give it a value in an environment or in the collection's settings before you send.",
   );
+});
+
+// U-160 and U-161: a re-import marked every item "Replaces", whether it was stored or differed, and could not be undone.
+// Each item says New, Same or Changes against what is stored, and Undo puts back what the import replaced.
+test("a re-import says which items change, and Undo puts back what it replaced", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const first = collection([request("r-1", "Kept"), request("r-2", "Edited")]);
+  const plan = () => dialog(page).getByRole("list", { name: "What is imported" });
+  const row = (name: string) => plan().getByRole("listitem").filter({ hasText: name });
+  await pick(page, file("shop.json", first));
+  await expect(row("Kept")).toContainText("New");
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+
+  const second = collection([
+    request("r-1", "Kept"),
+    request("r-2", "Edited", { url: "https://api.example.test/changed" }),
+  ]);
+  await pick(page, file("shop.json", second));
+  await expect(row("Kept")).toContainText("Same");
+  await expect(row("Edited")).toContainText("Changes");
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.stringify(await dumpIdb(page))).toContain("https://api.example.test/r-2");
+  expect(JSON.stringify(await dumpIdb(page))).not.toContain("https://api.example.test/changed");
+});
+
+// The security review of #562: a file's request may carry the id of one another collection holds. The import takes it
+// from there: the review says so, and Undo puts it back where it was.
+test("an item whose id another collection holds says it moves here, and Undo puts it back", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  await pick(page, file("a.json", collection([request("r-1", "Shared id")])));
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  const other = collection([
+    request("r-1", "Shared id", { collectionId: "col-other", url: "https://api.example.test/other" }),
+  ]);
+  other.collection.id = "col-other";
+  other.collection.meta = meta("col-other");
+  other.collection.name = "Other collection";
+  await pick(page, file("b.json", other));
+  await expect(
+    dialog(page).getByRole("list", { name: "What is imported" }).getByRole("listitem").filter({ hasText: "Shared id" }),
+  ).toContainText("Moves here");
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.stringify(await dumpIdb(page))).not.toContain("api.example.test/other");
+  expect(JSON.stringify(await dumpIdb(page))).toContain("https://api.example.test/r-1");
 });

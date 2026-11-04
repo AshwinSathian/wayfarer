@@ -4,6 +4,8 @@ import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiSpinner } from "../../ui/spinner";
 import { ImportPipeline } from "../../services/import-pipeline";
+import { CollectionsStore } from "../../services/collections-store";
+import type { CollectionImportPlanEntry, ImportedCollection } from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
 
 /**
@@ -20,6 +22,31 @@ import { Dialog } from "../../ui/dialog";
 })
 export class ImportDialog {
   protected readonly pipeline = inject(ImportPipeline);
+  private readonly collections = inject(CollectionsStore);
+
+  /**
+   * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds
+   * what the file holds, Changes when it differs. "Replaces" said all three alike.
+   */
+  protected effectOf(
+    entry: ImportedCollection,
+    item: CollectionImportPlanEntry,
+  ): "New" | "Same" | "Changes" | "Moves here" {
+    if (item.action === "create") return "New";
+    // By id in every collection: a file may name one another collection holds, and the import takes it from there.
+    const trees = this.collections.tree();
+    const pick = <T extends { meta: { id: string } }>(list: T[] | undefined) =>
+      list?.find((doc) => doc.meta.id === item.id);
+    const [stored, incoming] =
+      item.type === "collection"
+        ? [trees.find((tree) => tree.collection.meta.id === item.id)?.collection, entry.payload.collection]
+        : item.type === "folder"
+          ? [pick(trees.flatMap((tree) => tree.folders)), pick(entry.payload.folders)]
+          : [pick(trees.flatMap((tree) => tree.requests)), pick(entry.payload.requests)];
+    if (!stored) return "New";
+    if ("collectionId" in stored && stored.collectionId !== entry.payload.collection.meta.id) return "Moves here";
+    return shape(stored) === shape(incoming) ? "Same" : "Changes";
+  }
 
   /** Named for what the file holds, once that is known. */
   protected readonly header = computed(() => {
@@ -65,4 +92,20 @@ export class ImportDialog {
       .map(([kind, count]) => `${count} ${kind}${count === 1 ? "" : "s"}`);
     return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "nothing");
   });
+}
+
+/** A stored or imported item as text, without what the store keeps of its own (ids, times, script approvals). */
+function shape(item: object | undefined): string {
+  if (!item) return "";
+  const {
+    meta: _meta,
+    id: _id,
+    collectionId: _collection,
+    scriptTrust: _trust,
+    ...rest
+  } = item as Record<string, unknown>;
+  // Keys in one order at every level: a replacer array lists each key once, sorted.
+  const keys = new Set<string>();
+  JSON.stringify(rest, (key: string, value: unknown) => (keys.add(key), value));
+  return JSON.stringify(rest, [...keys].sort());
 }

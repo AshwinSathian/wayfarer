@@ -131,7 +131,10 @@ describe("ImportPipeline", () => {
 
       await service.confirm();
 
-      expect(collections.importCollection).toHaveBeenCalledExactlyOnceWith(analysis.payload, { duplicateAsNew: true });
+      expect(collections.importCollection).toHaveBeenCalledExactlyOnceWith(analysis.payload, {
+        duplicateAsNew: true,
+        replaced: expect.any(Function) as unknown,
+      });
       expect(service.dialogVisible()).toBe(false);
       expect(service.imported()).toBeNull();
       expect(service.duplicateAsNew()).toBe(false);

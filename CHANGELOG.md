@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Importing a collection again says what it changes, and can be
+  undone.** Every item of a Wayfarer collection file was marked
+  "Replaces", whether it was stored or not and whether it differed. Each
+  is now New, Same or Changes, and after the import an Undo puts back the
+  collection as it was.
+
 - **Green and red mean a status again, nothing else.** The environment in
   use, the Local Bridge route and an unlocked vault were drawn in
   success's green, and "0 failed" in the error red with its glyph. They

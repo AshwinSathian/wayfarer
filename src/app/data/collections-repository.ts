@@ -282,7 +282,8 @@ export class CollectionsRepository {
 
   async importCollectionExport(
     payload: CollectionExport,
-    options?: { duplicateAsNew?: boolean },
+    /** `replaced` is handed what an import over a stored collection takes out, as it was: its Undo (U-161). */
+    options?: { duplicateAsNew?: boolean; replaced?: (removed: Removed) => void },
   ): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
@@ -301,11 +302,14 @@ export class CollectionsRepository {
       }
 
       if (!options?.duplicateAsNew) {
-        await collectionStore.delete(collectionId);
-        const [folders, requests] = await Promise.all([
+        const [existing, folders, requests] = await Promise.all([
+          collectionStore.get(collectionId),
           folderStore.index("by-collectionId").getAll(collectionId),
           requestStore.index("by-collectionId").getAll(collectionId),
         ]);
+        if (existing)
+          options?.replaced?.({ collections: [existing], folders, requests, files: await filesOf(tx, requests) });
+        await collectionStore.delete(collectionId);
         for (const folder of folders) {
           await folderStore.delete(folder.meta.id);
         }
@@ -318,6 +322,21 @@ export class CollectionsRepository {
       // also when it replaces a collection that was trusted.
       const collection: Collection = { ...data.collection, scriptTrust: { trusted: false } };
       await collectionStore.put(collection);
+      // A folder or a request of the file may carry the id of one another collection holds: `put` takes it from
+      // there. It is put back by the Undo with the rest of what the import replaced.
+      const taken: Removed = { collections: [], folders: [], requests: [], files: [] };
+      for (const folder of data.folders) {
+        this.core.ensureId(folder);
+        const other = await folderStore.get(folder.meta.id);
+        if (other && other.collectionId !== collectionId) taken.folders.push(other);
+      }
+      for (const request of data.requests) {
+        this.core.ensureId(request);
+        const other = await requestStore.get(request.meta.id);
+        if (other && other.collectionId !== collectionId) taken.requests.push(other);
+      }
+      if (taken.folders.length || taken.requests.length)
+        options?.replaced?.({ ...taken, files: await filesOf(tx, taken.requests) });
       for (const folder of data.folders) {
         folder.collectionId = collectionId;
         this.core.ensureId(folder);

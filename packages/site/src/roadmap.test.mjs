@@ -33,7 +33,7 @@ test("the repository's plan gives every phase it has, each with its tasks", () =
   const phases = roadmapOf(readFileSync(new URL("../../../PLAN-design.md", import.meta.url), "utf8"));
   assert.deepEqual(
     phases.map((p) => p.title.split(":")[0]),
-    ["Phase D0", "Phase D1", "Phase D2", "Phase D3", "Phase D4", "Phase D5", "Phase W", "Phase T"],
+    ["Phase D0", "Phase D1", "Phase D2", "Phase D3", "Phase D4", "Phase D5", "Phase D6", "Phase W", "Phase T"],
   );
   for (const phase of phases) assert.ok(phase.tasks.length > 0, phase.title);
   assert.ok(phases.flatMap((p) => p.tasks).some((t) => t.id === "W1.1" && t.done));

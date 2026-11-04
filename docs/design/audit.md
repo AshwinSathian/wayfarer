@@ -2312,6 +2312,7 @@ Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
 `src/app/components/response-viewer/response-viewer.html:618-621`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the failed count is the secondary label without a glyph until a test fails. `e2e/response-tests.spec.ts` holds it.
 
 **U-191. The run report says its counts twice.** Severity 4. H8. QA.
 "4 results in 1 iteration; 1 failed; 4 of 5 tests passed." over "3 passed
@@ -2374,6 +2375,7 @@ that holds chroma to method and status tokens passes it.
 Evidence: `baseline/design-chromium/environments-rows-1440-dark.png` ("In use"); the bridge and
 unlocked states are not captured and rest on source.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: "In use" is an outlined tag in the primary label, and the status bar's route and vault words keep the label's colour; the token test fails on a status colour on the shell's device state.
 
 **U-198. The Secrets dialog keeps cards inside the dialog.** Severity 3.
 H8. Everyone.

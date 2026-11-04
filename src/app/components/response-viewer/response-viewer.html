@@ -609,9 +609,14 @@
                     <app-icon name="check_circle" class="icon-xs" />
                     {{ testPassCount }} passed
                   </span>
-                  <span class="type-subhead text-status-error flex items-center gap-1.5">
+                  <!-- Red only when something failed (U-190). -->
+                  <span
+                    class="type-subhead flex items-center gap-1.5"
+                    [class]="testFailCount ? 'text-status-error' : 'text-label-secondary'"
+                  >
+                    @if (testFailCount) {
                     <app-icon name="cancel" class="icon-xs" />
-                    {{ testFailCount }} failed
+                    } {{ testFailCount }} failed
                   </span>
                 </div>
                 } @if (scriptTimings()) {

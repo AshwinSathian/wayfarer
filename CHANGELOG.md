@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Green and red mean a status again, nothing else.** The environment in
+  use, the Local Bridge route and an unlocked vault were drawn in
+  success's green, and "0 failed" in the error red with its glyph. They
+  are in the label's own colour now; red appears when a test fails.
+
 - **Things are called the same everywhere.** The body's type select is
   "Body type", not a second "Body"; the environment editor's tab says
   "Name / Value" over columns named Name and Value; the palette says

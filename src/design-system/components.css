@@ -402,14 +402,11 @@ pre,
   gap: 4px;
   padding: 1px 8px;
   border-radius: var(--radius-full);
-  /* On the panel's colour, not the row's: the row it sits on is the selected one, and its fill under the tag's own
-     took the text under 4.5:1. */
-  background: linear-gradient(var(--status-success-fill), var(--status-success-fill)), var(--canvas-panel);
-  border: 1px solid var(--status-success-border);
+  /* The device's own state, not a status: no hue (DQ11, U-197). */
+  border: 1px solid var(--ctl-boundary);
   font-size: var(--type-footnote-size);
   font-weight: 600;
-  color: var(--status-success-text);
-  letter-spacing: 0.04em;
+  color: var(--label-primary);
 }
 
 /* ── Table (response headers etc.) ──────────────────────── */

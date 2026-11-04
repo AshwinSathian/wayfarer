@@ -1,54 +1,10 @@
-<div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 type-footnote text-label-tertiary md:grid">
-  <div class="w-[22px]"></div>
-  <div>Key</div>
-  <div>Value</div>
-  <div class="w-[34px]"></div>
-</div>
-<!-- By place, not by object: the rows are made again from the address at every edit of it, and a row has no id. By object, each such edit destroyed and rebuilt every row (NG0956). -->
-@for (param of store.draft().params; track $index; let i = $index) {
-<div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
-  <input
-    type="checkbox"
-    uiCheckbox
-    [attr.aria-label]="'Send ' + (param.key || 'this parameter')"
-    [(ngModel)]="param.enabled"
-    (ngModelChange)="store.paramsEdited()"
-  />
-  <input
-    class="font-mono w-full"
-    uiInput
-    [(ngModel)]="param.key"
-    (ngModelChange)="store.paramsEdited()"
-    placeholder="Key"
-    [attr.aria-label]="'Parameter name, ' + (i + 1) + ' of ' + store.draft().params.length"
-  />
-  <input
-    class="font-mono w-full"
-    uiInput
-    [(ngModel)]="param.value"
-    (ngModelChange)="store.paramsEdited()"
-    placeholder="Value"
-    [attr.aria-label]="'Value of ' + (param.key || 'this parameter')"
-  />
-  <div class="flex justify-end md:block">
-    <button
-      uiButton="icon"
-      class="btn-plain"
-      type="button"
-      [attr.aria-label]="'Remove ' + (param.key || 'this parameter')"
-      (click)="store.removeParam(i)"
-      ><app-icon name="close"
-    /></button>
-  </div>
-</div>
-}
-<div class="pt-1">
-  <button
-    uiButton="filled"
-    class="btn-secondary"
-    type="button"
-    [disabled]="store.isAddParamDisabled()"
-    (click)="store.addParam()"
-    ><app-icon name="add" /> Add parameter</button
-  >
-</div>
+<!-- The rows editor wraps a row by its own room (U-155): a grid by the window's width left the key and value 20 px
+     each beside the tree at 200% text. -->
+<app-rows-editor
+  noun="parameter"
+  [items]="store.draft().params"
+  addLabel="Add parameter"
+  (itemChange)="store.paramsEdited()"
+  (add)="store.addParam()"
+  (remove)="store.removeParam($event)"
+></app-rows-editor>

@@ -466,12 +466,9 @@ it is.
 | `oauth-token.html: Get token` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
 | `oauth-token.html: Cancel sign-in` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
 | `oauth-token.html: Forget token` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
-| `params-panel.html: Send` | Params tab | Composer, Params tab | D4-d |
-| `params-panel.html: Remove` | Params tab | Composer, Params tab | D4-d |
-| `params-panel.html: Add parameter` | Params tab | Composer, Params tab | D4-d |
-| `rows-editor.html: Send` | Rows of a key-value editor (headers, a collection's variables) | Same rows | D4-d |
-| `rows-editor.html: Remove` | Rows of a key-value editor (headers, a collection's variables) | Same rows | D4-d |
-| `rows-editor.html: addLabel()` | Rows of a key-value editor (headers, a collection's variables) | Same rows | D4-d |
+| `rows-editor.html: Send` | Rows of a key-value editor (params, headers, a collection's variables) | Same rows | D4-d |
+| `rows-editor.html: Remove` | Rows of a key-value editor (params, headers, a collection's variables) | Same rows | D4-d |
+| `rows-editor.html: addLabel()` | Rows of a key-value editor (params, headers, a collection's variables) | Same rows | D4-d |
 | `save-as-dialog.html: Collection` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Folder (optional)` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Cancel` | Save as dialog | Composer, Save as dialog | D4-d |

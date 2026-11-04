@@ -32,6 +32,7 @@ describe("row names (U-071)", () => {
       "Parameter name, 2 of 2",
       "Value of this parameter",
       "Remove this parameter",
+      "Add parameter",
     ]);
   });
 

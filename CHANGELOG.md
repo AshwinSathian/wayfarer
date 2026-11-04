@@ -444,6 +444,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The comparison pages are re-read and say only what their sources
+  say.** Every fact about Postman, Bruno, Yaak, Hoppscotch and Insomnia
+  was read on 19 October and is now read again on 4 November 2026, with
+  its source. Several were wrong or overstated: the one-user limit on
+  Postman's Free plan was credited to Postman but sourced to Yaak's blog;
+  the Bruno page implied Wayfarer alone encrypts secrets, when Bruno
+  encrypts them on disk too; Insomnia's cloud was called end-to-end
+  encrypted, where Insomnia says that is optional; and Postman's Native
+  Git, Yaak's web version and each rival's AI were missing. Every
+  sentence about Wayfarer on those pages now names its claim, or the file
+  that says so for the licence and the first release, and a test holds
+  them to it. "Moving from Postman" uses the app's current names for the
+  import and the script review, replaces "a few minutes" with the
+  benchmark's count (11 clicks to import, trust and run), and says how to
+  go back to Postman.
+
+- **Design notes no longer pass for documentation.** The site published
+  the 30 design records under `docs/design/` beside the user docs, listed
+  them in the sitemap and in `llms.txt`, and cut off the "designed, not
+  built" line at their top, so an assistant reading the site could say
+  Wayfarer has team sharing and Git sync. It has neither. Those pages now
+  tell search engines not to list them (except the benchmark and the
+  research the comparison pages rest on), their descriptions start
+  "Design record, not user documentation" and keep their status, and
+  `/docs/` groups the docs into guides, reference, trust, operations and
+  design records. The AI flows' design record no longer says AI is not
+  built.
+
 - **Addresses, hosts, header names and methods are never drawn under
   13 px.** A host or a flag set in JetBrains Mono inside a small line (the
   exchange record, the bridge's set-up, History, the tree's methods) came
@@ -739,6 +767,71 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   menu item is **Collection settings…** and a folder's is **Folder
   settings…**. Before, all three were called "Settings", the same name
   as the app's Settings dialog.
+
+- **The site is easier to find and to quote.** Titles say "API client",
+  since "Wayfarer" alone is also a pair of sunglasses, and the comparison
+  pages are "Wayfarer vs …". `llms.txt` lists what Wayfarer does, each
+  line with its claim, and what it does not do; `llms-full.txt` holds the
+  user docs in one file. A claim's chip links to its own row of the
+  ledger and is named by the claim. The sitemap gives the day each page
+  last changed, the front page's structured data names the maintainer,
+  the source and the features (from the ledger), and docs, comparisons
+  and posts have structured data of their own. The app's page title is
+  "Wayfarer API client". Each comparison page links to the others, the
+  docs it relies on and the benchmark.
+
+- **The site's changelog and roadmap are pages you can read.** The
+  changelog opens with a list of versions, each with its date and one
+  line on what it brought, and folds each version's notes under its
+  heading, with only the latest release open. The notes not yet released
+  are under "Coming in the next release". Before, the page was the whole
+  file in one column, about 76,000 pixels tall on a desktop, starting
+  with the file's boilerplate and "[Unreleased]". The roadmap now says
+  what 3.0 brings, what comes next and what comes later (sharing with a
+  team), each item as what you get. Before, it listed the design plan's
+  tasks by their IDs, research and reviews among them. Both pages are
+  still made from `CHANGELOG.md` and `PLAN-design.md` when the site is
+  built.
+
+- **A new mark, and the name in one weight.** The mark is now a W drawn
+  as one trail, its last leg ending at a dot: the host a request reaches.
+  The old one, a thin hook with a small dot, was a grey smudge in a
+  browser tab (its line was under a pixel wide at 16 px) and read as a
+  lower-case "r". The new line is half again as heavy, so the favicon,
+  the installed app's icons, the site's header and the social images all
+  show a W at 16 px. The name "Wayfarer" is now set in Bold in the app,
+  as the site already set it; the app used SemiBold beside the mark and
+  a lighter weight in the toolbar.
+
+- **A collection's or a folder's settings open in a tab, and their
+  variables can be secrets.** Collection settings… and Folder settings…
+  in the tree's menu, the palette's "Settings of {name}…" and a variable's
+  chip open the settings as a tab
+  beside your requests, one tab for each collection or folder, as
+  Environments does. Before, they were a dialog over a page you could not
+  reach, with its own Save and a question when you closed it with changes.
+  Now each field is written when you leave it. The variables have the
+  environment editor's rows: a switch that turns one off and keeps its
+  value, a lock that moves its value into the vault, and a JSON view.
+  Before, a collection's token could not be locked, and an export wrote
+  it in plain text; a locked one is exported as its `{{$secret.…}}`
+  reference. Each script editor is 320 px tall, from 150. Editing a collection's
+  or a folder's script that waits for review still does not approve it.
+
+- **The response goes under the request when the two have no room side
+  by side.** In a 820 px window, or a 1,024 to 1,400 px window with the
+  sidebar pinned, the request and the response were two columns of 300 to
+  420 px: the status line wrapped to three lines, a parameter's value went
+  under its name, and the JSON body scrolled sideways. Now, when the
+  composer itself is narrower than 62 em (992 px at the default text
+  size), the response sits under the request at full width, with the line
+  between them across; drag it, or focus it and use Up and Down. The
+  request takes two fifths of the height until you move the line, and the
+  position you choose is kept apart from the one beside. Settings ›
+  General › Response keeps the response beside the request or under it at
+  any width, and the palette has "Put the response under the request" and
+  "Put the response beside the request". At 1,440 px with the sidebar
+  pinned nothing changes.
 
 - **An import with scripts can end in their review.** When the file is
   one collection with scripts, the import's report has a third button,

@@ -49,7 +49,10 @@ test("the manifest's icons: the mark at 192 and 512 px for `any`, and one 512 px
 });
 
 test("the mark drawn inline in the app and on the site is the brand's glyph", async () => {
-  const { ROUTE } = await import("../packages/tokens/brand.mjs");
-  for (const file of ["src/app/shared/icon/mark.ts", "packages/site/src/components/Mark.tsx"])
-    assert.ok(read(file).includes(`d="${ROUTE}"`), `${file} does not draw the brand's glyph`);
+  const { TRAIL, HOST } = await import("../packages/tokens/brand.mjs");
+  for (const file of ["src/app/shared/icon/mark.ts", "packages/site/src/components/Mark.tsx"]) {
+    const text = read(file);
+    assert.ok(text.includes(`d="${TRAIL}"`), `${file} does not draw the brand's trail`);
+    assert.ok(text.includes(`cx="${HOST.cx}" cy="${HOST.cy}" r="${HOST.r}"`), `${file} does not draw the host`);
+  }
 });

@@ -93,7 +93,7 @@ row below.
 | `save-request` | The dialog that saves a new request into a collection. |
 | `tree` | The collections tree with a collection, a folder and four requests: pinned from 1,200 px, a drawer below. |
 | `tree-menu` | A collection's context menu in the tree. |
-| `collection-settings` | A collection's settings dialog. |
+| `collection-settings` | A collection's settings tab (D5-e). |
 | `new-collection` | The dialog that names a new collection. |
 | `palette` | The command palette, open. |
 | `import-review` | The import report of a collection file, with a warning. |

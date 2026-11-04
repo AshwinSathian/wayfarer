@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
-import { closeEnvironments, openEnvironments, seedAndOpen, send } from "./support/app";
+import {
+  closeEnvironments,
+  closeHolderSettings,
+  openEnvironments,
+  openHolderSettings,
+  seedAndOpen,
+  send,
+} from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.4: a variable of the collection and a global one, set in their editors,
@@ -59,19 +66,21 @@ test("a collection variable and a global reach the server, an environment's valu
   await addVariables(page, "Global variables", { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
   await closeEnvironments(page);
 
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  // A collection's variables are in its settings since P4.9, with its auth and its scripts.
-  await page.getByRole("menuitem", { name: "Collection settings…" }).click();
-  await page
-    .getByRole("dialog", { name: /^Collection settings/ })
-    .getByRole("tab", { name: "Variables" })
-    .click();
-  await addVariables(
-    page,
-    /^Collection settings/,
-    { fromCollection: "c-1", winner: "from-collection", second: "from-collection" },
-    "Save settings",
-  );
+  // A collection's variables are in its settings tab (P4.9, D5-e), with its auth and its scripts, written as typed.
+  const settings = await openHolderSettings(page, "Tripwire collection");
+  let rows = 0;
+  for (const [name, value] of Object.entries({
+    fromCollection: "c-1",
+    winner: "from-collection",
+    second: "from-collection",
+  })) {
+    await settings.getByRole("button", { name: "Add variable" }).click();
+    rows += 1;
+    await expect(settings.getByPlaceholder("Name", { exact: true })).toHaveCount(rows);
+    await settings.getByPlaceholder("Name", { exact: true }).last().fill(name);
+    await settings.getByPlaceholder("Value", { exact: true }).last().fill(value);
+  }
+  await closeHolderSettings(page, "Tripwire collection");
 
   // The chips name where each value comes from.
   const chips = page.locator("app-variable-chips");

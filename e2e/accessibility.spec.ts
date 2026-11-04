@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
 import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
-import { closeEnvironments } from "./support/app";
+import { closeEnvironments, closeHolderSettings, openHolderSettings } from "./support/app";
 
 // Scan only once the page has stopped animating (see settled()).
 async function analyze(page: Page) {
@@ -241,20 +241,17 @@ test.describe("Accessibility (primary flows)", () => {
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
-      // A collection's settings (P4.9), tab by tab, and the Auth tab's line for a request that inherits.
+      // A collection's settings tab (P4.9, D5-e), pane by pane.
       await button("New collection").first().click();
       await page.locator("#creation-name-input").fill("Sweep");
       await button("Create").click();
       await expect(page.getByRole("dialog")).toHaveCount(0);
-      await page.getByText("Sweep", { exact: true }).click({ button: "right" });
-      await page.getByRole("menuitem", { name: "Collection settings…" }).click();
-      const settings = page.getByRole("dialog", { name: /^Collection settings/ });
-      for (const tab of ["Auth", "Variables", "Scripts", "Route"]) {
-        await settings.getByRole("tab", { name: tab }).click();
+      const settings = await openHolderSettings(page, "Sweep");
+      for (const tab of ["Variables", "Auth", "Scripts", "Route"]) {
+        await settings.getByRole("tab", { name: tab, exact: true }).click();
         await scan(`collection settings ${tab}`);
       }
-      await page.keyboard.press("Escape");
-      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await closeHolderSettings(page, "Sweep");
 
       // The Postman export of a collection (P4.6 b).
       await page.getByText("Sweep", { exact: true }).click({ button: "right" });

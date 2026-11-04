@@ -16,6 +16,7 @@ import { TestBed } from "@angular/core/testing";
 import { Tabs } from "../../state/tabs";
 import { Composer } from "./composer";
 import { ComposerView } from "./composer-view";
+import { PaneLayout } from "../../services/pane-layout";
 
 describe("Composer", () => {
   let component: Composer;
@@ -39,6 +40,34 @@ describe("Composer", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  // L-6, L-7: two columns of 300 to 420 px wrapped the status line and scrolled the body sideways.
+  it("puts the response under the request when the composer is narrower than 62 em, or when that is chosen", async () => {
+    const layout = TestBed.inject(PaneLayout);
+    const host: HTMLElement = fixture.nativeElement;
+    document.body.append(host);
+    const orientation = async (width: number) => {
+      host.style.display = "block";
+      host.style.width = `${width}px`;
+      // The observer reports after the next layout.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await fixture.whenStable();
+      return host.querySelector(".composer-response-splitter [role='separator']")?.getAttribute("aria-orientation");
+    };
+    try {
+      expect(await orientation(1100)).toBe("vertical");
+      expect(await orientation(900)).toBe("horizontal");
+      layout.choose("beside");
+      expect(await orientation(900)).toBe("vertical");
+      layout.choose("under");
+      expect(await orientation(1100)).toBe("horizontal");
+      expect(localStorage.getItem("wayfarer:pane-layout")).toBe("under");
+    } finally {
+      layout.choose("room");
+      localStorage.removeItem("wayfarer:pane-layout");
+      host.remove();
+    }
   });
 
   describe("keys (U-032)", () => {

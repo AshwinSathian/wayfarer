@@ -381,7 +381,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await seed(page);
     await contextMenu(page, "Pet store");
     await page.getByRole("menuitem", { name: "Collection settings…" }).click();
-    await expect(page.getByRole("dialog", { name: /^Collection settings/ })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Collection settings: Pet store" })).toBeVisible();
   },
   "new-collection": async (page) => {
     await page.goto("/app/");

@@ -1,3 +1,4 @@
+import type { HolderTarget } from "../state/tab-state";
 import { Injectable, signal } from "@angular/core";
 import type { VariableToken as ResolvedToken } from "@wayfarer/core";
 
@@ -7,7 +8,7 @@ import type { VariableToken as ResolvedToken } from "@wayfarer/core";
  */
 export type VariableToken = ResolvedToken & {
   environmentId?: string;
-  holder?: { collectionId: string; folderId?: string };
+  holder?: HolderTarget;
 };
 
 @Injectable({

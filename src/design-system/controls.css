@@ -115,3 +115,22 @@
 .ui-splitter--resizing {
   user-select: none;
 }
+
+/* One pane above the other: the same line, across. */
+.ui-splitter--horizontal {
+  flex-direction: column;
+}
+
+.ui-splitter--horizontal > .ui-splitter-pane {
+  min-height: 0;
+}
+
+.ui-splitter--horizontal > .ui-splitter-gutter {
+  background-size: 100% 1px;
+  cursor: row-resize;
+}
+
+.ui-splitter--horizontal > .ui-splitter-gutter:hover,
+.ui-splitter--horizontal.ui-splitter--resizing > .ui-splitter-gutter {
+  background-size: 100% 3px;
+}

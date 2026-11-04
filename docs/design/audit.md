@@ -1848,6 +1848,7 @@ Evidence: `baseline/design-chromium/tree-1440-light.png`,
 `src/app/components/collections/collections-sidebar.ts:188-260`;
 `src/app/components/app-shell/app-shell.ts:250-345`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the palette offers "Run {collection}…" for every collection, and "Run {folder}…" for the selected folder; typing "run" finds them. `e2e/palette.spec.ts` holds it.
 
 **U-157. Before a run, the view says the scripts will run; held ones do
 not.** Severity 2. H1, H5. QA, TP.

@@ -1808,6 +1808,187 @@ Evidence: [`hig-review/d18.md`](hig-review/d18.md), "2.5.8 targets".
 **Status:** Open, D5-c: measured again there, since U-155's fix moves the
 box beside the parameter's name.
 
+## Fifth pass, 2026-11-04
+
+Session D5-b of the plan (row 1.64), on `main` at `62d85ef`, the build
+v3.0.0 is cut from. Its first part is D1.3's cognitive walkthrough of the
+five personas ([`personas.md`](personas.md)): 69 steps walked, 48 passed,
+18 failed and 3 not checked, from 12 causes, U-156 to U-167. None repeats
+a finding outright. Three sit beside one: U-157 is what U-039's fix (#511)
+left (the sentence before the run says the scripts will run); U-159 is
+beside U-138 (what the path to the bridge leaves out); U-165 is beside
+U-137 (Safari's seven days). Their evidence paths are relative to
+`docs/design/`.
+
+### The persona walkthroughs (D1.3)
+
+**U-156. A collection run is reached only from the tree's context menu.**
+ Severity 2. H6, H7. QA, TP, SD.
+Run… is an item of a collection's and a folder's context menu, opened by
+a right-click or Shift+F10 on the row, and nowhere else. No row shows a
+button for it, the toolbar has none, and the palette has none: its
+commands for a selected row are New, Duplicate, Export and Delete. A
+tester who came for the runner, or a Postman user looking for its Runner
+button, does not find it by looking; on a touch screen there may be no
+way to open the menu at all (not checked).
+Evidence: `baseline/design-chromium/tree-1440-light.png`,
+`baseline/design-chromium/tree-menu-1440-light.png`;
+`src/app/shared/collections/collection-context-menu.ts:25`, `:39`;
+`src/app/components/collections/collections-sidebar.ts:188-260`;
+`src/app/components/app-shell/app-shell.ts:250-345`.
+**Status:** Open, D5-c.
+
+**U-157. Before a run, the view says the scripts will run; held ones do
+not.** Severity 2. H1, H5. QA, TP.
+Before the first run of an imported collection the run view says "Each
+request is sent as Send would send it, with its scripts." The collection's
+scripts are held until reviewed, so the run sends without them and only
+then says "Scripts of this collection wait for a review, so requests were
+sent without them." with Review scripts…. The first run tests nothing,
+after a sentence that said it would; a tester who saves its report saves
+results with no tests. U-039's fix offers the review after the run and
+accepted that one run goes without the scripts; it did not change what the
+view promises before it.
+Evidence: `src/app/components/runner/run-view.html:130`, `:100-113`;
+`src/app/services/collection-runner.ts:44`; task 2 of
+`e2e/design/tasks.spec.ts` ("A run does not offer the review: it sends
+without the scripts").
+**Status:** Open, D5-c.
+
+**U-158. A send whose scripts are held says so only in the response's
+Tests tab.** Severity 2. H1. TP, QA.
+Send an imported request whose pre-request script sets a token, before
+its scripts are reviewed: the script does not run, the server answers 401,
+and the response opens on Body. The status line, the exchange record and
+the Body tab say nothing of the scripts. The note "This request's scripts
+did not run: they have not been reviewed." is inside the response's Tests
+tab, which carries no count or mark when no test ran, and the composer's
+Scripts tab has no mark either. The person blames the import or the
+server.
+Evidence: `src/app/components/response-viewer/response-viewer.html:163-164`,
+`:563-568`; `src/app/components/composer/composer.html:128`;
+`src/app/components/composer/scripts-panel.html:3-16`.
+**Status:** Open, D5-c.
+
+**U-159. The failure's bridge set-up leaves out what the bridge needs.**
+ Severity 2. H10, H9. OC, SD, PE.
+A send that got no response opens its record with "Start it, then type the
+code it prints.", `npx wayfarer-bridge`, Copy and a pairing code. It does
+not say the command is for a terminal and needs Node.js 22.21 or later;
+that Safari reaches the bridge from the hosted app only over HTTPS, with
+`--cert` and `--key`; or that Chrome and Edge ask about the local network
+the first time and a refusal blocks the bridge. The last two are said in
+Settings, Local Bridge, and the record has no link to it or to the
+bridge's README. A person without Node stops at the command; a Safari user
+follows every step and Pair fails.
+Evidence: `baseline/design-chromium/response-error-1440-light.png`;
+`src/app/components/exchange-record/bridge-setup.html:1-7`;
+`src/app/components/settings/bridge-pane.html:148-154`;
+`packages/bridge/README.md` ("It needs Node.js 22.21 or later").
+**Status:** Open, D5-c.
+
+**U-160. A Wayfarer file's import says "Replaces" for items that do not
+exist.** Severity 3. H1, H2. TP.
+Import a collection file written by Wayfarer into an app that has never
+seen it: each row of the review reads "Replaces", in the warning colour,
+and "Import as duplicate" says it "Keeps the original" when there is no
+original. The importer marks every item of a Wayfarer file "overwrite"
+unless duplicate is chosen, without looking at what is stored. A teammate
+receiving a first file is told it will replace their work, and may import
+it as a duplicate to be safe.
+Evidence: `baseline/design-chromium/import-review-1440-light.png` (the
+tree is empty; both rows read "Replaces");
+`packages/core/src/import/wayfarer-collection.ts:154-155`;
+`src/app/components/import/import-dialog.html:83-84`, `:99-110`.
+**Status:** Open, D5-c.
+
+**U-161. A re-import replaces each item without saying what changed, and
+cannot be undone.** Severity 2. H3, H5. TP.
+A teammate's changed copy of a shared collection, imported over one's
+own, lists every item as "Replaces" whether it differs or not. Nothing
+says which requests changed or that one's own edits since the last
+exchange will go, and an import has no undo (deletes in the tree do, U-080).
+Files are the only way to share in v3.0.0, so this is how a team shares.
+Section 1 of the plan puts "see what the other changed before taking it"
+in phase T (T1); until then the review could at least mark the items whose
+stored copy differs.
+Evidence: `src/app/components/import/import-dialog.html:99-110`;
+`packages/core/src/import/wayfarer-collection.ts:154-155`;
+`PLAN-design.md`, section 1 ("What success looks like").
+**Status:** Open, D5-c.
+
+**U-162. A run's report is gone after a reload, and nothing says so.**
+ Severity 3. H1, H5. QA.
+A run is a tab that is not stored, and a run writes nothing to history:
+reload the page or close the browser and the report of a long run is gone.
+That is by design, but the run view never says it. Save the report (JSON,
+JUnit XML, HAR) is offered under the results without a word that it is
+the only way to keep them.
+Evidence: `src/app/state/tabs-storage.ts:124-126`;
+`src/app/state/tab-state.ts:139-141`;
+`src/app/components/runner/run-view.html` (no such note);
+`baseline/design-chromium/run-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-163. The first save cannot make the collection it needs.**
+Severity 3. H7, H3. SD, OC.
+Ctrl+S on a new request with no collection yet opens Save to collection,
+which says "A request is saved into a collection, and there is none yet.
+Make one with New collection in the sidebar." and offers Cancel and a
+disabled Save. The person closes it, opens the sidebar (a closed drawer
+below 1,200 px), makes a collection, and saves again. The dialog could
+name a new collection itself.
+Evidence: `src/app/components/composer/save-as-dialog.html:9-12`.
+**Status:** Open, D5-c.
+
+**U-164. With no vault, the app says the vault is locked.**
+Severity 3. H1, H2. PE, OC.
+Before any vault is made, the status bar reads "Vault locked", the Secrets
+dialog says "Vault is locked. Unlock it to reveal secret values below."
+beside Unlock, Change passphrase and Export vault, and Settings, Vault says
+"The vault is locked." A careful user asks whose vault it is and what its
+passphrase was. Unlock then opens "Create vault passphrase", so a click
+recovers, but every word before it was wrong.
+Evidence: `baseline/design-chromium/first-run-1440-light.png`,
+`baseline/design-chromium/secrets-manager-1440-light.png`,
+`baseline/design-chromium/settings-vault-1440-light.png`;
+`src/app/components/app-shell/app-shell.html:367-368`;
+`src/app/components/secrets/secrets-manager.html:14-15`.
+**Status:** Open, D5-c.
+
+**U-165. In Safari, the seven-day deletion is said only in Settings.**
+Severity 2. H1, H2. OC, SD.
+Safari deletes a site's data after seven days without a visit unless the
+app is installed. The status bar says "Saved in this browser, which may
+delete it", and the backup banner "which has not promised to keep it"; the
+seven days and the cure (File → Add to Dock) are said only in Settings,
+Data and storage, which an occasional user does not open. They come back
+after two weeks to an empty app with no word of why. The banner and the
+status bar could say it in Safari, as Settings does.
+Evidence: `src/app/components/app-shell/app-shell.ts:191`, `:573`;
+`src/app/components/settings/settings.html:262-273`;
+`README.md`, "Known limitations". Read from source; not captured in Safari.
+**Status:** Open, D5-c.
+
+**U-166. The app links to no documentation.** Severity 3. H10. OC, TP.
+The site has docs for variables, auth, scripts, import and the bridge, but
+no screen of the app links to them. Settings, About links the changelog,
+the trust centre, the source and the licences; the one other link is the
+bridge's README in Settings, Local Bridge. A user stuck on a held script,
+a variable's scope or an import note has nowhere in the app to read more.
+Evidence: `baseline/design-chromium/settings-about-1440-light.png`;
+`src/app/components/settings/bridge-pane.html:156-164`.
+**Status:** Open, D5-c.
+
+**U-167. Settings writes ⌘K on every platform.** Severity 4. H4. SD.
+Data and storage says a collection is exported "from the command palette
+(⌘K, "Export …")". On Windows and Linux the toolbar on the same screen
+says Ctrl+K: the key is written by hand in this one sentence, not from the
+shortcut table.
+Evidence: `baseline/design-chromium/settings-data-1440-light.png`;
+`src/app/components/settings/settings.html:244`.
+**Status:** Open, D5-c.
+
 ## Every screen of D0.1, and its findings
 
 Each screen of [`baseline/index.md`](baseline/index.md), with the open or

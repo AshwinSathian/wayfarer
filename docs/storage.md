@@ -29,6 +29,7 @@ One entry per request sent:
 | `sent` | Method, URL and headers as they went out, masked. `bodyPreview` is the text of a text body; of a form or a file, the field names, file names and sizes, never the bytes. |
 | `response` | Status, headers and, for a text body, up to 1 MB of it, masked. A binary body is not kept: bytes cannot be searched for a secret. Absent when no response arrived. |
 | `route`, `durationMs`, `error` | `direct` or `bridge`; milliseconds; the message of a failure. |
+| `sentFrom` | The saved request the tab was bound to when it sent: its `name`, and the names of its collection and folders, outermost first (`path`). Kept as they were then: renaming, moving or deleting the request later does not change the entry. Absent for a request that was not opened from a collection. These are names you typed and are never resolved, so no variable or vault secret is put into them; they pass through the redactor all the same. History shows the name above the address and finds an entry by it. |
 
 History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
 

@@ -3,6 +3,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { openEnvironments, openSettings, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
+import { OPEN } from "./design/open";
 
 /** Every visible text node under 12 px, as "font-size: text". Monaco sets its own size; it is left out. */
 const smallText = (page: Page) =>
@@ -92,3 +93,28 @@ test("a bare form control takes the font of the text around it, not the browser'
   });
   expect(fonts).toEqual(["BUTTON 17px true", "INPUT 17px true", "SELECT 17px true", "TEXTAREA 17px true"]);
 });
+
+// The final pass (L-8 to L-10): the wire's face is never under 13 px (CLAUDE.md, U-151). A `font-mono` span inside
+// 12 px text inherited 12 px: the exchange record's host and reported words, the bridge's command, History's status.
+for (const id of ["response-error", "history", "response-headers", "run"] as const) {
+  test(`no JetBrains Mono text is under 13 px: ${id}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await OPEN[id](page);
+    const small = await page.evaluate(() => {
+      const out: string[] = [];
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const element = node.parentElement;
+        const text = node.textContent?.trim();
+        if (!element || !text || element.closest(".monaco-editor, [inert], [hidden]")) continue;
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        if (!box.width || !box.height || style.visibility === "hidden") continue;
+        if (/^"?JetBrains Mono/.test(style.fontFamily) && parseFloat(style.fontSize) < 13)
+          out.push(`${style.fontSize} "${text.slice(0, 40)}"`);
+      }
+      return out;
+    });
+    expect(small).toEqual([]);
+  });
+}

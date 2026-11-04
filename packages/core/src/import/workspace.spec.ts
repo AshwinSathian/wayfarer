@@ -111,6 +111,21 @@ describe("validateWorkspaceFile", () => {
         ]);
     });
 
+    it("reads the saved request an entry was sent from, and refuses a field of it the app does not write", () => {
+      const sentFrom = { name: "List pets", path: ["Pet store", "Pets"] };
+      expect(validateWorkspaceFile(file({ history: [entry({ sentFrom })] }))).toEqual([]);
+      for (const bad of [
+        "List pets",
+        { name: "List pets" },
+        { name: 1, path: [] },
+        { name: "List pets", path: ["Pet store", 2] },
+        { ...sentFrom, requestId: "r-1" },
+      ])
+        expect(validateWorkspaceFile(file({ history: [entry({ sentFrom: bad })] }))).toEqual([
+          "stores.history[0].sentFrom: Value must be the request's name and the names of its collection and folders.",
+        ]);
+    });
+
     it("reads a record the app writes, and an entry with none", () => {
       expect(problems(record)).toEqual([]);
       expect(validateWorkspaceFile(file({ history: [entry({})] }))).toEqual([]);

@@ -527,7 +527,12 @@ you (plan decision D6):
   trusted.** Its requests are sent without their scripts; assertions still
   run. The Scripts tab says so and offers **Review scripts**: a dialog with
   every script of the collection, read-only: its own, its folders' and its requests'. "Trust these scripts" marks
-  the collection trusted and stores the digest of each script shown.
+  the collection trusted and stores the digest of each script shown. The
+  same review is offered where you meet the scripts first: the import's
+  report (**Import and review scripts…**, which imports the collection
+  untrusted and then opens the review) and a run of the collection
+  (**Review scripts…**). Each opens this one dialog, and nothing else
+  approves.
 - **A request's scripts run only if all of them may.** The request's own
   and those of its collection and its folders are checked together: one
   that is not approved holds the others back, since each works on what the

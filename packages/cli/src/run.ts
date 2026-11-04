@@ -196,7 +196,11 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
                   accepted: acceptedHosts,
                 },
               }),
-            info: { requestName: doc.name, requestId: doc.id },
+            info: {
+              requestName: doc.name,
+              requestId: doc.id,
+              path: [source.collection.name, ...folderChain(source.folders, doc.folderId).map((entry) => entry.name)],
+            },
             collection: {
               variables: () => collectionVariables,
               change: (changes) =>

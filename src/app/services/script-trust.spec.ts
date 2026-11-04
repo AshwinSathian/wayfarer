@@ -293,4 +293,25 @@ describe("ScriptTrust", () => {
     trust.openedFromHistory(content("fromThen()"));
     expect(await allowed()).toBe(false);
   });
+
+  // D5-e: the review offered at an import's end, or in a run, names its collection. With a history entry's scripts
+  // held in the open tab, that review showed and "approved" the entry's, and the collection stayed unreviewed.
+  it("a collection asked for by id is what is reviewed and approved, whatever the open tab holds", async () => {
+    const tree = await imported("pm.environment.set('host', 'evil.test');");
+    saved.bind(null);
+    trust.openedFromHistory(content("fromThen()"));
+    trust.reviewOf.set(tree.collection.meta.id);
+    expect(trust.toReview()).toEqual([
+      { kind: "request", name: "Login", pre: "pm.environment.set('host', 'evil.test');", post: "" },
+    ]);
+
+    await trust.approve();
+    expect(trustOf(tree.collection.meta.id)).toEqual({
+      trusted: true,
+      approved: [await scriptDigest("pm.environment.set('host', 'evil.test');")],
+    });
+    // The history entry's hold is its own: that review did not lift it.
+    trust.reviewOf.set(null);
+    expect(await allowed()).toBe(false);
+  });
 });

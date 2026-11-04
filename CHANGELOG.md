@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History names the saved request an entry came from.** A row used to
+  show only the method, the address and the status, so finding "the pets
+  request from last week" meant remembering its URL. A send from a saved
+  request now keeps that request's name and where it lived, and History
+  shows them above the address ("List pets", then "Pet store / Pets").
+  The search finds an entry by those names too. They are kept as they
+  were when you sent, so renaming or moving the request later leaves the
+  entry as it was.
+
 - **Wayfarer's brand files are in one place.** `packages/tokens/brand/`
   holds the mark, the wordmark, the favicon, the installed app's icons and
   a social image, written from the design tokens, so they cannot drift
@@ -435,6 +444,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Addresses, hosts, header names and methods are never drawn under
+  13 px.** A host or a flag set in JetBrains Mono inside a small line (the
+  exchange record, the bridge's set-up, History, the tree's methods) came
+  out at 12 px, where its 0 and O are hard to tell apart, and response
+  header names had moved into the text face. They are all the wire's face
+  at 13 px now.
+
 - **Importing a collection again says what it changes, and can be
   undone.** Every item of a Wayfarer collection file was marked
   "Replaces", whether it was stored or not and whether it differed. Each
@@ -715,6 +731,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   it in plain text; a locked one is exported as its `{{$secret.…}}`
   reference. Each script editor is 320 px tall, from 150. Editing a collection's
   or a folder's script that waits for review still does not approve it.
+- **An import with scripts can end in their review.** When the file is
+  one collection with scripts, the import's report has a third button,
+  Import and review scripts…. It imports the collection untrusted, as
+  Import does, and opens the script review on it; Trust these scripts is
+  still the only thing that approves them, and Not now leaves them
+  waiting. Before, the review was reached by opening a request and its
+  Scripts tab, or from a run that had already sent without the scripts.
+  Importing a Postman collection and running it with its scripts takes 8
+  actions instead of 11. A review opened for a collection (from the
+  import or a run) also shows that collection's scripts when the open tab
+  is a history entry with scripts of its own: before, it showed and
+  cleared the entry's, and the collection stayed unreviewed.
 
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of

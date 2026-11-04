@@ -91,6 +91,29 @@ describe("PastRequests", () => {
     expect(shown()).toEqual([]);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain("No request in history matches.");
   });
+
+  it("names the saved request an entry was sent from, with its collection and folders, and finds it by them", async () => {
+    const saved: PastRequest = {
+      id: 1,
+      ...historyEntry({ url: "https://api.test/pets", createdAt: Date.now() }),
+      sentFrom: { name: "List pets", path: ["Pet store", "Pets"] },
+    };
+    const typed: PastRequest = { id: 2, ...historyEntry({ url: "https://api.test/pets/1", createdAt: Date.now() }) };
+    expect(matches(saved, "list PETS")).toBe(true);
+    expect(matches(saved, "store")).toBe(true);
+    expect(matches(typed, "list")).toBe(false);
+
+    fixture.componentRef.setInput("pastRequests", [saved, typed]);
+    await fixture.whenStable();
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll(".history-row");
+    expect(rows[0].querySelector(".history-name")?.textContent).toBe("List pets");
+    expect(rows[0].querySelector(".history-path")?.textContent).toBe("Pet store / Pets");
+    expect(rows[1].querySelector(".history-name")).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[type="search"]')!.placeholder,
+    ).toBe("Search by name, address, method or status");
+  });
+
   it("lists model calls with the requests, filtered by kind, found by action, host and model, and loads none (D4.10)", async () => {
     const call: PastRequest = {
       id: 2,

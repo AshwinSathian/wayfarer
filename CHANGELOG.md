@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Addresses, hosts, header names and methods are never drawn under
+  13 px.** A host or a flag set in JetBrains Mono inside a small line (the
+  exchange record, the bridge's set-up, History, the tree's methods) came
+  out at 12 px, where its 0 and O are hard to tell apart, and response
+  header names had moved into the text face. They are all the wire's face
+  at 13 px now.
+
 - **Importing a collection again says what it changes, and can be
   undone.** Every item of a Wayfarer collection file was marked
   "Replaces", whether it was stored or not and whether it differed. Each

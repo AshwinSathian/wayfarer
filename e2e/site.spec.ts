@@ -260,7 +260,10 @@ test("every page has its canonical address, its cards and its own image, and the
     await page.goto(path);
     const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
     expect(canonical, path).toBe(`${SITE}${path}`);
-    const robots = (await page.locator('meta[name="robots"]').getAttribute("content")) ?? "";
+    // Only a noindex page has the tag: read it without waiting for one.
+    const robots = await page.evaluate(
+      () => document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "",
+    );
     if (robots.includes("noindex")) expect(sitemap, path).not.toContain(`<loc>${SITE}${path}</loc>`);
     else expect(sitemap, path).toContain(`<loc>${SITE}${path}</loc>`);
     const og = async (name: string) => page.locator(`meta[property="og:${name}"]`).getAttribute("content");

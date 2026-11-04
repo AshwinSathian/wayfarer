@@ -1,13 +1,13 @@
 <div class="collections-sidebar flex h-full flex-col gap-3">
   <!-- Header: the title and two named menus (U-010, ia.md). The palette is the toolbar's. -->
   <div class="flex items-center justify-between gap-2">
-    <h2 class="type-subhead text-label-secondary m-0">Collections</h2>
+    <h2 class="type-subhead font-semibold text-label-secondary m-0">Collections</h2>
     <!-- Not while the tree is empty: its own line offers New collection and Import… (L-16). -->
     @if (nodes().length) {
     <div class="flex items-center gap-1">
       <button
         type="button"
-        uiButton="outlined"
+        uiButton
         class="btn-secondary btn-sm"
         ngMenuTrigger
         #importTrigger="ngMenuTrigger"
@@ -17,7 +17,7 @@
       <ui-menu #importMenu [trigger]="importTrigger" [items]="importItems" />
       <button
         type="button"
-        uiButton="outlined"
+        uiButton
         class="btn-secondary btn-sm"
         ngMenuTrigger
         #newTrigger="ngMenuTrigger"

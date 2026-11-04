@@ -15,7 +15,8 @@ for (const { id } of SCREENS_INDEX) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await OPEN[id](page);
     const mismatched = await page.evaluate(() => {
-      const words = (text: string) => text.replace(/\s+/g, " ").trim().toLowerCase();
+      // An ellipsis is drawn, not spoken: "Restore…" is named "Restore workspace" (WCAG 2.5.3 matches words).
+      const words = (text: string) => text.replace(/…/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
       /** The text drawn in the control: not its icons, not what is hidden from everyone or shown only to a screen reader. */
       const shown = (element: Element) => {
         const copy = element.cloneNode(true) as Element;

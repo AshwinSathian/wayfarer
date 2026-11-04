@@ -116,6 +116,19 @@
   user-select: none;
 }
 
+/* Forced colours drop a gradient, and with it the line: the one mark between the panes, and the handle. */
+@media (forced-colors: active) {
+  .ui-splitter-gutter {
+    forced-color-adjust: none;
+    background-image: linear-gradient(CanvasText, CanvasText);
+  }
+
+  .ui-splitter-gutter:hover,
+  .ui-splitter--resizing .ui-splitter-gutter {
+    background-image: linear-gradient(Highlight, Highlight);
+  }
+}
+
 /* One pane above the other: the same line, across. */
 .ui-splitter--horizontal {
   flex-direction: column;

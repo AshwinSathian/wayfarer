@@ -1986,6 +1986,7 @@ Evidence: `src/app/components/app-shell/app-shell.ts:191`, `:573`;
 `src/app/components/settings/settings.html:262-273`;
 `README.md`, "Known limitations". Read from source; not captured in Safari.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: in Safari not installed (`StoragePersistence.safariNotInstalled`), the status bar says "Kept by Safari for 7 days without a visit" and the backup reminder "Safari deletes this workspace after seven days without a visit. Back up, or add Wayfarer to the Dock, to keep it." `e2e/storage-kept.spec.ts` holds it in WebKit, which reports Apple's vendor; not checked in Safari itself.
 
 **U-166. The app links to no documentation.** Severity 3. H10. OC, TP.
 The site has docs for variables, auth, scripts, import and the bridge, but

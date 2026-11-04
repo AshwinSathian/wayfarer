@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **In Safari, the status bar and the backup reminder say Safari's seven
+  days.** Safari deletes a site's data after seven days without a visit
+  unless the app is added to the Dock, and only Settings said so. The
+  status bar now reads "Kept by Safari for 7 days without a visit", and
+  the reminder says how to keep the data.
+
 - **The Local Bridge's set-up after a failed send says what the bridge
   needs.** It gave a command and a pairing code, and left out that the
   command runs in a terminal with Node.js 22.21 or later, that Chrome and

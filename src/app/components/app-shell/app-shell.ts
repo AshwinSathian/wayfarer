@@ -187,9 +187,12 @@ export class AppShell implements OnInit {
   } as const;
   /** The backup reminder's words: sooner and plainer while the browser has not promised to keep the data (U-137). */
   protected readonly backupWords = computed(() =>
-    this.persistence.persisted() === false
-      ? "This workspace lives only in this browser, which has not promised to keep it. Back up to keep a copy."
-      : this.banners.backup,
+    // Safari's rule first: seven days without a visit, whatever it has promised (U-165).
+    this.persistence.safariNotInstalled
+      ? "Safari deletes this workspace after seven days without a visit. Back up, or add Wayfarer to the Dock, to keep it."
+      : this.persistence.persisted() === false
+        ? "This workspace lives only in this browser, which has not promised to keep it. Back up to keep a copy."
+        : this.banners.backup,
   );
   protected readonly bannerStatus = computed(() =>
     [this.swUpdate.updateAvailable() ? this.banners.update : "", this.backup.reminderDue() ? this.backupWords() : ""]
@@ -306,7 +309,11 @@ export class AppShell implements OnInit {
       },
       {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
-        label: this.secretsUnlocked ? "Lock the vault" : "Unlock the vault",
+        label: this.secretsUnlocked
+          ? "Lock the vault"
+          : this.secretsService.made() === false
+            ? "Make a vault"
+            : "Unlock the vault",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
       {
@@ -567,6 +574,7 @@ export class AppShell implements OnInit {
   /** What the status bar says of where the data is kept. */
   protected readonly storageWords = computed(() => {
     if (this.storageUnavailable()) return "Not saved: this browser refuses storage";
+    if (this.persistence.safariNotInstalled) return "Kept by Safari for 7 days without a visit";
     if (this.persistence.persisted() === false) return "Saved in this browser, which may delete it";
     if (this.persistence.persisted()) return "Kept in this browser";
     return "Saved in this browser only";

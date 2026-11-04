@@ -11,6 +11,7 @@ import { MODEL_ACTION_WORDS, type PastRequest } from "@wayfarer/core";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
+import { statusTone } from "../../shared/status-tone";
 
 /**
  * Whether every word of `query` is part of the entry's URL or of the name and place of the saved request it was sent
@@ -62,6 +63,7 @@ export interface HistoryGroup {
   host: { "(keydown.escape)": "collapse($event)" },
 })
 export class PastRequests {
+  protected readonly statusTone = statusTone;
   readonly pastRequests = input<PastRequest[]>([]);
   readonly loading = input(false);
   readonly displayHeader = input(true);

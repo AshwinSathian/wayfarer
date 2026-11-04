@@ -133,9 +133,7 @@
             </span>
             <span class="history-facts type-footnote">
               @if (request.response) {
-              <span
-                class="font-mono tabular-nums"
-                [class]="request.response.status >= 200 && request.response.status < 300 ? 'text-status-success' : request.response.status >= 300 && request.response.status < 500 ? 'text-status-warning' : 'text-status-error'"
+              <span class="status-code" [class]="statusTone(request.response.status)"
                 >{{ request.response.status }}</span
               >
               } @else {

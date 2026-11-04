@@ -29,18 +29,7 @@
       <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
       <span class="status-none type-callout font-semibold text-status-error">No response</span>
       } @else {
-      <!-- Status code badge -->
-      <span
-        class="status-badge"
-        [class]="{
-          'status-2xx': statusCode >= 200 && statusCode < 300,
-          'status-3xx': statusCode >= 300 && statusCode < 400,
-          'status-4xx': statusCode >= 400 && statusCode < 500,
-          'status-5xx': statusCode >= 500,
-          'status-err': isError() && statusCode === 0
-        }"
-        >{{ statusCode }}</span
-      >
+      <span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span>
       }
 
       <!-- Status text -->
@@ -138,7 +127,7 @@
         @for (hop of hops.chain; track $index) {
         <li class="redirect-hop flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
           <!-- &ngsp;: the gaps are drawn by the flex row, and a copy or a screen reader needs the words apart too. -->
-          <span class="status-badge status-3xx">{{ hop.status }}</span>&ngsp;
+          <span class="status-badge status-code status-3xx">{{ hop.status }}</span>&ngsp;
           <span class="font-mono min-w-0 break-all">{{ hop.url }}</span>&ngsp; <span>to</span>&ngsp;
           <span class="font-mono min-w-0 break-all">{{ hop.location }}</span>
         </li>
@@ -171,17 +160,9 @@
             Tests @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
-              <span
-                class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-success tabular-nums"
-                style="background: var(--status-success-fill); border: 1px solid var(--status-success-border)"
-                >{{ testPassCount }}</span
-              >
+              <span class="tab-count text-label-secondary">{{ testPassCount }}</span>
               } @if (testFailCount) {
-              <span
-                class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-error tabular-nums"
-                style="background: var(--status-error-fill); border: 1px solid var(--status-error-border)"
-                >{{ testFailCount }}</span
-              >
+              <span class="tab-count text-status-error">{{ testFailCount }}</span>
               }
             </span>
             }
@@ -571,30 +552,25 @@
                   listed here when it runs any: an assertion or a script's pm.test, in its Scripts tab.
                 </p>
                 } @else {
-                <div class="space-y-1.5">
+                <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
+                <div class="test-results">
                   @for (result of testResults(); track result.label + result.source) {
                   <div
-                    class="flex items-start gap-3 rounded-lg px-4 py-3"
+                    class="test-result"
                     [class.test-result-pass]="result.passed"
                     [class.test-result-fail]="!result.passed"
                   >
                     <app-icon
                       [name]="result.passed ? 'check_circle' : 'cancel'"
-                      class="mt-0.5 shrink-0 icon-sm"
-                      [class.text-status-success]="result.passed"
-                      [class.text-status-error]="!result.passed"
+                      class="line-glyph shrink-0 icon-sm"
+                      [class]="result.passed ? 'text-status-success' : 'text-status-error'"
                     />
                     <div class="flex-1 min-w-0">
-                      <div
-                        class="type-callout"
-                        [class.text-status-success]="result.passed"
-                        [class.text-status-error]="!result.passed"
-                        >{{ result.label }}</div
-                      >
+                      <div class="type-callout text-label-primary">{{ result.label }}</div>
                       @if (!result.passed && result.error) {
-                      <div class="type-footnote text-label-tertiary mt-0.5">{{ result.error }}</div>
+                      <div class="type-footnote text-status-error mt-0.5">{{ result.error }}</div>
                       } @if (!result.passed && result.actual !== undefined) {
-                      <div class="type-mono-body text-label-tertiary mt-0.5 font-mono"
+                      <div class="type-mono-body text-label-secondary mt-0.5 font-mono"
                         >Actual: {{ result.actual | json }}</div
                       >
                       }
@@ -604,9 +580,9 @@
                   }
                 </div>
 
-                <div class="flex items-center gap-4 pt-3 border-t border-separator">
-                  <span class="type-subhead text-status-success flex items-center gap-1.5">
-                    <app-icon name="check_circle" class="icon-xs" />
+                <div class="flex items-center gap-4 pt-3 tabular-nums">
+                  <span class="type-subhead text-label-primary flex items-center gap-1.5">
+                    <app-icon name="check_circle" class="icon-xs text-status-success" />
                     {{ testPassCount }} passed
                   </span>
                   <!-- Red only when something failed (U-190). -->

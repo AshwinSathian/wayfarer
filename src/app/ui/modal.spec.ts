@@ -19,7 +19,7 @@ import { UiModal, keepFocusInDialogs } from "./modal";
       <button id="first" type="button">First</button>
       <input id="field" />
       @if (withAutofocus()) {
-        <button id="marked" type="button" cdkFocusInitial>Marked</button>
+        <button id="marked" type="button" cdkFocusInitial [disabled]="markDisabled()">Marked</button>
       }
       <button id="last" type="button">Last</button>
     </dialog>
@@ -29,6 +29,7 @@ class TestHost {
   readonly open = signal(false);
   readonly dismissable = signal(false);
   readonly withAutofocus = signal(false);
+  readonly markDisabled = signal(false);
   readonly modal = viewChild.required<UiModal>("modal");
   requests = 0;
 }
@@ -75,6 +76,15 @@ describe("UiModal", () => {
     host.withAutofocus.set(true);
     await open();
     expect(document.activeElement).toBe(el("marked"));
+    fixture.destroy();
+  });
+
+  it("passes over a cdkFocusInitial that cannot take focus (Import while the file is read)", async () => {
+    const { fixture, host, el, open } = await setup();
+    host.withAutofocus.set(true);
+    host.markDisabled.set(true);
+    await open();
+    expect(document.activeElement).toBe(el("first"));
     fixture.destroy();
   });
 

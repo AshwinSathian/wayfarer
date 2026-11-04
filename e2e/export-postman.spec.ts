@@ -71,7 +71,7 @@ test("@claim:C-057 a collection exports as a Postman Collection v2.1 file: auth 
   await dialog.getByRole("radio", { name: "Postman v2.1" }).check();
   await expect(dialog.locator(".export-notes")).toContainText("1 thing Postman's format has no place for");
   await expect(dialog.locator(".export-notes")).toContainText(
-    'request "Tripwire request". Its assertion is left out: Postman has tests only as scripts.',
+    'Request "Tripwire request". Its assertion is left out: Postman has tests only as scripts.',
   );
   await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).toBeHidden();

@@ -11,7 +11,7 @@ describe("ScriptReviewDialog", () => {
   it("lists each script under its holder, marks the ones not reviewed and the calls the app does not have", async () => {
     const reviewed = "pm.environment.set('seen', 'yes');";
     const toReview = signal<ReviewedScripts[]>([
-      { kind: "collection", name: "Collection Shared", pre: "pm.vault.get('k')", post: "" },
+      { kind: "collection", name: "Shared", pre: "pm.vault.get('k')", post: "" },
       { kind: "request", name: "Health", pre: reviewed, post: "pm.test('ok', () => {});" },
     ]);
     const approvedDigests = signal(new Set([await scriptDigest(reviewed)]));
@@ -30,9 +30,9 @@ describe("ScriptReviewDialog", () => {
 
     const heading = (item: Element) => [...item.querySelectorAll("div > span")].map((span) => text(span)).join(" ");
     expect(items.map(heading)).toEqual([
-      "Collection Shared Pre-request script Not reviewed yet",
-      "Health Pre-request script",
-      "Health Post-response script Not reviewed yet",
+      "Shared collection · pre-request script Not reviewed yet",
+      "Health request · pre-request script",
+      "Health request · post-response script Not reviewed yet",
     ]);
     expect(items.map((item) => item.querySelector(".script-review-code code")?.textContent)).toEqual([
       "pm.vault.get('k')",
@@ -43,6 +43,30 @@ describe("ScriptReviewDialog", () => {
       "Uses what Wayfarer does not have: pm.vault.get.",
     );
     expect(items[1].querySelector(".script-review-unsupported")).toBeNull();
+  });
+
+  // V11: in a review of scripts none of which was trusted, "Not reviewed yet" beside every one said nothing.
+  it("marks no script when none of them was trusted", async () => {
+    TestBed.configureTestingModule({
+      imports: [ScriptReviewDialog],
+      providers: [
+        {
+          provide: ScriptTrust,
+          useValue: {
+            toReview: signal<ReviewedScripts[]>([{ kind: "request", name: "Health", pre: "a()", post: "b()" }]),
+            approvedDigests: signal(new Set<string>()),
+            approve: () => Promise.resolve(),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(ScriptReviewDialog);
+    fixture.componentRef.setInput("visible", true);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelectorAll(".script-review-list li")).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll(".script-review-new")).toHaveLength(0);
   });
 
   it("writes a character that draws nothing or reorders the text as its code point, and says so (Trojan Source)", async () => {

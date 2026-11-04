@@ -63,12 +63,8 @@ export class ScriptTrust {
     if (!tree) return [];
     // In the order they run: the collection's, the folders', the requests'.
     const all: ReviewedScripts[] = [
-      { kind: "collection", name: `Collection ${tree.collection.name}`, ...tree.collection.scripts },
-      ...tree.folders.map((folder): ReviewedScripts => ({
-        kind: "folder",
-        name: `Folder ${folder.name}`,
-        ...folder.scripts,
-      })),
+      { kind: "collection", name: tree.collection.name, ...tree.collection.scripts },
+      ...tree.folders.map((folder): ReviewedScripts => ({ kind: "folder", name: folder.name, ...folder.scripts })),
       ...tree.requests.map((request): ReviewedScripts => ({ kind: "request", name: request.name, ...request.scripts })),
     ];
     return all.filter((entry) => scriptsOf({ scripts: entry }).length);

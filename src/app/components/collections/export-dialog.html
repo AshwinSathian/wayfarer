@@ -20,13 +20,14 @@
     </div>
 
     @if (format() === "postman" && notes().length) {
-    <div class="export-notes rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-      <p class="type-subhead text-status-warning"
-        >{{ notes().length }} {{ notes().length === 1 ? "thing" : "things" }} Postman's format has no place for</p
+    <div class="export-notes">
+      <p class="type-subhead text-label-primary flex items-center gap-1.5"
+        ><app-icon name="warning" class="icon-sm text-status-warning shrink-0" />{{ notes().length }} {{ notes().length
+        === 1 ? "thing" : "things" }} Postman's format has no place for</p
       >
       <ul class="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-footnote text-label-primary">
         @for (note of notes(); track $index) {
-        <li><span class="font-semibold">{{ note.item }}.</span> {{ note.message }}</li>
+        <li><span class="font-semibold">{{ sentence(note.item) }}.</span> {{ note.message }}</li>
         }
       </ul>
     </div>

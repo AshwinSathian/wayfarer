@@ -1,7 +1,7 @@
 <div class="settings-group">
   @for (fact of facts(); track fact[0]) {
   <div class="settings-row">
-    <p class="type-subhead text-label-primary shrink-0">{{ fact[0] }}</p>
+    <p class="settings-title type-callout text-label-primary shrink-0">{{ fact[0] }}</p>
     <span class="diagnostics-fact type-callout text-label-secondary font-mono min-w-0 break-words text-right"
       >{{ fact[1] }}</span
     >
@@ -12,7 +12,7 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <p class="type-subhead text-label-primary">Self-tests</p>
+      <p class="settings-title type-callout text-label-primary">Self-tests</p>
       <button
         uiButton="outlined"
         class="btn-secondary btn-sm"
@@ -23,7 +23,7 @@
         @if (testing()) { <ui-spinner /> } Run self-tests
       </button>
     </div>
-    <p class="type-footnote text-label-tertiary"
+    <p class="type-footnote text-label-secondary"
       >Runs a script, encrypts and decrypts, writes and deletes a record, asks the server this app came from for one of
       its own files, and asks the Local Bridge, if one is used. Nothing goes anywhere else.</p
     >
@@ -50,8 +50,8 @@
 
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary">Errors</p>
-    <p class="type-footnote text-label-tertiary"
+    <p class="settings-title type-callout text-label-primary">Errors</p>
+    <p class="type-footnote text-label-secondary"
       >The last 200 of this page, newest first, kept in memory only. An address, quoted text and anything that looks
       like a key or a token are left out.</p
     >
@@ -66,7 +66,7 @@
     }
   </div>
   <div class="settings-row settings-row-stacked">
-    <p class="type-subhead text-label-primary">Content-Security-Policy violations</p>
+    <p class="settings-title type-callout text-label-primary">Content-Security-Policy violations</p>
     @if (violations().length) {
     <ul class="diagnostics-csp space-y-1 type-mono-body font-mono text-label-secondary">
       @for (entry of violations(); track $index) {

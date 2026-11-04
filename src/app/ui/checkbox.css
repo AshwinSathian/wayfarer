@@ -81,6 +81,12 @@
   cursor: pointer;
 }
 
+/* A note under a checkbox's label starts where the label's words do: past the box's 22 px slot and the gap. */
+.checkbox-note {
+  margin: 2px 0 0;
+  padding-left: calc(22px + 5px);
+}
+
 .ui-checkbox-label:has(> .ui-checkbox:disabled) {
   color: var(--label-tertiary);
   cursor: not-allowed;

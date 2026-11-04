@@ -718,6 +718,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Green means a status again, and the screens around it are quieter.**
+  "Connected", "Paired", "Reachable", "Saved" and a vault's finished
+  action were drawn in success's green, as a passing test is; they are
+  now the secondary label. Each passing test was a green card with a
+  green border; the Tests tab is now plain rows, the glyph alone in green
+  or red, and a failed test's message in red under its name. A status
+  code is drawn one way everywhere (the response, History and a run's
+  table): the code in its colour, the reason beside it in grey, no pill.
+  A disabled button was the button at 60 % opacity, a grey slab that read
+  as a third tone; it is now a quiet fill with grey words. A dialog opened
+  with focus, and a ring, on its × button; focus now starts on its
+  content, and a dialog whose first mark is disabled (Import while the
+  file is read) no longer drops focus to the page. The import report's
+  warnings are a line with a warning glyph instead of an amber card, and
+  each starts with a capital ("Request "Login". …"); Import as duplicate
+  and the HAR export's Include credentials are checkbox rows, not cards.
+  A run's table right-aligns its numbers, keeps Show record (was
+  "Record") and Open in a column of their own, and has no Iteration
+  column for a run of one iteration. Settings rows have titles at the
+  size of the list beside them, Route says only what the chosen option
+  does, and its choice is as wide as its options. Every text field and
+  select has the same surface, the toolbar's environment is no longer the
+  only pill, the Auth tab puts each label above its field, the script
+  review names each script before its kind and marks "Not reviewed yet"
+  only beside scripts that were trusted, a WebSocket's Disconnect is
+  outlined so Send message is the one filled button, and a flag such as
+  `--cert` no longer breaks across lines.
+
 - **An import with scripts can end in their review.** When the file is
   one collection with scripts, the import's report has a third button,
   Import and review scripts…. It imports the collection untrusted, as

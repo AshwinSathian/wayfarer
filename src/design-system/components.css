@@ -24,6 +24,12 @@ pre,
   font-feature-settings: normal;
 }
 
+/* A short code in a sentence (a flag, a header's name) does not break across lines (V20): "--" ended one line and
+   "cert" began the next. A long value is a block or a field of its own, not a <code> in a sentence. */
+:where(p, li) code {
+  white-space: nowrap;
+}
+
 /* The wire's face is never under 13 px (U-151): a mono span inside 12 px text (a record's host, a flag, a status in a
    caption) is lifted to it, and inside larger text keeps the text's size. No specificity: a type class or a
    component's own size on the same element wins. */
@@ -177,41 +183,26 @@ pre,
 }
 
 /* ── Status code badges ──────────────────────────────────── */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
+/* A status code, drawn one way wherever it is (V14): the code in its status's text colour, in tabular figures, with
+   no pill; the reason phrase beside it is the secondary label. */
+.status-code {
   font-family: var(--font-mono);
   font-size: var(--type-mono-body-size);
   font-weight: 600;
-  padding: 3px 11px;
-  border-radius: var(--radius-full);
-  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
-
-.status-badge.status-2xx {
-  background: var(--status-success-fill);
+.status-code.status-1xx,
+.status-code.status-3xx {
+  color: var(--label-secondary);
+}
+.status-code.status-2xx {
   color: var(--status-success-text);
-  border: 1px solid var(--status-success-border);
 }
-.status-badge.status-3xx {
-  background: var(--status-info-fill);
-  color: var(--status-info-text);
-  border: 1px solid var(--status-info-border);
-}
-.status-badge.status-4xx {
-  background: var(--status-warning-fill);
+.status-code.status-4xx {
   color: var(--status-warning-text);
-  border: 1px solid var(--status-warning-border);
 }
-.status-badge.status-5xx {
-  background: var(--status-error-fill);
+.status-code.status-5xx {
   color: var(--status-error-text);
-  border: 1px solid var(--status-error-border);
-}
-.status-badge.status-err {
-  background: var(--status-error-fill);
-  color: var(--status-error-text);
-  border: 1px solid var(--status-error-border);
 }
 
 /* A request sent, or to be sent, with the server's certificate not verified: red, since what answers may not be the server. */
@@ -451,6 +442,20 @@ pre,
   color: var(--label-primary);
 }
 
+/* A column of numbers is right-aligned in tabular figures, its header with it (V15). */
+.ds-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* On a phone a run's seven columns fit with half the padding: at 12 px a side its actions were scrolled out of view. */
+@media (width < 30em) {
+  .ds-table.run-results :is(th, td) {
+    padding-inline: 6px;
+  }
+}
+
 /* A response's headers (U-058): a name or a value breaks between words, and inside one only when nothing else fits.
    In a narrow pane each header is two lines, its name over its value, so neither is crushed into a column of
    110 px that broke access-control-allow-credentials after every hyphen and "DELETE" inside its word. */
@@ -487,18 +492,24 @@ pre,
 }
 
 /* ── Test result rows ────────────────────────────────────── */
-.test-result-pass {
-  background: var(--status-success-fill);
-  border: 1px solid var(--status-success-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
+/* Rows on the separator's rule, no fill: the glyph alone carries the status's hue (V5). */
+.test-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--separator);
 }
 
-.test-result-fail {
-  background: var(--status-error-fill);
-  border: 1px solid var(--status-error-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
+/* A glyph before a callout sits on its first line, not above it (V13): as tall as that line, its icon centred. */
+.line-glyph {
+  height: var(--type-callout-line);
+}
+
+/* A count beside a tab's name: a number, not a pill (V14). */
+.tab-count {
+  font-size: var(--type-footnote-size);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── A run's summary (P5.2) ──────────────────────────────── */

@@ -90,7 +90,7 @@ test("@claim:C-054 an import shows what it will add and what it could not keep b
   );
   // What it could not keep: a script that uses what the app does not have, named by where it is.
   await expect(report.locator(".import-warnings")).toContainText(
-    'request "With a cookie jar". Its pre-request script uses pm.cookies.jar, which Wayfarer does not have.',
+    'Request "With a cookie jar". Its pre-request script uses pm.cookies.jar, which Wayfarer does not have.',
   );
   // The report is on screen and nothing is stored yet.
   expect(await stored(page)).toBe(before);
@@ -322,9 +322,9 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
     '"shop.postman_collection.json" will add 1 collection, 1 folder and 2 requests.',
   );
   await expect(report.locator(".import-warnings")).toContainText(
-    'request "Signed". The OAuth 2.0 token in the file is not kept: get one in the Auth tab.',
+    'Request "Signed". The OAuth 2.0 token in the file is not kept: get one in the Auth tab.',
   );
-  await expect(report.locator(".import-warnings")).toContainText('collection "Shop API". 1 saved response is left out');
+  await expect(report.locator(".import-warnings")).toContainText('Collection "Shop API". 1 saved response is left out');
   expect(await stored(page)).toBe(before);
 
   await report.getByRole("button", { name: "Import", exact: true }).click();

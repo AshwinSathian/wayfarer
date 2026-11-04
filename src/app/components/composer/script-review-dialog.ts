@@ -78,14 +78,14 @@ export class ScriptReviewDialog {
     this.trust.toReview().flatMap((holder) =>
       (
         [
-          ["Pre-request script", holder.pre],
-          ["Post-response script", holder.post],
+          ["pre-request script", holder.pre],
+          ["post-response script", holder.post],
         ] as const
       )
         .filter(([, text]) => text.trim())
         .map(([kind, text]) => ({
           holder: holder.name,
-          kind,
+          kind: `${holder.kind} · ${kind}`,
           text,
           shown: shown(text),
           hidden: HIDDEN.test(text),
@@ -103,7 +103,10 @@ export class ScriptReviewDialog {
       let current = true;
       onCleanup(() => (current = false));
       void Promise.all(scripts.map((script) => scriptDigest(script.text))).then((digests) => {
-        if (current) this.unreviewed.set(new Set(digests.flatMap((digest, i) => (approved.has(digest) ? [] : [i]))));
+        const fresh = digests.flatMap((digest, i) => (approved.has(digest) ? [] : [i]));
+        // Marked only beside scripts that were trusted (V11): in a review of scripts none of which was, every one
+        // said "Not reviewed yet", in a dialog whose subject is review.
+        if (current) this.unreviewed.set(new Set(fresh.length < digests.length ? fresh : []));
       });
     });
   }

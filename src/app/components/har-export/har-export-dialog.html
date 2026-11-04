@@ -12,25 +12,21 @@
     </p>
 
     @if (source()?.credentials) {
-    <label
-      for="har-export-credentials"
-      class="flex items-center justify-between rounded-lg border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
-    >
-      <div>
-        <p class="type-subhead text-label-primary">Include credentials</p>
-        <p class="type-footnote text-label-tertiary mt-0.5"
-          >Without this, a token, password or key is written as ***. A vault secret is never written.</p
-        >
-      </div>
-      <input
-        type="checkbox"
-        uiCheckbox
-        id="har-export-credentials"
-        aria-label="Include credentials"
-        [ngModel]="credentials()"
-        (ngModelChange)="credentials.set($event)"
-      />
-    </label>
+    <div>
+      <label class="ui-checkbox-label"
+        ><input
+          type="checkbox"
+          uiCheckbox
+          id="har-export-credentials"
+          aria-describedby="har-export-credentials-note"
+          [ngModel]="credentials()"
+          (ngModelChange)="credentials.set($event)"
+        />Include credentials</label
+      >
+      <p id="har-export-credentials-note" class="checkbox-note type-footnote text-label-tertiary"
+        >Without this, a token, password or key is written as ***. A vault secret is never written.</p
+      >
+    </div>
     } @else {
     <p class="type-footnote text-label-tertiary"
       >History is stored with credentials and vault secrets already masked: this file has them as ***.</p

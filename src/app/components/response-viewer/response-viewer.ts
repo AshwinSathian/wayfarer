@@ -20,6 +20,7 @@ import { UiInput } from "../../ui/input";
 import { AiSettings } from "../../services/ai-settings";
 import { AiExplain } from "../ai-explain/ai-explain";
 import { AiTests } from "../ai-tests/ai-tests";
+import { statusTone } from "../../shared/status-tone";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
@@ -117,6 +118,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
 // a slow parse of a huge payload clobbering a newer, smaller one, plus the
 // signal-based response state itself.
 export class ResponseViewer {
+  protected readonly statusTone = statusTone;
   private readonly diagnostics = inject(Diagnostics);
   protected readonly ai = inject(AiSettings);
   private readonly jsonWorker = inject(JsonWorkerClient);

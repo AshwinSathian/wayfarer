@@ -9,8 +9,7 @@
 <!-- What stopped a person who followed every step (U-159), as Settings › Local Bridge says it. -->
 <p class="mt-2 type-footnote text-label-tertiary"
   >The first time, Chrome and Edge may ask whether this site may reach devices on your local network: allow it. From the
-  hosted app, Safari reaches the bridge only over HTTPS: start it with <span class="font-mono">--cert</span> and
-  <span class="font-mono">--key</span>.</p
+  hosted app, Safari reaches the bridge only over HTTPS: start it with <code>--cert</code> and <code>--key</code>.</p
 >
 @if (paired()) {
 <button uiButton="filled" class="btn-sm mt-3" type="button" (click)="sendAgain.emit()">Send again</button>

@@ -405,7 +405,7 @@ test("an imported Postman file keeps its order, requests before and between fold
   // The run: the order Newman sent the same file in.
   const names = async (view: Locator) =>
     await resultRows(view).evaluateAll((list) =>
-      list.map((row) => row.querySelectorAll("td")[2]?.firstChild?.textContent?.trim() ?? ""),
+      list.map((row) => row.querySelector("td.run-name")?.firstChild?.textContent?.trim() ?? ""),
     );
   const view = await openRun(page, NAME);
   await expect(view).toContainText("7 requests");
@@ -732,7 +732,7 @@ test("a run's row opens into its exchange record: where the request went, and th
   await view.getByRole("button", { name: "Run", exact: true }).click();
   await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
 
-  const gone = view.getByRole("button", { name: "Record of Gone" });
+  const gone = view.getByRole("button", { name: "Show record of Gone" });
   await expect(gone).toHaveAttribute("aria-expanded", "false");
   await gone.click();
   await expect(gone).toHaveAttribute("aria-expanded", "true");
@@ -744,7 +744,7 @@ test("a run's row opens into its exchange record: where the request went, and th
   // A run's row sends nothing again: no action in it.
   await expect(record.getByRole("button")).toHaveCount(0);
 
-  await view.getByRole("button", { name: "Record of Fine" }).click();
+  await view.getByRole("button", { name: "Show record of Fine" }).click();
   await expect(view.getByRole("region", { name: "Exchange record of Fine" }).locator(".record-route")).toHaveText(
     "Sent from this page to 127.0.0.1:4300.",
   );

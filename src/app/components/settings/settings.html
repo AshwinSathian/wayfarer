@@ -43,8 +43,8 @@
       <div class="settings-group">
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary" id="settings-theme-label">Theme</p>
-            <p class="type-footnote text-label-tertiary"
+            <p class="settings-title type-callout text-label-primary" id="settings-theme-label">Theme</p>
+            <p class="type-footnote text-label-secondary"
               >System follows your device, and changes with it. Now: {{ themeService.theme() === 'dark' ? 'dark' :
               'light' }}.</p
             >
@@ -59,8 +59,8 @@
 
         <div class="settings-row">
           <div class="min-w-0">
-            <label for="request-timeout" class="type-subhead text-label-primary">Request timeout</label>
-            <p class="type-footnote text-label-tertiary"
+            <label for="request-timeout" class="settings-title type-callout text-label-primary">Request timeout</label>
+            <p class="type-footnote text-label-secondary"
               >How long a request may take before it is given up. 0 waits for as long as it takes.</p
             >
           </div>
@@ -77,15 +77,15 @@
               [value]="requestSettings.timeoutMs()"
               (change)="requestSettings.setTimeoutMs(+$any($event.target).value)"
             />
-            <span id="request-timeout-unit" class="type-footnote text-label-tertiary">ms</span>
+            <span id="request-timeout-unit" class="type-footnote text-label-secondary">ms</span>
           </div>
         </div>
         <div class="settings-row settings-row-switch">
           <div class="min-w-0">
-            <label for="block-unresolved" class="type-subhead text-label-primary"
+            <label for="block-unresolved" class="settings-title type-callout text-label-primary"
               >Hold back a request with a variable that has no value</label
             >
-            <p class="type-footnote text-label-tertiary"
+            <p class="type-footnote text-label-secondary"
               >The composer says which variable and offers "Send anyway". Off: the variable is sent as written, as in
               Postman.</p
             >
@@ -107,8 +107,8 @@
       <div class="settings-group">
         <div class="settings-row">
           <div class="min-w-0">
-            <label for="history-cap" class="type-subhead text-label-primary">History size</label>
-            <p class="type-footnote text-label-tertiary"
+            <label for="history-cap" class="settings-title type-callout text-label-primary">History size</label>
+            <p class="type-footnote text-label-secondary"
               >How many requests history keeps, 1 to 5000. The oldest go first.</p
             >
           </div>
@@ -126,13 +126,15 @@
               [value]="requestSettings.historyCap()"
               (change)="requestSettings.setHistoryCap(+$any($event.target).value)"
             />
-            <span id="history-cap-unit" class="type-footnote text-label-tertiary">requests</span>
+            <span id="history-cap-unit" class="type-footnote text-label-secondary">requests</span>
           </div>
         </div>
         <div class="settings-row settings-row-switch">
           <div class="min-w-0">
-            <label for="history-bodies" class="type-subhead text-label-primary">Keep response bodies in history</label>
-            <p class="type-footnote text-label-tertiary"
+            <label for="history-bodies" class="settings-title type-callout text-label-primary"
+              >Keep response bodies in history</label
+            >
+            <p class="type-footnote text-label-secondary"
               >Text bodies, up to 1 MB each, with credentials and vault secrets masked. Off: history keeps the status
               and headers only.</p
             >
@@ -147,8 +149,8 @@
         </div>
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">Clear history</p>
-            <p class="type-footnote text-label-tertiary"
+            <p class="settings-title type-callout text-label-primary">Clear history</p>
+            <p class="type-footnote text-label-secondary"
               >Removes every entry. Collections and saved requests are not touched.</p
             >
           </div>
@@ -159,8 +161,8 @@
       <div class="settings-group">
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">Workspace backup</p>
-            <p class="type-footnote text-label-tertiary"
+            <p class="settings-title type-callout text-label-primary">Workspace backup</p>
+            <p class="type-footnote text-label-secondary"
               >One file with every collection, request, environment, the global variables and the vault (still
               encrypted). Files of request bodies are not in it.</p
             >
@@ -213,8 +215,8 @@
         }
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">Environments</p>
-            <p class="type-footnote text-label-tertiary">Every environment as one JSON file, or bring one back in.</p>
+            <p class="settings-title type-callout text-label-primary">Environments</p>
+            <p class="type-footnote text-label-secondary">Every environment as one JSON file, or bring one back in.</p>
           </div>
           <div class="settings-actions">
             <button
@@ -249,8 +251,8 @@
         <div class="settings-row settings-row-stacked">
           @if (persistence.estimate(); as estimate) {
           <div class="flex items-baseline justify-between gap-3">
-            <p class="type-subhead text-label-primary">{{ size(estimate.usage) }} used</p>
-            <p class="type-footnote text-label-tertiary">of {{ size(estimate.quota) }} the browser allows</p>
+            <p class="settings-title type-callout text-label-primary">{{ size(estimate.usage) }} used</p>
+            <p class="type-footnote text-label-secondary">of {{ size(estimate.quota) }} the browser allows</p>
           </div>
           <div
             class="settings-meter"
@@ -259,7 +261,7 @@
             ><span [style.width.%]="used(estimate)"></span
           ></div>
           }
-          <p class="type-footnote text-label-tertiary" data-testid="storage-status">
+          <p class="type-footnote text-label-secondary" data-testid="storage-status">
             @switch (persistence.persisted()) { @case (true) { The browser has promised to keep this data. } @case
             (false) { The browser has not promised to keep this data: it may delete it when the disk runs low. Wayfarer
             asks again the next time you save, and reminds you to back up every 5 days. } @default { This browser does
@@ -278,8 +280,8 @@
       <div class="settings-group">
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">Secrets</p>
-            <p class="type-footnote text-label-tertiary"
+            <p class="settings-title type-callout text-label-primary">Secrets</p>
+            <p class="type-footnote text-label-secondary"
               >View, reveal, rename and delete the secrets of every environment. {{ vault.isUnlocked() ? 'The vault is
               unlocked in this tab.' : vault.made() === false ? 'No vault has been made in this browser yet.' : 'The
               vault is locked.' }}</p
@@ -291,8 +293,10 @@
         </div>
         <div class="settings-row">
           <div class="min-w-0">
-            <label for="vault-idle-minutes" class="type-subhead text-label-primary">Lock the vault when idle</label>
-            <p class="type-footnote text-label-tertiary"
+            <label for="vault-idle-minutes" class="settings-title type-callout text-label-primary"
+              >Lock the vault when idle</label
+            >
+            <p class="type-footnote text-label-secondary"
               >Time without a key press or a click before this tab locks the vault, 1 to 240. 0 never locks it.</p
             >
           </div>
@@ -310,7 +314,7 @@
               [value]="vault.idleMinutes()"
               (change)="vault.setIdleMinutes(+$any($event.target).value)"
             />
-            <span id="vault-idle-unit" class="type-footnote text-label-tertiary">minutes</span>
+            <span id="vault-idle-unit" class="type-footnote text-label-secondary">minutes</span>
           </div>
         </div>
       </div>
@@ -343,14 +347,14 @@
       } @case ('about') {
       <div class="settings-group">
         <div class="settings-row">
-          <p class="type-subhead text-label-primary">Version</p>
+          <p class="settings-title type-callout text-label-primary">Version</p>
           <span class="type-callout text-label-secondary font-mono" data-testid="app-version">{{ version }}</span>
         </div>
         @for (link of links; track link.href) {
         <a class="settings-row settings-row-link" [href]="link.href" target="_blank" rel="noopener noreferrer">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">{{ link.label }}</p>
-            <p class="type-footnote text-label-tertiary">{{ link.about }}</p>
+            <p class="settings-title type-callout text-label-primary">{{ link.label }}</p>
+            <p class="type-footnote text-label-secondary">{{ link.about }}</p>
           </div>
           <app-icon name="chevron_right" class="icon-sm text-label-tertiary shrink-0" />
         </a>
@@ -364,8 +368,8 @@
       <div class="settings-group settings-group-danger">
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="type-subhead text-label-primary">Reset all data</p>
-            <p class="type-footnote text-label-tertiary"
+            <p class="settings-title type-callout text-label-primary">Reset all data</p>
+            <p class="type-footnote text-label-secondary"
               >Deletes every collection, environment, secret and history entry, and every setting on this page. Cannot
               be undone: back up first.</p
             >

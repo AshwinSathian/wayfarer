@@ -92,13 +92,13 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
     '"shop.yaml" will add 1 collection, 1 folder, 2 requests and 1 environment.',
   );
   await expect(report.locator(".import-warnings")).toContainText(
-    'request "List". Its after-response script is left out: an Insomnia script calls Insomnia\'s own "insomnia" object, which the app does not have.',
+    'Request "List". Its after-response script is left out: an Insomnia script calls Insomnia\'s own "insomnia" object, which the app does not have.',
   );
   await expect(report.locator(".import-warnings")).toContainText(
-    "request \"Signed\". It uses a template of Insomnia's ({% uuid 'v4' %}), which the app does not have: the text is kept as written.",
+    "Request \"Signed\". It uses a template of Insomnia's ({% uuid 'v4' %}), which the app does not have: the text is kept as written.",
   );
   await expect(report.locator(".import-warnings")).toContainText(
-    'request "Signed". Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth.',
+    'Request "Signed". Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth.',
   );
   expect(await stored(page)).toBe(before);
 

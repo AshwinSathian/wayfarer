@@ -85,7 +85,7 @@ for (const theme of ["light", "dark"] as const) {
 
     await page.getByRole("button", { name: "Open the dialog" }).click();
     const dialog = page.getByRole("dialog", { name: "Edit request" });
-    await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
+    await expect(dialog.getByRole("textbox", { name: "Name" })).toBeFocused();
     await scan("dialog, open");
     await dialog.getByRole("textbox", { name: "Name" }).focus();
     await scan("dialog, a field focused");
@@ -418,7 +418,7 @@ test("menu: a row's menu opens at the pointer and at the row, for that row, and 
   await expect(page.getByRole("menuitem").first()).toHaveText("Copy as cURL");
 });
 
-test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape closes it and focus goes back", async ({
+test("dialog: focus starts on its first element past Close, Tab and Shift+Tab wrap, Escape closes it and focus goes back", async ({
   page,
 }) => {
   await open(page, "light");
@@ -428,10 +428,12 @@ test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape 
   await page.keyboard.press("Enter");
   await expect(dialog).toHaveAttribute("aria-modal", "true");
   const close = dialog.getByRole("button", { name: "Close" });
-  await expect(close).toBeFocused();
+  const name = dialog.getByRole("textbox", { name: "Name" });
+  // Not the header's Close (V7): its ring was the loudest thing in a dialog at open.
+  await expect(name).toBeFocused();
 
-  // Close, the name, the checkbox, the select, the menu's button, the tooltip's, Delete, Cancel, Save; then Close again.
-  for (let i = 0; i < 8; i++) await page.keyboard.press("Tab");
+  // The name, the checkbox, the select, the menu's button, the tooltip's, Delete, Cancel, Save; then Close, first.
+  for (let i = 0; i < 7; i++) await page.keyboard.press("Tab");
   await expect(dialog.getByRole("button", { name: "Save" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
@@ -451,7 +453,7 @@ test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape 
 
   // A click on the backdrop closes it.
   await page.keyboard.press("Enter");
-  await expect(close).toBeFocused();
+  await expect(name).toBeFocused();
   await page.mouse.click(5, 5);
   await expect(dialog).toHaveCount(0);
 });
@@ -1297,11 +1299,22 @@ test("button: none of the browser's look; under the pointer, focused from the ke
   expect(await css(filled, "transform")).toBe("none");
   await page.mouse.up();
 
-  // Disabled: faded, and a press goes through it to what is under it.
+  // Disabled: the tertiary label on a quiet fill, not faded (V6), and a press goes through it to what is under it.
   const disabled = page.getByRole("button", { name: "Filled disabled" });
-  expect(await css(disabled, "opacity")).toBe("0.6");
+  const tertiary = await page.evaluate(() => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--label-tertiary)";
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
   expect(await css(disabled, "pointer-events")).toBe("none");
-  expect(await css(page.getByRole("button", { name: "Send disabled" }), "opacity")).toBe("0.4");
+  for (const name of ["Filled disabled", "Send disabled"]) {
+    const button = page.getByRole("button", { name });
+    expect(await css(button, "opacity"), name).toBe("1");
+    expect(await css(button, "color"), name).toBe(tertiary);
+  }
 });
 
 test("button: an icon alone sits in its middle, square or not", async ({ page }) => {

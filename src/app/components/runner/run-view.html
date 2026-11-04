@@ -185,40 +185,60 @@
   <table class="ds-table run-results">
     <thead>
       <tr>
-        <th scope="col">#</th>
-        <th scope="col">Iteration</th>
+        <th scope="col" class="num">#</th>
+        @if (iterated()) {
+        <th scope="col" class="num">Iteration</th>
+        }
         <th scope="col">Request</th>
         <th scope="col">Status</th>
-        <th scope="col">Time</th>
+        <th scope="col" class="num">Time</th>
         <th scope="col">Tests</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
     <tbody>
       <!-- By position: a request may be sent more than once in a run. -->
       @for (row of rows(); track row.number) { @let result = row.result;
       <tr [class.run-result-failed]="failedOf(result)">
-        <td>{{ row.number }}</td>
-        <td>{{ result.iteration + 1 }}</td>
-        <td class="break-words">
+        <td class="num">{{ row.number }}</td>
+        @if (iterated()) {
+        <td class="num">{{ result.iteration + 1 }}</td>
+        }
+        <td class="run-name break-words">
           {{ result.name }} @for (problem of problems(result); track $index) {
           <p class="type-footnote text-status-error break-words">{{ problem }}</p>
-          } @if (row.record) {
+          }
+        </td>
+        <td>
+          @if (result.skipped) {
+          <span class="text-label-secondary">Skipped</span>
+          } @else if (result.status) {
+          <span class="status-code" [class]="statusTone(result.status)">{{ result.status }}</span>
+          @if (result.statusText) {&ngsp;<span class="text-label-secondary">{{ result.statusText }}</span>} } @else {
+          <span class="text-status-error">No response</span>
+          }
+        </td>
+        <td class="num">{{ result.durationMs === undefined ? "—" : result.durationMs + " ms" }}</td>
+        <td>{{ testsOf(result) }}</td>
+        <!-- One column for the row's actions, aligned on every row (V15). -->
+        <td class="run-actions text-right">
+          @if (row.record) {
           <!-- The row opens into its exchange record (D4.12, U-076). -->
           <button
             uiButton
-            class="btn-plain btn-sm run-record-toggle"
+            class="btn-sm whitespace-nowrap"
             type="button"
-            [attr.aria-label]="'Record of ' + result.name"
+            [attr.aria-label]="'Show record of ' + result.name"
             [attr.aria-expanded]="openRecord() === row.number"
             [attr.aria-controls]="'run-record-' + row.number"
             (click)="openRecord.set(openRecord() === row.number ? null : row.number)"
-            >Record</button
+            >Show record</button
           >
           } @if (requestOf(result.id); as doc) {
           <!-- Its request, in a tab of its own: the run keeps its results (U-076). -->
           <button
             uiButton
-            class="btn-plain btn-sm"
+            class="btn-sm whitespace-nowrap"
             type="button"
             [attr.aria-label]="'Open ' + result.name"
             (click)="openRequest.emit(doc)"
@@ -226,16 +246,10 @@
           >
           }
         </td>
-        <td
-          >{{ result.skipped ? "Skipped" : result.status ? result.status + (result.statusText ? " " + result.statusText
-          : "") : "No response" }}</td
-        >
-        <td>{{ result.durationMs === undefined ? "—" : result.durationMs + " ms" }}</td>
-        <td>{{ testsOf(result) }}</td>
       </tr>
       @if (row.record && openRecord() === row.number) {
       <tr class="run-record-row">
-        <td colspan="6">
+        <td [attr.colspan]="iterated() ? 7 : 6">
           <section
             [id]="'run-record-' + row.number"
             class="type-footnote"

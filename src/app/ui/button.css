@@ -69,9 +69,9 @@
 }
 
 /* A disabled button takes no pointer: a press goes to what is under it, and
-   a tooltip that explains why sits on a wrapper (address-row.html). */
+   a tooltip that explains why sits on a wrapper (address-row.html). Its look
+   is at the end of this file, after every tone it overrides. */
 .ui-button:disabled {
-  opacity: 0.6;
   cursor: default;
   pointer-events: none;
 }
@@ -239,9 +239,21 @@
   background: var(--ink-press);
 }
 
-.ui-button.send-btn:disabled {
-  opacity: 0.4;
-  box-shadow: none;
+/* Disconnect, in Send's place while a socket is open or opening: outlined, so the page has one filled button, Send
+   message (V19). */
+.ui-button.send-btn.send-btn-quiet {
+  border: 1px solid var(--ctl-boundary);
+  background: transparent;
+  color: var(--label-primary);
+}
+
+.ui-button.send-btn.send-btn-quiet:not(:disabled):hover {
+  border-color: var(--label-tertiary);
+  background: var(--fill-hover);
+}
+
+.ui-button.send-btn.send-btn-quiet:not(:disabled):active {
+  background: var(--fill-active);
 }
 
 /* In forced colours a fill is taken away, and the send button has no border:
@@ -250,4 +262,22 @@
   .ui-button.send-btn {
     border: 1px solid ButtonBorder;
   }
+}
+
+/* Disabled (V6): the tertiary label on a quiet fill, not the button at 60 % opacity, which made a grey slab that
+   read as a third tone. A filled button keeps its shape on the fill with a separator's edge; an outlined one keeps
+   only that edge. */
+.ui-button:disabled {
+  --btn-fg: var(--label-tertiary);
+}
+.ui-button.ui-button-filled:disabled,
+.ui-button.send-btn:disabled {
+  --btn-bg: var(--fill-secondary);
+  --btn-border: var(--separator);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-fg);
+}
+.ui-button.ui-button-outlined:disabled {
+  --btn-border: var(--separator);
 }

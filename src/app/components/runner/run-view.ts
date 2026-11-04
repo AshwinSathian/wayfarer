@@ -23,6 +23,7 @@ import { ScriptReviewDialog } from "../composer/script-review-dialog";
 import { Icon } from "../../shared/icon/icon";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { saveFile } from "../../shared/save-file";
+import { statusTone } from "../../shared/status-tone";
 import { RunState } from "../../state/run-state";
 import type { RequestDoc } from "../../models/collections";
 import { HarExportDialog } from "../har-export/har-export-dialog";
@@ -69,6 +70,12 @@ export class RunView {
     const run = this.run();
     return this.requests().length * (run.iterations() ?? (run.dataFile()?.rows.length || 1));
   });
+  /** More than one iteration: only then has the table an Iteration column, which on one was all "1" (V15). */
+  protected readonly iterated = computed(() => {
+    const run = this.run();
+    return (run.report()?.iterations ?? run.iterations() ?? (run.dataFile()?.rows.length || 1)) > 1;
+  });
+  protected readonly statusTone = statusTone;
   /**
    * Each error two or more results ended with, the commonest first: a run
    * against a host the page cannot reach gave the same three lines on every

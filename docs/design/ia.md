@@ -547,6 +547,7 @@ it is.
 | `palette: ai-draft` | — | Palette, with a provider and the action on (D4.10) | D4-k |
 | `palette: new-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: run-folder` | (none: the context menu only, U-156) | Palette, "Run {folder}…" with the folder selected; each collection's run is listed too | D5-c (U-156) |
 | `palette: new-request-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: duplicate-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: export-collection` | Palette, the collection selected in the tree | Palette, "Export…" (U-016) | D4-f |

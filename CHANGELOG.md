@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A collection run can be found from the command palette.** Run… was
+  only in a collection's or folder's context menu, opened with a
+  right-click or Shift+F10. Type "run" in the palette (Ctrl+K or ⌘K) and
+  each collection is there, and the selected folder too.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

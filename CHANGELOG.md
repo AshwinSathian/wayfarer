@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Before you make a vault, the app says there is none.** It said
+  "Vault locked" in the status bar, the Secrets dialog and Settings, and
+  offered to change the passphrase or export a vault that did not exist.
+  It now says "No vault", and the Secrets dialog offers to create one.
+
 - **A query parameter's name and value have room at large text.** At
   200% text beside the collections tree, Params left each field about
   47 px wide, two letters of "kind". Params now wraps its rows by the room

@@ -362,10 +362,10 @@
         class="btn-plain status-control"
         [class.text-status-success]="secretsUnlocked"
         (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : 'Unlock the vault'"
+        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : secretsService.made() === false ? 'Make a vault' : 'Unlock the vault'"
       >
         <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />{{ secretsUnlocked ? "Vault
-        unlocked" : "Vault locked" }}
+        unlocked" : secretsService.made() === false ? "No vault" : "Vault locked" }}
       </button>
       <button
         type="button"

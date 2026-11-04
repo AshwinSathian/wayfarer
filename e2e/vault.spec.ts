@@ -17,7 +17,8 @@ async function watchViolations(page: Page): Promise<void> {
 
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 
-const unlockButton = (page: Page) => page.getByRole("button", { name: "Vault locked", exact: true });
+// Before a vault is made it says so (U-164); after, it is locked until unlocked.
+const unlockButton = (page: Page) => page.getByRole("button", { name: /^(Vault locked|No vault)$/ });
 const lockButton = (page: Page) => page.getByRole("button", { name: "Vault unlocked", exact: true });
 
 async function createVault(page: Page, passphrase = PASSPHRASE): Promise<void> {
@@ -208,4 +209,21 @@ test("a send with the vault locked asks for the passphrase naming the request's 
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByRole("button", { name: "Unlock secrets" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
+});
+
+// U-164: before any vault was made the app said "Vault locked" (the status bar), "Vault is locked" (Secrets) and "The
+// vault is locked" (Settings), offering Change passphrase and Export vault for a vault that was not there.
+test("before a vault is made, the app says there is none, and offers to make one", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  const status = page.getByRole("button", { name: "No vault", exact: true });
+  await expect(status).toBeVisible();
+  await expect(page.getByRole("button", { name: "Vault locked", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
+  const secrets = page.getByRole("dialog", { name: "Secrets" });
+  await expect(secrets.getByText("No vault yet.", { exact: false })).toBeVisible();
+  await expect(secrets.getByRole("button", { name: "Change passphrase" })).toHaveCount(0);
+  await expect(secrets.getByRole("button", { name: "Export vault" })).toHaveCount(0);
+  await secrets.getByRole("button", { name: "Create vault" }).click();
+  await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toBeVisible();
 });

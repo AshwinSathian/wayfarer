@@ -55,6 +55,11 @@ export class SecretsVault {
   private readonly dek = signal<VaultKey | null>(null);
   /** A signal, so every view and effect that reads it follows unlock and lock. */
   readonly isUnlocked = computed(() => this.dek() !== null);
+  /**
+   * Whether a passphrase has been chosen in this browser, as last read; null until it is. Before one is, the app says
+   * there is no vault, not that it is locked (U-164).
+   */
+  readonly made = signal<boolean | null>(null);
 
   /** Minutes without a key press or a click before this tab locks itself; 0 never does. */
   readonly idleMinutes = signal(this.loadIdleMinutes());
@@ -76,11 +81,14 @@ export class SecretsVault {
     for (const type of ["keydown", "pointerdown"] as const) {
       window.addEventListener(type, () => this.restartIdleTimer(), { capture: true, passive: true });
     }
+    void this.exists();
   }
 
   /** Whether a passphrase has been chosen. */
   async exists(): Promise<boolean> {
-    return (await this.secretsRepository.readVault()) !== null;
+    const made = (await this.secretsRepository.readVault()) !== null;
+    this.made.set(made);
+    return made;
   }
 
   /**
@@ -90,6 +98,7 @@ export class SecretsVault {
   async create(passphrase: string): Promise<boolean> {
     const { record, dek } = await createVault(passphrase);
     if (!(await this.secretsRepository.writeVault(record, false))) return false;
+    this.made.set(true);
     this.holdKey(dek);
     return true;
   }

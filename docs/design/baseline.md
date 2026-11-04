@@ -55,6 +55,14 @@ way (three runs, the median), beside its row above.
 | 2 | Import a Postman collection with scripts and run it | D4-i (#510, #511) | 11 | 11 | 0 | 0 | 1.75 | 1.89, 1.75, 1.75 |
 | 7 | Run a collection with a data file and read the report | D4-i (#510 to #513) | 5 | 5 | 0 | 0 | 0.51 | 0.51, 0.52, 0.51 |
 | 8 | Find a request sent last week | D5-a (U-144) | 9 | 3 | 0 | 6 | 0.52 | 0.52, 0.53, 0.51 |
+| 2 | Import a Postman collection with scripts and run it | D5-e | 8 (counted from the steps) | 8 | 0 | 0 | not yet measured | — |
+
+D5-e takes task 2 from 11 inputs to 8: the import's report offers Import
+and review scripts…, which stores the collection with its scripts
+unapproved and opens their review on it. The three inputs it saves are
+opening a request, its Scripts tab and Review scripts. The count is the
+steps of `e2e/design/tasks.spec.ts`; the seconds wait for the task's next
+run.
 
 D5-a left task 8 its nine inputs: the request found now opens in a tab of
 its own, beside the request that was open (U-144), and the tree no longer

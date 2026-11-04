@@ -387,6 +387,7 @@ it is.
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Import and review scripts…` | — (new in D5-e) | Import report dialog, when the file is one collection with scripts: imports it untrusted, then opens the script review on it | — |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New folder` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
 | `menu collection-context-menu.ts: New request` | Context menu of a tree row | Sidebar, context menu | D4-f, done |

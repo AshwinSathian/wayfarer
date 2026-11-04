@@ -808,6 +808,70 @@ test("before a run whose scripts wait for a review, the view says so and offers 
   await expect(view.getByRole("button", { name: "Review scripts…" })).toBeVisible();
 });
 
+// D5-e (benchmark task 2): the review was reached through a request's Scripts tab, or a run that had already sent
+// without the scripts. The import of a file with scripts offers it at its end: the collection is stored unapproved, the
+// review opens on it, and only Trust these scripts approves. The first run then runs them.
+test("an import offers the review of its scripts at its end, and the first run runs them", async ({ page }) => {
+  const script = `pm.test("is 200", () => pm.response.to.have.status(200));`;
+  const collection = {
+    info: { name: "Shop", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+    item: ["orders", "customers"].map((name) => ({
+      name: `List ${name}`,
+      event: [{ listen: "test", script: { exec: [script], type: "text/javascript" } }],
+      request: { method: "GET", url: `${ECHO}/status/200?list=${name}` },
+    })),
+  };
+  await page.goto("/app/");
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({
+    name: "shop.postman_collection.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(collection)),
+  });
+  const dialog = page.getByRole("dialog", { name: "Import collection" });
+  await dialog.getByRole("button", { name: "Import and review scripts…" }).click();
+  await expect(dialog).toHaveCount(0);
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review).toContainText("2 scripts in 2 requests");
+  await expect(review.locator(".script-review-code")).toHaveCount(2);
+  await review.getByRole("button", { name: "Trust these scripts" }).click();
+  await expect(review).toHaveCount(0);
+
+  const view = await openRun(page);
+  await expect(view).not.toContainText("wait for a review");
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(status(view)).toContainText("2 of 2 tests passed", { timeout: 15_000 });
+});
+
+// D5-e: Not now at the import's end trusts nothing: the run says the scripts wait, and offers the review again.
+test("Not now at the import's end leaves the scripts waiting for a review", async ({ page }) => {
+  await page.goto("/app/");
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({
+    name: "shop.postman_collection.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify({
+        info: { name: "Shop", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+        item: [
+          {
+            name: "List orders",
+            event: [{ listen: "test", script: { exec: ['pm.test("ran", () => {});'], type: "text/javascript" } }],
+            request: { method: "GET", url: `${ECHO}/status/200` },
+          },
+        ],
+      }),
+    ),
+  });
+  await page
+    .getByRole("dialog", { name: "Import collection" })
+    .getByRole("button", { name: "Import and review scripts…" })
+    .click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await review.getByRole("button", { name: "Not now" }).click();
+  await expect(review).toHaveCount(0);
+  const view = await openRun(page);
+  await expect(view).toContainText("wait for a review, so requests are sent without them");
+});
+
 // U-076: a row leads to its request. Open puts it in a tab of its own, and the run's tab keeps its results.
 test("a run's row opens its request in a tab of its own, and the run keeps its results", async ({ page }) => {
   await seedCollection(page, [{ name: "Gone", url: "http://127.0.0.1:9/a" }]);

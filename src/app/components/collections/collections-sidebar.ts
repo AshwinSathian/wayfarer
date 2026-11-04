@@ -188,6 +188,12 @@ export class CollectionsSidebar implements OnInit {
   commands(): PaletteAction[] {
     const actions: PaletteAction[] = [
       { id: "new-collection", label: "New collection", run: () => this.handleCreateCollection() },
+      // Each collection's run, where a person looks for it (U-156): it was in the row's context menu only.
+      ...this.collectionsService.tree().map(({ collection }) => ({
+        id: `run-collection-${collection.meta.id}`,
+        label: `Run ${collection.name}…`,
+        run: () => this.run.emit({ collectionId: collection.meta.id, name: collection.name }),
+      })),
     ];
     const node = this.selectedNode();
     if (!node) {
@@ -227,6 +233,11 @@ export class CollectionsSidebar implements OnInit {
     if (data.type === "folder") {
       const folder = data.ref;
       actions.push(
+        {
+          id: "run-folder",
+          label: `Run ${folder.name}…`,
+          run: () => this.dispatchContextAction("run", node),
+        },
         {
           id: "new-request-folder",
           label: `New request in ${folder.name}`,

@@ -280,8 +280,9 @@
           <div class="min-w-0">
             <p class="type-subhead text-label-primary">Secrets</p>
             <p class="type-footnote text-label-tertiary"
-              >View, reveal, rename and delete the secrets of every environment. The vault is {{ vault.isUnlocked() ?
-              'unlocked in this tab' : 'locked' }}.</p
+              >View, reveal, rename and delete the secrets of every environment. {{ vault.isUnlocked() ? 'The vault is
+              unlocked in this tab.' : vault.made() === false ? 'No vault has been made in this browser yet.' : 'The
+              vault is locked.' }}</p
             >
           </div>
           <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openSecrets.emit(); close()"

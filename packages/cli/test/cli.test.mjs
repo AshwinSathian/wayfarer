@@ -372,7 +372,7 @@ test("a request that gets no response fails the run; --bail stops there; --timeo
   const slow = await file("slow.json", collectionFile([request("Slow", { url: `${base}/delay/2000` })]));
   const timedOut = await cli(["run", slow, "--timeout", "200"]);
   assert.equal(timedOut.code, 1);
-  assert.match(timedOut.stdout, /Timed out after 200 ms/);
+  assert.match(timedOut.stdout, /No response within 200 ms, the request timeout\./);
 });
 
 test("a refused connection is said as Node saw it, not as a browser would", async () => {

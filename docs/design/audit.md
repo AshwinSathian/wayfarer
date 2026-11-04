@@ -389,6 +389,7 @@ the second.
 2026-10-23 (hig-review, W-41a): the fix holds. The state it did not cover,
 a saved request with an address open and nothing sent, is U-095.
 **2026-11-04:** Reopened in D5-b's fifth pass: the Secrets dialog's empty list and the empty Timings and Tests tabs are dashed boxes (`secrets-manager.html:34-36`; `response-viewer.html:387-389`, `:570-572`). Open, D5-c, with U-198.
+**2026-11-04:** Fixed again in D5-c: the Secrets dialog's empty list and the empty Timings and Tests tabs are a line of text with a glyph, no box; the token test fails on `border-dashed` in a template.
 
 **U-023. The first screen explains the Local Bridge.** Severity 2. H2, H8.
 OC.
@@ -1149,6 +1150,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
 **2026-11-03:** Settings' share fixed in #507 (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
 **2026-11-04:** D5-b's fifth pass: the Secrets dialog keeps a banner card and a dashed box inside the dialog: U-198. Open, D5-c.
+**2026-11-04:** The Secrets dialog's cards are gone (U-198).
 
 ### Environments, the vault and the runner
 
@@ -2377,6 +2379,7 @@ dialog's own surface: three grouping cues at one level
 "dashed empty boxes" as part of the template look it removed.
 Evidence: `baseline/design-chromium/secrets-manager-1440-dark.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c with U-022: the vault's state is a line of the dialog, not a filled, bordered card, and the empty list has no box.
 
 **U-199. On a phone the editing line breaks before its dash.** Severity 4.
 H8. Everyone on a phone.

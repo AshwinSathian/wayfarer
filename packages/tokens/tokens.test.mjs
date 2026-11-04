@@ -297,3 +297,11 @@ test("no rule sets the mono face at the footnote size", () => {
         found.push(`${file}: ${block[1].trim()}`);
   assert.deepEqual(found, []);
 });
+
+// U-022 (reopened in D5-b): an empty state says what goes there and what to do, with no dashed box around nothing.
+test("no template draws a dashed box", () => {
+  const found = [];
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/(?<![\w-])border-dashed(?![\w-])/g)) found.push(`${file}: ${m[0]}`);
+  assert.deepEqual(found, []);
+});

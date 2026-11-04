@@ -152,7 +152,8 @@ rules keep them from doing the same work twice.
 The header keeps the title and two menu buttons with their words: **New**
 (Collection, with its key `C`; Request and Folder in the selected
 collection or folder, with `N` for a request) and **Import** (File…, cURL
-command…). The lightning bolt goes to the toolbar as the palette's field
+command…). While there is no collection the header has neither: the empty
+tree's own line offers New collection and Import… (D5-e, L-16). The lightning bolt goes to the toolbar as the palette's field
 (U-011). Each icon that stood alone is now an item with its name.
 Maintainer, 2026-10-22.
 
@@ -233,6 +234,7 @@ None of these leaves the keyboard's reach.
 | "Export with credentials" and "Export for Postman…" as menu items | One Export… (U-016, maintainer, 2026-10-22) | Export…, with the choice in its dialog |
 | Duplicate tab as a button of the strip | It acted on a tab far from it (U-027, maintainer, 2026-10-22) | A tab's context menu, the palette |
 | The environment editor's Save changes | The editor writes each field as focus leaves it (DQ9, row 1.52; U-060) | Nothing to do: leaving a field, closing the editor or choosing another environment keeps the edit |
+| The empty response's Import a collection…, and the sidebar header's Import and New while there is no collection | The first screen offered Import three times and New twice (D5-e, L-16) | The empty sidebar's Import… and New collection; the header's menus once a collection exists |
 | A collection's or a folder's settings dialog, its Cancel and Save settings | Its settings are a tab that writes each field as focus leaves it, as the environments do (D5-e, L-4) | Nothing to do: leaving a field or closing the tab keeps the edit |
 
 The palette's "New request" and "New tab" become one command, since both
@@ -361,10 +363,10 @@ it is.
 | `app-shell.html: Keep beside the page / Show as a drawer` | — (new in D4-f): the sidebar's header from 1,024 to 1,200 px, the choice kept (U-070) | Sidebar | D4-f, done |
 | `app-shell.html: Undo` | — (new in D4-f): the line under the page after a delete in the tree, for 10 s, kept while the pointer or focus is on it | Shell, the Undo line (U-080) | D4-f, done |
 | `app-shell.html: Dismiss` | The Undo line | Shell, the Undo line | D4-f, done |
-| `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010) | D4-f, done |
-| `collections-sidebar.html: New` | Sidebar header, New menu: "Collection" (C), and in the selected collection or folder "Request" (N) and "Folder", at every width | Sidebar header (U-010, U-102) | D4-f, done |
+| `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010), once a collection exists (D5-e, L-16) | D4-f, done |
+| `collections-sidebar.html: New` | Sidebar header, New menu: "Collection" (C), and in the selected collection or folder "Request" (N) and "Folder", at every width | Sidebar header (U-010, U-102), once a collection exists (D5-e, L-16) | D4-f, done |
 | `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010); and the empty sidebar's button (D4-c, U-022) | D4-f |
-| `collections-sidebar.html: Import…` | — (new in D4-c) | The empty sidebar: imports a file, as Import, "File…" (U-022) | — |
+| `collections-sidebar.html: Import…` | — (new in D4-c) | The empty sidebar: imports a file, as Import, "File…" (U-022); the first screen's one Import (D5-e, L-16) | — |
 | `collections-sidebar.html: importPipeline.pick($event)` | The file picker behind Import collection | Behind Import, "File…" | — |
 | `collections-sidebar.html: contextMenu.openAt($event, () => tree.focusSelected())` | A tree row, right-click or Shift+F10 | Sidebar | — |
 | `collections-sidebar.html: Rename` | A tree row, F2 or Rename | Sidebar | — |
@@ -427,9 +429,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `composer.html: Paste a cURL command` | — (new in D4-c) | The empty response: opens Import's box for a cURL command (U-022) | — |
-| `composer.html: Import a collection…` | — (new in D4-c) | The empty response: picks a file to import (U-022) | — |
-| `composer.html: importPipeline.pick($event)` | — (new in D4-c) | The file picker behind Import a collection… | — |
+| `composer.html: Paste a cURL command` | — (new in D4-c) | The empty response of an empty tab: opens Import's box for a cURL command (U-022), which fills this tab (D5-e, L-16) | — |
 | `address-row.html: Common methods` | Address row, the method | Composer, address row | — |
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |
 | `address-row.html: Save / Save to collection…` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |

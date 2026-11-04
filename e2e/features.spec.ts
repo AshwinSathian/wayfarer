@@ -307,6 +307,9 @@ test("@claim:C-039 the Body tab is there for every method, offers none, raw, for
 async function createCollection(page: Page, name: string): Promise<void> {
   // The empty sidebar's button, else the header's New menu (U-010).
   const empty = page.getByRole("button", { name: "New collection", exact: true });
+  const header = page.locator("app-collections-sidebar").getByRole("button", { name: "New", exact: true });
+  // Wait for one of them: the header's New is not drawn while the tree is empty.
+  await expect(empty.first().or(header)).toBeVisible();
   if (await empty.count()) await empty.first().click();
   else {
     await page.locator("app-collections-sidebar").getByRole("button", { name: "New", exact: true }).click();

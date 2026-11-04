@@ -2,6 +2,8 @@
   <!-- Header: the title and two named menus (U-010, ia.md). The palette is the toolbar's. -->
   <div class="flex items-center justify-between gap-2">
     <h2 class="type-subhead font-semibold text-label-secondary m-0">Collections</h2>
+    <!-- Not while the tree is empty: its own line offers New collection and Import… (L-16). -->
+    @if (nodes().length) {
     <div class="flex items-center gap-1">
       <button
         type="button"
@@ -24,6 +26,7 @@
       >
       <ui-menu #newMenu [trigger]="newTrigger" [items]="newItems()" />
     </div>
+    }
   </div>
 
   <input
@@ -37,22 +40,10 @@
   @if (loading()) {
   <span class="ui-skeleton h-[160px] w-full" aria-hidden="true"></span>
   } @else if (!nodes().length) {
-  <div class="ds-empty-state">
-    <app-icon
-      name="folder_open"
-      class="icon-xl text-label-tertiary"
-      style="
-        font-variation-settings:
-          &quot;FILL&quot; 0,
-          &quot;wght&quot; 200,
-          &quot;GRAD&quot; -25,
-          &quot;opsz&quot; 48;
-      "
-    />
-    <p class="type-callout text-label-secondary max-w-[220px] text-center"
-      >Requests you save are kept here, in collections.</p
-    >
-    <div class="flex flex-wrap justify-center gap-2">
+  <!-- Where the first row will be, left-aligned, with no picture (V2). -->
+  <div class="flex flex-col items-start gap-3 px-2 pt-1">
+    <p class="type-callout text-label-secondary m-0">Requests you save are kept here, in collections.</p>
+    <div class="flex flex-wrap gap-2">
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="handleCreateCollection()"
         >New collection</button
       >

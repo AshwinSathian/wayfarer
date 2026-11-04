@@ -401,12 +401,6 @@ export class WorkspaceStore {
     this.paramsEdited();
   }
 
-  isAddParamDisabled(): boolean {
-    const items = this.draft().params;
-    const last = items[items.length - 1];
-    return !!last && (last.key === "" || last.value === "");
-  }
-
   /** A Params row was edited in place: rewrite the URL's query from the rows. */
   paramsEdited(): void {
     const draft = this.draft();

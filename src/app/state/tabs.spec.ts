@@ -272,7 +272,7 @@ describe("Tabs", () => {
     tabs.close(first.id);
 
     expect(await sent).toBe(true);
-    expect(first.responseError()).toMatch(/cancel/i);
+    expect(first.responseError()).toBe("You stopped the request.");
     expect(tabs.tabs()).not.toContain(first);
   });
 });

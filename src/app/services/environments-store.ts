@@ -63,6 +63,8 @@ export class EnvironmentsStore {
 
   async createEnvironment(payload: { name: string; description?: string; vars?: Row[] }): Promise<EnvironmentDoc> {
     const doc = await this.environmentsRepository.createEnvironment(payload);
+    // Made while none is in use, it is the one meant to be used (L-19): not the first of the list, as `refresh` picks.
+    if (!this.activeIdState()) await this.environmentsRepository.setActiveEnvironment(doc.meta.id);
     await this.refresh();
     return doc;
   }

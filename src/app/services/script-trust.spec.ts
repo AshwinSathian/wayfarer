@@ -106,13 +106,11 @@ describe("ScriptTrust", () => {
     await collections.saveInherited(
       { collectionId },
       { auth: { type: "none" }, scripts: { pre: "fromCollection()", post: "" } },
-      true,
     );
     const folder = await collections.createFolder({ collectionId, name: "Admin" });
     await collections.saveInherited(
       { collectionId, folderId: folder.meta.id },
       { auth: { type: "inherit" }, scripts: { pre: "", post: "fromFolder()" } },
-      true,
     );
     await collections.createRequest({ ...content(""), collectionId, folderId: folder.meta.id, name: "Plain" });
     return collections.getCollectionTree(collectionId)!;
@@ -168,7 +166,6 @@ describe("ScriptTrust", () => {
     await collections.saveInherited(
       { collectionId, folderId },
       { auth: { type: "inherit" }, scripts: { pre: "", post: "edited()" } },
-      false,
     );
     expect(trustOf(collectionId)).toEqual({ trusted: false });
 
@@ -183,6 +180,49 @@ describe("ScriptTrust", () => {
     });
     await collections.refresh();
     expect(await allowed()).toBe(false);
+  });
+
+  // The settings tab writes each change as it is made (D5-e): every write asks again whether the scripts stored
+  // before it were allowed to run, and only the store, from what it holds, answers.
+  it("@claim:C-051 a folder's script that is not allowed to run stays held through every edit saved as it is typed, in a reviewed collection", async () => {
+    const made = await withInheritedScripts();
+    const collectionId = made.collection.meta.id;
+    const folderId = made.folders[0].meta.id;
+    // Written past the app's own save: the collection is trusted, this script's digest is not approved.
+    await idb.folders.setFolderInherited(folderId, {
+      auth: { type: "inherit" },
+      scripts: { pre: "", post: "swapped()" },
+    });
+    await collections.refresh();
+    const before = trustOf(collectionId);
+
+    for (const post of ["swapped();", "swapped();\nmore()"])
+      await collections.saveInherited(
+        { collectionId, folderId },
+        { auth: { type: "inherit" }, scripts: { pre: "", post } },
+      );
+    // An edit of something else (the auth) does not approve it either.
+    await collections.saveInherited(
+      { collectionId, folderId },
+      { auth: { type: "bearer", token: "t" }, scripts: { pre: "", post: "swapped();\nmore()" } },
+    );
+
+    expect(trustOf(collectionId)).toEqual(before);
+    saved.bind(made.requests[0]);
+    trust.openedHere();
+    expect(await allowed()).toBe(false);
+  });
+
+  it("a collection's script that runs stays allowed through every edit saved as it is typed", async () => {
+    const made = await withInheritedScripts();
+    const collectionId = made.collection.meta.id;
+    for (const pre of ["fromCollection();", "fromCollection();\nagain()"])
+      await collections.saveInherited({ collectionId }, { auth: { type: "none" }, scripts: { pre, post: "" } });
+
+    expect(trustOf(collectionId)?.approved).toContain(await scriptDigest("fromCollection();\nagain()"));
+    saved.bind(made.requests[0]);
+    trust.openedHere();
+    expect(await allowed()).toBe(true);
   });
 
   it("saving an unreviewed script does not approve it, here or in another collection", async () => {

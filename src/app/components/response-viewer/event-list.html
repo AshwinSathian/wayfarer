@@ -32,7 +32,7 @@
         <td class="break-all font-mono">{{ event.id || "—" }}</td>
         <td class="break-all font-mono">{{ event.event }}</td>
         <td class="break-all font-mono whitespace-pre-wrap">{{ event.data }}</td>
-        <td class="whitespace-nowrap">{{ event.timeMs === undefined ? "—" : "+" + event.timeMs + " ms" }}</td>
+        <td class="whitespace-nowrap">{{ event.timeMs === undefined ? "—" : "+" + formatDuration(event.timeMs) }}</td>
       </tr>
       }
     </tbody>

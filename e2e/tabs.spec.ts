@@ -215,11 +215,11 @@ test("a tab may be left while its request is on its way, and its response is the
   await page.goto("/app/");
   await address(page).fill(`${ECHO}/delay/3000`);
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeVisible();
 
   await page.getByRole("button", { name: "New tab" }).click();
   await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("button", { name: "Cancel request" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Stop request" })).toHaveCount(0);
   await address(page).fill(`${ECHO}/status/204`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("204", { timeout: 15_000 });
@@ -237,14 +237,14 @@ test("closing a tab whose request is on its way asks first, and cancels the requ
   // Longer than the test may take: only a cancel ends this request in time.
   await address(page).fill(`${ECHO}/delay/60000`);
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeVisible();
 
   await tabMenu(page, "Close tab");
   const dialog = page.getByRole("alertdialog", { name: "Close this tab?" });
   await expect(dialog).toContainText("is waiting for a response");
   await dialog.getByRole("button", { name: "Keep it open" }).click();
   await expect(tabs(page)).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeVisible();
 
   await tabMenu(page, "Close tab");
   await dialog.getByRole("button", { name: "Close tab" }).click();
@@ -252,7 +252,7 @@ test("closing a tab whose request is on its way asks first, and cancels the requ
   // The send ended as a cancelled one: history has it. (WebKit on Linux reports no "requestfailed" for an aborted fetch.)
   await expect
     .poll(async () => ((await dumpIdb(page))["history"] as { error?: string }[]).map((entry) => entry.error))
-    .toEqual(["The request was cancelled."]);
+    .toEqual(["You stopped the request."]);
 });
 
 test("the open tab is in view when the strip holds more tabs than fit", async ({ page }) => {

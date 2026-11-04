@@ -1,5 +1,10 @@
 # Import
 
+<!-- description: Import Postman, Insomnia, OpenAPI, Swagger, HAR and cURL into Wayfarer: what each format brings, the report shown before anything is stored, and its limits. -->
+
+Moving a whole workspace from Postman? [Moving from Postman](https://wayfarer.ashwinsathian.com/compare/moving-from-postman/)
+has the steps from export to a run in CI.
+
 Every file reaches the app by one road, whichever Import button you press
 (the Collections panel, Environments, or Settings):
 

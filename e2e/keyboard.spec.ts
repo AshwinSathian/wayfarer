@@ -23,13 +23,13 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
   await expect(page.locator("#auth-type-select")).toBeVisible();
 
   await page.keyboard.press("End");
-  await expect(tab("Settings")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Network")).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("ArrowRight");
   await expect(tab("Params")).toBeFocused();
   await expect(composer.getByRole("button", { name: "Add parameter" })).toBeVisible();
 
   await page.keyboard.press("ArrowLeft");
-  await expect(tab("Settings")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Network")).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("Home");
   await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
 
@@ -237,7 +237,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
     "Run…",
     "New folder",
     "New request",
-    "Settings",
+    "Collection settings…",
     "Rename",
     "Duplicate",
     "Export…",

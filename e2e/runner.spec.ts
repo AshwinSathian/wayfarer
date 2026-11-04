@@ -341,12 +341,12 @@ test("Cancel stops a run within one request", async ({ page }) => {
   await expect(resultRows(view)).toHaveCount(1);
   await expect(status(view)).toContainText("Running: 1 request done.");
 
-  await view.getByRole("button", { name: "Cancel run" }).click();
+  await view.getByRole("button", { name: "Stop run" }).click();
 
-  await expect(status(view)).toContainText("The run was cancelled.");
+  await expect(status(view)).toContainText("You stopped the run.");
   await expect(resultRows(view)).toHaveCount(2);
   await expect(resultRows(view).nth(1)).toContainText("Slow");
-  await expect(resultRows(view).nth(1)).toContainText("The request was cancelled.");
+  await expect(resultRows(view).nth(1)).toContainText("You stopped the request.");
   await expect(resultRows(view).nth(1)).toContainText("No response");
   await expect(view.getByRole("button", { name: "Run again" })).toBeVisible();
 });

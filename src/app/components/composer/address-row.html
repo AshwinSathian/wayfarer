@@ -118,12 +118,12 @@
     uiButton="filled"
     type="button"
     [disabled]="!store.loadingState() && !store.draft().url"
-    [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
+    [attr.aria-label]="store.loadingState() ? 'Stop request' : 'Send request'"
     [uiTooltip]="store.loadingState() ? '' : 'Send request'"
     [uiTooltipKeys]="shortcuts.send"
-    (click)="sendOrCancel($event)"
+    (click)="sendOrStop($event)"
     class="send-btn"
-    >{{ store.loadingState() ? "Cancel" : "Send" }}</button
+    >{{ store.loadingState() ? "Stop" : "Send" }}</button
   >
   }
 </div>

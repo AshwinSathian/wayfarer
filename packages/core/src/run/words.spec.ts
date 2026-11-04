@@ -12,7 +12,7 @@ const result = (error?: string, tests: boolean[] = []) => ({
 describe("what a run says (D4.9)", () => {
   it("says how it ended", () => {
     expect(runEnding({ ended: "completed" })).toBe("The run is complete.");
-    expect(runEnding({ ended: "cancelled" })).toBe("The run was cancelled.");
+    expect(runEnding({ ended: "cancelled" })).toBe("You stopped the run.");
     expect(runEnding({ ended: "failed" })).toBe("The run stopped at the first failure.");
     expect(runEnding({ ended: "ended", reason: "setNextRequest named no request." })).toBe(
       "The run was stopped. setNextRequest named no request.",

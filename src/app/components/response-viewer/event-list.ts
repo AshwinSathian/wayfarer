@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
+import { formatDuration } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
 import { UiSpinner } from "../../ui/spinner";
 import type { ShownEvent } from "../../state/tab-state";
@@ -23,4 +24,5 @@ export class EventList {
   readonly note = input("");
   readonly stop = output<void>();
   readonly reconnect = output<void>();
+  protected readonly formatDuration = formatDuration;
 }

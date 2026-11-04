@@ -8,21 +8,24 @@
     [live]="true"
     (stop)="stopStream.emit()"
   />
-  } @else if (loading()) {
-  <!-- No indicator for a reply under about a second (D3.7); then what it is doing, and for how long. -->
-  <div class="response-sending p-6">
-    @if (sendingFor(); as sofar) {
-    <p class="type-callout text-label-secondary tabular-nums">Sending… {{ sofar }}</p>
-    }
-  </div>
   } @else {
-  <div class="response-main">
+  <!-- While a request is out the last response stays (D5-e). Nothing changes for its first second (D3.7): a quick
+       answer replaces it in the frame it is ready. After that the status line says it is sending, and for how long,
+       and the last response under it is dimmed: it is the old one, and the new one is drawn at full strength. -->
+  @let sofar = sendingFor(); @let statusCode = responseStatusCode(); @let answered = statusCode !== undefined ||
+  isError();
+  <div class="response-main" [class.response-stale]="!!sofar">
     <!-- ── Status bar ─────────────────────────────────────── -->
-    @let statusCode = responseStatusCode(); @if (statusCode !== undefined || isError()) {
-    <!-- This whole @else branch (and therefore this status bar) is destroyed
-         and recreated on every send — sendRequest() always toggles
-         loading() true then false around each request, so this animation
-         genuinely replays per response rather than only on first mount. -->
+    @if (loading() && (sofar || !answered)) {
+    <div
+      class="response-sending text-label-secondary"
+      [class]="sofar ? 'response-status flex items-center gap-x-2.5 border-b border-separator px-4 py-2' : ''"
+    >
+      @if (sofar) {
+      <ui-spinner /><span class="type-callout tabular-nums">Sending… {{ sofar }}</span>
+      }
+    </div>
+    } @else if (answered) {
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
     <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
       @if (statusCode === undefined) {
@@ -44,7 +47,7 @@
       <!-- The facts wrap as one line, not one by one. -->
       <span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
         @if (inspData && inspData.duration) {
-        <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
+        <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
         } @if (responseContentLength()) {
         <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
         } @if (record(); as rec) {
@@ -99,7 +102,7 @@
       </div>
       }
     </div>
-    } @if (record(); as rec) { @if (recordOpen()) {
+    } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
     <section
       id="exchange-record"
@@ -175,7 +178,7 @@
             ><ng-template ngTabContent>
               <div class="space-y-3 pb-4">
                 @if ((views().length > 1 || view() === 'json') && responseStatusCode() !== undefined) {
-                <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
+                <!-- One row (U-030): the view, and the field that searches or filters; it wraps only where the pane is narrow. -->
                 <div class="response-tools flex flex-wrap items-center gap-2">
                   @if (views().length > 1) {
                   <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
@@ -187,21 +190,27 @@
                     (valueChange)="viewOverride.set($event)"
                   />
                   } @if (view() === 'json') {
-                  <!-- The search, its count and its arrows wrap together. -->
-                  <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
+                  <!-- One field (L-14): a path filters the body, any other text is searched for. The count and the
+                       arrows, with what the field is doing, wrap together. -->
+                  <div class="flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-x-2 gap-y-1">
                     <input
-                      class="font-mono min-w-0 flex-1"
+                      class="font-mono min-w-0 flex-1 basis-56"
                       uiInput
                       [value]="searchQuery()"
                       (input)="onSearchQueryChange($any($event.target).value)"
-                      aria-label="Search the response"
-                      placeholder="Search"
+                      aria-label="Search the response, or filter it by path"
+                      placeholder="Search, or a path such as data.items[*].id"
+                      spellcheck="false"
+                      autocomplete="off"
                     />
-                    <span class="type-footnote text-label-tertiary tabular-nums">
-                      {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count
-                      || 0 }}
-                    </span>
-                    <div class="flex items-center gap-0.5">
+                    @if (jsonFilter()) {
+                    <span class="type-footnote text-label-secondary">Filtering by path</span>
+                    } @else if (searchQuery().trim()) {
+                    <span class="flex items-center gap-1">
+                      <span class="type-footnote text-label-tertiary tabular-nums">
+                        {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{
+                        searchResult()?.count || 0 }}
+                      </span>
                       <button
                         uiButton="icon"
                         class="btn-sm"
@@ -220,18 +229,9 @@
                         (click)="stepSearch(1)"
                         ><app-icon name="keyboard_arrow_down"
                       /></button>
-                    </div>
+                    </span>
+                    }
                   </div>
-                  <input
-                    uiInput
-                    class="font-mono min-w-0 flex-1 basis-56 placeholder-mono"
-                    aria-label="Filter the JSON by path"
-                    [value]="jsonFilter()"
-                    (input)="jsonFilter.set($any($event.target).value)"
-                    placeholder="Path: data.items[*].id"
-                    spellcheck="false"
-                    autocomplete="off"
-                  />
                   }
                 </div>
                 }
@@ -324,7 +324,7 @@
           >
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"
+          <div ngTabPanel value="headers" class="tab-pane response-headers-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <div class="pb-4">
                 <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
@@ -339,7 +339,7 @@
                 </p>
                 }
                 <div
-                  class="response-headers max-h-72 overflow-y-auto rounded-lg border border-separator overflow-hidden"
+                  class="response-headers overflow-y-auto rounded-lg border border-separator"
                   role="region"
                   aria-label="Response headers"
                   tabindex="0"
@@ -393,7 +393,7 @@
                         ><app-icon name="info" class="icon-xs"
                       /></span>
                     </div>
-                    <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
+                    <div class="type-title-3 text-label-primary">{{ formatDuration(inspectionData.duration) }}</div>
                   </div>
                   <div class="rounded-lg bg-canvas-panel border border-separator p-4">
                     <div class="flex items-center gap-1.5 mb-2">
@@ -496,7 +496,7 @@
                         ></div>
                       </div>
                       <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatMs(phase.duration) }}
+                        {{ formatDuration(phase.duration) }}
                       </span>
                     </div>
                     }
@@ -512,7 +512,7 @@
                         <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
                       </div>
                       <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatMs(bar.duration) }}
+                        {{ formatDuration(bar.duration) }}
                       </span>
                     </div>
                     }
@@ -612,6 +612,7 @@
         </div>
       </div>
     </div>
+    }
   </div>
   }
 </div>

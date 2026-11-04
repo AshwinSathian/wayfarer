@@ -31,7 +31,7 @@ follow the rules below more strictly than any other string:
   never by its value; what was reported is quoted as the browser or the
   bridge said it, masked like everything kept. The record never guesses a
   cause the browser hid: it says what each route answered.
-- **Its first line is the status line's words.** "200 OK, 16.3 ms, Direct
+- **Its first line is the status line's words.** "200 OK, 16 ms, Direct
   to api.example.com"; with no response, the failure's first sentence and
   the route: "The request got no response. Direct to 127.0.0.1:9, no
   bridge paired." The status region says the same line.
@@ -171,6 +171,10 @@ A state is a fact of two or three words: "Vault locked", "Saved in this
 browser only", "Sending…". A number has its unit after a space: "16 ms",
 "2.4 kB", "50 MB". Thousands take a comma: "1,440 px". A count is written
 in figures ("3 requests"), and its noun agrees with it ("1 request").
+A duration is whole milliseconds under a second ("18 ms") and tenths of
+a second from one ("1.5 s"), wherever it is shown (`formatDuration`).
+A send or a run that the person ends is stopped, not cancelled: the
+button is Stop, and what it leaves says "You stopped the request."
 
 ## Shortcuts
 
@@ -213,7 +217,7 @@ drawn on the most screens; the count is how many of the 49 show each.
 | 9 | 47 | Headers | Headers | Kept. |
 | 10 | 47 | Auth | Auth | Kept: the trade's short form, as Postman's tab. |
 | 11 | 47 | Scripts | Scripts | Kept. |
-| 12 | 47 | Settings | Settings | Kept. |
+| 12 | 47 | Settings | Network | Settings is the app's dialog; this tab is how the request travels: its route, redirects, the certificate check, what the browser does (D5-e, L-20). |
 | 13 | 46 | Send | Send | Kept; its tooltip shows its keys ("Send request ⌘↵"). |
 | 14 | 39 | value | Value | Sentence case. |
 | 15 | 38 | name | Name | Sentence case. |

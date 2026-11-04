@@ -40,6 +40,7 @@ import { WorkspaceBackup } from "../../services/workspace-backup";
 import { HistoryRepository } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
+import { PaneLayout } from "../../services/pane-layout";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Composer } from "../composer/composer";
 import { PastRequests } from "../past-requests/past-requests";
@@ -51,10 +52,10 @@ import { Mark } from "../../shared/icon/mark";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 import type { RunTarget } from "../../state/run-state";
+import type { HolderTarget } from "../../state/tab-state";
 import { VariableFocus } from "../../services/variable-focus";
 import { UiSelect } from "../../ui/select";
 
-import { InheritedSettingsDialog, type InheritedSettingsTarget } from "../collections/inherited-settings-dialog";
 import { AiSettings } from "../../services/ai-settings";
 import { ModelCalls } from "../../services/model-calls";
 import { AiDraft } from "../ai-draft/ai-draft";
@@ -62,7 +63,6 @@ import { Tabs } from "../../state/tabs";
 @Component({
   selector: "app-shell",
   imports: [
-    InheritedSettingsDialog,
     AiDraft,
     UiInput,
     NgTemplateOutlet,
@@ -123,6 +123,7 @@ export class AppShell implements OnInit {
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
+  private readonly paneLayout = inject(PaneLayout);
   readonly bridgeService = inject(BridgeSettings);
   protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
   /** What the app will do with a request of no other route, not what is chosen (U-131): Auto with no paired bridge sends from the page. */
@@ -211,9 +212,6 @@ export class AppShell implements OnInit {
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
-  /** The collection or the folder whose settings are open. */
-  readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
-  /** The environments editor, a dialog: the page holds the request and its response only. */
   /** The Environments tab (D4.5): it replaced the dialog that lost edits and stacked dialogs (U-060, U-085). */
   protected openEnvironmentsTab(): void {
     this.composer().openEnvironments();
@@ -221,8 +219,8 @@ export class AppShell implements OnInit {
   private readonly variableFocus = inject(VariableFocus);
   /**
    * A variable chip or the secrets list asks to see a variable: an environment's, a global or a missing one opens the
-   * Environments tab, which shows it; a secret's opens the secrets, and a collection's or a folder's its settings at
-   * Variables (U-132).
+   * Environments tab, which shows it; a secret's opens the secrets, and a collection's or a folder's its settings tab
+   * at Variables (U-132).
    */
   private readonly openForVariable = effect(() => {
     const token = this.variableFocus.pending();
@@ -231,7 +229,7 @@ export class AppShell implements OnInit {
       const { holder, key } = token;
       untracked(() => {
         this.variableFocus.pending.set(null);
-        this.settingsOf.set({ ...holder, variable: key });
+        this.composer().openHolder(holder, key);
       });
     } else if (source === "environment" || source === "missing" || source === "global")
       untracked(() => this.openEnvironmentsTab());
@@ -296,6 +294,16 @@ export class AppShell implements OnInit {
         id: "toggle-theme",
         label: this.themeService.theme() === "dark" ? "Switch to the light theme" : "Switch to the dark theme",
         run: () => this.themeService.toggle(),
+      },
+      {
+        id: "response-under",
+        label: "Put the response under the request",
+        run: () => this.paneLayout.choose("under"),
+      },
+      {
+        id: "response-beside",
+        label: "Put the response beside the request",
+        run: () => this.paneLayout.choose("beside"),
       },
       {
         id: "toggle-sidebar",
@@ -525,6 +533,14 @@ export class AppShell implements OnInit {
       this.closeNavigation();
     }
     this.composer().focusUrl();
+  }
+
+  /** Settings… of a collection or a folder (D5-e): its tab, over which a drawer would lie. */
+  handleOpenSettings(target: HolderTarget): void {
+    this.composer().openHolder(target);
+    if (this.sidebarOverlay()) {
+      this.closeNavigation();
+    }
   }
 
   handleRun(target: RunTarget): void {

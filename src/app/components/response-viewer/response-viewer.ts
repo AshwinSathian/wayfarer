@@ -1,4 +1,4 @@
-import { buildCurl, copyNote, formatMs, recordRoute, redactExport, type ExchangeRecord } from "@wayfarer/core";
+import { buildCurl, copyNote, formatDuration, recordRoute, redactExport, type ExchangeRecord } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -20,7 +20,6 @@ import { UiInput } from "../../ui/input";
 import { AiSettings } from "../../services/ai-settings";
 import { AiExplain } from "../ai-explain/ai-explain";
 import { AiTests } from "../ai-tests/ai-tests";
-import { statusTone } from "../../shared/status-tone";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
@@ -66,6 +65,8 @@ import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { parseJson, stringifyJson } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
+import { UiSpinner } from "../../ui/spinner";
+import { statusTone } from "../../shared/http/status-tone";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 
@@ -101,6 +102,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
     HtmlPreview,
     UiButton,
     UiSelect,
+    UiSpinner,
     MenuTrigger,
     UiMenu,
   ],
@@ -136,7 +138,7 @@ export class ResponseViewer {
     const since = this.sendingSince();
     if (!this.loading() || since === null) return null;
     const ms = this.now() - since;
-    return ms >= SENDING_SHOWN_AFTER_MS ? `${(ms / 1000).toFixed(1)} s` : null;
+    return ms >= SENDING_SHOWN_AFTER_MS ? formatDuration(ms) : null;
   });
   /** Beside the request (from 768 px) the response fills its pane, and a JSON or XML body the room left in it. */
   readonly fill = input(false);
@@ -168,7 +170,7 @@ export class ResponseViewer {
     ];
     return parts
       .filter(([, ms]) => ms !== undefined)
-      .map(([name, ms]) => `${name} ${ms} ms`)
+      .map(([name, ms]) => `${name} ${formatDuration(ms)}`)
       .join(" · ");
   });
   readonly responseBinary = input<BinaryBody | null>(null);
@@ -308,11 +310,17 @@ export class ResponseViewer {
     return chosen && this.views().includes(chosen) ? chosen : this.views()[0];
   });
   readonly xmlText = computed(() => (this.view() === "xml" ? indentXml(this.bodyText()) : ""));
-  /** A dot path into the JSON body, such as `data.items[*].id`. */
-  readonly jsonFilter = signal("");
+  /**
+   * The field's text, when it is a path into the JSON body (L-14): it starts with `$`, `.` or `[`, or has an index
+   * (`[0]`, `[*]`), as `data.items[*].id` does. Any other text is searched for.
+   */
+  readonly jsonFilter = computed(() => {
+    const text = this.searchQuery().trim();
+    return /^[$.[]|\[(\d+|\*)\]/.test(text) ? text.replace(/^\$/, "") : "";
+  });
   /** What the path finds, formatted; "" when it finds nothing; null when there is no path. */
   readonly filteredJson = computed(() => {
-    const path = this.jsonFilter().trim();
+    const path = this.jsonFilter();
     const parsed = path ? parseJson(this.bodyText()) : null;
     if (!parsed?.ok) {
       return null;
@@ -353,7 +361,6 @@ export class ResponseViewer {
         this.previousResponseError = error;
         this.resetSearchState();
         this.viewOverride.set(null);
-        this.jsonFilter.set("");
       }
 
       if (!isJson) {
@@ -610,7 +617,7 @@ export class ResponseViewer {
     this.searchActiveIndex.set(0);
     const trimmed = value.trim();
     const corpus = this.formattedResponseBody;
-    if (!trimmed || !corpus) {
+    if (!trimmed || !corpus || this.jsonFilter()) {
       this.searchResult.set(null);
       this.searchPending.set(false);
       this.searchToken++;
@@ -690,9 +697,7 @@ export class ResponseViewer {
     return this.getTimingBars().length > 0;
   }
 
-  formatMs(value: number | undefined | null): string {
-    return formatMs(value);
-  }
+  protected readonly formatDuration = formatDuration;
 
   formatBytes(value: number | undefined): string {
     return formatBytes(value);

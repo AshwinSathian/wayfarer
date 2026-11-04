@@ -41,7 +41,7 @@ rivals' versions are those their documentation describes, below.
 |---|---|---|---|---|---|---|---|---|
 | 1 | First request from nothing | 2 | 0 | 1 | 1 | 0.07 | 0.08, 0.07, 0.07 | [task-1.webm](benchmark/task-1.webm) |
 | 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 | 0 | 0 | 1.66 before D5-e | 1.77, 1.63, 1.66 | [task-2.webm](benchmark/task-2.webm) (before D5-e) |
-| 3 | Add an environment and switch to it | 11 | 7 | 1 | 3 | 0.60 | 0.60, 0.56, 0.61 | [task-3.webm](benchmark/task-3.webm) |
+| 3 | Add an environment and switch to it | 8 (D5-e, counted from its steps; was 11) | 4 | 1 | 3 | 0.60 before D5-e | 0.60, 0.56, 0.61 | [task-3.webm](benchmark/task-3.webm) (before D5-e) |
 | 4 | Use a secret without it touching disk | 20 | 13 | 1 | 6 | 1.10 | 1.10, 1.10, 1.07 | [task-4.webm](benchmark/task-4.webm) |
 | 5a | Find why a request failed: CORS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.37 | 0.37, 0.37, 0.37 | [task-5a.webm](benchmark/task-5a.webm) |
 | 5b | Find why a request failed: DNS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.32 | 0.34, 0.32, 0.29 | [task-5b.webm](benchmark/task-5b.webm) |
@@ -60,6 +60,14 @@ What each task ends on, and how it gets there, is
   Trust these scripts, then right-click, Run…, Run: 8. Before, the review
   was reached through a request's Scripts tab (11). The 8 is counted from
   the steps; the seconds are D5.1's until the task is run again.
+- **3.** An environment made while none is in use is the one in use (a
+  first one already was; since D5-e any is), so the toolbar's select is
+  not part of the task: Environments, New environment, the name, Enter,
+  Add variable, the variable's name (the caret is already there, U-145),
+  a click into the value and the value: 8. Before, the script also opened
+  the select and chose the environment already in use (2), and clicked
+  into the name it was already in (1). The 8 is counted from the steps;
+  the seconds are D5.1's until the task is run again.
 - **5a and 5b** end when the cause is named. A direct send says "No
   response" and why the browser cannot say more, with **Send through the
   Local Bridge**. From the failure's record the task copies the command,
@@ -236,7 +244,7 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 |---|---|---|---|---|
 | 1 | First request from nothing | 2 | 2 (Hoppscotch, a target that allows CORS) | Tied, and Wayfarer's count holds for any target the bridge reaches |
 | 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 (Insomnia) | Tied (was behind by 3) |
-| 3 | Add an environment and switch to it | 11 | 5, 2 of them inferred (Insomnia) | Behind by 6 |
+| 3 | Add an environment and switch to it | 8 (D5-e, counted from its steps; was 11) | 5, 2 of them inferred (Insomnia) | Behind by 3 (was 6) |
 | 4 | Use a secret without it touching disk | 20 | None: no free rival keeps a secret off disk | The only one that does it |
 | 5 | Find why a request failed | 8, 8 (+2 in a terminal), 4 | None documented to a named cause | The only one documented to the cause |
 | 6 | Send the same request to a teammate | 2 | 2 (Yaak, Postman) | Tied |

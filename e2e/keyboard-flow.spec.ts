@@ -261,7 +261,7 @@ test("@claim:C-067 focus stays on Send through a send started from the keyboard"
   await send.focus();
   await expect(send, "Send has focus before Enter").toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("button", { name: "Cancel request" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeFocused();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
   await expect(page.getByRole("button", { name: "Send request" })).toBeFocused();
 });

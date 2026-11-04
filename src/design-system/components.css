@@ -376,21 +376,15 @@ pre,
 .brand-mark-tile {
   fill: var(--ink);
 }
-.brand-mark-route {
-  stroke: var(--on-ink);
-}
-.brand-mark-host {
-  fill: var(--on-ink);
+.brand-mark-glyph {
+  color: var(--on-ink);
 }
 @media (forced-colors: active) {
   .brand-mark-tile {
     fill: CanvasText;
   }
-  .brand-mark-route {
-    stroke: Canvas;
-  }
-  .brand-mark-host {
-    fill: Canvas;
+  .brand-mark-glyph {
+    color: Canvas;
   }
 }
 
@@ -537,6 +531,17 @@ pre,
   accent-color: var(--ink);
 }
 
+/* The last response while the next is on its way, after the first second (D5-e): dimmed under the line that says it
+   is sending. At once, with no fade (D3.7), and never the status line or a new response: only what is old. */
+.response-stale > :not(.response-sending) {
+  opacity: 0.45;
+}
+/* The sending line is as tall as the status line it stands in for, whose Export button sets its height: the response
+   under it does not move when the line changes. */
+.response-sending.response-status {
+  min-height: calc(var(--ctl-height-md) + 1rem + 1px);
+}
+
 /* ── The response, filling its pane (S3b) ────────────────── */
 /* From 768 px the response is a column of its pane's height: the status
    bar and the tabs keep theirs, and a JSON or XML body takes the rest. */
@@ -574,6 +579,18 @@ pre,
 .response-fill .response-body-pane app-json-editor {
   flex: 1 1 0;
   min-height: 300px;
+}
+/* The headers take the pane's height and no more (L-15): a long list scrolls inside it, a short one ends at its
+   last row. They stopped at 288 px with the pane free under them. */
+.response-fill .response-headers-pane:not([inert]),
+.response-fill .response-headers-pane > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .response-headers {
+  min-height: 0;
 }
 
 /* ── The response's status line (U-030) ──────────────────── */

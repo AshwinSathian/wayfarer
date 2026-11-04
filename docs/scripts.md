@@ -475,8 +475,8 @@ folder. Nothing is sent until **Run**.
 - **Stop on the first failure** ends the run at a failed test, or at a
   request that got no response. A status such as 500 with no test about it
   is a response.
-- **Cancel run** stops within one request: the one on its way is
-  cancelled, and no other is sent. Nothing but Cancel stops a run whose
+- **Stop run** stops within one request: the one on its way is
+  stopped, and no other is sent. Nothing but Stop run ends a run whose
   scripts send it in a circle.
 - **A run is not history.** Its requests are not written there, and a
   run's tab is not stored: a reload does not bring it back. You may open
@@ -492,8 +492,9 @@ folder's folders come before its requests, as the list shows them.
 
 ## Scripts of a collection and of a folder
 
-A collection and a folder have scripts of their own (right-click, **Settings**,
-**Scripts**). They run for every request in them:
+A collection and a folder have scripts of their own (right-click,
+**Collection settings…** or **Folder settings…**, then **Scripts** in the tab
+that opens). They run for every request in them:
 
 1. the collection's pre-request script,
 2. each folder's, from the outermost folder to the one the request is in,
@@ -542,7 +543,10 @@ you (plan decision D6):
   that reached storage any other way is not in the list and does not run.
 - **Saving does not approve what you have not reviewed.** A script that was
   waiting stays unapproved when you save it, also into another collection.
-  The same holds for a collection's and a folder's settings.
+  The same holds for a collection's and a folder's settings, which are
+  written as you edit them: each write asks whether the scripts stored
+  before it were allowed to run, so editing a script that waits for review
+  never approves it, and editing one that runs keeps it running.
 - **A history entry** carries the scripts of the request as it was sent.
   Opened from history they wait for a review of their own, which lasts
   while that entry is in the composer.

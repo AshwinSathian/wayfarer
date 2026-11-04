@@ -84,7 +84,7 @@ row below.
 | `composer-auth` | The composer's Auth tab, no auth. |
 | `composer-oauth` | The Auth tab's OAuth 2.0 flow, authorization code grant. |
 | `composer-scripts` | The composer's Scripts tab with a post-response script. |
-| `composer-settings` | The request's Settings tab: route, redirects, certificate check. |
+| `composer-settings` | The request's Network tab: route, redirects, certificate check. |
 | `method-menu` | The method list, open. |
 | `graphql-explorer` | A GraphQL body with its schema fetched and the explorer shown. |
 | `websocket` | A WebSocket connected, one message sent and echoed. |
@@ -93,7 +93,7 @@ row below.
 | `save-request` | The dialog that saves a new request into a collection. |
 | `tree` | The collections tree with a collection, a folder and four requests: pinned from 1,200 px, a drawer below. |
 | `tree-menu` | A collection's context menu in the tree. |
-| `collection-settings` | A collection's settings dialog. |
+| `collection-settings` | A collection's settings tab (D5-e). |
 | `new-collection` | The dialog that names a new collection. |
 | `palette` | The command palette, open. |
 | `import-review` | The import report of a collection file, with a warning. |

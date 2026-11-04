@@ -268,7 +268,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await page.goto("/app/");
     await address(page).fill(`${ECHO}/delay/60000`);
     await send(page);
-    await expect(button(page, "Cancel request")).toBeVisible();
+    await expect(button(page, "Stop request")).toBeVisible();
     // Past its first second (D3.7): nothing before it, then what it is doing and for how long. The page's
     // clock is fixed; two seconds on, the pane says so.
     await page.clock.setFixedTime((await page.evaluate(() => Date.now())) + 2000);
@@ -324,7 +324,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "composer-settings": async (page) => {
     await seed(page);
     await openRequest(page, "List pets");
-    await composerTab(page, "Settings");
+    await composerTab(page, "Network");
   },
   "method-menu": async (page) => {
     await page.goto("/app/");
@@ -380,8 +380,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "collection-settings": async (page) => {
     await seed(page);
     await contextMenu(page, "Pet store");
-    await page.getByRole("menuitem", { name: "Settings" }).click();
-    await expect(page.getByRole("dialog", { name: /^Collection settings/ })).toBeVisible();
+    await page.getByRole("menuitem", { name: "Collection settings…" }).click();
+    await expect(page.getByRole("region", { name: "Collection settings: Pet store" })).toBeVisible();
   },
   "new-collection": async (page) => {
     await page.goto("/app/");

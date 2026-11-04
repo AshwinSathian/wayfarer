@@ -25,7 +25,7 @@ export function buildContextItems(
       { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
       { label: "New folder", icon: "folder", command: () => dispatch("new-folder", node) },
       { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
-      { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
+      { label: "Collection settings…", icon: "settings", command: () => dispatch("settings", node) },
       { separator: true },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
@@ -38,7 +38,7 @@ export function buildContextItems(
     return [
       { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
       { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
-      { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
+      { label: "Folder settings…", icon: "settings", command: () => dispatch("settings", node) },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },

@@ -52,18 +52,15 @@ export interface ExchangeRecord {
   failure?: { kind: "network" | "timeout" | "aborted" | "bridge"; reported: string; summary: string };
 }
 
-/** "16.3 ms": a duration as the app writes it. Under 0 is no duration. */
-export function formatMs(value: number | undefined | null): string {
-  if (!value || value <= 0) {
-    return "—";
-  }
-  if (value < 1) {
-    return `${value.toFixed(2)} ms`;
-  }
-  if (value < 100) {
-    return `${value.toFixed(1)} ms`;
-  }
-  return `${Math.round(value)} ms`;
+/**
+ * A duration as the app writes it, wherever it is shown (the status line, the record, Timings, history, a run, the
+ * events): "18 ms" under a second, "1.5 s" from one. Under 0, or none, is "—".
+ */
+export function formatDuration(ms: number | undefined | null): string {
+  if (ms === undefined || ms === null || !(ms >= 0)) return "—";
+  if (ms > 0 && ms < 0.5) return "<1 ms";
+  if (Math.round(ms) < 1000) return `${Math.round(ms)} ms`;
+  return `${(ms / 1000).toFixed(1)} s`;
 }
 
 const ROUTE_WORDS = { direct: "Direct", bridge: "Local Bridge" } as const;
@@ -75,7 +72,7 @@ export function recordRoute(record: ExchangeRecord): string {
 
 /**
  * The record's first line: what the status line and the status region say
- * when a send ends. "200 OK, 16.3 ms, Direct to api.example.com"; with no
+ * when a send ends. "200 OK, 16 ms, Direct to api.example.com"; with no
  * response, the app's first sentence and the route: "The request got no
  * response. Direct to 127.0.0.1:9."
  */
@@ -83,7 +80,7 @@ export function recordHeadline(record: ExchangeRecord): string {
   if (!record.status)
     return `${record.failure?.summary ?? "No response."} ${recordRoute(record)}${record.unpaired ? ", no bridge paired" : ""}.`;
   const parts = [[record.status.code, record.status.text].filter(Boolean).join(" ")];
-  if (record.durationMs > 0) parts.push(formatMs(record.durationMs));
+  if (record.durationMs > 0) parts.push(formatDuration(record.durationMs));
   parts.push(recordRoute(record));
   return parts.join(", ");
 }

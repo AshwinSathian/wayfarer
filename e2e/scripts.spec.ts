@@ -157,9 +157,13 @@ test("P3.9: a pre-request script adds a header that reaches the server, and the 
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
   const timings = page.locator(".script-timings");
-  await expect(timings).toHaveText(/^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/);
-  const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+) ms/g)].map((match) =>
-    Number(match[1]),
+  // A duration is "18 ms" under a second and "1.5 s" from one (formatDuration).
+  const duration = String.raw`(\d+ ms|\d+\.\d s)`;
+  await expect(timings).toHaveText(
+    new RegExp(`^Pre-request script ${duration} · Request ${duration} · Post-response script ${duration}$`),
+  );
+  const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+(?:\.\d)?) (ms|s)\b/g)].map(
+    ([, value, unit]) => Number(value) * (unit === "s" ? 1000 : 1),
   );
   // The script waited 1,500 ms of its own: that time is in its number and not in the request's. With 200 ms, a slow
   // runner's request to the echo server (412 ms, Firefox on CI) outlasted the script's 381 ms (e2e/FLAKES.md).
@@ -190,7 +194,7 @@ test("P3.9: a pre-request script that fails stops the send, and the Tests tab sh
   await expect(failed).toContainText("'notDefined' is not defined");
   await expect(page.locator(".test-result-pass", { hasText: "before the error" })).toBeVisible();
   await expect(page.locator(".script-console")).toContainText("signing");
-  await expect(page.locator(".script-timings")).toHaveText(/^Pre-request script \d+ ms$/);
+  await expect(page.locator(".script-timings")).toHaveText(/^Pre-request script (\d+ ms|\d+\.\d s)$/);
   await expect(page.locator(".test-result-pass", { hasText: "the post-response script ran" })).toHaveCount(0);
   await expect(page.locator(".status-badge")).toHaveCount(0);
   expect(hits).toEqual([]);

@@ -23,8 +23,12 @@ test("the maskable icon's glyph is inside the safe zone, a circle of 40% of the 
   }
   const dot = /<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/.exec(svg).slice(1).map(Number);
   points.push(dot);
-  const reach = Math.max(...points.map(([x, y, r]) => Math.hypot(x - 13, y - 13) + r));
+  // The glyph may be drawn smaller about the centre (translate(13 13) scale(s) translate(-13 -13)).
+  const scale = Number(/scale\(([\d.]+)\)/.exec(svg)?.[1] ?? 1);
+  const reach = scale * Math.max(...points.map(([x, y, r]) => Math.hypot(x - 13, y - 13) + r));
   assert.ok(reach <= 26 * 0.4, `the glyph reaches ${reach.toFixed(2)} of the 10.4 units the zone allows`);
+  // And it keeps the room the first mark had: 7.5 units, 148 of the 205 px the zone allows at 512 px.
+  assert.ok(reach <= 7.5, `the glyph reaches ${reach.toFixed(2)} units from the centre, past 7.5`);
 });
 
 test("the mark is Send's colours: the ink, and the colour on it, in each theme", () => {

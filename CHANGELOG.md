@@ -759,6 +759,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The collections tree fits more requests.** Each row took 40 px, so a
+  laptop screen showed about a quarter fewer requests than other API
+  clients. Rows are now 32 px apart with a mouse or trackpad. On a touch
+  screen they stay 36 px tall, so a finger still has room. The sidebar's
+  header is lighter too: Import and New are plain text buttons instead of
+  two outlined boxes, and "Collections" is set in a heavier weight so the
+  title still leads.
+
 - **The app calls each thing by one name, and its errors say what to do.**
   The vault was "secrets" in some places and "vault" in others: the
   unlock dialog is now "Unlock vault", the phone toolbar's button "Lock

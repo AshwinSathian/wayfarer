@@ -231,9 +231,10 @@ export class TabState {
     this.recordOpen.set(false);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
-    this.responseTab.set("body");
     this.inspection.set(null);
+    // A send set the tab at its press; one chosen while it was on its way is kept.
     if (keepSent) return;
+    this.responseTab.set("body");
     this.responseExportContext.set(null);
     this.streamEvents.set([]);
     this.streamCount.set(0);

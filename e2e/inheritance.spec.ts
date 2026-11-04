@@ -95,7 +95,8 @@ test("a request made in a collection starts with inherit; a collection's setting
   await settings.getByRole("button", { name: "Add variable" }).click();
   await settings.getByPlaceholder("Name", { exact: true }).fill("shopToken");
   await settings.getByPlaceholder("Value", { exact: true }).fill("from-the-collection");
-  // Written as each field is left: no Save.
+  // Written as each field is left: no Save. Tab goes to the row's lock first, which holds the value back (U-135).
+  await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   const storedCollection = async () => ((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0];
   await expect.poll(storedCollection).toMatchObject({
@@ -291,6 +292,8 @@ test("a collection's settings open in one tab, and a variable typed there is sto
   await settings.getByRole("button", { name: "Add variable" }).click();
   await settings.getByPlaceholder("Name", { exact: true }).fill("apiToken");
   await settings.getByPlaceholder("Value", { exact: true }).fill("typed-collection-token");
+  // Tab goes to the row's lock first, which holds the value back (U-135); leaving the lock writes it.
+  await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   const variables = async () =>
     (((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0].variables as Record<string, unknown>[]) ??

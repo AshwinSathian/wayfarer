@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { protectVariable, seedAndOpen, send, closeEnvironments } from "./support/app";
+import { protectVariable, seedAndOpen, send, closeEnvironments, closeHolderSettings } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
@@ -308,12 +308,12 @@ test("the chip for a variable with no value can add it to the request's collecti
   await expect(chip).toBeFocused();
   await chip.click();
   await page.getByRole("menuitem", { name: 'Add nowhere to collection "Tripwire collection"' }).click();
-  const settings = page.getByRole("dialog", { name: /Tripwire collection/ });
+  const settings = page.getByRole("region", { name: "Collection settings: Tripwire collection" });
   await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
-  await expect(settings.getByPlaceholder("name").last()).toHaveValue("nowhere");
-  await settings.getByPlaceholder("value").last().fill("echo");
-  await settings.getByRole("button", { name: /^Save/ }).click();
-  await expect(settings).toBeHidden();
+  await expect(settings.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
+  await settings.getByPlaceholder("Value", { exact: true }).last().fill("echo");
+  // No Save: closing the tab writes what was typed.
+  await closeHolderSettings(page, "Tripwire collection");
   await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
 });
 

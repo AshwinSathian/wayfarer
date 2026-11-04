@@ -160,6 +160,8 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [D1.8's captures](docs/design/hig-review/d18.md): the review's stress states in Chromium, Firefox and WebKit, and the touch targets measured without their parents
 - [Design baseline: the eight tasks](docs/design/baseline.md): what each core task costs in inputs and time on the app before the redesign, and how it is measured
 - [Personas](docs/design/personas.md): five people walked through their first ten minutes and their tenth day, every failed step a finding of the audit
+- [Rival benchmark](docs/design/benchmark.md): the eight tasks measured on Wayfarer, with a recording each, beside the steps each rival's documentation gives
+- [The rivals' documented steps](docs/design/benchmark/rivals.md): the benchmark's appendix, rival by rival, with quotes and sources
 - [Design baseline](docs/design/baseline/index.md): every screen as it looks before the redesign, at four widths in both themes, and how the captures are compared in CI
 - [Information architecture](docs/design/ia.md): where each action of the app lives, and how the palette, the sidebar and the tabs share work
 - [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends

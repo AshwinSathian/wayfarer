@@ -1,7 +1,7 @@
 import { BinaryBody, parseJson, type ExchangeRecord } from "@wayfarer/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { ResponseViewer } from "./response-viewer";
+import { ResponseViewer, type ResponseExportContext } from "./response-viewer";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { JsonWorkerClient } from "../../shared/json-worker/json-worker-client";
 import { describe, it, beforeEach, expect, vi } from "vitest";
@@ -87,6 +87,44 @@ describe("ResponseViewer", () => {
       expect(element().querySelector(".response-sending")?.textContent?.trim()).toMatch(/^Sending… 1\.\d s$/);
       expect(element().querySelector(".response-tabs")).toBeNull();
     });
+  });
+
+  // D5-e (V21): on a phone the status, its reason, the time and the size are one line; where the request went and
+  // Export are the next, at its end. The route and the facts wrapped as one group, and Export took a third line.
+  it("on a phone, keeps the status and the facts on one line, and the route and Export on the next, at its end", () => {
+    const host = fixture.nativeElement as HTMLElement;
+    host.style.display = "block";
+    host.style.width = "360px";
+    const inspection = signal({ duration: 12 } as ResponseInspection);
+    fixture.componentRef.setInput("responseStatusCode", 200);
+    fixture.componentRef.setInput("responseStatusText", "OK");
+    fixture.componentRef.setInput("responseContentLength", 60);
+    fixture.componentRef.setInput("inspection", inspection);
+    fixture.componentRef.setInput("exportContext", {} as ResponseExportContext);
+    fixture.componentRef.setInput("record", {
+      durationMs: 12,
+      route: "direct",
+      host: "api.example.com:4300",
+      secrets: [],
+      masked: { headers: [], responseHeaders: [] },
+      kept: { response: true, body: true },
+    } as ExchangeRecord);
+    fixture.detectChanges();
+    const middle = (selector: string) => {
+      const box = host.querySelector(selector)!.getBoundingClientRect();
+      return box.top + box.height / 2;
+    };
+    const facts = [...host.querySelectorAll(".response-status .response-fact")];
+    expect(facts.map((fact) => fact.textContent?.trim())).toEqual(["12 ms", "60 B"]);
+    for (const fact of facts) {
+      const box = fact.getBoundingClientRect();
+      expect(Math.abs(box.top + box.height / 2 - middle(".status-code"))).toBeLessThan(4);
+    }
+    expect(middle(".record-toggle")).toBeGreaterThan(middle(".status-code") + 8);
+    expect(Math.abs(middle(".record-toggle") - middle('[aria-label="Export response"]'))).toBeLessThan(4);
+    const line = host.querySelector(".response-status")!.getBoundingClientRect();
+    const exportBox = host.querySelector('[aria-label="Export response"]')!.getBoundingClientRect();
+    expect(line.right - exportBox.right).toBeLessThanOrEqual(17);
   });
 
   it("says where a response came from: the page, or the Local Bridge (P6.4)", () => {

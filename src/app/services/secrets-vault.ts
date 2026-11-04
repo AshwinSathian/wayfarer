@@ -81,7 +81,8 @@ export class SecretsVault {
     for (const type of ["keydown", "pointerdown"] as const) {
       window.addEventListener(type, () => this.restartIdleTimer(), { capture: true, passive: true });
     }
-    void this.exists();
+    // Read once, so the shell can say "No vault" before anything asks (U-164); storage may be refusing or reset.
+    this.exists().catch((error: unknown) => this.diagnostics.record(error, "vault: whether one is made was not read"));
   }
 
   /** Whether a passphrase has been chosen. */

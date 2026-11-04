@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **In Safari, the status bar and the backup reminder say Safari's seven
+  days.** Safari deletes a site's data after seven days without a visit
+  unless the app is added to the Dock, and only Settings said so. The
+  status bar now reads "Kept by Safari for 7 days without a visit", and
+  the reminder says how to keep the data.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

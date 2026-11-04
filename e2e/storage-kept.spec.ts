@@ -31,7 +31,9 @@ async function saveARequest(page: Page): Promise<void> {
 
 test("while the browser has not promised to keep the data, the status bar says so and the first save brings the reminder", async ({
   page,
+  browserName,
 }) => {
+  test.skip(browserName === "webkit", "Safari's seven days come first there: the test below");
   await page.setViewportSize({ width: 1440, height: 900 });
   await browserKeeps(page, false);
   await page.clock.install();
@@ -65,11 +67,33 @@ test("while the browser has not promised to keep the data, the status bar says s
 
 test("once the browser has promised to keep the data, the status bar says it is kept and a save brings no reminder", async ({
   page,
+  browserName,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await browserKeeps(page, true);
   await page.goto("/app/");
-  await expect(page.getByRole("contentinfo", { name: "Status" })).toContainText("Kept in this browser");
+  // Safari's seven days hold whatever it promised, while the app is not installed (U-165).
+  await expect(page.getByRole("contentinfo", { name: "Status" })).toContainText(
+    browserName === "webkit" ? "Kept by Safari for 7 days without a visit" : "Kept in this browser",
+  );
   await saveARequest(page);
   await expect(page.getByText(/backed up|Back up to keep a copy/)).toHaveCount(0);
+});
+
+// U-165: Safari deletes a site's data after seven days without a visit unless the app is installed. Only Settings said
+// so; the status bar and the reminder, which an occasional user sees, said only that the browser may delete it.
+test("in Safari, the status bar and the reminder say the seven days, and how to keep the data", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "webkit", "Safari's rule: WebKit is the engine that reports Apple's vendor");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await browserKeeps(page, false);
+  await page.goto("/app/");
+  const status = page.getByRole("contentinfo", { name: "Status" });
+  await expect(status).toContainText("Kept by Safari for 7 days without a visit");
+  await saveARequest(page);
+  await expect(
+    page.getByRole("status").filter({ hasText: /Safari deletes this workspace after seven days without a visit/ }),
+  ).toBeVisible();
 });

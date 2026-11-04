@@ -68,6 +68,10 @@
   --type-site-display-line: 3.6875rem;
   --type-site-display-weight: 700;
   --type-site-display-tracking: -0.02em;
+  --type-site-hero-size: 4.5rem;
+  --type-site-hero-line: 4.5rem;
+  --type-site-hero-weight: 700;
+  --type-site-hero-tracking: -0.03em;
   --type-site-title-1-size: 2.25rem;
   --type-site-title-1-line: 2.5rem;
   --type-site-title-1-weight: 700;
@@ -344,6 +348,13 @@
   line-height: var(--type-site-display-line);
   font-weight: var(--type-site-display-weight);
   letter-spacing: var(--type-site-display-tracking);
+}
+
+@utility type-site-hero {
+  font-size: var(--type-site-hero-size);
+  line-height: var(--type-site-hero-line);
+  font-weight: var(--type-site-hero-weight);
+  letter-spacing: var(--type-site-hero-tracking);
 }
 
 @utility type-site-title-1 {

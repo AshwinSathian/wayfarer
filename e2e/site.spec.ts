@@ -338,6 +338,64 @@ test("with reduced motion the demo shows its answer at once", async ({ page }) =
   await expect(page.locator("[data-demo]").getByText("200 OK")).toBeVisible({ timeout: 1_000 });
 });
 
+// D5-e: the demo shows the same request's key as it was sent and as history keeps it. Two radio buttons and a rule
+// of the stylesheet, so it works without script too.
+for (const javaScriptEnabled of [true, false]) {
+  test(`the demo shows the key as sent and as history keeps it (script ${javaScriptEnabled ? "on" : "off"})`, async ({
+    browser,
+  }) => {
+    const page = await browser.newPage({ javaScriptEnabled });
+    await page.goto("/");
+    const demo = page.locator("[data-demo]");
+    const sent = demo.getByText("Bearer 7c41f0a9d2e86b35");
+    await expect(sent).toBeVisible();
+    await expect(demo.getByText("The key goes in clear, to api.example.com only.")).toBeVisible();
+    await demo.getByRole("group", { name: "Show the request's key" }).getByRole("radio", { name: "Sent" }).focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(demo.getByRole("radio", { name: "Kept in history" })).toBeChecked();
+    await expect(sent).toBeHidden();
+    await expect(demo.getByText("History, exports and copies keep a mask.")).toBeVisible();
+    await demo.getByRole("radio", { name: "Sent" }).click();
+    await expect(sent).toBeVisible();
+    await page.close();
+  });
+}
+
+// D5-e: the header's Open Wayfarer took two lines at 320 and 390 px.
+test("the header's Open Wayfarer is one line at every phone width", async ({ page }) => {
+  for (const width of [320, 360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    const open = page.getByRole("banner").getByRole("link", { name: "Open Wayfarer" });
+    const lines = await open.evaluate((link) => {
+      const range = document.createRange();
+      range.selectNodeContents(link);
+      return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size;
+    });
+    expect(lines, `at ${width} px`).toBe(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  }
+  // Below 1024 px the theme is in the menu.
+  await page.getByRole("banner").getByText("Menu", { exact: true }).click();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Switch between light and dark" })).toBeVisible();
+});
+
+// D5-e: the ledger's IDs broke a character a line beside the statements' column.
+test("each ID of the claims ledger is on one line", async ({ page }) => {
+  await page.goto("/docs/claims/");
+  expect(await page.locator("article table tbody tr").count()).toBeGreaterThan(60);
+  const wrapped = await page.locator("article table tbody tr td:first-child").evaluateAll((cells) =>
+    cells
+      .filter((cell) => {
+        const range = document.createRange();
+        range.selectNodeContents(cell);
+        return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size > 1;
+      })
+      .map((cell) => cell.textContent),
+  );
+  expect(wrapped).toEqual([]);
+});
+
 // W2.4: the changelog and the roadmap are pages, and the ledger says which CI run the deployed files passed.
 test("the changelog and the roadmap are pages, the roadmap as the plan has it", async ({ page }) => {
   await page.goto("/changelog/");

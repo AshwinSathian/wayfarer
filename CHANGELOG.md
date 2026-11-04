@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The claims ledger's IDs stay on one line.** Beside the long
+  statements, the ID column broke "C-041" one character a line. The
+  page's last CI result, with the number of claims, now comes first,
+  under the title, instead of after the paragraphs on how the ledger
+  works.
+
 - **Importing a collection again says what it changes, and can be
   undone.** Every item of a Wayfarer collection file was marked
   "Replaces", whether it was stored or not and whether it differed. Each
@@ -701,6 +707,31 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Before, it moved only by dragging or with the arrow keys.
 
 ### Changed
+
+- **The website's front page says what Wayfarer is, and how it compares.**
+  The headline is now "The API client that opens in a tab"; before, it
+  was a promise ("Your requests go to your API") with nothing to say what
+  the product was, and that line now heads the demo. A new table, "What
+  the others ask of you first", sets Wayfarer beside Postman, Bruno, Yaak,
+  Insomnia and Hoppscotch on five questions (an install, an account, a
+  secret only your passphrase opens, why a request failed, a shared team
+  workspace), with each rival's answer linked to its own documentation and
+  dated. Its last row says plainly that Wayfarer has no shared workspace
+  yet. The page now covers AI, the reasons a request failed and the
+  Postman move in blocks of their own, each naming the claims that back
+  it, and the demo gains a Sent / Kept in history switch that shows the
+  same key in clear as it went out and masked as history keeps it; it
+  works without script. The second button goes to "Moving from Postman"
+  instead of the docs index. The picture of the app follows the page's
+  theme, and on a phone it is the app's phone layout instead of the whole
+  window shrunk past reading. The dotted grid, the resting shadows and the
+  rules between sections are gone. Lighthouse (mobile, median of three):
+  performance 100, accessibility 100, SEO 100.
+
+- **The site's header fits a phone.** "Open Wayfarer" took two lines at
+  320 and 390 px. The theme switch now sits in the menu below 1,024 px,
+  the name is the mark alone below 384 px, and the blog and the roadmap
+  links moved to the footer.
 
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of

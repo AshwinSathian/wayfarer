@@ -6,7 +6,9 @@ const RUNS = "https://github.com/AshwinSathian/wayfarer/actions/runs/";
 const table = document.querySelector("article table");
 const note = document.createElement("p");
 note.className = "ci-note";
-table?.before(note);
+// The result leads the page (D5-e), under its title, before the paragraphs on how the ledger works.
+document.querySelector("article h1")?.after(note);
+const count = table ? `${table.querySelectorAll("tbody tr").length} claims. ` : "";
 
 const link = (text, href) => Object.assign(document.createElement("a"), { textContent: text, href });
 
@@ -32,10 +34,12 @@ fetch("/ci-run.json", { cache: "no-store" })
     const run = runOf(data);
     if (!run) {
       note.textContent =
+        count +
         "This copy of the site was not deployed from a CI run, so it shows no test results. Each claim's tests are named in its row.";
       return;
     }
     note.append(
+      count,
       "This site was deployed from commit ",
       Object.assign(document.createElement("code"), { textContent: run.commit.slice(0, 12) }),
       ", which passed ",

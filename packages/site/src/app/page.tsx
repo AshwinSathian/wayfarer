@@ -1,20 +1,20 @@
-// The landing (W2.1, rebuilt in PLAN-design 1.8). Each sentence that says what Wayfarer does names the claim that
-// proves it (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger. A fact about another product
-// names its source and the date it was read.
+// The landing (W2.1, rebuilt in PLAN-design 1.8 and D5-e). Each sentence that says what Wayfarer does names the claim
+// that proves it (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger. A fact about another
+// product names its source and the date it was read.
 import { SITE, pageMeta } from "../lib/meta";
 import { version } from "../../../../package.json";
 import type { ReactNode } from "react";
+import { AskFirst } from "../components/AskFirst";
 import { Claims } from "../components/Claims";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { RouteDemo } from "../components/RouteDemo";
 import { claims } from "../lib/content";
 
-export const metadata = pageMeta(
-  "/",
-  "Wayfarer: an API client in your browser",
-  "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own.",
-);
+const DESCRIPTION =
+  "Import Postman collections, run their scripts and keep API keys encrypted, in your browser. No install, no account, no server between you and your API. Free and MIT-licensed.";
+
+export const metadata = pageMeta("/", "Wayfarer: the API client that opens in a tab", DESCRIPTION);
 
 /**
  * What search engines read about the app (W3.1): schema.org's SoftwareApplication, as data in the page, which the
@@ -24,8 +24,7 @@ const SOFTWARE = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Wayfarer",
-  description:
-    "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own.",
+  description: DESCRIPTION,
   url: `${SITE}/app/`,
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Any, in a web browser",
@@ -39,22 +38,26 @@ const POSTMAN_PRICING = "https://www.postman.com/pricing/";
 const YAAK_POST = "https://yaak.app/blog/postman-free-plan-one-user";
 /** The ledger's rows shown as evidence: the ones a reader of this page asks about first. */
 const EVIDENCE = ["C-001", "C-003", "C-007", "C-011", "C-052"];
+const LINK = "text-action underline underline-offset-4";
 
+/** A block of the page on its own field: the fields alternate, and space, not a rule, sets them apart. */
 function Section({
   id,
   title,
   intro,
+  sunk = false,
   children,
 }: {
   id: string;
   title: string;
   intro?: ReactNode;
+  sunk?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id} className="border-t border-line">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-        <h2 id={id} className="max-w-3xl type-site-title-1 font-bold text-ink sm:type-site-title-1">
+    <section aria-labelledby={id} className={sunk ? "bg-paper-sunk" : undefined}>
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <h2 id={id} className="max-w-3xl type-site-title-1 font-bold text-ink">
           {title}
         </h2>
         {intro && <div className="mt-5 max-w-2xl type-site-lede text-ink-muted">{intro}</div>}
@@ -64,16 +67,36 @@ function Section({
   );
 }
 
-/** One thing Wayfarer does: what it is, beside a piece of the app that shows it. */
-function Feature({ title, children, figure }: { title: string; children: ReactNode; figure: ReactNode }) {
+/** One thing Wayfarer does: what it is, beside a piece of the app that shows it. `flip` puts the piece first. */
+function Feature({
+  id,
+  title,
+  children,
+  figure,
+  sunk = false,
+  flip = false,
+}: {
+  id: string;
+  title: string;
+  children: ReactNode;
+  figure: ReactNode;
+  sunk?: boolean;
+  flip?: boolean;
+}) {
   return (
-    <div className="grid grid-cols-1 items-start gap-8 border-t border-line py-12 first:border-t-0 first:pt-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-      <div>
-        <h3 className="type-site-title-2 font-semibold text-ink">{title}</h3>
-        <div className="mt-3 space-y-3 text-ink-muted">{children}</div>
+    <section aria-labelledby={id} className={sunk ? "bg-paper-sunk" : undefined}>
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-10 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-2 lg:gap-16">
+        <div className={flip ? "lg:order-2" : undefined}>
+          <h2 id={id} className="type-site-title-1 font-bold text-ink">
+            {title}
+          </h2>
+          <div className="mt-5 space-y-4 type-site-lede text-ink-muted [&_a]:underline [&_a]:underline-offset-4">
+            {children}
+          </div>
+        </div>
+        <div className="min-w-0">{figure}</div>
       </div>
-      <div className="min-w-0">{figure}</div>
-    </div>
+    </section>
   );
 }
 
@@ -108,10 +131,27 @@ const QUESTIONS: [string, ReactNode][] = [
     </>,
   ],
   [
+    "Is it safe to put API keys into a website?",
+    <>
+      The page runs no script it did not ship: its policy forbids <code>eval</code> and inline script, and only its own
+      script addresses pass. <Claims ids={["C-011", "C-016", "C-012"]} /> A key in the vault is stored only as
+      ciphertext, under a key held in memory. <Claims ids={["C-003", "C-005"]} /> The{" "}
+      <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not.
+    </>,
+  ],
+  [
     "Where are my collections kept?",
     <>
       In your browser&apos;s IndexedDB, on the device you use. <Claims ids={["C-002"]} /> Export a collection or back up
       the whole workspace whenever you want; a backup is one file.
+    </>,
+  ],
+  [
+    "What if my browser clears its storage?",
+    <>
+      Your work is in this browser&apos;s IndexedDB, which a browser may clear. <Claims ids={["C-002"]} /> Back up the
+      whole workspace to one file whenever you want; the vault&apos;s secrets stay encrypted inside it.{" "}
+      <Claims ids={["C-046"]} />
     </>,
   ],
   [
@@ -140,245 +180,311 @@ const QUESTIONS: [string, ReactNode][] = [
   ],
 ];
 
+/** The app as built (scripts/site-screenshot.mjs), in the page's theme: the window, or on a phone the phone's layout. */
+function Shot({ theme }: { theme: "light" | "dark" }) {
+  const name = theme === "light" ? "/app-light" : "/app";
+  return (
+    <picture className={`shot-${theme}`}>
+      <source media="(max-width: 47.99em)" srcSet={`${name}-phone.jpg`} width={780} height={1520} />
+      <img
+        className="mt-12 h-auto w-full rounded-lg border border-line-strong md:max-w-none max-md:mx-auto max-md:max-w-xs"
+        src={`${name}.jpg`}
+        srcSet={`${name}-720.jpg 720w, ${name}.jpg 1440w`}
+        sizes="(max-width: 1200px) 100vw, 1152px"
+        width={1440}
+        height={900}
+        loading="lazy"
+        alt="Wayfarer with a GET request to api.example.com/v1/users/42 and its JSON response, status 200"
+      />
+    </picture>
+  );
+}
+
 export default function Home() {
   const ledger = claims();
   const evidence = EVIDENCE.map((id) => ledger.find((claim) => claim.id === id)).filter((claim) => claim !== undefined);
   return (
     <>
       <Header />
-      {/* Data, not script: "<" is written as \u003c so no text can end the element. */}
+      {/* Data, not script: "<" is written as < so no text can end the element. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE).replace(/</g, "\\u003c") }}
       />
       <main>
-        <section aria-labelledby="hero" className="contours">
-          <div className="mx-auto grid grid-cols-1 max-w-6xl items-start gap-14 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
-            <div className="lg:pt-6">
-              <h1 id="hero" className="type-site-title-1 font-bold text-ink sm:type-site-display lg:type-site-display">
-                Your requests go to your API. Nowhere else.
-              </h1>
-              <p className="mt-6 max-w-xl type-site-lede text-ink-muted sm:type-site-lede">
-                Wayfarer is an API client that runs in a browser tab, with nothing to install and no account to make. It
-                has no server of its own: a request goes from your tab to the host you name. <Claims ids={["C-001"]} />
-              </p>
-              <div className="mt-9 flex flex-wrap items-center gap-3">
-                <a
-                  href="/app/"
-                  className="rounded-sm bg-action px-6 py-3.5 type-site-lede font-bold text-on-action hover:opacity-90"
-                >
-                  Open Wayfarer
-                </a>
-                <a
-                  href="/docs/"
-                  className="rounded-sm border border-line-strong bg-paper px-6 py-3.5 type-site-lede font-bold text-ink hover:border-action"
-                >
-                  Read the docs
-                </a>
+        <section aria-labelledby="hero">
+          <div className="mx-auto max-w-6xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 lg:pb-28">
+            <h1
+              id="hero"
+              className="max-w-[12em] type-site-title-1 font-bold text-balance text-ink sm:type-site-display lg:type-site-hero"
+            >
+              The API client that opens in a tab
+            </h1>
+            <div className="mt-8 grid grid-cols-1 items-start gap-14 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
+              <div>
+                <p className="max-w-xl type-site-lede text-ink">
+                  Import a Postman collection, run its scripts and keep your API keys encrypted, all in your browser.
+                  Nothing to install, no account, and no server of ours between you and your API.{" "}
+                  <Claims ids={["C-058", "C-040", "C-003", "C-001"]} />
+                </p>
+                <div className="mt-9 flex flex-wrap items-center gap-3">
+                  <a
+                    href="/app/"
+                    className="rounded-sm bg-action px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-on-action hover:opacity-90"
+                  >
+                    Open Wayfarer
+                  </a>
+                  <a
+                    href="/compare/moving-from-postman/"
+                    className="rounded-sm border border-line-strong bg-paper px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-ink hover:border-action"
+                  >
+                    Moving from Postman
+                  </a>
+                </div>
+                <p className="mt-5 type-site-small text-ink-muted">Free and MIT-licensed. It opens in this tab.</p>
+                <p className="mt-8 max-w-xl type-site-small text-ink-muted">
+                  <a className={LINK} href="/docs/claims/">
+                    {ledger.length} claims
+                  </a>{" "}
+                  on this site, each with the test that proves it. The site goes live only from a commit that passed
+                  them, with the browser tests run in Chromium, Firefox and WebKit.
+                </p>
               </div>
-              <p className="mt-5 type-site-small text-ink-muted">
-                Free and open source, MIT licence. Tested in Chromium, Firefox and WebKit.
-              </p>
+              <RouteDemo />
             </div>
-            <RouteDemo />
-          </div>
-        </section>
-
-        <section aria-labelledby="app" className="border-t border-line bg-paper-sunk">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <h2 id="app" className="max-w-3xl type-site-title-1 font-bold text-ink sm:type-site-title-1">
-              The rest of the app is in the same tab.
-            </h2>
-            <p className="mt-5 max-w-2xl type-site-lede text-ink-muted">
-              Collections, environments, history, the vault and scripts, kept in your browser.{" "}
-              <Claims ids={["C-002"]} />
-            </p>
-            <img
-              className="mt-12 w-full rounded-lg border border-line-strong shadow-[var(--shadow-overlay)]"
-              src="/app.jpg"
-              srcSet="/app-720.jpg 720w, /app.jpg 1440w"
-              sizes="(max-width: 1200px) 100vw, 1152px"
-              width={1440}
-              height={900}
-              loading="lazy"
-              alt="Wayfarer with a GET request to api.example.com/v1/users/42 and its JSON response, status 200"
-            />
           </div>
         </section>
 
         <Section
-          id="postman"
-          title="Postman's free plan is one person now."
+          id="ask-first"
+          sunk
+          title="What the others ask of you first"
           intro={
             <p>
-              Postman Free has one user, and a team needs the Team plan, at $19 a user a month billed yearly (
-              <a className="text-action underline underline-offset-4" href={POSTMAN_PRICING}>
-                Postman&apos;s pricing
-              </a>
-              , read on 19 October 2026). The limit started in March 2026 (
-              <a className="text-action underline underline-offset-4" href={YAAK_POST}>
-                Yaak&apos;s write-up
-              </a>
-              ). Wayfarer has no plans, because it has no accounts and no server to keep your work on.
+              From each one&apos;s own documentation, read on the date in its cell. Wayfarer&apos;s answers name their
+              tests. The last row is where Wayfarer is behind.
             </p>
           }
         >
-          <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {[
-              [
-                "Bring a Postman collection",
-                <>
-                  Collections v2.0 and v2.1, environments and globals import, with a report of anything that could not
-                  be kept. <Claims ids={["C-058"]} />
-                </>,
-              ],
-              [
-                "Keep its scripts",
-                <>
-                  Scripts run with the parts of Postman&apos;s <code>pm</code> API the compatibility document lists,
-                  each part a test. <Claims ids={["C-040"]} />
-                </>,
-              ],
-              [
-                "Run it the same way in CI",
-                <>
-                  The command line runs a collection with the app&apos;s engine, to the same results.{" "}
-                  <Claims ids={["C-065"]} />
-                </>,
-              ],
-            ].map(([title, text]) => (
-              <div key={String(title)} className="rounded-lg border border-line bg-paper-raised p-6">
-                <h3 className="type-site-lede font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-ink-muted">{text}</p>
-              </div>
-            ))}
-          </div>
+          <AskFirst />
+          <p className="mt-10">
+            <a href="/compare/" className={`font-bold ${LINK}`}>
+              See every comparison
+            </a>
+          </p>
         </Section>
 
-        <Section id="features" title="What else it does">
-          <div className="mt-10">
-            <Feature
-              title="Secrets are encrypted before they are stored"
-              figure={
-                <Panel title="Environment: Production">
-                  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-3 font-code type-site-caption">
-                    <span className="text-ink-muted">base_url</span>
-                    <span className="truncate text-ink">https://api.example.com</span>
-                    <span className="text-ink-muted">API_TOKEN</span>
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-xs border border-ok/50 px-1.5 font-text type-site-caption font-bold text-ok">
-                        Secret stored
-                      </span>
-                      <span className="truncate text-ink-muted">{"{{$secret.…}}"}</span>
-                    </span>
-                  </div>
-                  <p className="mt-4 border-t border-line pt-3 text-ink-muted">
-                    PBKDF2-SHA-256 at 600,000 iterations wraps an AES-GCM-256 key. <Claims ids={["C-004"]} />
-                  </p>
-                </Panel>
-              }
-            >
-              <p>
-                A value in the vault is stored only as ciphertext, under a key held in memory and gone when you reload.{" "}
-                <Claims ids={["C-003", "C-005"]} />
-              </p>
-              <p>
-                It is sent as its plaintext only to the request that names it, and nothing the app stores, exports or
-                copies holds it. <Claims ids={["C-007"]} />
-              </p>
-            </Feature>
+        <Feature
+          id="postman"
+          title="Bring your Postman collection, scripts and all"
+          figure={
+            <ol className="space-y-8 lg:pt-2">
+              {[
+                [
+                  "Import it.",
+                  <>
+                    Collections v2.0 and v2.1, environments and globals. You see what the file adds, and what could not
+                    be kept, before anything is stored. <Claims ids={["C-058", "C-054"]} />
+                  </>,
+                ],
+                [
+                  "Read its scripts.",
+                  <>
+                    They stay held until you have read them and said you trust them. Then they run with the parts of{" "}
+                    <code>pm</code> the <a href="/docs/postman-compatibility/">compatibility page</a> lists.{" "}
+                    <Claims ids={["C-051", "C-040"]} />
+                  </>,
+                ],
+                [
+                  "Run it.",
+                  <>
+                    Here, or in CI with <code>wayfarer-cli</code>, to the same results. <Claims ids={["C-065"]} />
+                  </>,
+                ],
+              ].map(([title, text]) => (
+                <li key={String(title)}>
+                  <h3 className="type-site-title-2 font-bold text-ink">{title}</h3>
+                  <p className="mt-2 text-ink-muted [&_a]:underline [&_a]:underline-offset-4">{text}</p>
+                </li>
+              ))}
+            </ol>
+          }
+        >
+          <p>
+            Postman Free has been one user since March 2026 (
+            <a className={LINK} href={YAAK_POST}>
+              Yaak&apos;s write-up
+            </a>
+            ), and its Team plan is $19 a user a month, billed yearly (
+            <a className={LINK} href={POSTMAN_PRICING}>
+              Postman&apos;s pricing
+            </a>
+            , read on 19 October 2026). Wayfarer has no plans and no seats.
+          </p>
+          <p>
+            Insomnia exports, OpenAPI and Swagger, HAR files and pasted cURL commands import too.{" "}
+            <Claims ids={["C-059", "C-060", "C-056"]} />
+          </p>
+          <p>
+            <a className={`font-bold ${LINK}`} href="/compare/moving-from-postman/">
+              Moving from Postman, step by step
+            </a>
+          </p>
+        </Feature>
 
-            <Feature
-              title="Bring what you already have"
-              figure={
-                <Panel title="Import reads">
-                  <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {[
-                      "Postman collections, v2.0 and v2.1",
-                      "Postman environments and globals",
-                      "Insomnia exports, formats 4 and 5",
-                      "OpenAPI 3.0 and 3.1, Swagger 2.0",
-                      "HAR 1.2 files",
-                      "cURL commands, pasted",
-                    ].map((format) => (
-                      <li key={format} className="rounded-sm border border-line px-3 py-2 text-ink">
-                        {format}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
-              }
-            >
-              <p>
-                An import shows what the file will add, and what of it could not be kept, before anything is stored.{" "}
-                <Claims ids={["C-054", "C-056", "C-059", "C-060"]} />
+        <Feature
+          id="secrets"
+          sunk
+          flip
+          title="API keys that are never stored in clear"
+          figure={
+            <Panel title="Environment: Production">
+              <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-3 font-code type-site-caption">
+                <span className="text-ink-muted">base_url</span>
+                <span className="truncate text-ink">https://api.example.com</span>
+                <span className="text-ink-muted">API_TOKEN</span>
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-xs border border-ok/50 px-1.5 font-text type-site-caption font-bold text-ok">
+                    Secret stored
+                  </span>
+                  <span className="truncate text-ink-muted">{"{{$secret.…}}"}</span>
+                </span>
+                <span className="text-ink-muted">History keeps</span>
+                <span className="text-ink">Authorization: ***</span>
+              </div>
+              <p className="mt-4 border-t border-line pt-3 text-ink-muted">
+                PBKDF2-SHA-256 at 600,000 iterations wraps an AES-GCM-256 key. <Claims ids={["C-004"]} />
               </p>
-              <p>
-                The scripts of a file do not run until you have read them and said you trust them.{" "}
-                <Claims ids={["C-051"]} />
-              </p>
-            </Feature>
+            </Panel>
+          }
+        >
+          <p>
+            Put a key in the vault and only its ciphertext is stored, under a key that lives in memory and is gone when
+            you reload. <Claims ids={["C-003", "C-005"]} />
+          </p>
+          <p>
+            It goes out in clear only to the request that names it. History, exports and copies get a mask.{" "}
+            <Claims ids={["C-007", "C-008", "C-014"]} />
+          </p>
+        </Feature>
 
-            <Feature
-              title="It says what the browser will do, before you send"
-              figure={
-                <Panel title="PUT api.example.com/v1/users/42: what the browser does">
-                  <div className="space-y-3 text-ink-muted">
-                    <p>
-                      The browser will not send <code className="text-ink">Cookie</code>: a page is not allowed to set
-                      this header.
-                    </p>
-                    <p>
-                      The browser asks the server first, with an <code className="text-ink">OPTIONS</code> request,
-                      because of the method PUT, the header Authorization. The request is sent only if the server&apos;s
-                      answer allows it.
-                    </p>
-                  </div>
-                </Panel>
-              }
-            >
-              <p>
-                The composer names the headers a browser will not send and why it will ask the server first.{" "}
-                <Claims ids={["C-049"]} />
-              </p>
-              <p>
-                For a request a page cannot make, the Local Bridge sends it from your machine, for an allowed origin
-                that holds its token. <Claims ids={["C-041", "C-064"]} />
-              </p>
-            </Feature>
+        <Feature
+          id="failure"
+          title="When a request fails, it says why"
+          figure={
+            <Panel title="PUT api.example.com/v1/users/42: what the browser does">
+              <div className="space-y-3 text-ink-muted">
+                <p>
+                  The browser will not send <code className="text-ink">Cookie</code>: a page is not allowed to set this
+                  header.
+                </p>
+                <p>
+                  The browser asks the server first, with an <code className="text-ink">OPTIONS</code> request, because
+                  of the method PUT, the header Authorization. The request is sent only if the server&apos;s answer
+                  allows it.
+                </p>
+              </div>
+            </Panel>
+          }
+        >
+          <p>
+            Before you send, the composer names the headers a browser will not send and whether it will ask the server
+            first. <Claims ids={["C-049"]} />
+          </p>
+          <p>
+            A network failure shows the real error, never a 504 made up by the service worker.{" "}
+            <Claims ids={["C-010"]} />
+          </p>
+          <p>
+            When the page cannot reach a server, the Local Bridge sends the request from your machine, for an origin
+            that holds its token. <Claims ids={["C-041", "C-064"]} />
+          </p>
+        </Feature>
 
-            <Feature
-              title="The same run in CI"
-              figure={
-                <Terminal label="A collection run in a terminal">
-                  <span className="text-code-muted">$ </span>npx wayfarer-cli run users.postman.json --allow-scripts
-                  {"\n"}
-                  <span className="text-code-string">✓</span> Get a user: 200 OK, 17 ms{"\n"}
-                  {"    "}
-                  <span className="text-code-string">✓</span> status is 200{"\n"}
-                  <span className="text-code-string">✓</span> Create a user: 201 Created, 2 ms{"\n"}
-                  {"    "}
-                  <span className="text-code-string">✓</span> created{"\n"}
-                  <span className="text-code-string">✓</span> Delete a user: 204 No Content, 2 ms{"\n"}
-                  {"    "}
-                  <span className="text-code-string">✓</span> no content{"\n\n"}3 results in 1 iteration; 0 failed; 3 of
-                  3 tests passed.
-                </Terminal>
-              }
-            >
-              <p>
-                <code>wayfarer-cli</code> runs a collection with the app&apos;s engine: the same requests in the same
-                order, statuses, tests and errors. <Claims ids={["C-065"]} />
+        <Feature
+          id="ai"
+          sunk
+          flip
+          title="AI that asks before it sends"
+          figure={
+            <Panel title="Write tests: what is sent">
+              <p className="text-ink-muted">
+                Sends to <code className="text-ink">http://localhost:11434/v1</code>. No key is sent.
               </p>
-              <p>
-                It writes JSON and JUnit reports for the CI to keep. See{" "}
-                <a className="text-action underline underline-offset-4" href="/docs/cli/">
-                  the command line
-                </a>
-                .
-              </p>
-            </Feature>
-          </div>
+              <pre className="mt-3 overflow-x-auto rounded-sm bg-code-bg p-3 font-code type-site-caption whitespace-pre-wrap text-code-ink">
+                {
+                  "GET https://api.example.com/v1/users/42\nAuthorization: ***\n\n200 OK, application/json\n(response body: not ticked, not sent)"
+                }
+              </pre>
+              <div className="mt-3 flex justify-end gap-2" aria-hidden="true">
+                <span className="rounded-sm px-3 py-1.5 font-bold text-ink">Cancel</span>
+                <span className="rounded-sm bg-action px-3 py-1.5 font-bold text-on-action">Send to model</span>
+              </div>
+            </Panel>
+          }
+        >
+          <p>
+            AI is off until you add a provider: until then there is no AI button and no request to a model.{" "}
+            <Claims ids={["C-069"]} />
+          </p>
+          <p>
+            Then it can write tests for a response, draft a request from a description or explain a failed response.
+            Before each call you see every byte it will send, with secrets and credentials masked, and a response body
+            goes only when you tick it. <Claims ids={["C-071", "C-070", "C-072"]} />
+          </p>
+          <p>
+            Nothing it proposes changes your request until you accept it, and Undo puts it back.{" "}
+            <Claims ids={["C-073"]} /> <a href="/docs/ai/">How AI works in Wayfarer</a>
+          </p>
+        </Feature>
+
+        <Feature
+          id="ci"
+          title="The same run in CI"
+          figure={
+            <Terminal label="A collection run in a terminal">
+              <span className="text-code-muted">$ </span>npx wayfarer-cli run users.postman.json --allow-scripts
+              {"\n"}
+              <span className="text-code-string">✓</span> Get a user: 200 OK, 17 ms{"\n"}
+              {"    "}
+              <span className="text-code-string">✓</span> status is 200{"\n"}
+              <span className="text-code-string">✓</span> Create a user: 201 Created, 2 ms{"\n"}
+              {"    "}
+              <span className="text-code-string">✓</span> created{"\n"}
+              <span className="text-code-string">✓</span> Delete a user: 204 No Content, 2 ms{"\n"}
+              {"    "}
+              <span className="text-code-string">✓</span> no content{"\n\n"}3 results in 1 iteration; 0 failed; 3 of 3
+              tests passed.
+            </Terminal>
+          }
+        >
+          <p>
+            <code>wayfarer-cli</code> runs a collection with the app&apos;s engine: the same requests in the same order,
+            statuses, tests and errors. <Claims ids={["C-065"]} />
+          </p>
+          <p>
+            It runs a file&apos;s scripts only when you pass <code>--allow-scripts</code>. <Claims ids={["C-066"]} /> It
+            writes JSON and JUnit reports for the CI to keep. See{" "}
+            <a className={LINK} href="/docs/cli/">
+              the command line
+            </a>
+            .
+          </p>
+        </Feature>
+
+        <Section
+          id="app"
+          sunk
+          title="The rest of the app is in the same tab."
+          intro={
+            <p>
+              Collections, environments, history, the vault and scripts, kept in your browser.{" "}
+              <Claims ids={["C-002"]} />
+            </p>
+          }
+        >
+          <Shot theme="dark" />
+          <Shot theme="light" />
         </Section>
 
         <Section
@@ -386,9 +492,9 @@ export default function Home() {
           title="Each claim on this page names its test."
           intro={
             <p>
-              The small IDs above are rows of the claims ledger, and each row names the automated test that proves it.
-              CI runs those tests on every change, and a claim without a test fails the build. The ledger has{" "}
-              {ledger.length} claims; here are five.
+              The small IDs on this page are rows of the claims ledger. Each row names the automated test that proves
+              it, a claim with no test fails the build, and the site goes live only from a commit that passed them. Here
+              are five of the {ledger.length}.
             </p>
           }
         >
@@ -409,7 +515,9 @@ export default function Home() {
                 {evidence.map((claim) => (
                   <tr key={claim.id} className="border-t border-line align-top">
                     <td className="px-4 py-4 text-ink">
-                      <span className="mr-2 font-code type-site-caption font-bold text-action">{claim.id}</span>
+                      <span className="mr-2 font-code type-site-caption font-bold whitespace-nowrap text-action">
+                        {claim.id}
+                      </span>
                       {claim.text}
                       <span className="mt-2 block font-code type-site-caption break-all text-ink-muted md:hidden">
                         {claim.tests.join(", ")}
@@ -424,13 +532,13 @@ export default function Home() {
             </table>
           </div>
           <p className="mt-6">
-            <a href="/docs/claims/" className="font-bold text-action underline underline-offset-4">
+            <a href="/docs/claims/" className={`font-bold ${LINK}`}>
               Read all {ledger.length} claims, with the CI run this site passed
             </a>
           </p>
         </Section>
 
-        <Section id="questions" title="Questions">
+        <Section id="questions" sunk title="Questions">
           <div className="mt-8 max-w-3xl divide-y divide-line border-y border-line">
             {QUESTIONS.map(([question, answer]) => (
               <details key={question} className="group py-5">
@@ -454,7 +562,7 @@ export default function Home() {
         <section aria-labelledby="start" className="bg-action text-on-action">
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-16 sm:px-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 id="start" className="type-site-title-1 font-bold sm:type-site-title-1">
+              <h2 id="start" className="type-site-title-1 font-bold">
                 Send your first request.
               </h2>
               <p className="mt-2 type-site-lede opacity-90">

@@ -22,12 +22,19 @@ const OUT = "packages/site/public/app";
 
 const browser = await chromium.launch();
 try {
-  for (const [width, height, suffix] of [
-    [1440, 900, ""],
-    [720, 450, "-720"],
-  ]) {
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: width / 1440 });
-    await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "dark"));
+  // The window at 1440 and at half that, and the app as a phone draws it, for the landing on a phone (D5-e): the
+  // whole window squeezed to 358 px could not be read. Each in both themes: the landing shows the page's.
+  const shots = [
+    [{ width: 1440, height: 900 }, 1, ""],
+    [{ width: 1440, height: 900 }, 0.5, "-720"],
+    [{ width: 390, height: 760 }, 2, "-phone"],
+  ].flatMap(([viewport, scale, suffix]) => [
+    [viewport, scale, suffix, "dark"],
+    [viewport, scale, `-light${suffix}`, "light"],
+  ]);
+  for (const [viewport, scale, suffix, theme] of shots) {
+    const page = await browser.newPage({ viewport, deviceScaleFactor: scale });
+    await page.addInitScript((theme) => localStorage.setItem("wayfarer:theme", theme), theme);
     await page.route(ADDRESS, (route) =>
       route.fulfill({
         status: 200,
@@ -43,7 +50,7 @@ try {
     // The response fades in (C-050).
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${OUT}${suffix}.jpg`, type: "jpeg", quality: 80 });
-    console.log(`site-screenshot: ${OUT}${suffix}.jpg (${width}x${height})`);
+    console.log(`site-screenshot: ${OUT}${suffix}.jpg (${viewport.width * scale}x${viewport.height * scale})`);
     await page.close();
   }
 } finally {

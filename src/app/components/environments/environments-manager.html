@@ -170,7 +170,7 @@
     <div class="mt-5">
       <div ngTabs class="tabs">
         <div uiTabList [selectedTab]="editorTab()" (selectedTabChange)="editorTab.set($event)">
-          <button ngTab type="button" value="pairs">Key / Value</button>
+          <button ngTab type="button" value="pairs">Name / Value</button>
           <button ngTab type="button" value="json">JSON</button>
         </div>
         <div class="tab-panes">
@@ -350,7 +350,8 @@
       "
     />
     <p class="type-callout text-label-tertiary max-w-[220px] text-center"
-      >Choose an environment to edit its variables.</p
+      >{{ environments().length ? "Choose an environment to edit its variables." : "Make an environment with New
+      environment, and its variables are edited here." }}</p
     >
   </div>
   }

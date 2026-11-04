@@ -391,12 +391,10 @@
           <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               @let inspectionData = inspectionValue; @if (!inspectionData) {
-              <div
-                class="flex items-center gap-2.5 rounded-lg bg-canvas-panel border border-dashed border-separator p-5 mb-4"
-              >
-                <app-icon name="timer" class="icon-md text-label-tertiary" />
-                <p class="type-callout text-label-tertiary">Send the request and its timings show here.</p>
-              </div>
+              <!-- A line, not a dashed box around nothing (U-022). -->
+              <p class="flex items-center gap-2 type-callout text-label-secondary py-3">
+                <app-icon name="timer" class="icon-xs text-label-tertiary" />Send the request and its timings show here.
+              </p>
               } @else {
               <div class="space-y-5 pb-4">
                 <!-- Summary cards -->
@@ -568,15 +566,10 @@
                 @if (ai.offers().tests && responseStatusCode() !== undefined) { @defer {
                 <app-ai-tests />
                 } } @if (!testResults().length) {
-                <div
-                  class="flex items-center gap-2.5 rounded-lg bg-canvas-panel border border-dashed border-separator p-5"
-                >
-                  <app-icon name="rule" class="icon-md text-label-tertiary" />
-                  <p class="type-callout text-label-secondary"
-                    >A request's tests are listed here when it runs any: an assertion or a script's pm.test, in its
-                    Scripts tab.</p
-                  >
-                </div>
+                <p class="flex items-start gap-2 type-callout text-label-secondary py-3">
+                  <app-icon name="rule" class="icon-xs text-label-tertiary mt-0.5 shrink-0" />A request's tests are
+                  listed here when it runs any: an assertion or a script's pm.test, in its Scripts tab.
+                </p>
                 } @else {
                 <div class="space-y-1.5">
                   @for (result of testResults(); track result.label + result.source) {
@@ -616,9 +609,14 @@
                     <app-icon name="check_circle" class="icon-xs" />
                     {{ testPassCount }} passed
                   </span>
-                  <span class="type-subhead text-status-error flex items-center gap-1.5">
+                  <!-- Red only when something failed (U-190). -->
+                  <span
+                    class="type-subhead flex items-center gap-1.5"
+                    [class]="testFailCount ? 'text-status-error' : 'text-label-secondary'"
+                  >
+                    @if (testFailCount) {
                     <app-icon name="cancel" class="icon-xs" />
-                    {{ testFailCount }} failed
+                    } {{ testFailCount }} failed
                   </span>
                 </div>
                 } @if (scriptTimings()) {

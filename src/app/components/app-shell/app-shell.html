@@ -228,7 +228,6 @@
           type="button"
           uiButton="icon"
           class="btn-plain"
-          [class.text-status-success]="secretsUnlocked"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
           [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
           [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
@@ -350,7 +349,6 @@
         type="button"
         uiButton
         class="btn-plain status-control"
-        [class.text-status-success]="bridgeService.config().route === 'bridge'"
         (click)="openBridgeSettings()"
         uiTooltip="Local Bridge settings"
       >
@@ -360,7 +358,6 @@
         type="button"
         uiButton
         class="btn-plain status-control"
-        [class.text-status-success]="secretsUnlocked"
         (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
         [uiTooltip]="secretsUnlocked ? 'Lock the vault' : secretsService.made() === false ? 'Make a vault' : 'Unlock the vault'"
       >

@@ -791,6 +791,17 @@ fourth pass's (U-130 to U-151, row 1.48) among them.
     banner (D1.8) before the tag; the release notes say what was not
     checked (NVDA, the installed app) where it was not.
 
+### Phase D6: After 3.0 (1 session; added in row 1.68)
+
+**Goal:** the findings of severity 3 and 4 that D5-c gave a later phase,
+fixed or accepted, on the released app.
+
+- [ ] **D6.1** Fix or accept, with a reason, U-162, U-163, U-166, U-170,
+  U-173 to U-180, U-183 to U-186, U-189, U-191 and U-199 (D5-b's fifth
+  pass and the persona walkthroughs).
+  - AC: each has a status line that names its PR or its reason; the e2e
+    each fix touches passes in three engines.
+
 ### Phase W: The website (3 sessions; W1 may run before D)
 
 **Goal:** `wayfarer.ashwinsathian.com` explains Wayfarer to someone who

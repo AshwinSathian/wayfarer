@@ -441,6 +441,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   is now New, Same or Changes, and after the import an Undo puts back the
   collection as it was.
 
+- **Green and red mean a status again, nothing else.** The environment in
+  use, the Local Bridge route and an unlocked vault were drawn in
+  success's green, and "0 failed" in the error red with its glyph. They
+  are in the label's own colour now; red appears when a test fails.
+
+- **Things are called the same everywhere.** The body's type select is
+  "Body type", not a second "Body"; the environment editor's tab says
+  "Name / Value" over columns named Name and Value; the palette says
+  "Request history", as the toolbar does; script headings are in sentence
+  case; Settings no longer writes the Mac's ⌘K on every platform; and the
+  environments pane, with none made, says how to make one.
+
+- **Empty places are a line of text again, not a dashed box.** The
+  Secrets dialog, and the Timings and Tests tabs before a send, drew a
+  dashed box around their one sentence, and the Secrets dialog kept a
+  card for the vault's state. Both are plain lines now.
+
+- **Labels are in sentence case again, and nothing in the wire's face is
+  under 13 px.** Some section labels and Settings' subheads had gone back
+  to spaced capitals, and table column heads and the method badges in
+  History and the palette were JetBrains Mono at 12 px, where its 0 and O
+  are hard to tell apart.
+
 - **In Safari, the status bar and the backup reminder say Safari's seven
   days.** Safari deletes a site's data after seven days without a visit
   unless the app is added to the Dock, and only Settings said so. The
@@ -678,6 +701,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Before, it moved only by dragging or with the arrow keys.
 
 ### Changed
+
+- **The design captures show the app as session D5-c left it.** The
+  Chromium baseline of every screen is taken again after the fixes of
+  the fifth pass.
+
+- **Every problem the last design review found has a decision.** The
+  smaller ones that remain are listed for the first work after 3.0, and
+  the design audit says why each of the others is fixed or kept as it is.
+  The test of whether Wayfarer can be told from its rivals with its logo
+  hidden passed, so its last open finding of identity is closed.
 
 - **The design audit has a fifth pass, on the release candidate.** Every
   screen was reviewed again in Chromium, Firefox and WebKit, and both

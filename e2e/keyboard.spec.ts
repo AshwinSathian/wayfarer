@@ -81,7 +81,7 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true }).first();
   await bodyTab.focus();
-  const type = page.getByRole("combobox", { name: "Body", exact: true });
+  const type = page.getByRole("combobox", { name: "Body type", exact: true });
   await type.focus();
   // A closed select takes arrow keys, as the native one does.
   await page.keyboard.press("ArrowDown");
@@ -643,7 +643,7 @@ test("Send and Save have keys (U-032): Enter in the address, ⌘↵ or Ctrl+Ente
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await address.fill(`${ECHO}/status/201`);
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();
-  await page.getByRole("combobox", { name: "Body", exact: true }).focus();
+  await page.getByRole("combobox", { name: "Body type", exact: true }).focus();
   await page.keyboard.press("ArrowDown");
   const editor = page.locator(".monaco-editor").first();
   await expect(editor).toBeVisible({ timeout: 10_000 });

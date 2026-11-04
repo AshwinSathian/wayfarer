@@ -336,7 +336,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await openRequest(page, "Add a pet");
     await address(page).fill(`${ECHO}/graphql`);
     await composerTab(page, "Body");
-    await page.locator("app-body-panel").getByRole("combobox", { name: "Body", exact: true }).click();
+    await page.locator("app-body-panel").getByRole("combobox", { name: "Body type", exact: true }).click();
     await page.getByRole("option", { name: "GraphQL" }).click();
     const pane = page.locator("app-body-panel .graphql");
     await button(pane, "Fetch schema").click();

@@ -629,6 +629,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design captures show the app as session D5-a left it.** The
+  Chromium baseline of every screen is taken again: Params wraps its rows,
+  a run's tab selects no row in the tree, and a tab bar with more tabs
+  than fit fades on that side.
+
 - **The design audit's status lines match `main`.** Five findings were
   still marked open though their fixes had shipped: the palette's
   shortcut below 1,200 px (U-049, fixed in #484) and four of motion

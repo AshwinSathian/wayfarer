@@ -629,6 +629,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design audit has a fifth pass, on the release candidate.** Every
+  screen was reviewed again in Chromium, Firefox and WebKit, and both
+  earlier design reviews were repeated, with the test of whether the app
+  can be told from its rivals with the logo hidden. It can: the record of
+  what each send did is on the primary screen, and no rival shows one.
+  The pass found 32 problems and four that came back, two of them losing
+  unsaved edits without a question (New request, and a collection's
+  settings closed with Escape).
+
 - **Five people walk through the app, and each step that fails is in the
   audit.** A new design doc follows a solo developer, a privacy-bound
   engineer, a tester, an occasional user and a team leaving Postman

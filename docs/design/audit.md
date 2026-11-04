@@ -26,7 +26,12 @@ U-060 to U-129, under "Third pass" below, and reopened U-036. The fourth pass,
 the red-team review of 2026-10-26
 ([`hig-review-2026-10-26.md`](hig-review-2026-10-26.md)), added U-130 to
 U-151, under "Fourth pass" below. Session D4-l (2026-10-27) found U-152
-while measuring task 5, at the end of the fourth pass.
+while measuring task 5, at the end of the fourth pass. Session D5-a (2026-11-04) found U-153 to
+U-155 in D1.8's captures in three engines. The fifth pass (D5-b,
+2026-11-04) walked five personas ([`personas.md`](personas.md)), retook
+the screens in three engines and repeated both hig-reviews
+([`hig-review-2026-11-04.md`](hig-review-2026-11-04.md)): U-156 to U-199,
+under "Fifth pass" below.
 
 ## Summary
 
@@ -159,6 +164,7 @@ Evidence: `baseline/390-light-03b-response-full.png`.
 are two tabs under the address, and a send opens the response: at 390 px
 the response's status is under 300 px below the address, not after every
 section of the request.
+**2026-11-04:** D5-b's fifth pass: the measure holds in Chromium (294 px) and misses by 10 px in Firefox and WebKit (310 px); taken up by U-172. Open, D5-c.
 
 ### Collections and tabs
 
@@ -382,6 +388,7 @@ focused at the start, is the way in, with a cURL command pasted into it as
 the second.
 2026-10-23 (hig-review, W-41a): the fix holds. The state it did not cover,
 a saved request with an address open and nothing sent, is U-095.
+**2026-11-04:** Reopened in D5-b's fifth pass: the Secrets dialog's empty list and the empty Timings and Tests tabs are dashed boxes (`secrets-manager.html:34-36`; `response-viewer.html:387-389`, `:570-572`). Open, D5-c, with U-198.
 
 **U-023. The first screen explains the Local Bridge.** Severity 2. H2, H8.
 OC.
@@ -421,6 +428,7 @@ and tracked.
 hierarchy they stood for is U-119's.
 **2026-11-02:** The sidebar's title fixed in #484 (D4-f): "Collections" is a sentence-case heading in the secondary label. The environments list's is D4-g's.
 **2026-11-03:** The environments list's title fixed in #493 (D4-g): "Environments", a sentence-case heading in the secondary label; `type-overline`, the uppercase style, is deleted (nothing reads it). Every finding of this row is fixed.
+**2026-11-04:** Reopened in D5-b's fifth pass: `.ds-section-label` (`components.css:241-247`) and `.settings-subhead` (`settings.css:186-192`) are still uppercase and tracked: the import review, Settings' Data and Shortcuts panes, the Timings tab and the Console. Open, D5-c.
 
 **U-021. Three blues and a stray grey.** Severity 3. H4.
 The Send fill, the link colour (`rgb(79,70,229)`) and the focus ring
@@ -748,6 +756,7 @@ builder.
 **2026-11-02:** The tree's menu, the create dialogs' titles and the palette's commands (#484) fixed in #486 (D4-f). The environments' (D4-g) and the assertion builder's (D4-i) remain.
 **2026-11-03:** The environments' share checked in D4-g: the editor's and the list's labels are sentence case ("Add variable", "Key / Value", "New environment", "Global variables"), the "KEY" placeholder is "Name" (#493). The assertion builder's remains with D4-i.
 **2026-11-03:** The assertion builder's "Status Code" is "Status code" in #512 (D4-i), its last label in title case; a scan of every template and every label, title, header and placeholder in code finds none but proper names (GitHub, Local Bridge, OAuth). Every label of this row is sentence case.
+**2026-11-04:** Reopened in D5-b's fifth pass: a collection's or folder's Scripts tab heads its editors "Pre-request Script" and "Post-response Script" (`inherited-settings-dialog.html:51`, `:61`). Open, D5-c.
 
 ### Found on the other screens
 
@@ -1138,6 +1147,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **2026-11-02:** History's skeleton fixed in #485 (D4-f): rows to come are lines, not boxes.
 **2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
 **2026-11-03:** Settings' share fixed in #507 (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
+**2026-11-04:** D5-b's fifth pass: the Secrets dialog keeps a banner card and a dashed box inside the dialog: U-198. Open, D5-c.
 
 ### Environments, the vault and the runner
 
@@ -1735,6 +1745,7 @@ at 12 px on a 1× display.** Severity 4. H4. SD, QA.
 Evidence: `tokens.css:33, 64`; the review's section 6.
 **Status:** Open, D3-b (D3.6). Review row T-2.
 **2026-11-02:** Fixed in #479 (D3-b): no mono role is under 13 px (where 0 and O are 4 to 6 device pixels apart); the method field moved from 12 to 13 px, and the token test fails on an element that is monospace and a 12 px type class.
+**2026-11-04:** D5-b's fifth pass: a table's column heads are mono at 12 px (`components.css:436-437`): U-181. Open, D5-c.
 
 **U-152. The Local Bridge's own error status is drawn as the server's.**
 Severity 3. H1. SD, OC.
@@ -1955,6 +1966,7 @@ Evidence: `baseline/design-chromium/first-run-1440-light.png`,
 `src/app/components/app-shell/app-shell.html:367-368`;
 `src/app/components/secrets/secrets-manager.html:14-15`.
 **Status:** Open, D5-c.
+**2026-11-04:** Raised to severity 2 in D5-b's fifth pass: the repeated hig-review found the same words in the status bar, the Secrets dialog ("Vault is locked…", with Change passphrase and Export vault) and Settings, under a record that says "No vault secret was filled": it misleads, as severity 2 says.
 
 **U-165. In Safari, the seven-day deletion is said only in Settings.**
 Severity 2. H1, H2. OC, SD.
@@ -1988,6 +2000,443 @@ shortcut table.
 Evidence: `baseline/design-chromium/settings-data-1440-light.png`;
 `src/app/components/settings/settings.html:244`.
 **Status:** Open, D5-c.
+
+### The screens in three engines, and the hig-reviews repeated (D1.2, D5.1)
+
+The second part retook D1.2's pass over D0.1's 49 screens in Chromium,
+Firefox and WebKit at 360, 390, 820 and 1,440 px, light and dark, from
+`main` at `62d85ef` (the design captures of `e2e.yml` run 41752362186),
+and repeated both hig-reviews with the logo-off and competitor-swap tests
+([`hig-review-2026-11-04.md`](hig-review-2026-11-04.md)). They found 32
+new findings, U-168 to U-199, and four regressions: U-020, U-022 and U-054
+are reopened below, and U-028's measure misses in Firefox and WebKit.
+Two more fold into numbers already given: the vault called locked before
+one exists is U-164 (raised to severity 2), and U-151's 13 px floor and
+U-093's no-cards rule fail where U-181 and U-198 say. U-168 and U-169 are
+rated 1, not the review's 2: an edit lost without a question is U-060's
+case, which this audit rated 1. Evidence paths are relative to
+`docs/design/`; a capture named for Firefox or WebKit is in the run's
+artifacts, not committed.
+
+**U-168. New request empties the open tab, and its unsaved edits go
+without a word.** Severity 1. H3, H5. SD, OC, TP.
+The drawer's first button, New request (every width below 1,200 px), and
+the palette's "New request" call `handleNewRequest`, which resets the open
+tab in place: the draft is replaced, the tab unbound and marked clean, with
+no question and no Undo. Only a run's or the Environments tab is kept. A
+person who typed a request, opened the drawer to look at the tree and
+pressed the biggest button in it loses the request. The palette also lists
+"New tab" (Alt+T) beside it, which does open a new tab: two commands with
+the same name's promise and different results. `ia.md` decided both
+(D4-f): "The palette's "New request" and "New tab" become one command,
+since both now open a tab. The drawer's "New request" button, which also
+empties the open tab today, opens a new one." Neither was built.
+Evidence: `baseline/design-chromium/tree-390-light.png`,
+`baseline/design-chromium/tree-820-light.png` (the drawer's New request),
+`baseline/design-chromium/palette-1440-light.png` (New request and New
+tab, one under the other); `src/app/components/app-shell/app-shell.html:48`;
+`src/app/components/app-shell/app-shell.ts:252-262`, `:534-540`;
+`src/app/components/composer/composer-view.ts:120-127`;
+`docs/design/ia.md:232-234`, `:531-532`.
+Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
+**Status:** Open, D5-c.
+
+**U-169. A collection's or folder's settings close on Escape or × and drop
+every edit.** Severity 1. H3, H5. TP, QA, SD.
+The settings dialog (Auth, Variables, Scripts, Route) keeps its edits
+until Save settings. Escape, × and Cancel all close it through the same
+`closed` output, with no check for changes and no question: a collection's
+pre-request script typed into it, or six variables, are gone on one
+Escape. This is U-060's pattern, rated severity 1 for the environments
+and fixed there; the dialog that holds a collection's scripts kept it.
+Evidence: `baseline/design-chromium/collection-settings-1440-light.png`
+(Cancel and Save settings, and ×);
+`src/app/components/collections/inherited-settings-dialog.html:1`
+(`(visibleChange)="closed.emit()"`);
+`src/app/components/collections/inherited-settings-dialog.ts:71-73`, `:173`.
+Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
+**Status:** Open, D5-c.
+
+**U-170. The request's tabs do not say which of them hold anything.**
+Severity 3. H1, H6. TP, QA.
+Params, Headers, Body, Auth, Scripts and Settings are bare words, and the
+phone's sections are the same words, closed. A request with a header, a
+JSON body and a post-response script looks the same from its Params tab as
+an empty one. Postman marks each tab with its count ("Headers (9)") or a
+dot; the response's Tests tab here has its count, the request's tabs have
+none. U-158 is the Scripts tab's part of this, for held scripts.
+Evidence: `baseline/design-chromium/composer-params-1440-light.png`
+(Headers holds Accept, Scripts holds a test: nothing says so),
+`baseline/design-chromium/composer-headers-390-light.png`;
+`src/app/components/composer/composer.html:124-129`.
+**Status:** Open, D5-c.
+
+**U-171. Three lines restate the tree and the tab above every saved
+request.** Severity 3. H8. SD, TP.
+Under the address a saved request carries "Editing Pet store / Pets /
+List pets — Save writes back to this request.", then "Sends to
+http://…", then a chip of each variable with its value. At 1,440 px the
+request's tabs start 300 px from the top; at 390 px the breadcrumb wraps,
+its second line starting with a dash, and Request and Response start at
+y = 370 of 844. The breadcrumb repeats the tree's selected row and the
+tab's name, and "Save writes back to this request" says what Save always
+does.
+Evidence: `baseline/design-chromium/request-saved-1440-light.png`,
+`baseline/design-{chromium,firefox,webkit}/request-saved-390-light.png`;
+`src/app/components/composer/composer.html:31-39`.
+**Status:** Open, D5-c.
+
+**U-172. On a phone the response's body starts below six rows of the
+request and its controls.** Severity 3. H8. OC, SD.
+After a send at 390 px the Response pane shows, in order: the breadcrumb,
+"Sends to", the variable chip (all three stay above Request and Response),
+the status, a row of time, size and route, a row holding only the export
+icon, the response's tabs, the JSON select, Search, and Path. The body
+starts at y = 735 in Chromium and y = 750 in Firefox and WebKit, where
+"Sends to" wraps two characters onto a line of their own: five lines of
+JSON are visible. U-028's measure (the status under 300 px below the
+address) holds in Chromium (294 px) and misses in Firefox and WebKit
+(310 px).
+Evidence: `baseline/design-{chromium,firefox,webkit}/response-json-390-light.png`,
+`baseline/design-{chromium,firefox,webkit}/response-record-390-light.png`.
+**Status:** Open, D5-c.
+
+**U-173. The Headers tab's CORS paragraph shows on every cross-origin
+response, also one that exposes every header.** Severity 3. H8, H2. SD, OC.
+Each direct response from another origin opens Headers with four to six
+lines on CORS-safelisted headers ending "The server may have sent more."
+The rule is the origin alone (`headersLimited` in `exchange.ts`); the
+response in the capture sends `access-control-expose-headers: *`, which
+lets the page read every header but `Set-Cookie`, and its list is complete.
+The note costs the list a third of its height at 390 px each time.
+Evidence: `baseline/design-chromium/response-headers-1440-light.png`
+(`access-control-expose-headers` `*` in the list under the note),
+`baseline/design-chromium/response-headers-390-light.png`;
+`packages/core/src/send/exchange.ts:794-797`;
+`src/app/components/response-viewer/response-viewer.html:343-351`.
+**Status:** Open, D5-c.
+
+**U-174. The HTML preview is 300 px tall, whatever room the pane has.**
+Severity 3. H8. SD, QA.
+At 1,440 × 900 the preview is a white box of 300 px with 450 px of empty
+pane under it; a page longer than the box scrolls inside it. The height is
+written into the element.
+Evidence: `baseline/design-{chromium,firefox,webkit}/response-html-1440-dark.png`;
+`src/app/components/response-viewer/html-preview.ts:20` (`h-[300px]`).
+**Status:** Open, D5-c.
+
+**U-175. A failed request explains itself twice and keeps four tabs of
+nothing.** Severity 3. H8. OC, SD.
+The record opens with "No vault secret was filled.", "Nothing was
+masked." and "History kept the request. No response came." before what
+was reported; under it the bridge's set-up; under that Body, Headers,
+Timings and Tests, of which Body repeats the record's diagnosis ("The
+request got no response. The browser does not say why … Send it through
+the Local Bridge to see which.") and the other three hold empty states for
+a response that never came. The first three lines answer questions the
+person did not ask about a request that failed. U-159 is what the set-up
+leaves out; this is what the screen says that is not needed.
+Evidence: `baseline/design-chromium/response-error-1440-light.png`,
+`baseline/design-{chromium,firefox,webkit}/response-error-390-light.png`;
+`packages/core/src/send/record.ts:134`.
+**Status:** Open, D5-c.
+
+**U-176. The OAuth redirect URI has no Copy, and breaks inside its
+scheme.** Severity 3. H7. SD, TP.
+"Register this redirect URI with the identity provider:" is followed by
+the address as text, with no Copy button, though every other value the app
+asks a person to paste elsewhere (cURL, `npx wayfarer-bridge`) has one.
+`break-all` breaks it anywhere: "htt / p://localhost:4200/…" at 390 px in
+Chromium and Firefox, "localhost: / 4200" at 1,440 px, so selecting it by
+hand across the break is the only way.
+Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`,
+`baseline/design-{chromium,firefox,webkit}/composer-oauth-390-light.png`;
+`src/app/components/composer/auth-editor/oauth-fields.html:16-19`.
+**Status:** Open, D5-c.
+
+**U-177. Save to collection starts with an empty name, and Save
+disabled.** Severity 3. H7. SD, TP.
+The request's tab already names it ("127.0.0.1:4300/content/json"), but
+the dialog's Name field opens empty with the placeholder "Request name",
+and Save stays grey until something is typed. Postman fills the name from
+the address; here a first save is always a typed name.
+Evidence: `baseline/design-{chromium,firefox,webkit}/save-request-390-light.png`,
+`baseline/design-chromium/save-request-1440-light.png`;
+`src/app/components/composer/save-as-dialog.html:15-25`, `:60`.
+**Status:** Open, D5-c.
+
+**U-178. F2, Alt+Arrow and Shift+F10 work in the tree and are written
+nowhere.** Severity 3. H6, H10. SD, QA.
+U-032's fix says every shortcut is shown where it works. The tree renames
+on F2, reorders on Alt+Arrow and opens its menu on Shift+F10, and a tab
+renames on F2; none is in Settings, Shortcuts (which lists C, N and
+Delete), and the tree's menu shows no key beside Rename or Delete,
+though `UiMenuItem` has `keys` and the sidebar's New menu uses it.
+Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
+`baseline/design-chromium/settings-shortcuts-1440-light.png`;
+`src/app/shared/collections/collection-context-menu.ts:24-55`;
+`src/app/ui/menu-item.ts:6`; `F2` appears in no template
+(`grep -rn F2 src/app` finds `tree.ts` and `tab-strip.ts` only).
+**Status:** Open, D5-c.
+
+**U-179. The cURL box is a bare text area: its placeholder is each
+engine's grey, 2.2:1 in WebKit.** Severity 3. H4. OC, TP.
+Import's "A cURL command" is a `<textarea>` without `uiInput`, so its
+placeholder takes the browser's colour: about 4.2:1 on the field in
+Chromium, 3.5:1 in Firefox and 2.2:1 in WebKit (darkest pixel of the
+glyphs against the fill, 390 px light), and Chromium and Firefox draw
+their own resize grip, which WebKit does not. Nothing may look native
+(maintainer, 2026-10-20).
+Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
+`src/app/components/import/import-dialog.html:14-22`.
+**Status:** Open, D5-c.
+
+**U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
+H4. PE, TP.
+The review is text in JetBrains Mono with its ligatures on: `() => x`
+reads `() ⇒ x`, and `!=`, `>=` and `===` are drawn joined too. The same
+script in the Scripts tab (Monaco, ligatures off) reads `=>`. In the one
+dialog whose job is to show a person exactly what will run, a ligature
+hides which characters are there (U-040 writes invisible characters as
+code points for that reason). No stylesheet sets `font-variant-ligatures`.
+Evidence: `baseline/design-chromium/script-review-1440-light.png` (third
+script; the composer under it shows `=>`),
+`baseline/design-{chromium,firefox,webkit}/script-review-360-dark.png`.
+**Status:** Open, D5-c.
+
+**U-181. Table column heads are 12 px JetBrains Mono.** Severity 3. H4. All.
+`.ds-table th` sets the mono face at the footnote size (0.75 rem): the run
+report's "Iteration", "Request", "Status", "Time", "Tests", the WebSocket
+log's and the response headers' and events' heads. They are Wayfarer's
+words, which U-148 put in the text face, and 12 px mono is the size U-151
+retired ("JetBrains Mono, never under 13 px"); the token test checks type
+classes, not this rule.
+Evidence: `baseline/design-chromium/run-1440-light.png`,
+`baseline/design-chromium/websocket-1440-light.png`;
+`src/design-system/components.css:434-442`.
+**Status:** Open, D5-c.
+
+**U-182. On a phone the run's table hides its Tests column.**
+Severity 3. H8. QA.
+At 390 px the results table is wider than its box: "Tests" and each row's
+"2 of 2 passed" are cut at the right edge in the three engines, while "#"
+and "Iteration" (one iteration, every row "1") take 120 px. The column a
+tester reads first is the one that does not show.
+Evidence: `baseline/design-{chromium,firefox,webkit}/run-390-light.png`;
+`src/app/components/runner/run-view.html:182-190`.
+**Status:** Open, D5-c.
+
+**U-183. At 390 px the vault prompt opens with its passphrase at the
+window's bottom edge in Chromium and WebKit.** Severity 3. H1. PE, OC.
+Marking a variable secret with no vault opens the passphrase form inside
+the row list. Firefox scrolls the focused field into view with the form
+under it; Chromium and WebKit scroll only as far as the field's edge, so
+the field sits half under the bottom of the window and Confirm and
+Create vault are below it. The person sees a page that did not change.
+Evidence: `baseline/design-{chromium,firefox,webkit}/vault-create-390-light.png`,
+`baseline/design-{chromium,firefox,webkit}/vault-create-360-light.png`.
+**Status:** Open, D5-c.
+
+**U-184. The Environments list's header is four bare icons, and globals
+are "{}".** Severity 3. H6. TP, OC.
+Global variables, Import, Export and New environment are icons with
+tooltips; Import and Export are an up and a down arrow that read either
+way, and globals, which a Postman user looks for by name, are a pair of
+braces. U-010 fixed the same pattern in the sidebar with named menus.
+Evidence: `baseline/design-chromium/environments-empty-1440-light.png`,
+`baseline/design-chromium/environments-rows-390-light.png`;
+`src/app/components/environments/environments-manager.html:10-47`.
+**Status:** Open, D5-c.
+
+**U-185. Reset all data says to back up first, and its question offers no
+backup.** Severity 3. H5. OC, SD.
+The Danger zone's row ends "Cannot be undone: back up first."; the
+confirm that follows says "This cannot be undone." with Cancel and Reset
+all data. Backing up is in another section (Data and storage), so the
+advice costs a Cancel, a section change and a return.
+Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`,
+`baseline/design-chromium/settings-danger-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-186. Monaco draws an empty overview ruler and scrolls past the last
+line.** Severity 4. H8. All.
+The body and response editors keep Monaco's overview ruler (a 14 px
+column with a cursor tick at its top) and `scrollBeyondLastLine`, so a
+six-line response shows a scrollbar as tall as the pane. The script editor
+turns the second off; neither turns the ruler off.
+Evidence: `baseline/design-chromium/request-saved-1440-light.png` (the
+tick at the editor's top right), `baseline/design-chromium/response-record-1440-light.png`,
+`baseline/design-chromium/response-json-820-light.png` (both scrollbars);
+`src/app/components/json-editor/json-editor.ts:209-217`;
+`src/app/components/script-editor/script-editor.ts:163`.
+**Status:** Open, D5-c.
+
+**U-187. A method is drawn four ways, and the method menu marks none.**
+Severity 4. H4, H1. SD.
+Coloured mono text in the tree, a filled pill in History, grey mono in a
+tab, plain sans in the method menu; the menu does not mark the method in
+use.
+Evidence: `baseline/design-chromium/history-1440-light.png`,
+`baseline/design-chromium/method-menu-1440-light.png`,
+`baseline/design-chromium/request-saved-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-188. The response's download icon opens four copies and one export.**
+Severity 4. H4. SD.
+Evidence: `baseline/design-chromium/export-menu-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-189. The pre-request script's heading has a play triangle.** Severity 4.
+H4. OC.
+A ▷ beside "Pre-request script" reads as Run or as a closed disclosure;
+it is neither.
+Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
+`src/app/components/composer/scripts-panel.html:20`.
+**Status:** Open, D5-c.
+
+**U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
+Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
+`src/app/components/response-viewer/response-viewer.html:618-621`.
+**Status:** Open, D5-c.
+
+**U-191. The run report says its counts twice.** Severity 4. H8. QA.
+"4 results in 1 iteration; 1 failed; 4 of 5 tests passed." over "3 passed
+1 failed 4/5 tests".
+Evidence: `baseline/design-chromium/run-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-192. The environment editor's tab says "Key / Value" over columns
+headed Name and Value.** Severity 4. H4. TP.
+Evidence: `baseline/design-chromium/environments-rows-1440-light.png`;
+`src/app/components/environments/environments-manager.html:173`.
+**Status:** Open, D5-c.
+
+**U-193. Body's select is labelled "Body", inside the Body tab.**
+Severity 4. H8. OC.
+It chooses the body's kind (Raw, GraphQL, …).
+Evidence: `baseline/design-chromium/composer-body-1440-light.png`.
+**Status:** Open, D5-c.
+
+**U-194. With no environment, the editor's pane says "Choose an
+environment".** Severity 4. H8. OC.
+There is none to choose; the list beside it already says what to do.
+Evidence: `baseline/design-chromium/environments-empty-1440-light.png`;
+`src/app/components/environments/environments-manager.html:353`.
+**Status:** Open, D5-c.
+
+**U-195. History is "History" in the palette and its drawer, and "Request
+history" in the toolbar and the phone's drawer.** Severity 4. H4. OC.
+Evidence: `baseline/design-chromium/history-1440-light.png`,
+`baseline/design-chromium/palette-1440-light.png`,
+`baseline/design-chromium/tree-390-light.png`;
+`src/app/components/app-shell/app-shell.html:61`, `:248`;
+`src/app/components/app-shell/app-shell.ts:308`.
+**Status:** Open, D5-c.
+
+**U-196. In WebKit the sidebar button keeps a focus ring after the drawer
+closes.** Severity 4. H4. SD.
+Opening Environments from the phone's drawer hands focus back to the
+sidebar button; WebKit draws the ring, Chromium and Firefox do not (the
+pointer opened it). U-053's family, on the drawer.
+Evidence: `baseline/design-webkit/environments-rows-390-light.png`,
+`baseline/design-webkit/environments-empty-360-dark.png` (against the
+same files in `design-chromium`).
+**Status:** Open, D5-c.
+
+**U-197. Green is spent on device state.** Severity 3. H4. Everyone.
+DQ11 made colour mean a method or a status and nothing else. The
+environment list's "In use" tag is drawn in `--status-success-fill` and
+`--status-success-border` (`components.css:399-409`). The status bar's
+route word turns `text-status-success` when the route is the bridge, and
+the vault word when it is unlocked (`app-shell.html:352, 362`). On the
+primary screen green already means GET and 200; a third green for "this
+environment is chosen" or "the vault is open" is the colour-with-no-
+consistent-meaning tell, and it uses the success token, so the token test
+that holds chroma to method and status tokens passes it.
+Evidence: `baseline/design-chromium/environments-rows-1440-dark.png` ("In use"); the bridge and
+unlocked states are not captured and rest on source.
+**Status:** Open, D5-c.
+
+**U-198. The Secrets dialog keeps cards inside the dialog.** Severity 3.
+H8. Everyone.
+U-093 took cards out of overlays and Settings. The Secrets dialog still
+puts a bordered, filled banner ("Vault is locked…") and, under it, a
+dashed rounded box with a centred icon and two lines of text inside the
+dialog's own surface: three grouping cues at one level
+(`secrets-manager.html:11` and `34-36`). The audit's first pass named
+"dashed empty boxes" as part of the template look it removed.
+Evidence: `baseline/design-chromium/secrets-manager-1440-dark.png`.
+**Status:** Open, D5-c.
+
+**U-199. On a phone the editing line breaks before its dash.** Severity 4.
+H8. Everyone on a phone.
+At 360 and 390 px "Editing Pet store / Pets / List pets — Save writes
+back to this request." wraps so that the second line starts with "—".
+Evidence: `baseline/design-chromium/response-json-390-light.png`, `response-json-360-light.png`.
+**Status:** Open, D5-c.
+
+### Every screen of D0.1, in three engines
+
+Open old findings by number; new ones by short title; "No finding" means
+nothing beyond findings already fixed. Engine differences that are capture
+artifacts (WebKit's ⌘ keys, its classic scrollbars) are listed once in the
+header and not repeated unless they change a layout.
+
+| Screen | Findings | Engines |
+|---|---|---|
+| `first-run` | U-164 (status bar "Vault locked") | WebKit writes ⌘K (Mac UA). Otherwise alike. |
+| `request-saved` | Three lines restate the tree; Monaco's empty ruler; method drawn four ways | At 390 px the breadcrumb wraps the same in all three. |
+| `response-json` | Phone: body below six rows; Monaco's ruler | Firefox and WebKit wrap "Sends to … pe/ts", 16 px lower; U-028's 300 px holds in Chromium only. |
+| `response-headers` | CORS paragraph on every cross-origin response; phone: body below six rows | WebKit draws a scrollbar in the headers list (nested scroll at 390 px). |
+| `response-tests` | "0 failed" in red; request tabs without counts | Firefox shows the address scrolled to its end at 390 px. |
+| `response-html` | Preview 300 px tall | The preview's unstyled page is serif in Chromium, sans in Firefox and WebKit (the engines' defaults). Firefox shows the address's end. |
+| `response-loading` | No finding | Firefox shows the address's end. |
+| `response-error` | Explains itself twice, four empty tabs; U-159 | "What was reported" is each engine's text ("Failed to fetch", "NetworkError when attempting to fetch resource.", "Load failed"); Firefox's wraps to two lines. |
+| `response-record` | Monaco scrolls past the last line; phone: body below six rows | Alike but the "Sends to" wrap. |
+| `composer-params` | Request tabs without counts; three lines restate the tree; U-154 | Alike. |
+| `composer-headers` | Request tabs without counts | Alike. |
+| `composer-body` | Body's select labelled "Body"; Monaco's ruler | Alike. |
+| `composer-auth` | No finding | Alike. |
+| `composer-oauth` | Redirect URI has no Copy and breaks in its scheme | The break falls at "htt/p" in Chromium and Firefox, "ht/tp" in WebKit. |
+| `composer-scripts` | Play triangle on the pre-request heading; U-158 | Alike. |
+| `composer-settings` | No finding | WebKit wraps one more line (scrollbar width). |
+| `method-menu` | Method drawn four ways, none marked | Alike. |
+| `graphql-explorer` | Monaco's ruler | WebKit draws a scrollbar in the schema box. |
+| `websocket` | Table heads in 12 px mono | WebKit keeps a ring-like edge on Send message under the pointer. |
+| `export-menu` | Download icon opens copies | Firefox shows the address's end. |
+| `export-har` | No finding | WebKit draws the dialog's scrollbar. |
+| `save-request` | Empty name, Save disabled | Firefox shows the address's end. |
+| `tree` | New request empties the open tab; History named two ways | Alike. |
+| `tree-menu` | F2, Alt+Arrow, Shift+F10 written nowhere; U-156 | WebKit highlights Run… on open; Chromium and Firefox show no item. |
+| `collection-settings` | Escape or × drops every edit; U-054 regressed (Scripts tab) | Alike. |
+| `new-collection` | No finding | Alike. |
+| `palette` | New request and New tab differ; History named two ways | WebKit writes ⌥T, ⌘↵ (Mac UA). |
+| `import-review` | U-020 regressed (uppercase labels); U-160, U-161 | Alike. |
+| `import-curl` | Bare text area, placeholder 2.2:1 in WebKit | Placeholder grey differs by engine; no resize grip in WebKit. |
+| `script-review` | `=>` drawn as ⇒ | WebKit draws a horizontal scrollbar under each script at 360 px. |
+| `run` | Tests column cut on a phone; table heads 12 px mono; counts said twice; U-162 | Alike. |
+| `environments-empty` | Header of bare icons; "Choose an environment" with none | WebKit rings the sidebar button at 360 and 390 px. |
+| `environments-rows` | "Key / Value" over Name and Value; header of bare icons | WebKit rings the sidebar button at 360 and 390 px. |
+| `history` | Method drawn four ways; History named two ways | Truncation of the third address differs by a few characters. |
+| `history-empty` | No finding | Alike. |
+| `vault-create` | Passphrase at the window's edge in Chromium and WebKit | Firefox scrolls the form into view; Chromium and WebKit leave it at the bottom edge. |
+| `vault-unlock` | U-164 | Chromium and WebKit show the backup banner over the page; Firefox does not. |
+| `secrets-manager` | U-022 regressed (dashed box); U-164 | Alike. |
+| `confirm-dialog` | Reset's confirm offers no backup (index line out of date) | Alike. |
+| `settings-general` | No finding | Alike. |
+| `settings-history` | No finding | Alike. |
+| `settings-data` | U-020 regressed ("STORAGE IN THIS BROWSER"); U-167 | Alike. |
+| `settings-vault` | U-164 | Alike. |
+| `settings-bridge` | No finding | WebKit wraps one more line of the Route text. |
+| `settings-cookies` | No finding | Alike. |
+| `settings-shortcuts` | F2, Alt+Arrow, Shift+F10 missing; U-020 regressed | WebKit writes ⌘K (Mac UA). |
+| `settings-diagnostics` | No finding | User agent per engine (capture). |
+| `settings-about` | U-166 | Alike. |
+| `settings-danger` | Reset says back up first, offers no backup | Alike. |
+
+Open findings from before this pass that the screens still show: U-154
+(`composer-params`, 390 px) and U-077 (every screen; closed only by D5.1's
+logo-off and competitor-swap tests, which this pass does not run).
 
 ## Every screen of D0.1, and its findings
 

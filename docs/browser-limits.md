@@ -26,7 +26,7 @@ Why: when the browser gets no answer, the page cannot tell why. A request
 that needed a preflight (see below) was never sent if the preflight failed.
 A request that needed none may have reached the server, which answered
 without the header the browser needs; sent again, it would be received
-twice. Each response says where it came from, **Direct** or **Via bridge**.
+twice. Each response says where it came from, **Direct** or **Local Bridge**.
 
 What Auto cannot know: a server that allows the preflight and then answers
 without `Access-Control-Allow-Origin` has received the request, and the

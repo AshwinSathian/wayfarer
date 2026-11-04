@@ -30,9 +30,9 @@ export class BridgePane {
   ];
   /** What the chosen route does, in a line under the choice (V8). */
   protected readonly routeNotes: Record<Route, string> = {
-    auto: "Sends from the page, and through the bridge when the browser could not. A request the server cannot have received is sent again at once; one it may have received, only if you say so.",
-    direct: "Always sends from the page.",
-    bridge: "Sends every request from the bridge on this machine, where CORS and mixed content do not apply.",
+    auto: "From the page, then through the bridge when the page gets no response. A request the server may have received is sent again only if you agree.",
+    direct: "Always from the page.",
+    bridge: "Always through the bridge, where CORS and mixed content do not apply.",
   };
   protected readonly route = signal<Route>(this.bridge.config().route);
   protected readonly url = signal(this.bridge.config().url);

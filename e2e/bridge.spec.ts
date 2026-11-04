@@ -181,7 +181,7 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     const box = page.getByRole("checkbox", { name: "Do not verify the server's certificate" });
     await box.check();
     const notes = page.locator("app-browser-notes .tls-insecure");
-    await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveText("TLS verification off");
+    await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveText("Certificate not checked");
     await expect(notes).toContainText("the Local Bridge accepts any certificate");
 
     const relayed = page.waitForResponse(
@@ -193,7 +193,7 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
     // The Host the user wrote is the one the server heard.
     await expect(viewer).toContainText('"host": "api.internal"');
-    await expect(viewer.locator(".tls-off-pill")).toHaveText("TLS verification off");
+    await expect(viewer.locator(".tls-off-pill")).toHaveText("Certificate not checked");
 
     // The pill in both themes, where it is and as it is drawn.
     for (const scheme of ["dark", "light"] as const) {

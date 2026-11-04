@@ -104,7 +104,9 @@ test.describe("Transport on fetch (P2.3)", () => {
     const started = Date.now();
     await sendTo(page, `${ECHO}/delay/5000`);
 
-    await expect(page.locator(".response-announcement").filter({ hasText: "Timed out after 1000 ms" })).toBeVisible({
+    await expect(
+      page.locator(".response-announcement").filter({ hasText: "No response within 1.0 s, the request timeout." }),
+    ).toBeVisible({
       timeout: 3000,
     });
     expect(Date.now() - started).toBeLessThan(4000);

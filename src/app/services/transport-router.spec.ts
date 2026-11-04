@@ -71,7 +71,7 @@ describe("TransportRouter", () => {
 
     await expect(
       router.send({ method: "GET", url: "https://internal.example.com/data", headers: [] }, open()),
-    ).rejects.toThrow("The Local Bridge is on, and its token is not in this tab.");
+    ).rejects.toThrow("The Local Bridge is on, and this tab does not have its token.");
     fetchMock.verify();
   });
 

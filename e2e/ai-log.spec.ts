@@ -67,8 +67,8 @@ test("@claim:C-081 @claim:C-083 a model call is a history entry with its record,
   for (const [store, rows] of Object.entries(idb))
     if (store !== "secrets") expect(JSON.stringify(rows), store).not.toContain(KEY);
 
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await drawer.getByRole("radio", { name: "Model calls" }).click();
   await expect(drawer.getByRole("status")).toHaveText("1 entry.");
   await expect(drawer.getByRole("button", { name: `Delete from history` })).toHaveCount(1);
@@ -143,8 +143,8 @@ test("@claim:C-082 with response bodies off in history, a model call keeps no pr
   expect(entries).toHaveLength(1);
   expect(JSON.stringify(entries[0])).not.toContain(QUOTED_BODY);
   expect(JSON.stringify(entries[0])).not.toContain("status is 200");
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await drawer.getByRole("button", { name: /^Model call, Write tests/ }).click();
   await expect(drawer.getByRole("region", { name: "Exchange record" }).locator(".record-kept")).toHaveText(
     "History kept the request without the response body it quoted, and the response's status and headers, not its body.",

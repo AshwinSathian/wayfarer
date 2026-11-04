@@ -64,7 +64,7 @@ export class TransportRouter implements Transport {
     if (!token) {
       throw new TransportError(
         "bridge",
-        "The Local Bridge is on, and its token is not in this tab. It is kept in the vault while the vault is unlocked, and otherwise only until the tab reloads. Unlock the vault, or enter the token again in Settings, Local Bridge.",
+        "The Local Bridge is on, and this tab does not have its token. Unlock the vault, or pair the bridge again in Settings › Local Bridge.",
       );
     }
     return new BridgeTransport({ url: this.bridge.config().url, token }).send(request, options);

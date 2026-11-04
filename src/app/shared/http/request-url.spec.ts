@@ -11,8 +11,14 @@ describe("Params tab <-> URL field", () => {
     ]);
     expect(parseParamsFromUrl("httpbin.org/get?a=1")).toEqual([row("a", "1")]);
     expect(parseParamsFromUrl("{{baseUrl}}/users?token={{token}}")).toEqual([row("token", "{{token}}")]);
-    expect(parseParamsFromUrl("api.test/x")).toEqual([row("", "")]);
-    expect(parseParamsFromUrl("")).toEqual([row("", "")]);
+    expect(parseParamsFromUrl("api.test/x")).toEqual([row("", "", false)]);
+    expect(parseParamsFromUrl("")).toEqual([row("", "", false)]);
+  });
+
+  // L-17: the blank row is switched off until it has a name, and is not a row the address keeps.
+  it("drops a blank, switched-off row when the address has a query, and gives one when it has none", () => {
+    expect(parseParamsFromUrl("https://api.test/x?a=1", [row("", "", false)])).toEqual([row("a", "1")]);
+    expect(parseParamsFromUrl("https://api.test/x", [row("", "", false)])).toEqual([row("", "", false)]);
   });
 
   // U-139: a switched-off row is not in the address, so reading the address again kept none of them.

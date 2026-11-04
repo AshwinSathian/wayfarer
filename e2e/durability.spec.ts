@@ -109,9 +109,9 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
 
   // The vault opens with its passphrase and still holds the secret.
   await page.getByRole("button", { name: "Vault locked", exact: true }).click();
-  const unlock = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const unlock = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await unlock.locator("input[type='password']").fill(PASSPHRASE);
-  await unlock.getByRole("button", { name: "Unlock secrets" }).click();
+  await unlock.getByRole("button", { name: "Unlock vault" }).click();
   await page.getByRole("button", { name: "Secrets", exact: true }).click();
   await page.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(page.getByRole("dialog", { name: "Secrets", exact: true }).getByText(SECRET)).toBeVisible();
@@ -191,8 +191,8 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
   const reminder = page.getByRole("status").filter({
     hasText:
       browserName === "webkit"
-        ? /Safari deletes this workspace after seven days without a visit/
-        : /more than 14 days since this workspace was backed up/,
+        ? /Safari deletes your data after seven days without a visit/
+        : /more than 14 days since your data was backed up/,
   });
   await expect(reminder).toHaveCount(0);
 

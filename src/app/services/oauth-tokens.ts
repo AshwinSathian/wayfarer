@@ -193,7 +193,8 @@ export class OAuthTokens {
     signal?: AbortSignal,
   ): Promise<OAuthToken> {
     const request = tokenRequest(auth, exchange);
-    if (!URL.canParse(request.url)) throw new OAuthError("The token URL is not an address. No token was asked for.");
+    if (!URL.canParse(request.url))
+      throw new OAuthError("The Token address field does not hold an address, so no token was asked for.");
     if (containsSecretPlaceholder(request)) {
       throw new OAuthError(
         "The token request refers to a vault secret that could not be read (it may have been deleted), so it was not sent.",

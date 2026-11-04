@@ -50,8 +50,25 @@
         <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
         } @if (responseContentLength()) {
         <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
-        } @if (record(); as rec) {
-        <!-- The record's first line ends here: where the request went. It opens the record (D4.12). -->
+        }
+      </span>
+
+      @if (tlsInsecure()) {
+      <span
+        class="tls-off-pill"
+        tabindex="0"
+        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
+      >
+        <app-icon name="warning" class="icon-xs" />
+        Certificate not checked
+      </span>
+      }
+
+      <!-- Where the request went, and Export, at the line's end: on a phone a line of their own under the status and
+           its facts (V21). -->
+      <div class="ml-auto flex min-w-0 max-w-full items-center gap-2">
+        @if (record(); as rec) {
+        <!-- It opens the record (D4.12). -->
         <button
           type="button"
           uiButton
@@ -66,25 +83,9 @@
         /></button>
         } @else if (route(); as route) {
         <span class="response-fact route-badge" uiTooltip="Route"
-          >{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span
+          >{{ route === 'bridge' ? 'Local Bridge' : 'Direct' }}</span
         >
-        }
-      </span>
-
-      @if (tlsInsecure()) {
-      <span
-        class="tls-off-pill"
-        tabindex="0"
-        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
-      >
-        <app-icon name="warning" class="icon-xs" />
-        TLS verification off
-      </span>
-      }
-
-      <!-- Export -->
-      @if (canExport) {
-      <div class="ml-auto flex min-w-0 items-center gap-2">
+        } @if (canExport) {
         <!-- What the last copy did (U-050). Always there while the button is, so that a screen reader hears it change. -->
         <span class="copy-note type-footnote text-label-secondary min-w-0" role="status">{{ copyStatus.text() }}</span>
         <button
@@ -99,8 +100,8 @@
           ><app-icon name="download" class="icon-md"
         /></button>
         <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
+        }
       </div>
-      }
     </div>
     } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
@@ -145,8 +146,8 @@
     <!-- Above the tabs, whichever is open: inside Tests, a response that opened on Body never showed it (U-158). -->
     @if (scriptsSkipped()) {
     <p class="scripts-skipped type-callout text-status-warning mx-4 mt-2 flex items-center gap-1.5">
-      <app-icon name="warning" class="icon-xs shrink-0" />This request's scripts did not run: they have not been
-      reviewed. Open the Scripts tab to review them.
+      <app-icon name="warning" class="icon-xs shrink-0" />This request's scripts did not run: they are not reviewed yet.
+      Open the Scripts tab to review them.
     </p>
     }
     <!-- ── Response tabs ──────────────────────────────────── -->
@@ -269,7 +270,7 @@
                   <!-- What was reported, and the action, are in the exchange record under the status line (D4.12). -->
                 </div>
                 } @else if (!bodyText() && !responseBinary()) {
-                <p class="type-callout text-label-secondary">No body returned.</p>
+                <p class="type-callout text-label-secondary">The response has no body.</p>
                 } @else { @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
                 <div class="overflow-auto rounded-lg bg-canvas-panel border border-separator p-4">
                   <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
@@ -517,9 +518,7 @@
                     </div>
                     }
                   </div>
-                  <p class="type-footnote text-label-tertiary">
-                    Detailed phase breakdown unavailable for this response.
-                  </p>
+                  <p class="type-footnote text-label-tertiary"> The browser reported no phases for this response. </p>
                   }
                 </div>
               </div>
@@ -548,8 +547,8 @@
                 <app-ai-tests />
                 } } @if (!testResults().length) {
                 <p class="flex items-start gap-2 type-callout text-label-secondary py-3">
-                  <app-icon name="rule" class="icon-xs text-label-tertiary mt-0.5 shrink-0" />A request's tests are
-                  listed here when it runs any: an assertion or a script's pm.test, in its Scripts tab.
+                  <app-icon name="rule" class="icon-xs text-label-tertiary mt-0.5 shrink-0" />This request has no tests.
+                  Add one in the Scripts tab: an assertion, or pm.test in a script.
                 </p>
                 } @else {
                 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->

@@ -90,7 +90,7 @@ test("@claim:C-054 an import shows what it will add and what it could not keep b
   );
   // What it could not keep: a script that uses what the app does not have, named by where it is.
   await expect(report.locator(".import-warnings")).toContainText(
-    'Request "With a cookie jar". Its pre-request script uses pm.cookies.jar, which Wayfarer does not have.',
+    'Request "With a cookie jar". Its pre-request script uses pm.cookies.jar, which Wayfarer does not have, so the script stops with an error there.',
   );
   // The report is on screen and nothing is stored yet.
   expect(await stored(page)).toBe(before);

@@ -1,7 +1,9 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <p class="settings-title type-callout text-label-primary" id="bridge-route-label">Route</p>
-    <p class="type-footnote text-label-secondary">How a request leaves when neither it nor its collection says.</p>
+    <p class="type-footnote text-label-secondary"
+      >How a request leaves when neither it nor its collection sets a route.</p
+    >
     <ui-segmented
       aria-labelledby="bridge-route-label"
       aria-describedby="bridge-route-note"
@@ -31,8 +33,8 @@
   <div class="settings-row settings-row-stacked">
     <label for="bridge-pairing-input" class="settings-title type-callout text-label-primary">Pairing code</label>
     <p class="type-footnote text-label-secondary"
-      >The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code
-      works once; after three wrong ones the bridge waits a minute.</p
+      >The bridge prints a code when it starts. Type it here and choose Pair. A code works once; after three wrong codes
+      the bridge waits a minute.</p
     >
     <div class="flex flex-wrap items-center gap-2">
       <input
@@ -71,8 +73,7 @@
   <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="settings-title type-callout text-label-primary">Bridge token</label>
     <p class="type-footnote text-label-secondary"
-      >Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is
-      unlocked; otherwise only in this tab, until it reloads.</p
+      >Pairing fills this in. Kept in the vault while it is unlocked, otherwise in this tab until it reloads.</p
     >
     <div class="flex items-center gap-2">
       <input

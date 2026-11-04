@@ -251,7 +251,7 @@ describe("BridgeTransport", () => {
           { signal: new AbortController().signal, timeoutMs: 20 },
         )
         .catch((e: unknown) => e),
-    ).toMatchObject({ kind: "timeout", message: "Timed out after 20 ms" });
+    ).toMatchObject({ kind: "timeout", message: "No response within 20 ms, the request timeout." });
     expect(
       await hang
         .send({ method: "GET", url: "https://x.test/", headers: [] }, { signal: AbortSignal.abort(), timeoutMs: 0 })

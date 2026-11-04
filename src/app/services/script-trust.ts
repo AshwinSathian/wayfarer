@@ -56,7 +56,8 @@ export class ScriptTrust {
 
   /** What the review shows: every script of the bound request's collection, or the history entry's own. */
   readonly toReview = computed<ReviewedScripts[]>(() => {
-    const history = this.fromHistory();
+    // A collection asked for by id (an import's end, a run) is that collection's review, whatever the open tab holds.
+    const history = this.reviewOf() ? null : this.fromHistory();
     if (history) return [{ kind: "request", name: "From history", ...history }];
     const tree = this.collection();
     if (!tree) return [];
@@ -120,7 +121,7 @@ export class ScriptTrust {
 
   /** "Trust these scripts": approves exactly what `toReview` listed. */
   async approve(): Promise<void> {
-    if (this.fromHistory()) {
+    if (!this.reviewOf() && this.fromHistory()) {
       this.fromHistory.set(null);
       return;
     }

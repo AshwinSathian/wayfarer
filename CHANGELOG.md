@@ -718,6 +718,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **An import with scripts can end in their review.** When the file is
+  one collection with scripts, the import's report has a third button,
+  Import and review scripts…. It imports the collection untrusted, as
+  Import does, and opens the script review on it; Trust these scripts is
+  still the only thing that approves them, and Not now leaves them
+  waiting. Before, the review was reached by opening a request and its
+  Scripts tab, or from a run that had already sent without the scripts.
+  Importing a Postman collection and running it with its scripts takes 8
+  actions instead of 11. A review opened for a collection (from the
+  import or a run) also shows that collection's scripts when the open tab
+  is a history entry with scripts of its own: before, it showed and
+  cleared the entry's, and the collection stayed unreviewed.
+
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of
   the fifth pass.

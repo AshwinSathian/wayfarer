@@ -40,7 +40,7 @@ rivals' versions are those their documentation describes, below.
 | # | Task | Actions | Clicks | Keys | Fields | Seconds (median) | Runs | Recording |
 |---|---|---|---|---|---|---|---|---|
 | 1 | First request from nothing | 2 | 0 | 1 | 1 | 0.07 | 0.08, 0.07, 0.07 | [task-1.webm](benchmark/task-1.webm) |
-| 2 | Import a Postman collection with scripts and run it | 11 | 11 | 0 | 0 | 1.66 | 1.77, 1.63, 1.66 | [task-2.webm](benchmark/task-2.webm) |
+| 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 | 0 | 0 | 1.66 before D5-e | 1.77, 1.63, 1.66 | [task-2.webm](benchmark/task-2.webm) (before D5-e) |
 | 3 | Add an environment and switch to it | 11 | 7 | 1 | 3 | 0.60 | 0.60, 0.56, 0.61 | [task-3.webm](benchmark/task-3.webm) |
 | 4 | Use a secret without it touching disk | 20 | 13 | 1 | 6 | 1.10 | 1.10, 1.10, 1.07 | [task-4.webm](benchmark/task-4.webm) |
 | 5a | Find why a request failed: CORS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.37 | 0.37, 0.37, 0.37 | [task-5a.webm](benchmark/task-5a.webm) |
@@ -54,6 +54,12 @@ What each task ends on, and how it gets there, is
 [`baseline.md`](baseline.md)'s "What each task does"; since then:
 
 - **1.** The caret starts in the address (D4-c): the address, then Enter.
+- **2.** Since D5-e the import's report offers **Import and review
+  scripts…**: the collection is stored with its scripts unapproved, and the
+  review opens on it. Import, File…, the file, Import and review scripts…,
+  Trust these scripts, then right-click, Run…, Run: 8. Before, the review
+  was reached through a request's Scripts tab (11). The 8 is counted from
+  the steps; the seconds are D5.1's until the task is run again.
 - **5a and 5b** end when the cause is named. A direct send says "No
   response" and why the browser cannot say more, with **Send through the
   Local Bridge**. From the failure's record the task copies the command,
@@ -229,7 +235,7 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 | # | Task | Wayfarer | Fewest documented | Wayfarer is |
 |---|---|---|---|---|
 | 1 | First request from nothing | 2 | 2 (Hoppscotch, a target that allows CORS) | Tied, and Wayfarer's count holds for any target the bridge reaches |
-| 2 | Import a Postman collection with scripts and run it | 11 | 8 (Insomnia) | Behind by 3 |
+| 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 (Insomnia) | Tied (was behind by 3) |
 | 3 | Add an environment and switch to it | 11 | 5, 2 of them inferred (Insomnia) | Behind by 6 |
 | 4 | Use a secret without it touching disk | 20 | None: no free rival keeps a secret off disk | The only one that does it |
 | 5 | Find why a request failed | 8, 8 (+2 in a terminal), 4 | None documented to a named cause | The only one documented to the cause |
@@ -237,7 +243,8 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 | 7 | Run a collection with a data file and read the report | 5 | 2 (Bruno's and Hoppscotch's CLIs); 5 in an app (Bruno, paid) | Tied in an app; behind a CLI by 3 |
 | 8 | Find a request sent last week | 4 | 2 and scrolling (Hoppscotch); 3 with a search (Postman, inferred) | Behind by 1 to 2 |
 
-Fastest or tied on four of eight (1, 4, 5, 6), five if task 7 is compared
-app to app. Section 1's six is not met: tasks 2, 3 and 8 are behind, and
+Fastest or tied on five of eight (1, 2, 4, 5, 6; task 2 since D5-e), six
+if task 7 is compared app to app. Section 1's six is met only that way:
+tasks 3 and 8 are behind, and
 the comparison rests on documented counts, several of them inferred. D5-c
 records the gap or closes it (plan row 1.64).

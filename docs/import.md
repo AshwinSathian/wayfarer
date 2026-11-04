@@ -36,7 +36,11 @@ or a body mode the app does not have, a field that is dropped).
 
 - **It does not approve scripts.** An imported collection is untrusted, and
   its scripts, its folders' and its requests' do not run until you have
-  read them in the review dialog ([`scripts.md`](scripts.md)).
+  read them in the review dialog ([`scripts.md`](scripts.md)). When the
+  file is one collection with scripts, the report has a third button,
+  **Import and review scripts…**: it imports the collection as Import does,
+  untrusted, and then opens that review on it. Not now leaves the scripts
+  waiting; only Trust these scripts approves them.
 - **It does not fetch.** Nothing is requested from the network for an import.
 - **It does not store before you confirm.**
 

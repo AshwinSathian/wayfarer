@@ -223,7 +223,7 @@ test.describe("scripts of a collection and a folder", () => {
     const review = page.getByRole("dialog", { name: "Review scripts" });
     await expect(review).toContainText("5 scripts in the collection, 1 folder and 1 request");
     await expect(review.locator(".script-review-list li").first()).toContainText(
-      "Collection Inherited collection Pre-request script",
+      "Inherited collection collection · pre-request script",
     );
     await review.getByRole("button", { name: "Trust these scripts" }).click();
     await expect(review).toHaveCount(0);

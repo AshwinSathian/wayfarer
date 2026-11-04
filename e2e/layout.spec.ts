@@ -386,7 +386,9 @@ test.describe("the response under the request", () => {
 
     await page.reload();
     await expect.poll(async () => Math.abs((await composer.boundingBox())!.height - after)).toBeLessThan(2);
+    // The default beside the request is read when the page loads (U-003), so load it at that width.
     await page.setViewportSize({ width: 1460, height: 900 });
+    await page.reload();
     await expect(gutter(page)).toHaveAttribute("aria-orientation", "vertical");
     await expect(gutter(page)).toHaveAttribute("aria-valuenow", "45");
   });

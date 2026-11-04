@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Things are called the same everywhere.** The body's type select is
+  "Body type", not a second "Body"; the environment editor's tab says
+  "Name / Value" over columns named Name and Value; the palette says
+  "Request history", as the toolbar does; script headings are in sentence
+  case; Settings no longer writes the Mac's ⌘K on every platform; and the
+  environments pane, with none made, says how to make one.
+
 - **Empty places are a line of text again, not a dashed box.** The
   Secrets dialog, and the Timings and Tests tabs before a send, drew a
   dashed box around their one sentence, and the Secrets dialog kept a

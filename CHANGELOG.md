@@ -718,6 +718,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The response goes under the request when the two have no room side
+  by side.** In a 820 px window, or a 1,024 to 1,400 px window with the
+  sidebar pinned, the request and the response were two columns of 300 to
+  420 px: the status line wrapped to three lines, a parameter's value went
+  under its name, and the JSON body scrolled sideways. Now, when the
+  composer itself is narrower than 62 em (992 px at the default text
+  size), the response sits under the request at full width, with the line
+  between them across; drag it, or focus it and use Up and Down. The
+  request takes two fifths of the height until you move the line, and the
+  position you choose is kept apart from the one beside. Settings ›
+  General › Response keeps the response beside the request or under it at
+  any width, and the palette has "Put the response under the request" and
+  "Put the response beside the request". At 1,440 px with the sidebar
+  pinned nothing changes.
+
 - **An import with scripts can end in their review.** When the file is
   one collection with scripts, the import's report has a third button,
   Import and review scripts…. It imports the collection untrusted, as

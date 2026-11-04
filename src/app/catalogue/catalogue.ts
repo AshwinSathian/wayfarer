@@ -18,6 +18,7 @@ import { UiSegmented, type UiSegment } from "../ui/segmented";
 import { UiSelect, type UiSelectOption } from "../ui/select";
 import { UiTabList } from "../ui/tabs";
 import { Tree, UiTreeNode } from "../ui/tree";
+import { Splitter } from "../ui/splitter";
 import { Icon } from "../shared/icon/icon";
 
 interface Row {
@@ -66,6 +67,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     UiSegmented,
     UiSelect,
     UiTabList,
+    Splitter,
   ],
   template: `
     <main class="catalogue">
@@ -238,6 +240,28 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <button uiButton="outlined" class="btn-secondary" type="button"><ui-spinner /> Test connection</button>
           <ui-spinner [diameter]="28" label="Loading secrets" />
         </div>
+      </section>
+
+      <section aria-labelledby="catalogue-splitter">
+        <h2 id="catalogue-splitter" class="type-title-3">Splitter</h2>
+        <p class="type-callout text-label-secondary"
+          >Two panes side by side, and one above the other, as the request and the response are in a narrow work
+          area.</p
+        >
+        <ui-splitter class="catalogue-split" [sizes]="[55, 45]" [minSizes]="[28, 22]" ariaLabel="Resize side by side">
+          <p uiSplitterStart class="type-body">Request</p>
+          <p uiSplitterEnd class="type-body">Response</p>
+        </ui-splitter>
+        <ui-splitter
+          class="catalogue-split catalogue-split-stacked"
+          orientation="horizontal"
+          [sizes]="[40, 60]"
+          [minSizes]="[20, 30]"
+          ariaLabel="Resize one above the other"
+        >
+          <p uiSplitterStart class="type-body">Request</p>
+          <p uiSplitterEnd class="type-body">Response</p>
+        </ui-splitter>
       </section>
 
       <section aria-labelledby="catalogue-fields">
@@ -591,6 +615,13 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       gap: 24px;
       max-width: 640px;
       padding: 24px 16px;
+    }
+    .catalogue-split {
+      height: 120px;
+    }
+    .catalogue-split-stacked {
+      height: 240px;
+      margin-top: 16px;
     }
     .catalogue-tree {
       display: block;

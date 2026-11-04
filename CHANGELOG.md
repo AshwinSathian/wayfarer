@@ -759,6 +759,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **On a phone, Send fills its row and the response's status takes two
+  lines, not three.** Send was an 88 px button at the left of the row
+  under the address, with empty space beside it; it now runs to the
+  row's end. The status line put the code and its reason on one line,
+  the time, the size and where the request went on a second, and the
+  Export button on a third. The code, reason, time and size are now one
+  line, with where the request went and Export on the next, at its end;
+  on a wider pane they all share one line, as before. The method field
+  is as wide as its method (it was 76 px around "GET"), which gives the
+  address the room.
+
 - **The line between the request and the response reaches the status
   bar.** It stopped 16 px short, in the page's bottom margin, so it read
   as a line that had run out rather than an edge between two panes. It

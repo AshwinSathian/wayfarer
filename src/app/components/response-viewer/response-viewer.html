@@ -50,8 +50,25 @@
         <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
         } @if (responseContentLength()) {
         <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
-        } @if (record(); as rec) {
-        <!-- The record's first line ends here: where the request went. It opens the record (D4.12). -->
+        }
+      </span>
+
+      @if (tlsInsecure()) {
+      <span
+        class="tls-off-pill"
+        tabindex="0"
+        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
+      >
+        <app-icon name="warning" class="icon-xs" />
+        Certificate not checked
+      </span>
+      }
+
+      <!-- Where the request went, and Export, at the line's end: on a phone a line of their own under the status and
+           its facts (V21). -->
+      <div class="ml-auto flex min-w-0 max-w-full items-center gap-2">
+        @if (record(); as rec) {
+        <!-- It opens the record (D4.12). -->
         <button
           type="button"
           uiButton
@@ -68,23 +85,7 @@
         <span class="response-fact route-badge" uiTooltip="Route"
           >{{ route === 'bridge' ? 'Local Bridge' : 'Direct' }}</span
         >
-        }
-      </span>
-
-      @if (tlsInsecure()) {
-      <span
-        class="tls-off-pill"
-        tabindex="0"
-        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
-      >
-        <app-icon name="warning" class="icon-xs" />
-        Certificate not checked
-      </span>
-      }
-
-      <!-- Export -->
-      @if (canExport) {
-      <div class="ml-auto flex min-w-0 items-center gap-2">
+        } @if (canExport) {
         <!-- What the last copy did (U-050). Always there while the button is, so that a screen reader hears it change. -->
         <span class="copy-note type-footnote text-label-secondary min-w-0" role="status">{{ copyStatus.text() }}</span>
         <button
@@ -99,8 +100,8 @@
           ><app-icon name="download" class="icon-md"
         /></button>
         <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
+        }
       </div>
-      }
     </div>
     } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->

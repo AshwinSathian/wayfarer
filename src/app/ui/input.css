@@ -151,8 +151,10 @@ textarea.ui-input {
 /* Mono, upper case: any HTTP method can be typed; .method-menu beside it
    lists the common ones. */
 .ui-input.method-field {
-  flex: 0 0 76px;
-  min-width: 76px;
+  /* As wide as its method (V21): 76 px around GET took the address's room on a phone. Three letters at least, eight
+     at most (a longer one scrolls in the field); a letter is 1ch and its spacing, and 2 px are the caret's. */
+  flex: none;
+  width: calc(clamp(3, var(--method-chars, 3), 8) * (1ch + 0.05em) + 16px);
   padding-inline: 14px 0;
   font-family: var(--font-mono);
   /* No mono role under 13 px: JetBrains Mono's 0 and O were a device pixel apart at 12 (U-151). */

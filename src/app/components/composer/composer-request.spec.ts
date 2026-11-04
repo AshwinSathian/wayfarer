@@ -382,6 +382,27 @@ describe("Composer: rows, payloads and variables", () => {
     await pending;
   });
 
+  // D5-e (V21): on a phone the buttons go under the address, and Send fills that row to its end: it was 88 px at the
+  // left. The method field is as wide as its method: 76 px around "GET" left the address less room.
+  it("on a phone, Send fills the row under the address to its end, and the method field fits its method", () => {
+    const host = fixture.nativeElement as HTMLElement;
+    Object.assign(host.style, { display: "block", width: "360px" });
+    store.patch({ url: "https://example.com/items" });
+    fixture.detectChanges();
+    const box = (selector: string) => host.querySelector(selector)!.getBoundingClientRect();
+    const bar = box(".address-bar");
+    const send = box(".send-btn");
+    expect(send.top).toBeGreaterThanOrEqual(bar.bottom);
+    expect(Math.abs(send.right - bar.right)).toBeLessThan(1);
+    expect(send.width).toBeGreaterThan(150);
+
+    const get = box(".method-field").width;
+    expect(get).toBeLessThan(60);
+    view.onRequestMethodChange("OPTIONS");
+    fixture.detectChanges();
+    expect(box(".method-field").width).toBeGreaterThan(get + 20);
+  });
+
   // D5-e (V1): the pane does not go blank while a request is out. The last response stays until the next one is there.
   it("keeps the last response while the next send is on its way, and replaces it when the answer comes", async () => {
     store.patch({ url: "https://example.com/first" });

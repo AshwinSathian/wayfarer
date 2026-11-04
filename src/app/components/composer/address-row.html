@@ -1,5 +1,7 @@
 <!-- Unified method + URL bar -->
-<div class="address-bar min-w-0 flex-[1_1_20rem]">
+<!-- The bar takes the room of its line and the buttons none, beside it; under it, on their own line, they take it all
+     and Send fills it to its end (V21): flex-grow 999 to 1. -->
+<div class="address-bar min-w-0 flex-[999_1_20rem]">
   <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. A WebSocket has none (U-047). -->
   @if (socket.isSocket()) {
   <span class="socket-scheme" aria-hidden="true">WS</span>
@@ -14,6 +16,7 @@
     autocapitalize="characters"
     autocomplete="off"
     [value]="store.draft().method"
+    [style.--method-chars]="store.draft().method.length"
     (input)="onMethodInput(methodInput)"
   />
   <button
@@ -47,7 +50,7 @@
 </div>
 
 <!-- Action buttons -->
-<div class="flex shrink-0 items-center gap-2">
+<div class="flex flex-[1_0_auto] items-center gap-2">
   <!--
     Disabled native buttons ignore an author-specified `cursor` in most
     browsers (the UA always paints the default arrow over a genuinely
@@ -108,7 +111,7 @@
   <button
     uiButton="filled"
     type="button"
-    class="send-btn"
+    class="send-btn flex-1"
     [class.send-btn-quiet]="socketStatus() !== 'closed'"
     (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()"
     >{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button
@@ -122,7 +125,7 @@
     [uiTooltip]="store.loadingState() ? '' : 'Send request'"
     [uiTooltipKeys]="shortcuts.send"
     (click)="sendOrStop($event)"
-    class="send-btn"
+    class="send-btn flex-1"
     >{{ store.loadingState() ? "Stop" : "Send" }}</button
   >
   }

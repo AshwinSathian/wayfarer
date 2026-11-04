@@ -1900,6 +1900,7 @@ Evidence: `baseline/design-chromium/response-error-1440-light.png`;
 `src/app/components/settings/bridge-pane.html:148-154`;
 `packages/bridge/README.md` ("It needs Node.js 22.21 or later").
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the record's set-up says to start the bridge "in a terminal (it needs Node.js 22.21 or later)", and under the command that Chrome and Edge may ask about the local network the first time, and that from the hosted app Safari reaches the bridge only over HTTPS, with `--cert` and `--key`. `bridge-setup.spec.ts` holds the words.
 
 **U-160. A Wayfarer file's import says "Replaces" for items that do not
 exist.** Severity 3. H1, H2. TP.

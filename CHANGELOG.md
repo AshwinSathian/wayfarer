@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Local Bridge's set-up after a failed send says what the bridge
+  needs.** It gave a command and a pairing code, and left out that the
+  command runs in a terminal with Node.js 22.21 or later, that Chrome and
+  Edge ask about the local network the first time, and that Safari
+  reaches the bridge from the hosted app only over HTTPS. It says all
+  three now.
+
 - **When a request's scripts did not run, the response says so where you
   look.** The note that its scripts wait for a review was inside the
   response's Tests tab, while the response opens on Body. It is now under

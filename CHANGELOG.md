@@ -634,6 +634,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   a run's tab selects no row in the tree, and a tab bar with more tabs
   than fit fades on that side.
 
+- **The design review's stress states are checked in Firefox and
+  WebKit.** The October review ran narrow windows, large text,
+  right-to-left, forced colours and the error states in Chromium alone.
+  They now have captures in all three engines, and the touch targets are
+  measured without their parents. They found three problems, two of them
+  fixed in this release (a larger text size in the browser, and Params
+  at large text); the third, a checkbox 1 px short of its spacing on a
+  phone, is open.
+
 - **The design audit's status lines match `main`.** Five findings were
   still marked open though their fixes had shipped: the palette's
   shortcut below 1,200 px (U-049, fixed in #484) and four of motion

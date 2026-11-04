@@ -245,25 +245,25 @@ Both moments check clean against the catalogue: no celebration effect and no loa
 5. **Purpose: build the C rail as the account of a request.** Give it a session. It should hold the route, the host, the secrets used (masked) and what history kept, plus the next action on failure. The run table (W-20) and history then open into it.
 
 ## 6. Unverified
-- **Rival screens:** none captured (D1.4 rivals half not run), so the competitor swap rests on reviewer knowledge. Verify by capturing Yaak, Postman, Bruno, Insomnia, Hoppscotch and Linear.
-- **Firefox and WebKit:** not run (Chromium 156 only). Verify with the three-engine projects.
-- **Screen readers (VoiceOver, NVDA):** not run; W-2, W-3 and W-18 rest on source. Verify on send, unlock and banners.
-- **Toasts and notices:** "Copied as cURL." and the after-delete state were not captured.
-- **Loading:** a sub-50 ms skeleton paint was not frame-captured, and slow-network throttling was not used.
-- **Save:** whether ⌘S wrote to storage was not checked, and no real IndexedDB quota or blocked failure was produced (W-8).
-- **W-1 at runtime:** confirmed in source only. Verify: edit petId, press Esc, reopen.
-- **Error wording:** may differ in other engines; the CLI's `networkErrorWithoutPage` was not seen; `navigator.onLine` was not tested on captive networks.
-- **2.5.8 targets:** the 8 px splitter, the 16 px checkbox, the 18 px response textbox and a 20 px vault button (possibly "Reveal", `environments-manager.html:175`) need a re-run that excludes ancestors.
-- **Stress states:** forced colours, RTL, 200% text and pseudo-localisation were run on the composer and Settings only. Increased contrast has nothing to render (DS-6).
-- **Installed PWA:** title bar, splash and iOS safe areas not seen (W-33, W-34).
-- **⌥T/⌥W:** not tested in Firefox on Windows (W-25).
-- **Hover:** a pointer sweep of the tree rows' hover actions was not done.
-- **Theme flash:** the `data-theme="dark"` default on a light OS was not captured.
-- **Monaco:** its screen-reader mode and focus ring, and its font and brackets (U-052, U-038), were not re-measured.
-- **DS ratios:** computed over assumed surfaces. Two pairs were not found in a real view: tertiary text on a hovered overlay (4.11:1) and a placeholder in a filled field inside a dialog (3.90:1).
-- **Indeterminate checkbox:** whether History's select-all needs one.
-- **Importer strings:** linted, not read one by one.
-- **Reading level:** no target set in the profile.
+- **Rival screens:** none captured (D1.4 rivals half not run), so the competitor swap rests on reviewer knowledge. Verify by capturing Yaak, Postman, Bruno, Insomnia, Hoppscotch and Linear. **2026-11-04:** open; D5-b links the rivals' dated public screenshots (row 1.64), which the swap reads.
+- **Firefox and WebKit:** not run (Chromium 156 only). Verify with the three-engine projects. **2026-11-04:** verified for the stress states in D5-a: [`hig-review/d18.md`](hig-review/d18.md). The rest of the review is retaken in three engines in D5-b.
+- **Screen readers (VoiceOver, NVDA):** not run; W-2, W-3 and W-18 rest on source. Verify on send, unlock and banners. **2026-11-04:** the maintainer's owner step (D1.8); VoiceOver with Safari on send, unlock and a banner gates D5.2 (row 1.64).
+- **Toasts and notices:** "Copied as cURL." and the after-delete state were not captured. **2026-11-04:** fixed since (U-050, U-080), not captured; D5-b's pass.
+- **Loading:** a sub-50 ms skeleton paint was not frame-captured, and slow-network throttling was not used. **2026-11-04:** open; D5-b's pass.
+- **Save:** whether ⌘S wrote to storage was not checked, and no real IndexedDB quota or blocked failure was produced (W-8). **2026-11-04:** a failed save now says so (U-066, #443); a real quota failure is still not produced. D5-b's pass.
+- **W-1 at runtime:** confirmed in source only. Verify: edit petId, press Esc, reopen. **2026-11-04:** verified: U-060 fixed in #437, whose e2e finds the edit stored after ×, Escape and choosing another environment.
+- **Error wording:** may differ in other engines; the CLI's `networkErrorWithoutPage` was not seen; `navigator.onLine` was not tested on captive networks. **2026-11-04:** verified in three engines in D5-a ([`hig-review/d18.md`](hig-review/d18.md)): the same words, the engine's own message quoted in the record.
+- **2.5.8 targets:** the 8 px splitter, the 16 px checkbox, the 18 px response textbox and a 20 px vault button (possibly "Reveal", `environments-manager.html:175`) need a re-run that excludes ancestors. **2026-11-04:** measured without ancestors in D5-a ([`hig-review/d18.md`](hig-review/d18.md)): none of the four fails; one other does, at 390 px (U-154).
+- **Stress states:** forced colours, RTL, 200% text and pseudo-localisation were run on the composer and Settings only. Increased contrast has nothing to render (DS-6). **2026-11-04:** taken in three engines in D5-a ([`hig-review/d18.md`](hig-review/d18.md)); they found U-153 and U-155.
+- **Installed PWA:** title bar, splash and iOS safe areas not seen (W-33, W-34). **2026-11-04:** the maintainer's owner step (D4.13); does not gate the release (row 1.64).
+- **⌥T/⌥W:** not tested in Firefox on Windows (W-25). **2026-11-04:** the maintainer's owner step, with the installed app on Windows.
+- **Hover:** a pointer sweep of the tree rows' hover actions was not done. **2026-11-04:** open; D5-b's pass.
+- **Theme flash:** the `data-theme="dark"` default on a light OS was not captured. **2026-11-04:** fixed since (F85: `public/theme.js` sets the theme before the page has a body).
+- **Monaco:** its screen-reader mode and focus ring, and its font and brackets (U-052, U-038), were not re-measured. **2026-11-04:** open; D5-b's pass.
+- **DS ratios:** computed over assumed surfaces. Two pairs were not found in a real view: tertiary text on a hovered overlay (4.11:1) and a placeholder in a filled field inside a dialog (3.90:1). **2026-11-04:** since D3-b (#478) `scripts/contrast.test.mjs` computes every text and fill pair in both themes and at both contrast levels; the two pairs were not looked for in a view. D5-b's pass.
+- **Indeterminate checkbox:** whether History's select-all needs one. **2026-11-04:** open; D5-b's pass.
+- **Importer strings:** linted, not read one by one. **2026-11-04:** open; D5-b's pass.
+- **Reading level:** no target set in the profile. **2026-11-04:** open; D5-b's pass.
 
 ## 7. Offer
 

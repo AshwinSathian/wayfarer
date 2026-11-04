@@ -728,6 +728,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   as the site already set it; the app used SemiBold beside the mark and
   a lighter weight in the toolbar.
 
+- **The response goes under the request when the two have no room side
+  by side.** In a 820 px window, or a 1,024 to 1,400 px window with the
+  sidebar pinned, the request and the response were two columns of 300 to
+  420 px: the status line wrapped to three lines, a parameter's value went
+  under its name, and the JSON body scrolled sideways. Now, when the
+  composer itself is narrower than 62 em (992 px at the default text
+  size), the response sits under the request at full width, with the line
+  between them across; drag it, or focus it and use Up and Down. The
+  request takes two fifths of the height until you move the line, and the
+  position you choose is kept apart from the one beside. Settings ›
+  General › Response keeps the response beside the request or under it at
+  any width, and the palette has "Put the response under the request" and
+  "Put the response beside the request". At 1,440 px with the sidebar
+  pinned nothing changes.
+
+- **An import with scripts can end in their review.** When the file is
+  one collection with scripts, the import's report has a third button,
+  Import and review scripts…. It imports the collection untrusted, as
+  Import does, and opens the script review on it; Trust these scripts is
+  still the only thing that approves them, and Not now leaves them
+  waiting. Before, the review was reached by opening a request and its
+  Scripts tab, or from a run that had already sent without the scripts.
+  Importing a Postman collection and running it with its scripts takes 8
+  actions instead of 11. A review opened for a collection (from the
+  import or a run) also shows that collection's scripts when the open tab
+  is a history entry with scripts of its own: before, it showed and
+  cleared the entry's, and the collection stayed unreviewed.
+
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of
   the fifth pass.

@@ -435,6 +435,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Local Bridge's set-up after a failed send says what the bridge
+  needs.** It gave a command and a pairing code, and left out that the
+  command runs in a terminal with Node.js 22.21 or later, that Chrome and
+  Edge ask about the local network the first time, and that Safari
+  reaches the bridge from the hosted app only over HTTPS. It says all
+  three now.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

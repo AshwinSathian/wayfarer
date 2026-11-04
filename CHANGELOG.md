@@ -696,6 +696,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design captures show the app as session D5-c left it.** The
+  Chromium baseline of every screen is taken again after the fixes of
+  the fifth pass.
+
 - **Every problem the last design review found has a decision.** The
   smaller ones that remain are listed for the first work after 3.0, and
   the design audit says why each of the others is fixed or kept as it is.

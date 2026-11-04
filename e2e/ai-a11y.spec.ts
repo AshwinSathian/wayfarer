@@ -87,8 +87,8 @@ for (const theme of ["light", "dark"] as const)
       await expect(dialog).toHaveCount(0);
 
       // History: the filter and a model call opened in place.
-      await toolbarOrDrawer(page, "Request history");
-      const drawer = page.getByRole("dialog", { name: "Request history" });
+      await toolbarOrDrawer(page, "History");
+      const drawer = page.getByRole("dialog", { name: "History", exact: true });
       await drawer.getByRole("radio", { name: "Model calls" }).click();
       const row = drawer.getByRole("button", { name: /^Model call, Explain a response/ });
       await row.focus();

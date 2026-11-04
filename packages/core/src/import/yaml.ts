@@ -16,7 +16,7 @@ export const MAX_YAML_CHARS = 1024 * 1024;
 
 export const YAML_ALIASES = `The YAML file repeats parts of itself through aliases ${MAX_YAML_ALIASES} times or more and is refused: a file written that way grows without end as it is read.`;
 export const YAML_TOO_LARGE =
-  "The file is not JSON, and at more than 1 MB it is too large to be read as YAML: a YAML file takes far more memory to read than a JSON file of its size. If it is YAML, convert it to JSON and import that.";
+  "This file is not JSON, and a YAML file can be 1 MB at most: reading YAML takes far more memory than JSON. Convert it to JSON and import that.";
 export const NOT_READABLE =
   "The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.";
 

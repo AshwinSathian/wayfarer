@@ -178,7 +178,7 @@
     <app-variable-rows class="mt-5" [holder]="holder" [reveal]="reveal()" />
     }
   </div>
-  } @else {
+  } @else if (environments().length) {
   <div class="ds-empty-state">
     <app-icon
       name="dns"
@@ -192,8 +192,7 @@
       "
     />
     <p class="type-callout text-label-tertiary max-w-[220px] text-center"
-      >{{ environments().length ? "Choose an environment to edit its variables." : "Make an environment with New
-      environment, and its variables are edited here." }}</p
+      >Choose an environment to edit its variables.</p
     >
   </div>
   }

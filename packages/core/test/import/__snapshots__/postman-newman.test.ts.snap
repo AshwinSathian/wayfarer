@@ -3,7 +3,7 @@
 exports[`Newman's integration collections, imported, against Newman > @claim:C-058 every collection inside the matrix gives Newman's test names, passes and failures 1`] = `
 {
   "comma-test-csv/comma-test-csv.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
-  "cookie-jar.postman_collection.json": "request "Verify cookie": Its post-response script uses postman.getResponseCookie, which Wayfarer does not have. The script will end in an error there.",
+  "cookie-jar.postman_collection.json": "request "Verify cookie": Its post-response script uses postman.getResponseCookie, which Wayfarer does not have, so the script stops with an error there.",
   "crypto-md5.postman_collection.json": "a script uses the legacy global CryptoJS (matrix: legacy library globals, unsupported)",
   "csv-with-bom/csv-with-bom.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
   "custom-http-method/custom-http-method.postman_collection.json": "Newman did not run it here: it calls localhost:4041: a server these fixtures do not have",
@@ -23,7 +23,7 @@ exports[`Newman's integration collections, imported, against Newman > @claim:C-0
   "redirect-test/redirect-with-body.postman_collection.json": "Newman did not run it here: it calls localhost:4042: a server these fixtures do not have",
   "request-body-with-get.postman_collection.json": "Newman did not run it here: it calls localhost:4041: a server these fixtures do not have",
   "request-name-in-script.postman_collection.json": "its scripts read \`request.name\` and \`request.description\` of the legacy \`request\` (matrix: partial), and its pre-request script then ends in an error: Postman sends anyway, the app stops the send (P3.9)",
-  "sandbox-libraries.postman_collection.json": "request "AJV": Its post-response script uses require('ajv'), which Wayfarer does not have. The script will end in an error there.",
+  "sandbox-libraries.postman_collection.json": "request "AJV": Its post-response script uses require('ajv'), which Wayfarer does not have, so the script stops with an error there.",
   "set-next-request.postman_collection.json": "Newman did not run it here: its scripts choose the next request (setNextRequest): a run is P5.2",
   "steph/steph.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
   "super-sandbox-test.postman_collection.json": "request "DigestAuth": Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth.",

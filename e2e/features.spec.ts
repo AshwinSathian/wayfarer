@@ -65,9 +65,9 @@ test("TRACE is not sent from the browser, and the page says why", async ({ page 
   await send(page);
 
   await expect(
-    page
-      .getByRole("alert")
-      .filter({ hasText: "Browsers do not send TRACE requests. Choose the route Local Bridge to send one." }),
+    page.getByRole("alert").filter({
+      hasText: "A browser cannot send a TRACE request. Set this request's route to Local Bridge, in its Network tab.",
+    }),
   ).toBeVisible();
   expect(sent).toEqual([]);
 });
@@ -162,14 +162,14 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
     await send(page);
     await expect(page.locator(".status-badge")).toHaveText("200");
   }
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await expect(drawer.getByText("Today", { exact: true })).toBeVisible();
 
   await drawer.getByRole("button", { name: /c029=1\b/ }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?c029=1`);
 
-  if (!(await drawer.isVisible())) await page.getByRole("button", { name: "Request history", exact: true }).click();
+  if (!(await drawer.isVisible())) await page.getByRole("button", { name: "History", exact: true }).click();
   const entries = drawer.getByRole("button", { name: /c029=/ });
   await expect(entries).toHaveCount(2);
   await drawer.getByRole("button", { name: "Delete from history" }).first().click();
@@ -200,8 +200,8 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
         [property, pseudo],
       );
   expect(await seconds('.tab-bar [role="tab"]', "transitionDuration")).toBeLessThan(0.01);
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "Request history" })).toBeVisible();
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "History", exact: true })).toBeVisible();
   expect(await seconds("dialog.ui-drawer-end", "animationDuration")).toBeLessThan(0.01);
   await page.keyboard.press("Escape");
   await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
@@ -434,8 +434,8 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c029clear=1`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await expect(drawer.getByRole("button", { name: /c029clear=1/ })).toBeVisible();
   await page.getByRole("button", { name: "Clear history…" }).click();
   const confirm = page
@@ -525,7 +525,7 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   await page.locator("input.address-url").fill(`${ECHO}/content/json?details=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-  await page.getByRole("button", { name: "Request history" }).click();
+  await page.getByRole("button", { name: "History", exact: true }).click();
 
   // Reach the entry with the keyboard: focus that scripts or clicks set does
   // not open the card. Safari tabs to non-inputs with Option+Tab.

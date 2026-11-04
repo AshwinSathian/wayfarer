@@ -288,7 +288,7 @@ export class SecretsVault {
   private key(): VaultKey {
     const dek = this.dek();
     if (!dek) {
-      throw new Error("Secrets are locked. Unlock before saving new secrets.");
+      throw new Error("The vault is locked. Unlock it to save this secret.");
     }
     return dek;
   }

@@ -99,7 +99,7 @@ test.describe("Accessibility (primary flows)", () => {
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
-    await page.getByRole("button", { name: "Request history" }).click();
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await page.getByRole("button", { name: "Clear history…" }).click();
 
     // The open confirmation is an alert dialog named by its heading and
@@ -130,7 +130,7 @@ test.describe("Accessibility (primary flows)", () => {
 
     for (const theme of ["dark", "light"]) {
       await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
-      await page.getByRole("button", { name: "Request history" }).click();
+      await page.getByRole("button", { name: "History", exact: true }).click();
       await page.getByRole("button", { name: "Delete from history" }).first().click();
       await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeVisible();
 
@@ -206,7 +206,7 @@ test.describe("Accessibility (primary flows)", () => {
           .click();
         await scan(`response ${tab}`);
       }
-      for (const opener of ["Request history", "Settings", "Route: direct", "Secrets", "New collection"]) {
+      for (const opener of ["History", "Settings", "Route: direct", "Secrets", "New collection"]) {
         // The header's button; an empty sidebar has a second "New collection" (U-022).
         await button(opener).first().click();
         await expect(page.getByRole("dialog").first()).toBeVisible();

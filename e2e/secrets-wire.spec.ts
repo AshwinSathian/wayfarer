@@ -84,8 +84,8 @@ async function harText(page: Page, from: "response" | "history", credentials = f
     await page.getByRole("button", { name: "Export response" }).click();
     await page.getByRole("menuitem", { name: "Export as HAR…", exact: true }).click();
   } else {
-    await page.getByRole("button", { name: "Request history", exact: true }).click();
-    const drawer = page.getByRole("dialog", { name: "Request history" });
+    await page.getByRole("button", { name: "History", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "History", exact: true });
     await drawer.getByRole("button", { name: "Select…", exact: true }).click();
     await drawer.getByRole("button", { name: "Select all", exact: true }).click();
     await drawer.getByRole("button", { name: /Export .*as HAR…/ }).click();
@@ -103,7 +103,7 @@ async function harText(page: Page, from: "response" | "history", credentials = f
   await expect(dialog).toHaveCount(0);
   if (from === "history") {
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog", { name: "Request history" })).toBeHidden();
+    await expect(page.getByRole("dialog", { name: "History", exact: true })).toBeHidden();
   }
   // What the dialog showed is searched too.
   return `${Buffer.concat(chunks).toString("utf8")}\n${shown}`;
@@ -362,7 +362,7 @@ test("a request that uses a secret while the vault is locked asks for the passph
   });
 
   await send(page);
-  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await expect(dialog).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
@@ -377,7 +377,7 @@ test("a request that uses a secret while the vault is locked asks for the passph
   );
   await send(page);
   await dialog.locator("input[type='password']").fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await dialog.getByRole("button", { name: "Unlock vault" }).click();
   const echo = (await (await response).json()) as Echo;
   expect(echo.headers.find(([key]) => key === "x-api-key")?.[1]).toBe("locked-vault-secret");
 });
@@ -525,9 +525,9 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   const again = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
   await send(page);
-  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await dialog.locator("input[type='password']").fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await dialog.getByRole("button", { name: "Unlock vault" }).click();
   expect(((await (await again).json()) as Echo).headers.find(([key]) => key === "authorization")?.[1]).toBe(
     `Bearer ${token}`,
   );
@@ -643,8 +643,8 @@ test("history is searched by URL, by method and by status", async ({ page }) => 
   }
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(2);
 
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   const rows = drawer.getByRole("button", { name: /https?:\/\// });
   const search = drawer.getByRole("searchbox", { name: "Search history" });
   await expect(rows).toHaveCount(2);

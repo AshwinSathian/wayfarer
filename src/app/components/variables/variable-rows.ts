@@ -429,7 +429,7 @@ export class VariableRows implements OnDestroy {
     const named = !!row.key.trim();
     const valued = !!String(row.value ?? "").length;
     if (!named && valued) return "This row has no name, so it is not kept. Give it one.";
-    if (named && !valued) return "This variable is empty.";
+    if (named && !valued) return "This variable has no value.";
     return null;
   }
 

@@ -22,7 +22,7 @@ export class DatabaseResetBlockedError extends Error {
   override readonly name = "DatabaseResetBlockedError";
 
   constructor() {
-    super("Close other Wayfarer tabs and try again.");
+    super("Another Wayfarer tab has the data open. Close it, then try again.");
   }
 }
 
@@ -163,7 +163,7 @@ export class IdbCore {
   async ensurePersistentSupport(): Promise<void> {
     await this.init();
     if (this.memoryOnly()) {
-      throw new Error("Persistent storage is not available in this environment.");
+      throw new Error("This browser gives Wayfarer no storage, so nothing can be saved.");
     }
   }
 

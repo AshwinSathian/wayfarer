@@ -190,8 +190,8 @@
   <div class="flex items-center gap-2.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
     <p class="type-callout text-label-tertiary"
-      >{{ subject() === "request" ? "No authentication will be applied to this request." : "Requests that inherit from
-      this " + subject() + " are sent with no authentication." }}</p
+      >{{ subject() === "request" ? "This request is sent with no auth." : "Requests that inherit from this " +
+      subject() + " are sent with no auth." }}</p
     >
   </div>
   }

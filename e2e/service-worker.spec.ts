@@ -201,7 +201,7 @@ test("@claim:C-015 the service worker never answers cross-origin requests", asyn
   }
 });
 
-test("a new deploy shows 'Update available' within one navigation, and Reload switches to it", async ({ page }) => {
+test("a new deploy says a new version is ready within one navigation, and Reload switches to it", async ({ page }) => {
   await loadControlled(page);
 
   // Simulate a deploy: new index.html content, regenerated worker manifest.
@@ -212,17 +212,17 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
 
   await page.goto(`${base}/app/`);
   // Said by the shell's live region (U-075), and drawn as a banner with its button.
-  await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(1);
+  await expect(page.getByRole("status").filter({ hasText: "A new version of Wayfarer is ready" })).toHaveCount(1);
   const banner = page
     .locator("main div")
-    .filter({ hasText: "Update available" })
+    .filter({ hasText: "A new version of Wayfarer is ready" })
     .filter({ has: page.getByRole("button") });
   await expect(banner.last()).toBeVisible();
 
   const reloaded = page.waitForEvent("load");
   await banner.last().getByRole("button", { name: "Reload" }).click();
   await reloaded;
-  await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "A new version of Wayfarer is ready" })).toHaveCount(0);
   expect(await page.evaluate(() => caches.keys())).toEqual([`wayfarer-${version}`]);
 });
 

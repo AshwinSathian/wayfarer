@@ -23,7 +23,7 @@ test("a request's route, redirects and certificate check are in its Network tab;
   await page.getByRole("checkbox", { name: "Do not verify the server's certificate" }).check();
   await page.getByRole("tab", { name: "Headers" }).click();
   await expect(follow).toBeHidden();
-  await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveText("TLS verification off");
+  await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveText("Certificate not checked");
 });
 
 test("the Network section opened on a phone is the Network tab when the window widens", async ({ page }) => {

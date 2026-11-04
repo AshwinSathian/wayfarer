@@ -161,7 +161,7 @@ for (const theme of ["light", "dark"] as const) {
       const empty = await openSettings(page, "Cookies");
       await expect(empty.locator(".cookies-empty")).toBeVisible();
       await expect(empty.locator(".cookies-route")).toContainText(
-        "with the route Auto, those the browser got no answer to",
+        "with the route Auto, those the browser got no response to",
       );
       await scan("empty, bridge off");
       await closeSettings(page, empty);

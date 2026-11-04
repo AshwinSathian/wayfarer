@@ -248,8 +248,8 @@ test("a history entry keeps its record: loaded from History it opens into it, an
   const sent = await openRecord(page);
   await page.locator(".record-toggle").click();
 
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await drawer.getByRole("button", { name: new RegExp(`${ECHO}/echo`) }).click();
   await drawer.getByRole("button", { name: "Close history" }).click();
   await expect(drawer).toBeHidden();

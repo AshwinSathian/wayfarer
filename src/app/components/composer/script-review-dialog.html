@@ -1,9 +1,8 @@
 <ui-dialog header="Review scripts" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
   <div class="flex flex-col gap-4">
     <p class="type-callout text-label-secondary">
-      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ places() }}. A script runs when its request is
-      sent; the collection's and a folder's run for every request in them. It can read and change your variables, and a
-      changed variable can change where a later request goes. Read them before you trust them.
+      These scripts run each time their requests are sent. A script can change your variables, and with them where a
+      later request goes. Read them before you trust them.
     </p>
     <!-- One script each, in the order they run (U-040): which it is, whether this review is its first, and what of
          Postman's it uses that the app does not have. -->
@@ -26,8 +25,8 @@
         <p class="script-review-unsupported type-footnote text-status-warning flex items-start gap-1">
           <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
           <span class="min-w-0"
-            >Uses what Wayfarer does not have: @for (name of script.unsupported; track name) {<code>{{ name }}</code>{{
-            $last ? "." : ", " }}}</span
+            >Uses @for (name of script.unsupported; track name) {<code>{{ name }}</code>{{ $last ? ", which Wayfarer
+            does not have, so the script stops with an error there." : ", " }}}</span
           >
         </p>
         } @if (script.hidden) {

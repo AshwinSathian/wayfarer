@@ -69,7 +69,7 @@ test.describe("Collections", () => {
     // created. Scoped to <main> since the sidebar tree also renders a node
     // with the same name.
     await expect(page.getByRole("main").getByText("My Saved Request", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Save writes back to this request/)).toBeVisible();
+    await expect(page.getByText(/Save writes back to it/)).toBeVisible();
 
     // Starting a new request and reloading the saved one round-trips the
     // full URL back in — previously this path lost everything but
@@ -169,7 +169,7 @@ test("a click on the backdrop keeps Save to collection and the vault's dialog op
   await expect(save).toHaveCount(0);
 
   await page.getByRole("button", { name: "No vault", exact: true }).click();
-  const vault = page.getByRole("dialog", { name: /Create vault passphrase|Unlock secrets/ });
+  const vault = page.getByRole("dialog", { name: /Create vault passphrase|Unlock vault/ });
   await expect(vault).toBeVisible();
   await vault.locator("input").first().fill("typed");
   await page.mouse.click(5, 5);

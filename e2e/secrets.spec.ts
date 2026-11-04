@@ -22,7 +22,7 @@ test.describe("Secrets vault", () => {
     // The passphrase is the vault's from now on, also before any secret is
     // stored: opening the dialog again asks for it, not for a new one.
     await page.getByRole("button", { name: "Vault locked", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Unlock secrets", exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Unlock vault", exact: true })).toBeVisible();
   });
 
   test("rejects a mismatched passphrase confirmation on first use", async ({ page }) => {

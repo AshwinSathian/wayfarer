@@ -40,7 +40,7 @@ describe("ScriptReviewDialog", () => {
       "pm.test('ok', () => {});",
     ]);
     expect(text(items[0].querySelector(".script-review-unsupported"))).toBe(
-      "Uses what Wayfarer does not have: pm.vault.get.",
+      "Uses pm.vault.get, which Wayfarer does not have, so the script stops with an error there.",
     );
     expect(items[1].querySelector(".script-review-unsupported")).toBeNull();
   });

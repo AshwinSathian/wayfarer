@@ -32,9 +32,9 @@ async function createVault(page: Page, passphrase = PASSPHRASE): Promise<void> {
 
 async function unlock(page: Page, passphrase: string): Promise<void> {
   await unlockButton(page).click();
-  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await dialog.locator("input[type='password']").fill(passphrase);
-  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await dialog.getByRole("button", { name: "Unlock vault" }).click();
 }
 
 /** An environment with one protected variable, saved. The vault must be unlocked. */
@@ -140,9 +140,9 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await lockButton(page).click();
   await unlock(page, PASSPHRASE);
   await expect(page.getByRole("alert").filter({ hasText: "That passphrase does not open the vault." })).toBeVisible();
-  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await dialog.locator("input[type='password']").fill("a new passphrase");
-  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await dialog.getByRole("button", { name: "Unlock vault" }).click();
   await expect(lockButton(page)).toBeVisible();
 
   await page.getByRole("button", { name: "Secrets", exact: true }).click();
@@ -204,10 +204,10 @@ test("a send with the vault locked asks for the passphrase naming the request's 
   await lockButton(page).click();
   await expect(unlockButton(page)).toBeVisible();
   await page.getByRole("button", { name: "Send request" }).click();
-  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Unlock vault", exact: true });
   await expect(dialog).toContainText("Sending this request needs token from the vault.");
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  await dialog.getByRole("button", { name: "Unlock vault" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
 });
 

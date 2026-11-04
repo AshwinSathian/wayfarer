@@ -146,7 +146,9 @@ describe("importText: one road from a file's text to the app's model", () => {
     expect(refused("{not json").message).toBe(
       "The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.",
     );
-    expect(refused(" ".repeat(MAX_IMPORT_BYTES + 1)).message).toBe("The file is larger than 10 MB.");
+    expect(refused(" ".repeat(MAX_IMPORT_BYTES + 1)).message).toBe(
+      "A file to import can be 10 MB at most, and this one is larger.",
+    );
     expect(refused('{"$id":"wayfarer/workspace","stores":{}}').message).toBe(
       "This is a workspace backup, which replaces everything. Restore it in Settings.",
     );
@@ -156,7 +158,7 @@ describe("importText: one road from a file's text to the app's model", () => {
     const broken = { ...collectionFile(), requests: [{ ...collectionFile().requests[0], method: "GET; rm -rf ~" }] };
     const error = refused(JSON.stringify(broken));
 
-    expect(error.message).toBe("The file is not a valid Wayfarer collection.");
+    expect(error.message).toBe("This file is not a Wayfarer collection. What does not match is listed below.");
     expect(error.issues).toEqual([
       {
         path: "requests[0].method",
@@ -186,12 +188,12 @@ describe("importText: one road from a file's text to the app's model", () => {
       {
         item: 'collection "Billing"',
         message:
-          "Its post-response script uses pm.visualizer.set, which Wayfarer does not have. The script will end in an error there.",
+          "Its post-response script uses pm.visualizer.set, which Wayfarer does not have, so the script stops with an error there.",
       },
       {
         item: 'request "Login"',
         message:
-          "Its pre-request script uses pm.cookies.jar and require('xml2js'), which Wayfarer does not have. The script will end in an error there.",
+          "Its pre-request script uses pm.cookies.jar and require('xml2js'), which Wayfarer does not have, so the script stops with an error there.",
       },
     ]);
   });
@@ -276,10 +278,10 @@ describe("importText: one road from a file's text to the app's model", () => {
         message: "Value must be an HTTP method: one word of at most 32 characters, in upper case.",
       },
     ]);
-    expect(refused("curl --url ''").message).toBe("The cURL command does not make a request the app can hold.");
+    expect(refused("curl --url ''").message).toBe("This cURL command does not describe a request Wayfarer can send.");
     // A pasted command has the cap a file has.
     expect(() => curlToRequest(`curl https://a.test/ -d '${"x".repeat(MAX_IMPORT_BYTES)}'`)).toThrow(
-      new ImportError("The file is larger than 10 MB."),
+      new ImportError("A file to import can be 10 MB at most, and this one is larger."),
     );
   });
 

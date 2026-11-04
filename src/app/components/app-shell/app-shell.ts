@@ -179,9 +179,9 @@ export class AppShell implements OnInit {
   );
   /** The banners' words, drawn in each banner and said by the shell's two live regions (U-075). */
   protected readonly banners = {
-    update: "Update available: a new version of Wayfarer is ready.",
+    update: "A new version of Wayfarer is ready. Reload to use it.",
     backup:
-      "It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.",
+      "It has been more than 14 days since your data was backed up. It lives only in this browser, which can delete it.",
     resetElsewhere: "The data was reset in another tab. Reload this one: what you change here is no longer saved.",
     storage:
       "This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.",
@@ -190,9 +190,9 @@ export class AppShell implements OnInit {
   protected readonly backupWords = computed(() =>
     // Safari's rule first: seven days without a visit, whatever it has promised (U-165).
     this.persistence.safariNotInstalled
-      ? "Safari deletes this workspace after seven days without a visit. Back up, or add Wayfarer to the Dock, to keep it."
+      ? "Safari deletes your data after seven days without a visit. Back up, or add Wayfarer to the Dock, to keep it."
       : this.persistence.persisted() === false
-        ? "This workspace lives only in this browser, which has not promised to keep it. Back up to keep a copy."
+        ? "Your data lives only in this browser, which has not promised to keep it. Back up to keep a copy."
         : this.banners.backup,
   );
   protected readonly bannerStatus = computed(() =>
@@ -312,7 +312,7 @@ export class AppShell implements OnInit {
       },
       {
         id: "open-history",
-        label: "Request history",
+        label: "History",
         run: () => this.openHistory(),
       },
       {
@@ -320,7 +320,7 @@ export class AppShell implements OnInit {
         label: this.secretsUnlocked
           ? "Lock the vault"
           : this.secretsService.made() === false
-            ? "Make a vault"
+            ? "Create vault"
             : "Unlock the vault",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
@@ -681,7 +681,9 @@ export class AppShell implements OnInit {
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(
-        error instanceof DatabaseResetBlockedError ? error.message : "Reload the page and try again.",
+        error instanceof DatabaseResetBlockedError
+          ? error.message
+          : "The reset stopped with an error. Reload the page and reset again.",
       );
       this.resettingAll = false;
       return;

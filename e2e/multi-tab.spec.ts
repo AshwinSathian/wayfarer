@@ -45,7 +45,7 @@ test("what one tab saves appears in the other within a second: a collection, an 
   await pageA.locator("input.address-url").fill(`${ECHO}/echo?from=a`);
   await pageA.getByRole("button", { name: "Send request" }).click();
   await expect(pageA.locator(".status-badge")).toHaveText("200");
-  await pageB.getByRole("button", { name: "Request history" }).click();
+  await pageB.getByRole("button", { name: "History", exact: true }).click();
   await expect(pageB.getByText(`${ECHO}/echo?from=a`).first()).toBeVisible({ timeout: 1000 });
 });
 

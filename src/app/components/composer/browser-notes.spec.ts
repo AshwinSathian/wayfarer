@@ -69,7 +69,7 @@ describe("BrowserNotes (P2.14)", () => {
     const direct = show({ url: "https://api.example/" });
     const box = direct.querySelector<HTMLInputElement>(".follow-redirects input[type=checkbox]");
     expect(box?.checked).toBe(true);
-    expect(text(direct, ".follow-redirects")).toContain("Sent directly, a request is always followed");
+    expect(text(direct, ".follow-redirects")).toContain("Sent from the page, a redirect is always followed");
     box?.click();
     expect(setFollowRedirects).toHaveBeenCalledWith(false);
 
@@ -83,7 +83,7 @@ describe("BrowserNotes (P2.14)", () => {
     const direct = show({ url: "https://api.example/" });
     const box = direct.querySelector<HTMLInputElement>(".tls-insecure input[type=checkbox]");
     expect(box?.checked).toBe(false);
-    expect(text(direct, ".tls-insecure")).toContain("Only the Local Bridge can");
+    expect(text(direct, ".tls-insecure")).toContain("Works through the Local Bridge only");
     box?.click();
     expect(setTlsInsecure).toHaveBeenCalledWith(true);
 

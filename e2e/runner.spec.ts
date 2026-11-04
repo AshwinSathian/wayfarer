@@ -166,7 +166,7 @@ test("three requests and a data file of five rows give the fifteen results Newma
   await seedCollection(page, fixtureRequests(), { base: ECHO, role: "from the environment" });
   const view = await openRun(page);
   await expect(view).toContainText("3 requests");
-  await expect(status(view)).toContainText("Nothing is sent until you choose Run");
+  await expect(status(view)).toContainText("Run sends each request as Send does");
 
   await view.getByLabel("Data file for the run").setInputFiles(join(FIXTURES, "data.csv"));
   await expect(view).toContainText("data.csv: 5 rows");
@@ -781,7 +781,7 @@ test("a run whose scripts wait for a review offers the review, and the next run 
   const view = await openRun(page);
   await view.getByRole("button", { name: "Run", exact: true }).click();
   await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
-  await expect(view).toContainText("wait for a review, so requests were sent without them");
+  await expect(view).toContainText("are not reviewed yet, so the run sent its requests without them");
   await view.getByRole("button", { name: "Review scripts…" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review).toContainText("is 200");
@@ -790,7 +790,7 @@ test("a run whose scripts wait for a review offers the review, and the next run 
   await expect(view).toContainText("Scripts reviewed. Run again to run them.");
   await view.getByRole("button", { name: "Run again" }).click();
   await expect(status(view)).toContainText("1 of 1 tests passed", { timeout: 15_000 });
-  await expect(view).not.toContainText("wait for a review");
+  await expect(view).not.toContainText("are not reviewed yet");
 });
 
 // U-157: before the first run the view promised "with its scripts" while the scripts waited for a review, and the
@@ -803,7 +803,7 @@ test("before a run whose scripts wait for a review, the view says so and offers 
     false,
   );
   const view = await openRun(page);
-  await expect(view).toContainText("wait for a review, so requests are sent without them");
+  await expect(view).toContainText("are not reviewed yet, so the run sends its requests without them");
   await expect(view).not.toContainText("with its scripts");
   await expect(view.getByRole("button", { name: "Review scripts…" })).toBeVisible();
 });
@@ -837,7 +837,7 @@ test("an import offers the review of its scripts at its end, and the first run r
   await expect(review).toHaveCount(0);
 
   const view = await openRun(page);
-  await expect(view).not.toContainText("wait for a review");
+  await expect(view).not.toContainText("are not reviewed yet");
   await view.getByRole("button", { name: "Run", exact: true }).click();
   await expect(status(view)).toContainText("2 of 2 tests passed", { timeout: 15_000 });
 });
@@ -869,7 +869,7 @@ test("Not now at the import's end leaves the scripts waiting for a review", asyn
   await review.getByRole("button", { name: "Not now" }).click();
   await expect(review).toHaveCount(0);
   const view = await openRun(page);
-  await expect(view).toContainText("wait for a review, so requests are sent without them");
+  await expect(view).toContainText("are not reviewed yet, so the run sends its requests without them");
 });
 
 // U-076: a row leads to its request. Open puts it in a tab of its own, and the run's tab keeps its results.

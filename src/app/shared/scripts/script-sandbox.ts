@@ -135,12 +135,12 @@ export class ScriptSandbox {
     }
     if (message.type === "failed") {
       this.finish(message.id, nothing(message.message));
-      this.discard(run.worker, "Script execution was stopped.");
+      this.discard(run.worker, "The script was stopped.");
       return;
     }
     this.finish(message.id, message.result);
     // After a limit the engine may be unusable: the next run gets a new worker.
-    if (message.result.limit) this.discard(run.worker, "Script execution was stopped.");
+    if (message.result.limit) this.discard(run.worker, "The script was stopped.");
     else this.release(run.worker);
   }
 
@@ -152,7 +152,7 @@ export class ScriptSandbox {
     clearTimeout(run.watchdog);
     run.watchdog = setTimeout(() => {
       this.finish(id, nothing(`Script timed out after ${run.timeoutMs} ms`, "timeout"));
-      this.discard(run.worker, "Script execution was stopped.");
+      this.discard(run.worker, "The script was stopped.");
     }, run.timeoutMs + WATCHDOG_GRACE_MS);
   }
 

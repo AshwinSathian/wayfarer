@@ -94,6 +94,6 @@ test("in Safari, the status bar and the reminder say the seven days, and how to 
   await expect(status).toContainText("Kept by Safari for 7 days without a visit");
   await saveARequest(page);
   await expect(
-    page.getByRole("status").filter({ hasText: /Safari deletes this workspace after seven days without a visit/ }),
+    page.getByRole("status").filter({ hasText: /Safari deletes your data after seven days without a visit/ }),
   ).toBeVisible();
 });

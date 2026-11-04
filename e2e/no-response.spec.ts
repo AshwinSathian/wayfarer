@@ -47,13 +47,13 @@ test("an offline browser is said so", async ({ page, context }) => {
   await context.setOffline(false);
 });
 
-test("an error status with an empty body says No body returned, and nothing is written in its place", async ({
+test("an error status with an empty body says it has no body, and nothing is written in its place", async ({
   page,
 }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/empty/404`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("404");
-  await expect(page.getByText("No body returned.")).toBeVisible();
+  await expect(page.getByText("The response has no body.")).toBeVisible();
   await expect(page.locator("app-response-viewer")).not.toContainText("Http failure response");
 });

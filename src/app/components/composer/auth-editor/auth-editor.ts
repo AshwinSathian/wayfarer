@@ -61,9 +61,8 @@ export class AuthEditor {
   /** What a request (or a folder's requests) will be sent with while this is set to inherit. */
   protected readonly inheritedLine = computed(() => {
     const { auth, from } = this.inherited();
-    if (!from)
-      return `This ${this.subject()} is in no collection, so there is nothing to inherit. No authentication is sent.`;
-    if (auth.type === "none") return `No authentication is sent: ${from} sets none.`;
+    if (!from) return `This ${this.subject()} is in no collection, so there is nothing to inherit. No auth is sent.`;
+    if (auth.type === "none") return `No auth is sent: ${from} sets none.`;
     return `${AUTH_TYPES.find((type) => type.value === auth.type)?.label} is sent, from ${from}.`;
   });
 

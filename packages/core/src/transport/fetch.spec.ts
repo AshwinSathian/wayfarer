@@ -187,7 +187,7 @@ describe("FetchTransport", () => {
       .send(request, { signal: new AbortController().signal, timeoutMs: 20 })
       .catch((e: unknown) => e);
     expect(timedOut).toBeInstanceOf(TransportError);
-    expect(timedOut).toMatchObject({ kind: "timeout", message: "Timed out after 20 ms" });
+    expect(timedOut).toMatchObject({ kind: "timeout", message: "No response within 20 ms, the request timeout." });
 
     const controller = new AbortController();
     const pending = hang.send(request, { signal: controller.signal, timeoutMs: 0 }).catch((e: unknown) => e);

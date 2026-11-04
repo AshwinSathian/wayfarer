@@ -457,7 +457,7 @@ code errors.
 - The toolbar holds the environment, Environments, History and Settings
   (S4). From 768 px the status bar under the panes holds the Local Bridge,
   the vault's lock, the secrets and the theme: each an icon button that
-  keeps its name ("Unlock secrets"), with its state beside it as text. On a
+  keeps its name ("Unlock vault"), with its state beside it as text. On a
   phone there is no status bar: the lock stays in the toolbar and the rest
   is in Settings. A new control of that kind goes into the status bar and
   has a home in Settings.

@@ -13,8 +13,8 @@ test("History gives the address the row's width, keeps the boxes for Select…, 
   await page.locator("input.address-url").fill(address);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
 
   const row = drawer.getByRole("button", { name: /a-long-query/ });
   await expect(row).toBeVisible();
@@ -44,8 +44,8 @@ test("a saved request's send is listed under its name and place, and found by it
   await page.locator("input.address-url").fill(`${ECHO}/content/text`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
 
   const entries = drawer.getByRole("button", { name: /^Tripwire request/ });
   await expect(entries).toHaveCount(2);

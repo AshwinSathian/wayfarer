@@ -283,7 +283,7 @@ it is.
 | `app-shell.html: Data and storage settings` | Status bar, "Saved in this browser, which may delete it" while the browser has not promised to keep the data (D4-e, U-137) | Status bar | — |
 | `app-shell.html: Manage the vault's secrets` | Status bar, "Secrets" (one button with its words since D4-e, U-072) | Status bar | — |
 | `app-shell.html: Theme:` | Status bar, "Theme: system / light / dark", in turn (D4-e, U-087); Settings, General | Same | — |
-| `app-shell.html: Lock the vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |
+| `app-shell.html: Lock the vault / Make a vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |
 | `app-shell.html: Choose a passphrase / Passphrase` | Unlock dialog, Enter in the passphrase (named since D4-e, U-062) | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the confirmation | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Cancel` | Unlock dialog | Status bar, Unlock dialog | D4-g |
@@ -547,6 +547,7 @@ it is.
 | `palette: ai-draft` | — | Palette, with a provider and the action on (D4.10) | D4-k |
 | `palette: new-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: run-folder` | (none: the context menu only, U-156) | Palette, "Run {folder}…" with the folder selected; each collection's run is listed too | D5-c (U-156) |
 | `palette: new-request-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: duplicate-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: export-collection` | Palette, the collection selected in the tree | Palette, "Export…" (U-016) | D4-f |

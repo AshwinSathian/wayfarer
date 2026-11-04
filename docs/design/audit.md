@@ -1848,6 +1848,7 @@ Evidence: `baseline/design-chromium/tree-1440-light.png`,
 `src/app/components/collections/collections-sidebar.ts:188-260`;
 `src/app/components/app-shell/app-shell.ts:250-345`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the palette offers "Run {collection}…" for every collection, and "Run {folder}…" for the selected folder; typing "run" finds them. `e2e/palette.spec.ts` holds it.
 
 **U-157. Before a run, the view says the scripts will run; held ones do
 not.** Severity 2. H1, H5. QA, TP.
@@ -1865,6 +1866,7 @@ Evidence: `src/app/components/runner/run-view.html:130`, `:100-113`;
 `e2e/design/tasks.spec.ts` ("A run does not offer the review: it sends
 without the scripts").
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: before the run, when the collection holds scripts that wait for a review (read as stored, `scriptsApproved`), the view says "Scripts of this collection wait for a review, so requests are sent without them." with Review scripts…, and no longer promises "with its scripts". `e2e/runner.spec.ts` holds it.
 
 **U-158. A send whose scripts are held says so only in the response's
 Tests tab.** Severity 2. H1. TP, QA.
@@ -1880,6 +1882,7 @@ Evidence: `src/app/components/response-viewer/response-viewer.html:163-164`,
 `:563-568`; `src/app/components/composer/composer.html:128`;
 `src/app/components/composer/scripts-panel.html:3-16`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the note "This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them." is above the response's tabs, under its status line, whichever tab is open. `e2e/script-trust.spec.ts` holds it on Body.
 
 **U-159. The failure's bridge set-up leaves out what the bridge needs.**
  Severity 2. H10, H9. OC, SD, PE.
@@ -1897,6 +1900,7 @@ Evidence: `baseline/design-chromium/response-error-1440-light.png`;
 `src/app/components/settings/bridge-pane.html:148-154`;
 `packages/bridge/README.md` ("It needs Node.js 22.21 or later").
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the record's set-up says to start the bridge "in a terminal (it needs Node.js 22.21 or later)", and under the command that Chrome and Edge may ask about the local network the first time, and that from the hosted app Safari reaches the bridge only over HTTPS, with `--cert` and `--key`. `bridge-setup.spec.ts` holds the words.
 
 **U-160. A Wayfarer file's import says "Replaces" for items that do not
 exist.** Severity 3. H1, H2. TP.
@@ -1969,6 +1973,7 @@ Evidence: `baseline/design-chromium/first-run-1440-light.png`,
 `src/app/components/secrets/secrets-manager.html:14-15`.
 **Status:** Open, D5-c.
 **2026-11-04:** Raised to severity 2 in D5-b's fifth pass: the repeated hig-review found the same words in the status bar, the Secrets dialog ("Vault is locked…", with Change passphrase and Export vault) and Settings, under a record that says "No vault secret was filled": it misleads, as severity 2 says.
+**2026-11-04:** Fixed in D5-c: until a passphrase is chosen the status bar says "No vault" (its tooltip and the palette "Make a vault"), the Secrets dialog "No vault yet. Marking a variable as secret makes one, with a passphrase you choose." with Create vault and without Change passphrase or Export vault, and Settings › Vault "No vault has been made in this browser yet." (`SecretsVault.made`). `e2e/vault.spec.ts` holds it.
 
 **U-165. In Safari, the seven-day deletion is said only in Settings.**
 Severity 2. H1, H2. OC, SD.
@@ -1983,6 +1988,7 @@ Evidence: `src/app/components/app-shell/app-shell.ts:191`, `:573`;
 `src/app/components/settings/settings.html:262-273`;
 `README.md`, "Known limitations". Read from source; not captured in Safari.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: in Safari not installed (`StoragePersistence.safariNotInstalled`), the status bar says "Kept by Safari for 7 days without a visit" and the backup reminder "Safari deletes this workspace after seven days without a visit. Back up, or add Wayfarer to the Dock, to keep it." `e2e/storage-kept.spec.ts` holds it in WebKit, which reports Apple's vendor; not checked in Safari itself.
 
 **U-166. The app links to no documentation.** Severity 3. H10. OC, TP.
 The site has docs for variables, auth, scripts, import and the bridge, but
@@ -2059,6 +2065,7 @@ Evidence: `baseline/design-chromium/collection-settings-1440-light.png`
 `src/app/components/collections/inherited-settings-dialog.ts:71-73`, `:173`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: Escape, × or Cancel with changes asks "Discard the changes to {name}?", Keep editing being the button that has focus; with none, the dialog closes at once. `e2e/inheritance.spec.ts` holds it in three engines.
 
 **U-170. The request's tabs do not say which of them hold anything.**
 Severity 3. H1, H6. TP, QA.

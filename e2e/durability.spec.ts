@@ -175,6 +175,7 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 
 test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({
   page,
+  browserName,
 }) => {
   // A browser that keeps the data: one that has not promised to reminds sooner (storage-kept.spec.ts).
   await page.addInitScript(() =>
@@ -184,7 +185,13 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   // The shell's live region says it while the banner is drawn (U-075).
-  const reminder = page.getByRole("status").filter({ hasText: /more than 14 days since this workspace was backed up/ });
+  // In Safari the reminder names its seven days instead (U-165).
+  const reminder = page.getByRole("status").filter({
+    hasText:
+      browserName === "webkit"
+        ? /Safari deletes this workspace after seven days without a visit/
+        : /more than 14 days since this workspace was backed up/,
+  });
   await expect(reminder).toHaveCount(0);
 
   await page.clock.fastForward(15 * 24 * 60 * 60 * 1000);

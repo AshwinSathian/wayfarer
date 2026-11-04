@@ -444,6 +444,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The comparison pages are re-read and say only what their sources
+  say.** Every fact about Postman, Bruno, Yaak, Hoppscotch and Insomnia
+  was read on 19 October and is now read again on 4 November 2026, with
+  its source. Several were wrong or overstated: the one-user limit on
+  Postman's Free plan was credited to Postman but sourced to Yaak's blog;
+  the Bruno page implied Wayfarer alone encrypts secrets, when Bruno
+  encrypts them on disk too; Insomnia's cloud was called end-to-end
+  encrypted, where Insomnia says that is optional; and Postman's Native
+  Git, Yaak's web version and each rival's AI were missing. Every
+  sentence about Wayfarer on those pages now names its claim, or the file
+  that says so for the licence and the first release, and a test holds
+  them to it. "Moving from Postman" uses the app's current names for the
+  import and the script review, replaces "a few minutes" with the
+  benchmark's count (11 clicks to import, trust and run), and says how to
+  go back to Postman.
+
+- **Design notes no longer pass for documentation.** The site published
+  the 30 design records under `docs/design/` beside the user docs, listed
+  them in the sitemap and in `llms.txt`, and cut off the "designed, not
+  built" line at their top, so an assistant reading the site could say
+  Wayfarer has team sharing and Git sync. It has neither. Those pages now
+  tell search engines not to list them (except the benchmark and the
+  research the comparison pages rest on), their descriptions start
+  "Design record, not user documentation" and keep their status, and
+  `/docs/` groups the docs into guides, reference, trust, operations and
+  design records. The AI flows' design record no longer says AI is not
+  built.
+
 - **Addresses, hosts, header names and methods are never drawn under
   13 px.** A host or a flag set in JetBrains Mono inside a small line (the
   exchange record, the bridge's set-up, History, the tree's methods) came
@@ -717,6 +745,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Before, it moved only by dragging or with the arrow keys.
 
 ### Changed
+
+- **The site is easier to find and to quote.** Titles say "API client",
+  since "Wayfarer" alone is also a pair of sunglasses, and the comparison
+  pages are "Wayfarer vs …". `llms.txt` lists what Wayfarer does, each
+  line with its claim, and what it does not do; `llms-full.txt` holds the
+  user docs in one file. A claim's chip links to its own row of the
+  ledger and is named by the claim. The sitemap gives the day each page
+  last changed, the front page's structured data names the maintainer,
+  the source and the features (from the ledger), and docs, comparisons
+  and posts have structured data of their own. The app's page title is
+  "Wayfarer API client". Each comparison page links to the others, the
+  docs it relies on and the benchmark.
 
 - **The site's changelog and roadmap are pages you can read.** The
   changelog opens with a list of versions, each with its date and one

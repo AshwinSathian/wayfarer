@@ -6,7 +6,7 @@ import { pageMeta } from "../../lib/meta";
 
 export const metadata = pageMeta(
   "/roadmap/",
-  "Roadmap: Wayfarer",
+  "Roadmap: Wayfarer API client",
   "What Wayfarer 3.0 brings, what comes next, and later: sharing collections with a team without a Wayfarer server.",
 );
 

@@ -6,7 +6,7 @@ import { pageMeta } from "../../lib/meta";
 
 export const metadata = pageMeta(
   "/changelog/",
-  "Changelog: Wayfarer",
+  "Changelog: Wayfarer API client",
   "What changed in each release of Wayfarer, and what is on main and not released yet.",
 );
 

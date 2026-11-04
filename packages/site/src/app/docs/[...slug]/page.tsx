@@ -1,6 +1,8 @@
 import { DocsFrame } from "../../../components/DocsFrame";
-import { REPO, docDescription, docHtml, docs } from "../../../lib/content";
+import { JsonLd } from "../../../components/JsonLd";
+import { REPO, docDescription, docHtml, docs, indexed, lastChanged } from "../../../lib/content";
 import { pageMeta } from "../../../lib/meta";
+import { docGraph } from "../../../lib/structured-data";
 
 export const dynamicParams = false;
 
@@ -8,25 +10,37 @@ export function generateStaticParams() {
   return docs().map((doc) => ({ slug: doc.id.split("/") }));
 }
 
+const find = async (params: Props["params"]) => {
+  const id = (await params).slug.join("/");
+  const doc = docs().find((d) => d.id === id);
+  if (!doc) throw new Error(`no doc ${id}`);
+  return doc;
+};
+
 interface Props {
   params: Promise<{ slug: string[] }>;
 }
 
 export async function generateMetadata({ params }: Props) {
-  const id = (await params).slug.join("/");
-  const title = docs().find((doc) => doc.id === id)?.title ?? id;
+  const doc = await find(params);
+  // A working note (a design record, an operations doc) is not listed by search engines; they follow its links.
   return pageMeta(
-    `/docs/${id}/`,
-    `${title}: Wayfarer docs`,
-    docDescription(id) || `Wayfarer's documentation: ${title}.`,
+    `/docs/${doc.id}/`,
+    `${doc.title}: Wayfarer API client docs`,
+    docDescription(doc.id) || `Wayfarer's documentation: ${doc.title}.`,
+    { noindex: !indexed(doc) },
   );
 }
 
 /** A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article. */
 export default async function DocPage({ params }: Props) {
-  const id = (await params).slug.join("/");
+  const doc = await find(params);
+  const id = doc.id;
   return (
     <DocsFrame current={id}>
+      {doc.group !== "Design records" && doc.group !== "Operations" && (
+        <JsonLd data={docGraph(doc, docDescription(id), lastChanged(`docs/${id}.md`))} />
+      )}
       <article className="prose" data-pagefind-body dangerouslySetInnerHTML={{ __html: docHtml(id) }} />
       <p className="mt-12 type-site-small text-ink-muted">
         <a className="underline underline-offset-4 hover:text-action" href={`${REPO}/blob/main/docs/${id}.md`}>

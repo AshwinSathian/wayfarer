@@ -1,7 +1,8 @@
 # AI flows (D4.10)
 
 Task D4.10 of [the design plan](../../../PLAN-design.md): the flows that
-carry out [the AI decision](../ai.md) (D1.7). Designed, not built. Read
+carry out [the AI decision](../ai.md) (D1.7). Built: [AI](../../ai.md) describes what shipped, and
+claims C-069 to C-083 prove it; this folder is the design it was built from. Read
 against `main` at `8e42176`. Every string follows [`voice.md`](../voice.md);
 every place follows [`ia.md`](../ia.md).
 

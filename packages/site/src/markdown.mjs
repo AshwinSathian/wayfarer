@@ -1,7 +1,8 @@
 // A Markdown file of the repository as a page's HTML (W2.2 of PLAN-design.md): GitHub's dialect, each heading with
 // the id GitHub gives it (a link from another doc names it), each link through `siteLink`, and each table focusable,
 // since it scrolls sideways on a narrow window and a keyboard has to reach it. No smart punctuation and no
-// highlighting: the docs quote commands, and highlighting writes `style` attributes the CSP refuses.
+// highlighting: the docs quote commands, and highlighting writes `style` attributes the CSP refuses. A row of the claims
+// ledger takes its claim's ID as its id, so a claim's chip links to its row (`/docs/claims/#C-001`).
 import GithubSlugger from "github-slugger";
 import { Marked } from "marked";
 import { siteLink } from "./doc-links.mjs";
@@ -28,7 +29,10 @@ export function renderMarkdown(markdown, from) {
       },
     },
   });
-  return marked.parse(markdown, { async: false }).replace(/<table>/g, '<table tabindex="0">');
+  return marked
+    .parse(markdown, { async: false })
+    .replace(/<table>/g, '<table tabindex="0">')
+    .replace(/<tr>\n<td>(C-\d{3})<\/td>/g, '<tr id="$1">\n<td>$1</td>');
 }
 
 /** A Markdown file's title: its first heading, without code marks; or else `fallback`. */

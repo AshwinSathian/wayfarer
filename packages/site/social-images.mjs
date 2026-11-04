@@ -25,7 +25,10 @@ const unescape = (text) =>
 
 /** A built page's title (without the ": Wayfarer…" every title ends with) and description, as the page has them. */
 export function cardText(html) {
-  const title = unescape(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? "Wayfarer").replace(/: Wayfarer( [a-z]+)?$/, "");
+  const title = unescape(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? "Wayfarer").replace(
+    /: Wayfarer( API client)?( [a-z]+)?$/,
+    "",
+  );
   const description = unescape(/<meta name="description" content="([^"]*)"/.exec(html)?.[1] ?? "");
   return { title, description };
 }

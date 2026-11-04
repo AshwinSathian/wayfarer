@@ -141,6 +141,20 @@ export function validateWorkspaceFile(value: unknown): string[] {
         )
           errors.push(`${path}.model: Value must be the action and the model's name.`);
       }
+      // The saved request it was sent from: its name, and its collection and folders.
+      if (Object.hasOwn(entry, "sentFrom")) {
+        const from = entry["sentFrom"];
+        if (
+          !isObject(from) ||
+          typeof from["name"] !== "string" ||
+          !Array.isArray(from["path"]) ||
+          !from["path"].every((name) => typeof name === "string") ||
+          Object.keys(from).some((key) => key !== "name" && key !== "path")
+        )
+          errors.push(
+            `${path}.sentFrom: Value must be the request's name and the names of its collection and folders.`,
+          );
+      }
     });
   }
   return errors;

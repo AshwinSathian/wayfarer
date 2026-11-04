@@ -76,6 +76,12 @@ export interface PastRequest {
   record?: ExchangeRecord;
   /** A call to an AI model (D4.10, AI-13): which action asked for it, and the model's name. Absent for a send. */
   model?: { action: ModelAction; model: string };
+  /**
+   * The saved request it was sent from, as it was named then: its name, and its collection and folders from the
+   * outside in. Absent for a request typed in an unbound tab. The user's text, never resolved: it holds no value of
+   * the vault, and it is masked like the rest all the same.
+   */
+  sentFrom?: { name: string; path: string[] };
 }
 
 /** What a model call was for: one of the three actions, or Settings › AI's test of the provider. */
@@ -290,8 +296,8 @@ export interface RequestExecutionSpec {
    * renewed token, to send once more, or `null` to keep the 401.
    */
   retryUnauthorized?: (request: RequestContent) => Promise<BuiltRequest | null>;
-  /** The saved request the composer is bound to, for `pm.info`. */
-  info?: { requestName: string; requestId: string };
+  /** The saved request the composer is bound to, for `pm.info`, and its collection and folders from the outside in, for history. */
+  info?: { requestName: string; requestId: string; path: string[] };
   /** The variables of that request's collection, read when a script starts, and the way to change them. Absent for a request of no collection. */
   collection?: { variables: () => Row[]; change: (changes: VariableChange[]) => Promise<unknown> };
   /**
@@ -652,6 +658,9 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
     },
     route: outcome instanceof TransportError ? (policy.took ?? ports.transport.first(policy.route)) : outcome.route,
     durationMs,
+    ...(spec.info && {
+      sentFrom: { name: redactor.text(spec.info.requestName), path: spec.info.path.map((name) => redactor.text(name)) },
+    }),
   };
   if (!(outcome instanceof TransportError)) {
     history.response = {

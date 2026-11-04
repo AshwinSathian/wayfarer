@@ -31,6 +31,7 @@ import {
   buildCurl,
   authTexts,
   effectiveAuth,
+  folderChain,
   exportBody,
   isHttpMethod,
   newId,
@@ -697,8 +698,13 @@ export class WorkspaceStore {
     const bound = tab.bound();
     if (!bound) return {};
     const { collectionId } = bound;
+    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === collectionId);
+    // Where it is now, by name, as history keeps it: the collection, then its folders from the outside in.
+    const path = tree
+      ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)]
+      : [];
     return {
-      info: { requestName: bound.name, requestId: bound.meta.id },
+      info: { requestName: bound.name, requestId: bound.meta.id, path },
       collection: {
         variables: () =>
           this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables ??

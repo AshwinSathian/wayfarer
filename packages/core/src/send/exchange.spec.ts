@@ -448,6 +448,24 @@ describe("exchange", () => {
     expect(result.history.sent.url).toBe("https://example.com/hello");
   });
 
+  it("keeps the saved request it was sent from by its name and its place, and nothing for a request typed in no tab of one", async () => {
+    transport.setResponse(envelope(200, "OK", {}));
+    const send = (info?: RequestExecutionSpec["info"]) =>
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        ...(info && { info }),
+        buildRequest: () => builtRequest({ url: "https://example.com/pets" }),
+      });
+
+    const saved = await send({ requestName: "List pets", requestId: "req-1", path: ["Pet store", "Pets"] });
+    expect(saved.history.sentFrom).toEqual({ name: "List pets", path: ["Pet store", "Pets"] });
+    expect((await send()).history).not.toHaveProperty("sentFrom");
+  });
+
   it("marks request/response with the URL from buildRequest(), not a placeholder", async () => {
     await service.execute({
       template: TEMPLATE,
@@ -1629,7 +1647,7 @@ describe("exchange", () => {
         preRequestScript: "sign()",
         postRequestScript: "check()",
         tests: [],
-        info: { requestName: "Create item", requestId: "req-1" },
+        info: { requestName: "Create item", requestId: "req-1", path: ["Shop"] },
         collection: { variables: () => rowsOf({ base: "https://{{host}}" }), change: vi.fn() },
         buildRequest: (request) => {
           built.push(request);

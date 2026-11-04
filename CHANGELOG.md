@@ -759,6 +759,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The collections tree fits more requests.** Each row took 40 px, so a
+  laptop screen showed about a quarter fewer requests than other API
+  clients. Rows are now 32 px apart with a mouse or trackpad. On a touch
+  screen they stay 36 px tall, so a finger still has room. The sidebar's
+  header is lighter too: Import and New are plain text buttons instead of
+  two outlined boxes, and "Collections" is set in a heavier weight so the
+  title still leads.
+
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished
   action were drawn in success's green, as a passing test is; they are

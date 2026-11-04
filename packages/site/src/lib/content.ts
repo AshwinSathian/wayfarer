@@ -2,6 +2,7 @@
 // packages/site (`npm -w packages/site run build`), so the repository is two folders up.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { changelogOf } from "../changelog.mjs";
 import { renderMarkdown, titleOf } from "../markdown.mjs";
 import { roadmapOf } from "../roadmap.mjs";
 
@@ -63,8 +64,8 @@ export function docHtml(id: string): string {
   return renderMarkdown(read(`docs/${id}.md`), `docs/${id}.md`);
 }
 
-export function changelogHtml(): string {
-  return renderMarkdown(read("CHANGELOG.md"), "CHANGELOG.md");
+export function changelog() {
+  return changelogOf(read("CHANGELOG.md"));
 }
 
 export function roadmap() {

@@ -202,10 +202,6 @@ export class Composer {
     this.view.openEnvironments();
   }
 
-  clearComposer(): void {
-    this.view.clear();
-  }
-
   newTab(): void {
     this.tabStrip().open();
   }

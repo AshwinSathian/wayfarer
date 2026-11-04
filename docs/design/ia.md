@@ -267,7 +267,7 @@ it is.
 | Action | Today | Place | Session |
 |---|---|---|---|
 | `app-shell.html: Close navigation` | Sidebar as a drawer (below 1,200 px) | Sidebar | — |
-| `app-shell.html: New request` | Sidebar as a drawer, above the tree; empties the open tab | Sidebar as a drawer; opens a new tab, as New tab does | D4-f |
+| `app-shell.html: New request` | Sidebar as a drawer, above the tree; empties the open tab | Sidebar as a drawer; opens a new tab, as New tab does | D4-f; done in D5-c (U-168) |
 | `app-shell.html: Close history` | History drawer (toolbar) | Toolbar, History drawer | — |
 | `app-shell.html: Hide sidebar / Show sidebar` | Toolbar; named for what it will do (U-082) | Toolbar | D4-f, done |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
@@ -528,8 +528,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `palette: new-request` | Palette; empties the open tab | Palette, "New request": a new tab, one command with new-tab | D4-f |
-| `palette: new-tab` | Palette | Palette, the same command as new-request, with its keycap | D4-f |
+| `palette: new-request` | Palette; empties the open tab | Palette, "New request": a new tab, one command with new-tab | D4-f; done in D5-c (U-168) |
 | `palette: duplicate-tab` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: close-tab` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: send-request` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |

@@ -249,16 +249,12 @@ export class AppShell implements OnInit {
   /** The shell's commands for the palette; the sidebar adds New collection and what can be done to its selected row. */
   get paletteCommands(): PaletteAction[] {
     return [
+      // One command: a new request is a new tab (ia.md, D4-f; U-168).
       {
         id: "new-request",
         label: "New request",
-        run: () => this.handleNewRequest(),
-      },
-      {
-        id: "new-tab",
-        label: "New tab",
         keys: SHORTCUTS.newTab,
-        run: () => this.composer().newTab(),
+        run: () => this.handleNewRequest(),
       },
       {
         id: "duplicate-tab",
@@ -535,8 +531,9 @@ export class AppShell implements OnInit {
     }
   }
 
+  /** A new request in a tab of its own: emptying the open tab lost what was typed in it (U-168). */
   handleNewRequest(): void {
-    this.composer().clearComposer();
+    this.composer().newTab();
     if (this.sidebarOverlay()) {
       this.closeNavigation();
     }

@@ -2041,6 +2041,7 @@ tab, one under the other); `src/app/components/app-shell/app-shell.html:48`;
 `docs/design/ia.md:232-234`, `:531-532`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: New request, the drawer's button and the palette's one command (merged with New tab, as `ia.md` planned), opens a tab of its own; the open tab keeps what was typed. `e2e/tabs.spec.ts` holds it.
 
 **U-169. A collection's or folder's settings close on Escape or × and drop
 every edit.** Severity 1. H3, H5. TP, QA, SD.
@@ -2057,6 +2058,7 @@ Evidence: `baseline/design-chromium/collection-settings-1440-light.png`
 `src/app/components/collections/inherited-settings-dialog.ts:71-73`, `:173`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: Escape, × or Cancel with changes asks "Discard the changes to {name}?", Keep editing being the button that has focus; with none, the dialog closes at once. `e2e/inheritance.spec.ts` holds it in three engines.
 
 **U-170. The request's tabs do not say which of them hold anything.**
 Severity 3. H1, H6. TP, QA.

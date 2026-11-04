@@ -320,17 +320,6 @@ describe("Composer", () => {
     expect(store.draft().scripts.post).toBe('pm.test("ok", () => {})');
   });
 
-  it("clearComposer resets the form and drops any collection-request binding", () => {
-    component.loadCollectionRequest(makeRequestDoc());
-    store.patch({ url: "https://something-edited.example.com" });
-
-    component.clearComposer();
-
-    expect(requestSave.loadedCollectionRequest()).toBeNull();
-    expect(store.draft().url).toBe("");
-    expect(store.draft().method).toBe("GET");
-  });
-
   it("saveCurrentRequest updates the bound collection request in place, without opening Save As", async () => {
     const doc = makeRequestDoc({ id: "bound-1" });
     component.loadCollectionRequest(doc);

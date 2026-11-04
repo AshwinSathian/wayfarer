@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { dumpIdb, seedAndOpen, send, tabMenu } from "./support/app";
+import { dumpIdb, openPalette, seedAndOpen, send, tabMenu } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P5.1: the composer's tabs. What a reload keeps of them is in the second half of this file.
@@ -577,4 +577,18 @@ test("a saved request is renamed over its tab with F2 or a double click", async 
   await page.getByRole("textbox", { name: "Request name" }).fill("Something else");
   await page.keyboard.press("Escape");
   await expect(tabs(page).first()).toContainText("List pets");
+});
+
+// U-168: New request (the drawer's first button, the palette's command) emptied the open tab, unsaved edits and all.
+// It opens a tab of its own, as New tab does.
+test("New request opens a tab of its own and leaves the open one as it was", async ({ page }) => {
+  await page.goto("/app/");
+  await address(page).fill(`${ECHO}/echo?kept=1`);
+  await openPalette(page);
+  await page.getByRole("combobox", { name: /^Search requests/ }).fill("new request");
+  await page.keyboard.press("Enter");
+  await expect(tabs(page)).toHaveCount(2);
+  await expect(address(page)).toHaveValue("");
+  await tabs(page).first().click();
+  await expect(address(page)).toHaveValue(`${ECHO}/echo?kept=1`);
 });

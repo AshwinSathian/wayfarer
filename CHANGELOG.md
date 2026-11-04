@@ -629,6 +629,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design captures show the app as session D5-a left it.** The
+  Chromium baseline of every screen is taken again: Params wraps its rows,
+  a run's tab selects no row in the tree, and a tab bar with more tabs
+  than fit fades on that side.
+
 - **The design review's stress states are checked in Firefox and
   WebKit.** The October review ran narrow windows, large text,
   right-to-left, forced colours and the error states in Chromium alone.

@@ -731,6 +731,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   still made from `CHANGELOG.md` and `PLAN-design.md` when the site is
   built.
 
+- **A new mark, and the name in one weight.** The mark is now a W drawn
+  as one trail, its last leg ending at a dot: the host a request reaches.
+  The old one, a thin hook with a small dot, was a grey smudge in a
+  browser tab (its line was under a pixel wide at 16 px) and read as a
+  lower-case "r". The new line is half again as heavy, so the favicon,
+  the installed app's icons, the site's header and the social images all
+  show a W at 16 px. The name "Wayfarer" is now set in Bold in the app,
+  as the site already set it; the app used SemiBold beside the mark and
+  a lighter weight in the toolbar.
+
 - **A collection's or a folder's settings open in a tab, and their
   variables can be secrets.** Settings… in the tree's menu, the palette's
   "Settings of {name}…" and a variable's chip open the settings as a tab

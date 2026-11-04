@@ -424,7 +424,23 @@ code errors.
   separate on purpose: pinned, the sidebar takes 352 px. Beside it an
   820 px window left the composer and the response 150 px each, and a
   1024 px window cut off the composer's fourth tab.
-- Both are read with `matchMedia`, not `innerWidth`: WebKit takes a classic
+- A third width is the composer's own, not the window's: below 62 em of
+  it the response goes under the request (`Composer.stacked`, L-6, L-7),
+  and the splitter is `orientation="horizontal"`. Beside the pinned
+  sidebar that is every window up to about 1,400 px. A `ResizeObserver`
+  on the composer decides, not a container query: the splitter's code
+  needs to know (its `aria-orientation`, which arrows move it, which axis
+  a drag reads, which ratio is stored), and CSS cannot tell code. It is in
+  em of the root, as the breakpoints are; 62 and not 64, since a 1,440 px
+  window beside the pinned sidebar leaves the composer 1,024 px and U-003's
+  split there must not flip on a pixel. Settings › General, "Response",
+  overrides it (`PaneLayout`, `wayfarer:pane-layout`: by the room, beside,
+  under), as do two palette commands. Each orientation keeps its own ratio
+  (`wayfarer:composer-split` and `wayfarer:composer-split-stacked`, C-031).
+  Playwright's desktop default, 1,280 by 720, is stacked: a test that
+  needs the panes side by side sets a width that gives them room (1,100 or
+  1,460 px).
+- The two window widths are read with `matchMedia`, not `innerWidth`: WebKit takes a classic
   scrollbar off the width a media query sees, so the two disagreed over
   15 px. Every breakpoint, in a stylesheet or a `matchMedia`, is in em
   (75, 64 and 48 em are 1,200, 1,024 and 768 px at the default 16 px): a

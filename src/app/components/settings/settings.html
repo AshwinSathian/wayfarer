@@ -59,6 +59,21 @@
 
         <div class="settings-row">
           <div class="min-w-0">
+            <p class="type-subhead text-label-primary" id="settings-pane-layout-label">Response</p>
+            <p class="type-footnote text-label-tertiary"
+              >By the room it has: under the request when the two would each be narrower than about 500 px.</p
+            >
+          </div>
+          <ui-segmented
+            aria-labelledby="settings-pane-layout-label"
+            [options]="paneLayoutChoices"
+            [value]="paneLayout.choice()"
+            (valueChange)="paneLayout.choose($event)"
+          />
+        </div>
+
+        <div class="settings-row">
+          <div class="min-w-0">
             <label for="request-timeout" class="type-subhead text-label-primary">Request timeout</label>
             <p class="type-footnote text-label-tertiary"
               >How long a request may take before it is given up. 0 waits for as long as it takes.</p

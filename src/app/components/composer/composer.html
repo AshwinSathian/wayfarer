@@ -112,12 +112,14 @@
       </div>
     </div>
     } @else {
-    <!-- Desktop: a resizable split between the request's parts and the response, kept under a wayfarer: key. -->
+    <!-- Desktop: a resizable split between the request's parts and the response, beside it or under it, each
+         orientation's ratio kept under a wayfarer: key of its own. -->
     <ui-splitter
       class="composer-response-splitter"
-      storageKey="wayfarer:composer-split"
-      [sizes]="splitSizes"
-      [minSizes]="[28, 22]"
+      [orientation]="stacked() ? 'horizontal' : 'vertical'"
+      [storageKey]="split().key"
+      [sizes]="split().sizes"
+      [minSizes]="split().min"
       ariaLabel="Resize the composer and the response"
     >
       <div uiSplitterStart class="composer-pane">

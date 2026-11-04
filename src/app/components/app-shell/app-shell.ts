@@ -40,6 +40,7 @@ import { WorkspaceBackup } from "../../services/workspace-backup";
 import { HistoryRepository } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
+import { PaneLayout } from "../../services/pane-layout";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Composer } from "../composer/composer";
 import { PastRequests } from "../past-requests/past-requests";
@@ -122,6 +123,7 @@ export class AppShell implements OnInit {
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
+  private readonly paneLayout = inject(PaneLayout);
   readonly bridgeService = inject(BridgeSettings);
   protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
   /** What the app will do with a request of no other route, not what is chosen (U-131): Auto with no paired bridge sends from the page. */
@@ -292,6 +294,16 @@ export class AppShell implements OnInit {
         id: "toggle-theme",
         label: this.themeService.theme() === "dark" ? "Switch to the light theme" : "Switch to the dark theme",
         run: () => this.themeService.toggle(),
+      },
+      {
+        id: "response-under",
+        label: "Put the response under the request",
+        run: () => this.paneLayout.choose("under"),
+      },
+      {
+        id: "response-beside",
+        label: "Put the response beside the request",
+        run: () => this.paneLayout.choose("beside"),
       },
       {
         id: "toggle-sidebar",

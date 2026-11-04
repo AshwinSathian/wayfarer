@@ -53,6 +53,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   protected readonly importPipeline = inject(ImportPipeline);
   private readonly persistence = inject(StoragePersistence);
   private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly newEnvField = viewChild<ElementRef<HTMLInputElement>>("newEnvField");
 
   readonly requestUnlock = output<void>();
@@ -185,7 +186,18 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     this.selectEnvironment(doc.meta.id);
     const first = this.firstVariable;
     this.firstVariable = null;
-    if (first) this.reveal.set({ key: first });
+    if (first) {
+      this.reveal.set({ key: first });
+      return;
+    }
+    // The name's field has gone: focus goes on in the new row, on Use when another is in use (L-19).
+    afterNextRender(
+      () => {
+        const row = this.host.nativeElement.querySelector(`[data-env="${CSS.escape(doc.meta.id)}"]`);
+        (row?.querySelector<HTMLElement>(".env-use") ?? row?.querySelector<HTMLElement>(".env-item-select"))?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   closeNewEnvironmentDialog(): void {

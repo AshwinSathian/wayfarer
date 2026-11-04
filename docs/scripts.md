@@ -492,8 +492,9 @@ folder's folders come before its requests, as the list shows them.
 
 ## Scripts of a collection and of a folder
 
-A collection and a folder have scripts of their own (right-click, **Settings**,
-then **Scripts** in the tab that opens). They run for every request in them:
+A collection and a folder have scripts of their own (right-click,
+**Collection settings…** or **Folder settings…**, then **Scripts** in the tab
+that opens). They run for every request in them:
 
 1. the collection's pre-request script,
 2. each folder's, from the outermost folder to the one the request is in,

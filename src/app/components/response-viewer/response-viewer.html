@@ -186,7 +186,7 @@
             ><ng-template ngTabContent>
               <div class="space-y-3 pb-4">
                 @if ((views().length > 1 || view() === 'json') && responseStatusCode() !== undefined) {
-                <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
+                <!-- One row (U-030): the view, and the field that searches or filters; it wraps only where the pane is narrow. -->
                 <div class="response-tools flex flex-wrap items-center gap-2">
                   @if (views().length > 1) {
                   <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
@@ -198,21 +198,27 @@
                     (valueChange)="viewOverride.set($event)"
                   />
                   } @if (view() === 'json') {
-                  <!-- The search, its count and its arrows wrap together. -->
-                  <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
+                  <!-- One field (L-14): a path filters the body, any other text is searched for. The count and the
+                       arrows, with what the field is doing, wrap together. -->
+                  <div class="flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-x-2 gap-y-1">
                     <input
-                      class="font-mono min-w-0 flex-1"
+                      class="font-mono min-w-0 flex-1 basis-56"
                       uiInput
                       [value]="searchQuery()"
                       (input)="onSearchQueryChange($any($event.target).value)"
-                      aria-label="Search the response"
-                      placeholder="Search"
+                      aria-label="Search the response, or filter it by path"
+                      placeholder="Search, or a path such as data.items[*].id"
+                      spellcheck="false"
+                      autocomplete="off"
                     />
-                    <span class="type-footnote text-label-tertiary tabular-nums">
-                      {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count
-                      || 0 }}
-                    </span>
-                    <div class="flex items-center gap-0.5">
+                    @if (jsonFilter()) {
+                    <span class="type-footnote text-label-secondary">Filtering by path</span>
+                    } @else if (searchQuery().trim()) {
+                    <span class="flex items-center gap-1">
+                      <span class="type-footnote text-label-tertiary tabular-nums">
+                        {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{
+                        searchResult()?.count || 0 }}
+                      </span>
                       <button
                         uiButton="icon"
                         class="btn-sm"
@@ -231,18 +237,9 @@
                         (click)="stepSearch(1)"
                         ><app-icon name="keyboard_arrow_down"
                       /></button>
-                    </div>
+                    </span>
+                    }
                   </div>
-                  <input
-                    uiInput
-                    class="font-mono min-w-0 flex-1 basis-56 placeholder-mono"
-                    aria-label="Filter the JSON by path"
-                    [value]="jsonFilter()"
-                    (input)="jsonFilter.set($any($event.target).value)"
-                    placeholder="Path: data.items[*].id"
-                    spellcheck="false"
-                    autocomplete="off"
-                  />
                   }
                 </div>
                 }
@@ -335,7 +332,7 @@
           >
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"
+          <div ngTabPanel value="headers" class="tab-pane response-headers-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <div class="pb-4">
                 <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
@@ -350,7 +347,7 @@
                 </p>
                 }
                 <div
-                  class="response-headers max-h-72 overflow-y-auto rounded-lg border border-separator overflow-hidden"
+                  class="response-headers overflow-y-auto rounded-lg border border-separator"
                   role="region"
                   aria-label="Response headers"
                   tabindex="0"

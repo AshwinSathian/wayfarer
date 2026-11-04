@@ -61,7 +61,7 @@ test("what a user typed or a server sent is monospace; names and prose are not",
   const mono = /^"?JetBrains Mono/;
   expect(await family(page.locator("input.address-url")), "the address").toMatch(mono);
   expect(await family(page.getByLabel("HTTP method")), "the method").toMatch(mono);
-  expect(await family(page.getByLabel("Filter the JSON by path")), "the path filter").toMatch(mono);
+  expect(await family(page.getByLabel("Search the response, or filter it by path")), "the search").toMatch(mono);
   await page.getByRole("tab", { name: "Headers" }).first().click();
   await page.getByRole("button", { name: "Add Header" }).click();
   expect(await family(page.getByLabel(/^Header name, 1 of /)), "a header's name").toMatch(mono);

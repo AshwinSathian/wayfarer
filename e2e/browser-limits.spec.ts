@@ -18,7 +18,7 @@ async function setHeader(page: Page, name: string, value: string): Promise<void>
 
 const warnings = (page: Page) => page.locator("app-request-warnings");
 
-/** What the browser does is in the request's Settings tab. */
+/** What the browser does is in the request's Network tab. */
 const openPanel = openRequestSettings;
 
 test("@claim:C-049 a Cookie header is shown as dropped, and the browser does drop it", async ({ page }) => {

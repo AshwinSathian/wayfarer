@@ -241,7 +241,7 @@ export async function openHolderSettings(
   kind: "Collection" | "Folder" = "Collection",
 ): Promise<Locator> {
   await page.getByRole("tree").getByText(name, { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.getByRole("menuitem", { name: `${kind} settings…` }).click();
   const region = page.getByRole("region", { name: `${kind} settings: ${name}` });
   await expect(region).toBeVisible();
   return region;
@@ -280,9 +280,9 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
-/** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */
+/** Opens the request's Network tab: its route, redirects, certificate check and what the browser does to it. */
 export async function openRequestSettings(page: Page): Promise<void> {
-  await page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.locator("app-composer").getByRole("tab", { name: "Network", exact: true }).click();
 }
 
 export async function send(page: Page): Promise<void> {

@@ -293,18 +293,42 @@ describe("ResponseViewer", () => {
       expect(element().querySelector("iframe.html-preview")?.getAttribute("sandbox")).toBe("");
     });
 
-    it("filters a JSON body by path", () => {
+    // L-14 (D5-e): one field above the body, not a row for the search and another for the path.
+    it("has one field that searches, or filters by a path when the text is one", async () => {
       set({
         responseStatusCode: 200,
         responseBodyIsJson: true,
         responseData: '{"items":[{"id":1},{"id":2}]}',
         responseContentType: "application/json",
       });
-      expect(component.filteredJson()).toBeNull();
-      component.jsonFilter.set("items[*].id");
+      const tools = () => element().querySelector(".response-tools") as HTMLElement;
+      const type = async (text: string) => {
+        await component.onSearchQueryChange(text);
+        fixture.detectChanges();
+      };
+      const search = TestBed.inject(JsonWorkerClient).search as ReturnType<typeof vi.fn>;
+      expect(tools().querySelectorAll("input").length).toBe(1);
+      expect(tools().querySelector("input")?.getAttribute("aria-label")).toBe(
+        "Search the response, or filter it by path",
+      );
+      // The count and the arrows are there only while there is something to count.
+      expect(tools().querySelector("[aria-label='Next search match']")).toBeNull();
+
+      await type("items[*].id");
       expect(JSON.parse(component.filteredJson() ?? "")).toEqual([1, 2]);
-      component.jsonFilter.set("items.constructor");
+      expect(tools().textContent).toContain("Filtering by path");
+      expect(tools().querySelector("[aria-label='Next search match']")).toBeNull();
+      await type("$.items[0].id");
+      expect(component.filteredJson()).toBe("1");
+      await type(".items.constructor");
       expect(component.filteredJson()).toBe("");
+      expect(search).not.toHaveBeenCalled();
+
+      await type("items");
+      expect(component.filteredJson()).toBeNull();
+      expect(tools().textContent).not.toContain("Filtering by path");
+      expect(search).toHaveBeenCalledWith(expect.any(String), "items");
+      expect(tools().querySelector("[aria-label='Next search match']")).not.toBeNull();
     });
 
     it("revokes an image's blob: URL when the response changes and when the viewer goes", () => {

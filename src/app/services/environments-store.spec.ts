@@ -156,6 +156,27 @@ describe("EnvironmentsStore", () => {
       expect(service.environments()).toEqual([created]);
     });
 
+    // L-19 (D5-e): an environment made while none is in use is the one meant to be used.
+    it("createEnvironment() puts the new one in use when none is, and leaves the one in use otherwise", async () => {
+      let stored: string | null = null;
+      idb.setActiveEnvironment.mockImplementation(async (id: string | null) => void (stored = id));
+      idb.getActiveEnvironmentId.mockImplementation(async () => stored);
+      const [envA, envB, envC] = [buildEnv("a"), buildEnv("b"), buildEnv("c")];
+      idb.listEnvironments.mockResolvedValue([envA]);
+      await service.refresh();
+      await service.setActiveEnvironment(null);
+
+      idb.createEnvironment.mockResolvedValue(envB);
+      idb.listEnvironments.mockResolvedValue([envA, envB]);
+      await service.createEnvironment({ name: "B" });
+      expect(service.activeEnvironment()).toEqual(envB);
+
+      idb.createEnvironment.mockResolvedValue(envC);
+      idb.listEnvironments.mockResolvedValue([envA, envB, envC]);
+      await service.createEnvironment({ name: "C" });
+      expect(service.activeEnvironment()).toEqual(envB);
+    });
+
     it("updateEnvironment() persists then refreshes", async () => {
       const updated = buildEnv("a", { name: "Renamed" });
       idb.updateEnvironment.mockResolvedValue(updated);

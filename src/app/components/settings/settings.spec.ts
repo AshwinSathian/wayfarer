@@ -99,7 +99,9 @@ describe("Settings", () => {
 
   it("the theme is one of three choices, and the one chosen is kept", async () => {
     const theme = TestBed.inject(Theme);
-    const options = () => [...dialog().querySelectorAll<HTMLLabelElement>(".segmented label")];
+    const options = () => [
+      ...dialog().querySelectorAll<HTMLLabelElement>('ui-segmented[aria-labelledby="settings-theme-label"] label'),
+    ];
     const choice = (name: string) =>
       options()
         .find((label) => label.textContent?.trim() === name)

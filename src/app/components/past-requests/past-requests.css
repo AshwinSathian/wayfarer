@@ -57,6 +57,27 @@
   white-space: nowrap;
 }
 
+/* The saved request it was sent from, as it was named then: its name first, then its collection and folders, which
+   give way first when the row is narrow. */
+.history-name,
+.history-path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-name {
+  flex: 0 1 auto;
+  color: var(--label-primary);
+  font-weight: 500;
+}
+
+.history-path {
+  flex: 1 1 0;
+  color: var(--label-tertiary);
+}
+
 .history-facts {
   display: flex;
   flex-wrap: wrap;

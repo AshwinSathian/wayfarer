@@ -4,6 +4,8 @@
 @import "@fontsource/atkinson-hyperlegible-next/400.css";
 @import "@fontsource/atkinson-hyperlegible-next/500.css";
 @import "@fontsource/atkinson-hyperlegible-next/600.css";
+/* Bold is the name's alone, as the site sets it (packages/tokens/brand/README.md). */
+@import "@fontsource/atkinson-hyperlegible-next/700.css";
 @import "@fontsource-variable/inter/opsz.css";
 @import "@fontsource-variable/inter/opsz-italic.css";
 @import "@fontsource/jetbrains-mono/400.css";

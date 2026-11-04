@@ -106,6 +106,32 @@
   }
 }
 
+/* A version of the changelog, folded: the browser's marker goes for a chevron in ink that turns as it opens. */
+.version > summary {
+  list-style: none;
+}
+.version > summary::-webkit-details-marker {
+  display: none;
+}
+.version > summary::before {
+  content: "";
+  align-self: center;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--label-primary);
+  border-bottom: 2px solid var(--label-primary);
+  transform: rotate(-45deg);
+  transition: transform var(--dur-quick) var(--ease-standard);
+}
+.version[open] > summary::before {
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .version > summary::before {
+    transition: none;
+  }
+}
+
 /* A doc, the changelog: Markdown written for GitHub, set for reading. */
 .prose {
   max-width: 72ch;

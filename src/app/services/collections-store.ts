@@ -12,6 +12,7 @@ import {
 import {
   Redactor,
   scriptDigest,
+  scriptsApproved,
   scriptsOf,
   serializeDeterministic,
   type CollectionTree,
@@ -144,21 +145,27 @@ export class CollectionsStore {
 
   /**
    * Saves the auth and the scripts a collection or a folder holds for its
-   * requests. `scriptsAllowed`: the scripts it held before were allowed to
-   * run, so the ones saved now are the user's own and are approved, if the
-   * collection is trusted (D6; the rule of a request's save). Approved
-   * before they are written, so that none is stored not yet approved.
+   * requests. When the scripts it held before this write were allowed to
+   * run, the ones saved now are the user's own and are approved, if the
+   * collection is trusted (D6; the rule of a request's save). The settings
+   * tab writes each change as it is made, so this is asked of what is
+   * stored at each write, here and nowhere else: an edit of a script that
+   * was held stays held. Approved before they are written, so that none is
+   * stored not yet approved.
    */
   async saveInherited(
     target: { collectionId: string; folderId?: string },
     patch: InheritedPatch<Folder> & Pick<Collection, "route">,
-    scriptsAllowed: boolean,
   ): Promise<void> {
     const { auth } = patch;
     if (!target.folderId && auth.type === "inherit")
       throw new Error("A collection has nothing to inherit its auth from.");
+    const tree = this.getCollectionTree(target.collectionId);
+    const held = target.folderId
+      ? tree?.folders.find((folder) => folder.meta.id === target.folderId)
+      : tree?.collection;
     const scripts = scriptsOf(patch);
-    if (scriptsAllowed && scripts.length)
+    if (held && scripts.length && (await scriptsApproved(tree?.collection.scriptTrust, scriptsOf(held))))
       await this.collectionsRepository.approveScripts(
         target.collectionId,
         await Promise.all(scripts.map(scriptDigest)),

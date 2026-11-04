@@ -1,0 +1,181 @@
+@if (draft(); as form) {
+<div ngTabs class="tabs @container min-w-0">
+  <div uiTabList [selectedTab]="editorTab()" (selectedTabChange)="editorTab.set($event)">
+    <button ngTab type="button" value="pairs">Name / Value</button>
+    <button ngTab type="button" value="json">JSON</button>
+  </div>
+  <div class="tab-panes">
+    <div ngTabPanel value="pairs" class="tab-pane" [preserveContent]="true"
+      ><ng-template ngTabContent>
+        <div class="flex flex-col gap-2">
+          @if (form.vars.length) {
+          <!-- The columns' names, as Params has them (U-041); where the value has its own line, there is no column to name. -->
+          <div
+            class="env-var-head hidden @md:grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-2 px-1.5 type-footnote text-label-tertiary"
+            aria-hidden="true"
+          >
+            <span class="w-[22px]"></span><span>Name</span><span>Value</span><span class="w-[34px]"></span
+            ><span class="w-[34px]"></span>
+          </div>
+          } @for (item of form.vars; track $index) {
+          <!-- By the rows' own width: on a phone the value takes a line of its own (U-042). -->
+          <div
+            class="env-var grid grid-cols-[auto_minmax(0,1fr)_auto_auto] @md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg p-1.5"
+            [class]="focusedVariableKey() === item.key ? 'ring-2 ring-ink bg-fill-selected' : ''"
+          >
+            <!-- On or off, its value kept either way (U-041). -->
+            <input
+              type="checkbox"
+              uiCheckbox
+              [attr.aria-label]="'Use ' + (form.vars[$index].key || 'this variable')"
+              [ngModel]="form.vars[$index].enabled"
+              (ngModelChange)="setEnabled($index, $event)"
+            />
+            <input
+              #keyInput
+              class="font-mono"
+              uiInput
+              placeholder="Name"
+              [attr.aria-label]="'Variable name, ' + ($index + 1) + ' of ' + form.vars.length"
+              [(ngModel)]="form.vars[$index].key"
+              (ngModelChange)="onPairsChange()"
+            />
+            @if (!isSecretValue(form.vars[$index].value)) {
+            <input
+              #valueInput
+              class="font-mono col-span-full order-last @md:col-span-1 @md:order-none"
+              uiInput
+              placeholder="Value"
+              [attr.aria-label]="'Value of ' + (form.vars[$index].key || 'this variable')"
+              [(ngModel)]="form.vars[$index].value"
+              (ngModelChange)="onPairsChange()"
+            />
+            } @else {
+            <div
+              class="col-span-full order-last @md:col-span-1 @md:order-none rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2.5"
+            >
+              <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
+              <div class="type-footnote text-label-secondary mt-0.5">
+                @if (!secretsUnlocked) { Unlock to reveal } @else if (getSecretPreview(form.vars[$index].value)) { {{
+                getSecretPreview(form.vars[$index].value) }} } @else {
+                <button type="button" class="underline text-label-primary bg-transparent" (click)="revealSecret($index)"
+                  >Reveal</button
+                >
+                }
+              </div>
+            </div>
+            }
+            <button
+              uiButton="icon"
+              class="btn-secondary"
+              [disabled]="isSecretValue(form.vars[$index].value)"
+              [attr.aria-label]="'Mark ' + (form.vars[$index].key || 'this variable') + ' as secret'"
+              data-secret-lock
+              (pointerdown)="holdForSecret($index)"
+              (click)="protectVariable($index)"
+              ><app-icon name="lock"
+            /></button>
+            <button
+              uiButton="icon"
+              class="btn-secondary"
+              [attr.aria-label]="'Remove ' + (form.vars[$index].key || 'this variable')"
+              (click)="removeVariable($index)"
+              ><app-icon name="close"
+            /></button>
+          </div>
+          @if (protectProblem()?.index === $index) {
+          <p class="type-footnote text-label-secondary px-1.5">{{ protectProblem()?.text }}</p>
+          } @else if (rowNote(item); as note) {
+          <p class="type-footnote text-label-secondary px-1.5">{{ note }}</p>
+          } @if (vaultFor() === $index) {
+          <!-- The vault is made in the row that asked for it, not in a second dialog (U-136). -->
+          <div class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
+            <p id="env-vault-create-title" class="type-footnote text-label-primary"
+              >Choose a passphrase for the vault. It encrypts {{ item.key }} and every secret after it, and nothing can
+              open them without it: a forgotten passphrase cannot be recovered.</p
+            >
+            <div class="flex flex-wrap gap-2">
+              <label class="flex min-w-0 flex-1 basis-40 flex-col gap-1">
+                <span class="ds-form-label">Passphrase</span>
+                <input
+                  #vaultPassphraseField
+                  class="font-sans w-full"
+                  uiInput
+                  type="password"
+                  aria-describedby="env-error"
+                  [attr.aria-invalid]="vaultError() ? 'true' : null"
+                  [ngModel]="vaultPassphrase()"
+                  (ngModelChange)="vaultPassphrase.set($event)"
+                  (keydown.enter)="createVaultForRow()"
+                />
+              </label>
+              <label class="flex min-w-0 flex-1 basis-40 flex-col gap-1">
+                <span class="ds-form-label">Confirm passphrase</span>
+                <input
+                  class="font-sans w-full"
+                  uiInput
+                  type="password"
+                  [ngModel]="vaultConfirmation()"
+                  (ngModelChange)="vaultConfirmation.set($event)"
+                  (keydown.enter)="createVaultForRow()"
+                />
+              </label>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="cancelVaultForRow()"
+                >Cancel</button
+              >
+              <button
+                uiButton="filled"
+                class="btn-sm"
+                type="button"
+                [disabled]="!vaultPassphrase()"
+                (click)="createVaultForRow()"
+                >Create vault</button
+              >
+            </div>
+          </div>
+          } }
+          <button uiButton="filled" class="btn-secondary btn-sm" (click)="addVariable()"
+            ><app-icon name="add" /> Add variable</button
+          >
+        </div>
+      </ng-template></div
+    >
+    <div ngTabPanel value="json" class="tab-pane" [preserveContent]="true"
+      ><ng-template ngTabContent>
+        <div class="space-y-2">
+          @if (!form.jsonValid) {
+          <p class="type-footnote text-status-error flex items-center gap-1">
+            <app-icon name="error" class="icon-xs" />
+            This is not JSON.
+          </p>
+          }
+          <app-json-editor
+            name="env-json"
+            [(ngModel)]="form.jsonText"
+            (jsonValidChange)="form.jsonValid = $event"
+            (parsedChange)="onJsonChange(form.jsonText, form.jsonValid, $event)"
+            [height]="240"
+          ></app-json-editor>
+        </div> </ng-template
+    ></div>
+  </div>
+</div>
+}
+
+<!-- Present from the first render, so a screen reader hears each message when its text arrives (U-075). Empty, they
+     take no room: the space is the message's own. -->
+<p role="status" class="type-footnote text-status-warning env-live">
+  @if (shortSecretWarning(); as short) {
+  <span class="env-live-text"
+    >"{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be found and
+    masked where a server sends it back.</span
+  >
+  }
+</p>
+<p id="env-error" role="alert" class="type-footnote text-status-error env-live">
+  @if (saveError() || vaultError()) {
+  <span class="env-live-text">{{ saveError() || vaultError() }}</span>
+  }
+</p>

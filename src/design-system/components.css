@@ -24,6 +24,13 @@ pre,
   font-feature-settings: normal;
 }
 
+/* The wire's face is never under 13 px (U-151): a mono span inside 12 px text (a record's host, a flag, a status in a
+   caption) is lifted to it, and inside larger text keeps the text's size. No specificity: a type class or a
+   component's own size on the same element wins. */
+:where(code, .font-mono) {
+  font-size: max(1em, var(--type-mono-body-size));
+}
+
 /* An editor sets its own face on the containers it draws (editorText in monaco-loader.ts): what is inside them
    inherits it. The rule above, on every element, drew Monaco's lines in Inter (U-052). */
 .monaco-editor * {
@@ -138,11 +145,12 @@ pre,
 /* A method as text alone, where a list names many (the collections tree).
    A method of the user's own (any token) keeps the label colour. */
 .method-tag {
-  flex: 0 0 2.5rem;
+  /* Room for PATCH at the mono size: the wire's face is never under 13 px (U-151). */
+  flex: 0 0 2.75rem;
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--type-mono-body-size);
   font-weight: 600;
   color: var(--label-secondary);
 }
@@ -377,21 +385,15 @@ pre,
 .brand-mark-tile {
   fill: var(--ink);
 }
-.brand-mark-route {
-  stroke: var(--on-ink);
-}
-.brand-mark-host {
-  fill: var(--on-ink);
+.brand-mark-glyph {
+  color: var(--on-ink);
 }
 @media (forced-colors: active) {
   .brand-mark-tile {
     fill: CanvasText;
   }
-  .brand-mark-route {
-    stroke: Canvas;
-  }
-  .brand-mark-host {
-    fill: Canvas;
+  .brand-mark-glyph {
+    color: Canvas;
   }
 }
 
@@ -453,6 +455,13 @@ pre,
 .response-headers th,
 .response-headers td {
   overflow-wrap: anywhere;
+}
+
+/* A header's name is what the server sent: the wire's face, as its value is (the final pass, L-10). */
+.response-headers th {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-body-size);
+  font-weight: 400;
 }
 
 @container (max-width: 520px) {

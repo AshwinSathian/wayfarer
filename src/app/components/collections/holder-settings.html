@@ -1,49 +1,57 @@
-<ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="requestClose()" width="720px">
-  <!-- A dialog's content is made with the page; its script editors load Monaco: made while the dialog is open (P7.2). -->
-  @if (target() !== null) {
+@if (node(); as node) {
+<!-- A document in a tab (D5-e): written as each field is left, with no Save button. -->
+<section class="flex flex-col gap-4" [attr.aria-label]="title() + ': ' + node.name" (focusout)="commit()">
+  <header class="flex min-w-0 items-center gap-2">
+    <app-icon [name]="kind() === 'folder' ? 'folder' : 'folder_open'" class="icon-sm text-label-tertiary shrink-0" />
+    <h2 class="type-headline m-0 min-w-0 truncate">{{ node.name }}</h2>
+    <span class="type-footnote text-label-secondary shrink-0">{{ title() }}</span>
+  </header>
+  @if (path()) {
+  <p class="type-footnote text-label-tertiary -mt-3 m-0">In {{ path() }}</p>
+  }
   <div ngTabs class="tabs">
     <div uiTabList [selectedTab]="tab()" (selectedTabChange)="tab.set($event)">
-      <button ngTab type="button" value="auth">Auth</button>
       <button ngTab type="button" value="variables">Variables</button>
+      <button ngTab type="button" value="auth">Auth</button>
       <button ngTab type="button" value="scripts">Scripts</button>
       @if (kind() === 'collection') {
       <button ngTab type="button" value="route">Route</button>
       }
     </div>
     <div class="tab-panes">
+      <div ngTabPanel value="variables" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>
+          <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
+          @if (variables(); as variables) {
+          <app-variable-rows [holder]="variables" [reveal]="reveal()" />
+          }
+        </ng-template></div
+      >
       <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"
         ><ng-template ngTabContent>
           <p class="type-footnote text-label-secondary mb-3"
             >Sent with every request in this {{ kind() }} whose own auth is "Inherit from parent".</p
           >
+          @if (edits(); as edits) {
           <app-auth-editor
             class="block"
             idPrefix="inherited-auth"
             [subject]="kind()"
-            [auth]="auth()"
+            [auth]="edits.auth"
             [inherited]="inherited()"
             [showPassword]="showPassword()"
             (authTypeChange)="onAuthType($event)"
-            (authChange)="auth.set($event)"
+            (authChange)="setAuth($event)"
             (togglePasswordVisibility)="showPassword.set(!showPassword())"
-          /> </ng-template
-      ></div>
-      <div ngTabPanel value="variables" class="tab-pane" [preserveContent]="true"
-        ><ng-template ngTabContent>
-          <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
-          <app-rows-editor
-            noun="variable"
-            [items]="rows()"
-            [switches]="false"
-            addLabel="Add variable"
-            (add)="rows.set([...rows(), { key: '', value: '', enabled: true }])"
-            (remove)="removeRow($event)"
-          /> </ng-template
-      ></div>
+          />
+          }
+        </ng-template></div
+      >
       <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"
         ><ng-template ngTabContent>
+          @if (edits(); as edits) {
           <div class="flex flex-col gap-4">
-            <p class="type-footnote text-label-secondary">
+            <p class="type-footnote text-label-secondary m-0">
               Run for every request in this {{ kind() }}: the collection's scripts first, then each folder's from the
               outside in, then the request's own.
             </p>
@@ -51,24 +59,26 @@
               <div class="ds-section-label">Pre-request script</div>
               <app-script-editor
                 name="inheritedPreScript"
-                [ngModel]="scripts().pre"
+                [ngModel]="edits.scripts.pre"
                 (ngModelChange)="setScript('pre', $event)"
                 [ngModelOptions]="{ standalone: true }"
-                [height]="150"
+                [height]="320"
               ></app-script-editor>
             </div>
             <div class="space-y-2">
               <div class="ds-section-label">Post-response script</div>
               <app-script-editor
                 name="inheritedPostScript"
-                [ngModel]="scripts().post"
+                [ngModel]="edits.scripts.post"
                 (ngModelChange)="setScript('post', $event)"
                 [ngModelOptions]="{ standalone: true }"
-                [height]="150"
+                [height]="320"
               ></app-script-editor>
             </div>
-          </div> </ng-template
-      ></div>
+          </div>
+          }
+        </ng-template></div
+      >
       @if (kind() === 'collection') {
       <div ngTabPanel value="route" class="tab-pane" [preserveContent]="true"
         ><ng-template ngTabContent>
@@ -80,18 +90,20 @@
             class="collection-route w-64"
             aria-labelledby="inherited-route-label"
             [options]="routes"
-            [value]="route()"
-            (valueChange)="route.set($event)"
+            [value]="edits()?.route ?? null"
+            (valueChange)="setRoute($event)"
           /> </ng-template
       ></div>
       }
     </div>
   </div>
-  }
-  <div uiDialogFooter>
-    <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" type="button" (click)="requestClose()">Cancel</button>
-      <button uiButton="filled" type="button" [disabled]="saving()" (click)="save()">Save settings</button>
-    </div>
-  </div>
-</ui-dialog>
+</section>
+} @else {
+<div class="ds-empty-state">
+  <p class="type-callout text-label-tertiary text-center"
+    >This {{ kind() }} is no longer here: it was deleted. Close the tab.</p
+  >
+</div>
+}
+<!-- In the page from the first render, so a screen reader hears the message when its text arrives (U-075). -->
+<p role="alert" class="type-footnote text-status-error m-0">{{ saveError() }}</p>

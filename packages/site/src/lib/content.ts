@@ -3,6 +3,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { changelogOf } from "../changelog.mjs";
 import { renderMarkdown, titleOf } from "../markdown.mjs";
 import { roadmapOf } from "../roadmap.mjs";
 
@@ -120,8 +121,8 @@ export function lastChanged(path: string): string | undefined {
   }
 }
 
-export function changelogHtml(): string {
-  return renderMarkdown(read("CHANGELOG.md"), "CHANGELOG.md");
+export function changelog() {
+  return changelogOf(read("CHANGELOG.md"));
 }
 
 export function roadmap() {

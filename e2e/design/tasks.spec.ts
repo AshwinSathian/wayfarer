@@ -95,12 +95,9 @@ async function importAndTrust(user: User): Promise<void> {
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await user.click(button(dialog, "Import"));
+  // The shortest road since D5-e: the import ends in the review of the scripts it stored, unapproved.
+  await user.click(button(dialog, "Import and review scripts…"));
   await expect(dialog).toHaveCount(0);
-  // A run does not offer the review: it sends without the scripts. The review is in a request's Scripts tab.
-  await user.click(page.getByRole("tree").getByText("List orders", { exact: true }));
-  await user.click(page.locator("app-composer").getByRole("tab", { name: "Scripts", exact: true }));
-  await user.click(button(page.locator(".scripts-held"), "Review scripts"));
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await user.click(button(review, "Trust these scripts"));
   await expect(review).toHaveCount(0);
@@ -309,7 +306,7 @@ const TASKS: Task[] = [
       const { page } = user;
       await user.click(button(page, "Request history"));
       const history = page.getByRole("dialog", { name: /history/i });
-      await user.type(history.getByPlaceholder("Search by address, method or status"), "weekly");
+      await user.type(history.getByPlaceholder("Search by name, address, method or status"), "weekly");
       await user.click(history.getByText(/report=weekly/).first());
       await expect(address(page)).toHaveValue(/report=weekly/);
     },

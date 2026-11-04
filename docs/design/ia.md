@@ -36,7 +36,11 @@ At 1,200 px and wider, with the sidebar pinned:
 Below 1,200 px the sidebar is a drawer over the page; below 768 px the
 composer's sections stack and the status bar's controls go to the toolbar
 (the lock) and to Settings (the rest), as `CLAUDE.md` describes. This map
-changes neither width.
+changes neither width. Where the composer itself is narrower than 62 em
+(992 px: a 1,024 px window, or up to about 1,400 px beside the pinned
+sidebar), the response goes under the request, with the line between them
+across (D5-e, L-6, L-7); Settings › General can keep it beside or under
+whatever the room.
 
 Each region holds one kind of thing:
 
@@ -68,9 +72,10 @@ Each region holds one kind of thing:
   storage state.
 
 A dialog or a drawer belongs to the region that opens it: the Secrets
-dialog to the status bar, a collection's Settings dialog to the sidebar.
-The environments are a tab, a document like a request (D4.5, DQ9), opened
-from the toolbar, the palette or a variable's chip. Row 1.9 also chose Direction C's rail, an
+dialog to the status bar. The environments are a tab, a document like a
+request (D4.5, DQ9), opened from the toolbar, the palette or a variable's
+chip; so are a collection's and a folder's settings (D5-e), opened from the
+tree's menu, the palette or a variable's chip. Row 1.9 also chose Direction C's rail, an
 inspector beside the response for why a request failed, where it went and
 which secrets it used. Row 1.45 gave it session D4-l (D4.12), which built
 it as the exchange record under the response's status line: in a pane as
@@ -228,6 +233,7 @@ None of these leaves the keyboard's reach.
 | "Export with credentials" and "Export for Postman…" as menu items | One Export… (U-016, maintainer, 2026-10-22) | Export…, with the choice in its dialog |
 | Duplicate tab as a button of the strip | It acted on a tab far from it (U-027, maintainer, 2026-10-22) | A tab's context menu, the palette |
 | The environment editor's Save changes | The editor writes each field as focus leaves it (DQ9, row 1.52; U-060) | Nothing to do: leaving a field, closing the editor or choosing another environment keeps the edit |
+| A collection's or a folder's settings dialog, its Cancel and Save settings | Its settings are a tab that writes each field as focus leaves it, as the environments do (D5-e, L-4) | Nothing to do: leaving a field or closing the tab keeps the edit |
 
 The palette's "New request" and "New tab" become one command, since both
 now open a tab. The drawer's "New request" button, which also empties the
@@ -307,16 +313,17 @@ it is.
 | `environments-manager.html: Use` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Duplicate` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Delete` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Name / Value` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: JSON` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Reveal` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Mark` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Remove` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Add variable` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
-| `environments-manager.html: Confirm passphrase` | The same (Enter makes the vault) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
-| `environments-manager.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-e |
-| `environments-manager.html: Cancel` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `variable-rows.html: Name / Value` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: JSON` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Reveal` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Mark` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Remove` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Add variable` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-e |
+| `variable-rows.html: Confirm passphrase` | The same (Enter makes the vault) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-e |
+| `variable-rows.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-e |
+| `variable-rows.html: Cancel` | Environments dialog (toolbar) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D4-g |
+| `variable-rows.html: Use` | A variable row's switch (U-041) | The variable rows of the Environments tab (D4.5) and of a collection's or a folder's settings tab (D5-e) | D5-e |
 | `past-requests.html: Select none / Select all` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: exportChosen()` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Select` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
@@ -366,13 +373,11 @@ it is.
 | `collections-sidebar.html: Cancel` | New collection or request dialog | Sidebar, same dialog | D4-f |
 | `collections-sidebar.html: Create` | New collection or request dialog | Sidebar, same dialog | D4-f |
 | `palette.html: run(item)` | Palette, a row, or Enter on the active one: a command, or a request, collection, folder, environment or past request found by typing | Palette, the shell's (U-011) | D4-f, done |
-| `inherited-settings-dialog.html: Auth` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: Variables` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: Scripts` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: Route` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: Cancel` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
-| `inherited-settings-dialog.html: Save settings` | A collection's or folder's Settings dialog (context menu) | Sidebar, same dialog | D4-f |
+| `holder-settings.html: Variables` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
+| `holder-settings.html: Auth` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
+| `holder-settings.html: Scripts` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
+| `holder-settings.html: Route` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
+| `holder-settings.html: How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
 | `export-dialog.html: Format` | Export… dialog: Wayfarer or Postman v2.1 (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
@@ -383,6 +388,7 @@ it is.
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Import and review scripts…` | — (new in D5-e) | Import report dialog, when the file is one collection with scripts: imports it untrusted, then opens the script review on it | — |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New folder` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
 | `menu collection-context-menu.ts: New request` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
@@ -396,7 +402,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `tab-strip.html: Env / Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
+| `tab-strip.html: menuFor(tab, $event)` | A tab (its badge Env, Run, WS or a method; a collection's or a folder's settings tab has its glyph) | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
 | `tab-strip.html: New tab` | + after the last tab; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f, done |
 | `tab-strip.html: closeFromPointer(tab, $event)` | Each tab's ×, for the pointer; Alt+W, Delete on a focused tab and the tab's menu from the keyboard | Tab strip (U-027) | D4-f, done |
 | `run-view.html: Cancel run / Run again / Run` | A run's tab | A run's tab: one button, Cancel run while it runs (U-091) | D4-i, done |
@@ -536,6 +542,8 @@ it is.
 | `palette: environments` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: focus-address-bar` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: toggle-theme` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: response-under` | — (new in D5-e, L-6, L-7): "Put the response under the request"; Settings › General, Response | Palette (the shell's) | D5-e |
+| `palette: response-beside` | — (new in D5-e, L-6, L-7): "Put the response beside the request"; Settings › General, Response | Palette (the shell's) | D5-e |
 | `palette: toggle-sidebar` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: open-history` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: lock-secrets` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
@@ -553,6 +561,8 @@ it is.
 | `palette: export-collection` | Palette, the collection selected in the tree | Palette, "Export…" (U-016) | D4-f |
 | `palette: delete-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-request-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: settings-collection` | (none: the context menu only) | Palette, "Settings of {collection}…" with the collection selected: its settings tab (D5-e) | D5-e |
+| `palette: settings-folder` | (none: the context menu only) | Palette, "Settings of {folder}…" with the folder selected: its settings tab (D5-e) | D5-e |
 | `palette: duplicate-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: delete-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: duplicate-request` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
@@ -641,7 +651,7 @@ it is.
 | `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
-| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before | The split between the request and the response | — |
+| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before. Across, with Up and Down, when the response is under the request (D5-e, L-6, L-7) | The split between the request and the response | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |
 | `tree.ts: node.ariaLabel ?? node.label` | The collections tree | Sidebar | — |
 

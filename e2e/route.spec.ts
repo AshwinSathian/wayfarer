@@ -1,7 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { axe } from "./support/axe";
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { openRequestSettings, openSettings, seedAndOpen, send } from "./support/app";
+import {
+  closeHolderSettings,
+  openHolderSettings,
+  openRequestSettings,
+  openSettings,
+  seedAndOpen,
+  send,
+} from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -170,13 +177,11 @@ for (const theme of ["light", "dark"] as const) {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
-    // Opened again at each width: the dialog belongs to the sidebar, which becomes a drawer below 1200 px and closes it.
+    // Opened again at each width: from the sidebar, which is a drawer below 1200 px and closes as the tab opens.
     for (const width of [360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       if (width < 1200) await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
-      await page.getByRole("tree").getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-      await page.getByRole("menuitem", { name: "Settings" }).click();
-      const collection = page.getByRole("dialog", { name: /^Collection settings/ });
+      const collection = await openHolderSettings(page, "Tripwire collection");
       await collection.getByRole("tab", { name: "Route" }).click();
       const choice = collection.getByRole("combobox", { name: /How the requests of this collection are sent/ });
       await expect(choice).toBeVisible();
@@ -195,12 +200,7 @@ for (const theme of ["light", "dark"] as const) {
         )
         .toBe(true);
       await scan(`the collection's settings at ${width} px`);
-      await page.keyboard.press("Escape");
-      await expect(collection).toHaveCount(0);
-      if (width < 1200) {
-        await page.keyboard.press("Escape");
-        await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
-      }
+      await closeHolderSettings(page, "Tripwire collection");
     }
   });
 }

@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **New request no longer throws away what you typed.** The drawer's New
+  request button and the palette's command emptied the open tab, unsaved
+  edits and all, with no question. They now open a new tab, as New tab
+  does, and the palette has one command for both.
+
 - **A query parameter's name and value have room at large text.** At
   200% text beside the collections tree, Params left each field about
   47 px wide, two letters of "kind". Params now wraps its rows by the room

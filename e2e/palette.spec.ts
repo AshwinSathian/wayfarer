@@ -24,8 +24,8 @@ test("@claim:C-030 ⌘K from the address field opens the palette on its field, w
   await expect(dialog.getByRole("heading")).toHaveCount(0);
   await expect(dialog.getByRole("button")).toHaveCount(0);
   // A command's shortcut is a keycap, and its aria-keyshortcuts.
-  await expect(option(page, /^New tab/)).toHaveAttribute("aria-keyshortcuts", "Alt+T");
-  await expect(option(page, /^New tab/).locator("kbd")).toBeVisible();
+  await expect(option(page, /^New request/)).toHaveAttribute("aria-keyshortcuts", "Alt+T");
+  await expect(option(page, /^New request/).locator("kbd")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 });
@@ -33,8 +33,8 @@ test("@claim:C-030 ⌘K from the address field opens the palette on its field, w
 test("the arrows move through the results and Enter runs the active one", async ({ page }) => {
   await page.goto("/app/");
   await openPalette(page);
-  await page.keyboard.type("tab");
-  await expect(option(page, /^New tab/)).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.type("new");
+  await expect(option(page, /^New request/)).toHaveAttribute("aria-selected", "true");
   const first = await field(page).getAttribute("aria-activedescendant");
   await page.keyboard.press("ArrowDown");
   await expect.poll(() => field(page).getAttribute("aria-activedescendant")).not.toBe(first);
@@ -42,7 +42,7 @@ test("the arrows move through the results and Enter runs the active one", async 
   await expect(page.locator(`#${second}`)).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("ArrowUp");
   await expect(field(page)).toHaveAttribute("aria-activedescendant", first!);
-  // Enter runs it: New tab.
+  // Enter runs it: New request, a tab of its own.
   const tabs = page.getByRole("tablist", { name: "Open requests" }).getByRole("tab");
   await expect(tabs).toHaveCount(1);
   await page.keyboard.press("Enter");

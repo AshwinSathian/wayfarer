@@ -89,20 +89,20 @@ export default function MovingFromPostman() {
           <li key={title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
             <span
               aria-hidden="true"
-              className="grid size-9 place-items-center rounded-full border-2 border-route font-display font-bold text-route"
+              className="grid size-9 place-items-center rounded-full border-2 border-action font-bold text-action"
             >
               {i + 1}
             </span>
             <div>
-              <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
-              <p className="mt-1 text-ink-muted [&_a]:text-route [&_a]:underline [&_a]:underline-offset-4">{text}</p>
+              <h2 className="type-site-lede font-semibold text-ink">{title}</h2>
+              <p className="mt-1 text-ink-muted [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">{text}</p>
             </div>
           </li>
         ))}
       </ol>
 
       <H2 id="not-across">What does not come across</H2>
-      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-route [&_a]:underline [&_a]:underline-offset-4">
+      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
         <li>
           What the import report lists as not kept: it names each thing, before anything is stored.{" "}
           <Claims ids={["C-054"]} />

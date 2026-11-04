@@ -296,5 +296,136 @@
         "lineHeight": 1.5385
       }
     }
+  },
+  "site-type": {
+    "$description": "The site's type scale (D3.2's second scale, W5.1): the app's face at the sizes a page that is read, not worked in, needs. In rem, as the app's; nothing under 12 px. Written into packages/site as Tailwind utilities (`type-site-body`), so that a breakpoint can change a size (`md:type-site-display`). Titles are 700: the site loads Atkinson Hyperlegible Next at 400 and 700 only.",
+    "type-site-display": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 3.5,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": -0.02,
+          "unit": "em"
+        },
+        "lineHeight": 1.05
+      }
+    },
+    "type-site-title-1": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 2.25,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": -0.015,
+          "unit": "em"
+        },
+        "lineHeight": 1.1
+      }
+    },
+    "type-site-title-2": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 1.5,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": -0.01,
+          "unit": "em"
+        },
+        "lineHeight": 1.25
+      }
+    },
+    "type-site-title-3": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 1.1875,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.3
+      }
+    },
+    "type-site-lede": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 1.25,
+          "unit": "rem"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.5
+      }
+    },
+    "type-site-body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 1.0625,
+          "unit": "rem"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.6
+      }
+    },
+    "type-site-small": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 0.875,
+          "unit": "rem"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.5
+      }
+    },
+    "type-site-caption": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 0.8125,
+          "unit": "rem"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0.01,
+          "unit": "em"
+        },
+        "lineHeight": 1.4
+      }
+    }
   }
 }

@@ -10,9 +10,12 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { ogImagePath } from "./src/og-path.mjs";
+import { hexColours } from "../tokens/tokens.mjs";
 
 const FONTS = "../../node_modules/@fontsource/atkinson-hyperlegible-next/files";
 const MARK = "../tokens/brand/mark.svg";
+// The light theme's colours (W5.1): a card is the page as most people first see it.
+const C = hexColours("light");
 
 const unescape = (text) =>
   text.replace(
@@ -45,8 +48,8 @@ function card({ title, description }, mark, path) {
         flexDirection: "column",
         width: "100%",
         height: "100%",
-        background: "#f3f4ef",
-        color: "#121620",
+        background: C["canvas-app"],
+        color: C["label-primary"],
         padding: "72px 80px",
         fontFamily: "Atkinson",
       },
@@ -73,13 +76,22 @@ function card({ title, description }, mark, path) {
     ),
     h(
       "div",
-      { style: { display: "flex", marginTop: 28, fontSize: 30, lineHeight: 1.35, color: "#4a5261" } },
+      { style: { display: "flex", marginTop: 28, fontSize: 30, lineHeight: 1.35, color: C["label-secondary"] } },
       description.length > 160 ? `${description.slice(0, 157)}…` : description,
     ),
     h(
       "div",
-      { style: { display: "flex", alignItems: "center", gap: 16, marginTop: "auto", fontSize: 26, color: "#3451d1" } },
-      h("div", { style: { display: "flex", width: 120, height: 4, background: "#3451d1", borderRadius: 2 } }),
+      {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          marginTop: "auto",
+          fontSize: 26,
+          color: C["label-secondary"],
+        },
+      },
+      h("div", { style: { display: "flex", width: 120, height: 4, background: C.ink, borderRadius: 2 } }),
       site,
     ),
   );

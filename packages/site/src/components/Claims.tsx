@@ -7,7 +7,7 @@ export function Claims({ ids }: { ids: string[] }) {
         <a
           key={id}
           href="/docs/claims/"
-          className="rounded border border-line-strong px-1 font-mono text-[0.7rem] leading-[1.35] text-ink-muted no-underline hover:border-route hover:text-route"
+          className="rounded-xs border border-line-strong px-1 font-code type-site-caption text-ink-muted no-underline hover:border-action hover:text-action"
         >
           {id}
         </a>

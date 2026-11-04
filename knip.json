@@ -31,7 +31,7 @@
     },
     "packages/site": {
       "ignore": ["public/**"],
-      "ignoreDependencies": ["@fontsource-variable/bricolage-grotesque", "@fontsource/atkinson-hyperlegible-next"]
+      "ignoreDependencies": ["@fontsource/atkinson-hyperlegible-next", "@fontsource/jetbrains-mono"]
     }
   },
   "ignoreExportsUsedInFile": true

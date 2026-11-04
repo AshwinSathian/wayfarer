@@ -18,10 +18,10 @@ export default function Roadmap() {
     <>
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Roadmap</h1>
-        <p className="mt-4 max-w-2xl text-lg text-ink-muted">
+        <h1 className="type-site-title-1 font-bold sm:type-site-display">Roadmap</h1>
+        <p className="mt-4 max-w-2xl type-site-lede text-ink-muted">
           The plan for the design rebuild, this website and sharing for teams, task by task, as{" "}
-          <a className="text-route underline underline-offset-4" href={PLAN}>
+          <a className="text-action underline underline-offset-4" href={PLAN}>
             PLAN-design.md
           </a>{" "}
           had it when this page was built.
@@ -32,8 +32,8 @@ export default function Roadmap() {
             return (
               <section key={phase.title}>
                 <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
-                  <h2 className="font-display text-2xl font-semibold">{phase.title}</h2>
-                  <span className="text-sm text-ink-muted">
+                  <h2 className="type-site-title-2 font-semibold">{phase.title}</h2>
+                  <span className="type-site-small text-ink-muted">
                     {done} of {phase.tasks.length} done
                   </span>
                 </div>
@@ -42,11 +42,11 @@ export default function Roadmap() {
                     <li key={task.id} className={`flex gap-3 ${task.done ? "task-done" : "task-open"}`}>
                       <span
                         aria-hidden="true"
-                        className={`mt-1.5 size-3 shrink-0 rounded-full border-2 border-route ${task.done ? "bg-route" : "bg-paper"}`}
+                        className={`mt-1.5 size-3 shrink-0 rounded-full border-2 border-action ${task.done ? "bg-action" : "bg-paper"}`}
                       />
                       <span>
                         <span className="sr-only">{task.done ? "Done: " : "To do: "}</span>
-                        <strong className="font-mono text-sm">{task.id}</strong>{" "}
+                        <strong className="font-code type-site-small">{task.id}</strong>{" "}
                         <span className={task.done ? "text-ink-muted" : "text-ink"}>{task.text}</span>
                       </span>
                     </li>

@@ -63,6 +63,40 @@
   --type-mono-body-weight: 400;
   --type-mono-body-tracking: 0;
 
+  /* site-type */
+  --type-site-display-size: 3.5rem;
+  --type-site-display-line: 3.6875rem;
+  --type-site-display-weight: 700;
+  --type-site-display-tracking: -0.02em;
+  --type-site-title-1-size: 2.25rem;
+  --type-site-title-1-line: 2.5rem;
+  --type-site-title-1-weight: 700;
+  --type-site-title-1-tracking: -0.015em;
+  --type-site-title-2-size: 1.5rem;
+  --type-site-title-2-line: 1.875rem;
+  --type-site-title-2-weight: 700;
+  --type-site-title-2-tracking: -0.01em;
+  --type-site-title-3-size: 1.1875rem;
+  --type-site-title-3-line: 1.5625rem;
+  --type-site-title-3-weight: 700;
+  --type-site-title-3-tracking: 0;
+  --type-site-lede-size: 1.25rem;
+  --type-site-lede-line: 1.875rem;
+  --type-site-lede-weight: 400;
+  --type-site-lede-tracking: 0;
+  --type-site-body-size: 1.0625rem;
+  --type-site-body-line: 1.6875rem;
+  --type-site-body-weight: 400;
+  --type-site-body-tracking: 0;
+  --type-site-small-size: 0.875rem;
+  --type-site-small-line: 1.3125rem;
+  --type-site-small-weight: 400;
+  --type-site-small-tracking: 0;
+  --type-site-caption-size: 0.8125rem;
+  --type-site-caption-line: 1.125rem;
+  --type-site-caption-weight: 400;
+  --type-site-caption-tracking: 0.01em;
+
   /* canvas */
   --canvas-app: #161513;
   --canvas-sidebar: #121110;

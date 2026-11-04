@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiSpinner } from "../../ui/spinner";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { CollectionsStore } from "../../services/collections-store";
-import type { CollectionImportPlanEntry, ImportedCollection } from "@wayfarer/core";
+import { ScriptTrust } from "../../services/script-trust";
+import { scriptsOf, type CollectionImportPlanEntry, type ImportedCollection } from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
+import { ScriptReviewDialog } from "../composer/script-review-dialog";
 
 /**
  * The one import dialog (plan P4.1): what a picked file will add and what
@@ -15,7 +17,7 @@ import { Dialog } from "../../ui/dialog";
  */
 @Component({
   selector: "app-import-dialog",
-  imports: [Dialog, FormsModule, UiButton, UiCheckbox, UiSpinner],
+  imports: [Dialog, FormsModule, ScriptReviewDialog, UiButton, UiCheckbox, UiSpinner],
   templateUrl: "./import-dialog.html",
   styleUrl: "./import-dialog.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +25,32 @@ import { Dialog } from "../../ui/dialog";
 export class ImportDialog {
   protected readonly pipeline = inject(ImportPipeline);
   private readonly collections = inject(CollectionsStore);
+  private readonly trust = inject(ScriptTrust);
+
+  /**
+   * The file is one collection with scripts: the import can end in their review (D5-e), where the person meets them.
+   * It still stores them unapproved; only the review's "Trust these scripts" approves.
+   */
+  protected readonly holdsScripts = computed(() => {
+    const collections = this.pipeline.imported()?.collections ?? [];
+    if (collections.length !== 1) return false;
+    const { collection, folders, requests } = collections[0].payload;
+    return [collection, ...folders, ...requests].some((holder) => scriptsOf(holder).length);
+  });
+  protected readonly reviewing = signal(false);
+
+  protected async importAndReview(): Promise<void> {
+    const [id] = await this.pipeline.confirm();
+    if (!id) return;
+    this.trust.reviewOf.set(id);
+    this.reviewing.set(true);
+  }
+
+  protected reviewClosed(open: boolean): void {
+    if (open) return;
+    this.reviewing.set(false);
+    this.trust.reviewOf.set(null);
+  }
 
   /**
    * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds

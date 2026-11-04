@@ -86,7 +86,9 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
     .getByLabel("Restore workspace from file")
     .setInputFiles({ name: "wayfarer-workspace.json", mimeType: "application/json", buffer: Buffer.from(file) });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
-  await expect(page.getByText("Tripwire collection", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("tree", { name: "Collections" }).getByText("Tripwire collection", { exact: true }),
+  ).toBeVisible();
 
   // The composer's tabs are working state, not what was saved: a backup does not hold them (docs/storage.md).
   // The reset removed the one there was, and the restore brought none.

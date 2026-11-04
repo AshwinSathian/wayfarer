@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History names the saved request an entry came from.** A row used to
+  show only the method, the address and the status, so finding "the pets
+  request from last week" meant remembering its URL. A send from a saved
+  request now keeps that request's name and where it lived, and History
+  shows them above the address ("List pets", then "Pet store / Pets").
+  The search finds an entry by those names too. They are kept as they
+  were when you sent, so renaming or moving the request later leaves the
+  entry as it was.
+
 - **Wayfarer's brand files are in one place.** `packages/tokens/brand/`
   holds the mark, the wordmark, the favicon, the installed app's icons and
   a social image, written from the design tokens, so they cannot drift
@@ -435,6 +444,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Addresses, hosts, header names and methods are never drawn under
+  13 px.** A host or a flag set in JetBrains Mono inside a small line (the
+  exchange record, the bridge's set-up, History, the tree's methods) came
+  out at 12 px, where its 0 and O are hard to tell apart, and response
+  header names had moved into the text face. They are all the wire's face
+  at 13 px now.
+
 - **Importing a collection again says what it changes, and can be
   undone.** Every item of a Wayfarer collection file was marked
   "Replaces", whether it was stored or not and whether it differed. Each
@@ -714,6 +730,48 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   tasks by their IDs, research and reviews among them. Both pages are
   still made from `CHANGELOG.md` and `PLAN-design.md` when the site is
   built.
+
+- **A collection's or a folder's settings open in a tab, and their
+  variables can be secrets.** Settings… in the tree's menu, the palette's
+  "Settings of {name}…" and a variable's chip open the settings as a tab
+  beside your requests, one tab for each collection or folder, as
+  Environments does. Before, they were a dialog over a page you could not
+  reach, with its own Save and a question when you closed it with changes.
+  Now each field is written when you leave it. The variables have the
+  environment editor's rows: a switch that turns one off and keeps its
+  value, a lock that moves its value into the vault, and a JSON view.
+  Before, a collection's token could not be locked, and an export wrote
+  it in plain text; a locked one is exported as its `{{$secret.…}}`
+  reference. Each script editor is 320 px tall, from 150. Editing a collection's
+  or a folder's script that waits for review still does not approve it.
+
+- **The response goes under the request when the two have no room side
+  by side.** In a 820 px window, or a 1,024 to 1,400 px window with the
+  sidebar pinned, the request and the response were two columns of 300 to
+  420 px: the status line wrapped to three lines, a parameter's value went
+  under its name, and the JSON body scrolled sideways. Now, when the
+  composer itself is narrower than 62 em (992 px at the default text
+  size), the response sits under the request at full width, with the line
+  between them across; drag it, or focus it and use Up and Down. The
+  request takes two fifths of the height until you move the line, and the
+  position you choose is kept apart from the one beside. Settings ›
+  General › Response keeps the response beside the request or under it at
+  any width, and the palette has "Put the response under the request" and
+  "Put the response beside the request". At 1,440 px with the sidebar
+  pinned nothing changes.
+
+- **An import with scripts can end in their review.** When the file is
+  one collection with scripts, the import's report has a third button,
+  Import and review scripts…. It imports the collection untrusted, as
+  Import does, and opens the script review on it; Trust these scripts is
+  still the only thing that approves them, and Not now leaves them
+  waiting. Before, the review was reached by opening a request and its
+  Scripts tab, or from a run that had already sent without the scripts.
+  Importing a Postman collection and running it with its scripts takes 8
+  actions instead of 11. A review opened for a collection (from the
+  import or a run) also shows that collection's scripts when the open tab
+  is a history entry with scripts of its own: before, it showed and
+  cleared the entry's, and the collection stayed unreviewed.
 
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of

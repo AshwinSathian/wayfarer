@@ -82,12 +82,15 @@ export class ImportPipeline {
     );
   }
 
-  /** Stores what the report showed: each collection in a transaction of its own, scripts unapproved (D6). */
-  async confirm(): Promise<void> {
+  /**
+   * Stores what the report showed: each collection in a transaction of its own, scripts unapproved (D6). Gives the ids
+   * of the collections it stored, for a review of their scripts to name.
+   */
+  async confirm(): Promise<string[]> {
     const imported = this.imported();
     if (!imported || this.refused()) {
       this.close();
-      return;
+      return [];
     }
     this.storing.set(true);
     // What the import adds, and what it replaced as it was: its Undo, as a delete in the tree has (U-161).
@@ -114,6 +117,7 @@ export class ImportPipeline {
         for (const id of added) await this.collections.deleteCollection(id);
         for (const removed of replaced) await this.collections.restore(removed);
       });
+    return added;
   }
 
   close(): void {

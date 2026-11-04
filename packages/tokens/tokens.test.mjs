@@ -292,7 +292,7 @@ test("no rule sets the mono face at the footnote size", () => {
     for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
       if (
         /font-family:\s*var\(--font-mono\)/.test(block[2]) &&
-        /font-size:\s*var\(--type-footnote-size\)/.test(block[2])
+        /font-size:\s*(var\(--type-footnote-size\)|0?\.(7\d*|80\d*)rem|1[0-2](\.\d+)?px)/.test(block[2])
       )
         found.push(`${file}: ${block[1].trim()}`);
   assert.deepEqual(found, []);

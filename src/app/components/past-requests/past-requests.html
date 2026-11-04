@@ -25,7 +25,7 @@
         uiInput
         type="search"
         aria-label="Search history"
-        [placeholder]="hasModelCalls() ? 'Search by address, method, status or model' : 'Search by address, method or status'"
+        [placeholder]="hasModelCalls() ? 'Search by name, address, method, status or model' : 'Search by name, address, method or status'"
         [value]="query()"
         (input)="query.set($any($event.target).value)"
       />
@@ -117,6 +117,14 @@
           </button>
           } @else {
           <button type="button" class="history-open" [uiTooltip]="details" (click)="load(request)">
+            @if (request.sentFrom; as from) {
+            <span class="history-line">
+              <span class="history-name type-callout">{{ from.name }}</span>
+              @if (from.path.length) {
+              <span class="history-path type-footnote">{{ from.path.join(" / ") }}</span>
+              }
+            </span>
+            }
             <span class="history-line">
               <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0"
                 >{{ request.sent.method }}</span

@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A run says before it starts that its scripts wait for a review.**
+  The run view promised each request would be sent "with its scripts"
+  even when an imported collection's scripts had not been reviewed, so
+  the first run tested nothing. It now says the scripts are held and
+  offers the review before you press Run.
+
 - **A collection run can be found from the command palette.** Run… was
   only in a collection's or folder's context menu, opened with a
   right-click or Shift+F10. Type "run" in the palette (Ctrl+K or ⌘K) and

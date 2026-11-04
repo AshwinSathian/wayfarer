@@ -1780,6 +1780,23 @@ at 32, 1,440 × 900, `main` at `470fc07`; `app.ts:122-126`.
 drawer, the composer's sections stacked. The token test fails on a
 breakpoint in px; `e2e/text-size.spec.ts` sets Firefox's default size.
 
+**U-155. Params is laid out by the window's width, and crushes its fields.**
+Severity 2. H4, H7. Everyone who sets a larger text size; anyone with a
+narrow composer.
+Params was a grid from 768 px of window (`md:grid`), not by its own room,
+against the rule every other row editor keeps. At 200% text (the root's
+font size, as text-only zoom sets it) and 1,440 px, the composer beside the
+tree left a parameter's name and value 47 px each in all three engines:
+"k:" and "p(" of "kind" and "pets". Below 768 px the row took four lines,
+the remove button alone on the last.
+Evidence: [`hig-review/d18/font200-composer-1440-firefox.png`](hig-review/d18/font200-composer-1440-firefox.png),
+[`hig-review/d18/font200-composer-1440-webkit.png`](hig-review/d18/font200-composer-1440-webkit.png);
+`params-panel.html`.
+**Status:** Fixed in D5-a: Params is the rows editor Headers and a form body
+use, which wraps a row by its own room. At 390 px a row is two lines; the
+"Key" and "Value" column heads go, as Headers has none. `e2e/layout.spec.ts`
+holds a parameter's fields at 160 px or more at 200% text and 1,440 px.
+
 **U-154. The Params row's checkbox misses 2.5.8's spacing at 390 px.**
 Severity 3. H4. Everyone on a touch screen.
 Stacked under the Params section's header, the 16 px box's centre was

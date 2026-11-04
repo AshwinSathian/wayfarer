@@ -594,6 +594,19 @@ test("at 200% text and 1440 px no response tab's label is cut", async ({ page })
   expect(size).toBeGreaterThanOrEqual(24);
 });
 
+// U-155: at 200% text the composer beside the tree is narrow while the window is wide. Params was a grid by the
+// window's width and left its key and value 20 px each; a row wraps by its own room, as the other row editors do.
+test("at 200% text and 1440 px a parameter's name and value have room to type in", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await page.addStyleTag({ content: "html { font-size: 200%; }" });
+  await page.locator("input.address-url").fill(`${ECHO}/echo?kind=pets`);
+  for (const name of ["Parameter name, 1 of 1", "Value of kind"]) {
+    const box = await page.getByLabel(name, { exact: true }).boundingBox();
+    expect(box?.width, name).toBeGreaterThanOrEqual(160);
+  }
+});
+
 // U-070: below 1,200 px the sidebar was a closed drawer over the page. From 1,024 px it can stay beside the page,
 // narrower, and the choice is kept; below 1,024 px it is a drawer, as before.
 test("from 1,024 px the sidebar can stay beside the page, and stays after a reload", async ({ page }) => {

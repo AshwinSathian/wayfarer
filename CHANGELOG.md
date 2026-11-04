@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A query parameter's name and value have room at large text.** At
+  200% text beside the collections tree, Params left each field about
+  47 px wide, two letters of "kind". Params now wraps its rows by the room
+  it has, as Headers does; on a phone a parameter takes two lines, not
+  four.
+
 - **A larger text size in the browser gives the narrower layout, as zoom
   does.** With the browser's default text at twice its size, a 1,440 px
   window kept the wide layout: the collections tree beside the page took

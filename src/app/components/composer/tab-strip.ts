@@ -17,7 +17,7 @@ import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
 import { Icon } from "../../shared/icon/icon";
-import { TabState } from "../../state/tab-state";
+import { TabState, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { Confirm } from "../../ui/confirm";
 import { UiTabList } from "../../ui/tabs";
@@ -78,6 +78,7 @@ export class TabStrip {
   /** The saved request's name, or else the address, or else that it is new. */
   protected label(tab: TabState): string {
     if (tab.environments) return "Environments";
+    if (tab.holder) return this.holderName(tab.holder);
     if (tab.run) return tab.run.target.name;
     return (
       tab.bound()?.name ??
@@ -86,6 +87,15 @@ export class TabStrip {
         .url.trim()
         .replace(/^https?:\/\//, "") ||
         "New request")
+    );
+  }
+
+  /** A collection's or a folder's name, for its settings tab. */
+  private holderName({ collectionId, folderId }: HolderTarget): string {
+    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === collectionId);
+    return (
+      (folderId ? tree?.folders.find((folder) => folder.meta.id === folderId)?.name : tree?.collection.name) ??
+      "Settings"
     );
   }
 

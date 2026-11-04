@@ -51,10 +51,10 @@ import { Mark } from "../../shared/icon/mark";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 import type { RunTarget } from "../../state/run-state";
+import type { HolderTarget } from "../../state/tab-state";
 import { VariableFocus } from "../../services/variable-focus";
 import { UiSelect } from "../../ui/select";
 
-import { InheritedSettingsDialog, type InheritedSettingsTarget } from "../collections/inherited-settings-dialog";
 import { AiSettings } from "../../services/ai-settings";
 import { ModelCalls } from "../../services/model-calls";
 import { AiDraft } from "../ai-draft/ai-draft";
@@ -62,7 +62,6 @@ import { Tabs } from "../../state/tabs";
 @Component({
   selector: "app-shell",
   imports: [
-    InheritedSettingsDialog,
     AiDraft,
     UiInput,
     NgTemplateOutlet,
@@ -211,9 +210,6 @@ export class AppShell implements OnInit {
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
-  /** The collection or the folder whose settings are open. */
-  readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
-  /** The environments editor, a dialog: the page holds the request and its response only. */
   /** The Environments tab (D4.5): it replaced the dialog that lost edits and stacked dialogs (U-060, U-085). */
   protected openEnvironmentsTab(): void {
     this.composer().openEnvironments();
@@ -221,8 +217,8 @@ export class AppShell implements OnInit {
   private readonly variableFocus = inject(VariableFocus);
   /**
    * A variable chip or the secrets list asks to see a variable: an environment's, a global or a missing one opens the
-   * Environments tab, which shows it; a secret's opens the secrets, and a collection's or a folder's its settings at
-   * Variables (U-132).
+   * Environments tab, which shows it; a secret's opens the secrets, and a collection's or a folder's its settings tab
+   * at Variables (U-132).
    */
   private readonly openForVariable = effect(() => {
     const token = this.variableFocus.pending();
@@ -231,7 +227,7 @@ export class AppShell implements OnInit {
       const { holder, key } = token;
       untracked(() => {
         this.variableFocus.pending.set(null);
-        this.settingsOf.set({ ...holder, variable: key });
+        this.composer().openHolder(holder, key);
       });
     } else if (source === "environment" || source === "missing" || source === "global")
       untracked(() => this.openEnvironmentsTab());
@@ -525,6 +521,14 @@ export class AppShell implements OnInit {
       this.closeNavigation();
     }
     this.composer().focusUrl();
+  }
+
+  /** Settings… of a collection or a folder (D5-e): its tab, over which a drawer would lie. */
+  handleOpenSettings(target: HolderTarget): void {
+    this.composer().openHolder(target);
+    if (this.sidebarOverlay()) {
+      this.closeNavigation();
+    }
   }
 
   handleRun(target: RunTarget): void {

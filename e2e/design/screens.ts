@@ -36,7 +36,7 @@ export const SCREENS_INDEX = [
     shows: "The collections tree with a collection, a folder and four requests: pinned from 1,200 px, a drawer below.",
   },
   { id: "tree-menu", shows: "A collection's context menu in the tree." },
-  { id: "collection-settings", shows: "A collection's settings dialog." },
+  { id: "collection-settings", shows: "A collection's settings tab (D5-e)." },
   { id: "new-collection", shows: "The dialog that names a new collection." },
   { id: "palette", shows: "The command palette, open." },
   { id: "import-review", shows: "The import report of a collection file, with a warning." },

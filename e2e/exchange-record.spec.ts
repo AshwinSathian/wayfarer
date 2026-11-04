@@ -276,10 +276,10 @@ test("the preview's chip for a folder's variable opens the folder's settings at 
     },
   );
   await page.getByRole("button", { name: /^page folder "Tripwire folder"/ }).press("Enter");
-  const settings = page.getByRole("dialog", { name: /Tripwire folder/ });
+  const settings = page.getByRole("region", { name: "Folder settings: Tripwire folder" });
   await expect(settings).toBeVisible();
   await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
-  await expect(settings.getByPlaceholder("name")).toHaveValue("page");
+  await expect(settings.getByPlaceholder("Name", { exact: true })).toHaveValue("page");
 });
 
 // U-132: with no environment, a missing variable's chip makes one, the variable its first row.

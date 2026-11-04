@@ -1,6 +1,16 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { TARGET, captureTarget, dumpIdb, openFolder, protectVariable, seedAndOpen, send } from "./support/app";
+import {
+  TARGET,
+  captureTarget,
+  closeHolderSettings,
+  dumpIdb,
+  openFolder,
+  openHolderSettings,
+  protectVariable,
+  seedAndOpen,
+  send,
+} from "./support/app";
 
 // P4.9: what a request takes from its collection and its folders. Needs the
 // production build (CI=1): the scripts run in QuickJS under the production CSP.
@@ -23,7 +33,7 @@ const authTab = (page: Page) => page.locator("app-composer").getByRole("tab", { 
 test("@claim:C-019 a collection's bearer auth reaches the server for a request set to inherit, and a folder's replaces it", async ({
   page,
 }) => {
-  // The collection's auth is stored; the folder's is set in its settings dialog below.
+  // The collection's auth is stored; the folder's is set in its settings tab below.
   await seedAndOpen(
     page,
     {},
@@ -44,9 +54,8 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
     'Bearer token is sent, from collection "Tripwire collection".',
   );
 
-  await page.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Settings" }).click();
-  const settings = page.getByRole("dialog", { name: "Folder settings: Tripwire folder" });
+  const settings = await openHolderSettings(page, "Tripwire folder", "Folder");
+  await settings.getByRole("tab", { name: "Auth", exact: true }).click();
   // A new folder inherits, and says what from.
   await expect(settings.locator(".auth-inherited")).toHaveText(
     'Bearer token is sent, from collection "Tripwire collection".',
@@ -55,8 +64,8 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   await page.getByRole("option", { name: "API key" }).click();
   await settings.getByLabel("Key", { exact: true }).fill("X-C019-Folder");
   await settings.getByLabel("Value", { exact: true }).fill("c019-folder-key");
-  await settings.getByRole("button", { name: "Save settings" }).click();
-  await expect(settings).toBeHidden();
+  // No Save: closing the tab writes what was typed.
+  await closeHolderSettings(page, "Tripwire folder");
 
   await expect(page.locator(".auth-inherited")).toHaveText('API key is sent, from folder "Tripwire folder".');
   const replaced = await sendAndEcho(page);
@@ -68,9 +77,8 @@ test("a request made in a collection starts with inherit; a collection's setting
   page,
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
-  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Settings" }).click();
-  const settings = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
+  const settings = await openHolderSettings(page, "Tripwire collection");
+  await settings.getByRole("tab", { name: "Auth", exact: true }).click();
   // A collection has nothing above it to inherit from.
   await settings.getByRole("combobox", { name: "Type" }).click();
   await expect(page.getByRole("option")).toHaveText([
@@ -85,14 +93,18 @@ test("a request made in a collection starts with inherit; a collection's setting
   await settings.getByLabel("Token", { exact: true }).fill("{{shopToken}}");
   await settings.getByRole("tab", { name: "Variables" }).click();
   await settings.getByRole("button", { name: "Add variable" }).click();
-  await settings.getByPlaceholder("name").fill("shopToken");
-  await settings.getByPlaceholder("value").fill("from-the-collection");
-  await settings.getByRole("button", { name: "Save settings" }).click();
-  await expect(settings).toBeHidden();
+  await settings.getByPlaceholder("Name", { exact: true }).fill("shopToken");
+  await settings.getByPlaceholder("Value", { exact: true }).fill("from-the-collection");
+  // Written as each field is left: no Save.
+  await page.keyboard.press("Tab");
+  const storedCollection = async () => ((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0];
+  await expect.poll(storedCollection).toMatchObject({
+    auth: { type: "bearer", token: "{{shopToken}}" },
+    variables: [{ key: "shopToken", value: "from-the-collection", enabled: true }],
+  });
 
   await page.reload();
-  const stored = ((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0];
-  expect(stored).toMatchObject({
+  expect(await storedCollection()).toMatchObject({
     auth: { type: "bearer", token: "{{shopToken}}" },
     variables: [{ key: "shopToken", value: "from-the-collection", enabled: true }],
   });
@@ -259,36 +271,80 @@ test("the Auth tab names where an inherited token is set and where its value com
   expect(header(echo, "authorization")).toBe("Bearer env-secret-value");
 });
 
-// U-169: Escape, × or Cancel closed a collection's settings and dropped every edit, scripts included (U-060's
-// pattern). With changes, closing asks; Keep editing keeps them, and closing with none asks nothing.
-test("closing a collection's settings with changes asks first, and Keep editing keeps them", async ({ page }) => {
+// D5-e: a collection's or a folder's settings are a tab, as the environments are: one tab a holder, written as each
+// field is left, and a variable there can be kept in the vault (L-1, L-3, L-4).
+test("a collection's settings open in one tab, and a variable typed there is stored without a Save and can be marked secret", async ({
+  page,
+}) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
-  const open = async () => {
-    await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-    await page.getByRole("menuitem", { name: "Settings" }).click();
-    const dialog = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
-    await expect(dialog).toBeVisible();
-    return dialog;
-  };
-  let settings = await open();
-  await page.keyboard.press("Escape");
-  await expect(settings).toBeHidden();
+  const settings = await openHolderSettings(page, "Tripwire collection");
+  // The request it is set up for is a tab away; the page under it is not inert.
+  const strip = page.getByRole("tablist", { name: "Open requests" });
+  await expect(strip.getByRole("tab")).toHaveCount(2);
+  await expect(strip.getByRole("tab", { selected: true })).toHaveAccessibleName(
+    /Collection settings Tripwire collection/,
+  );
+  // Asked again, the same tab.
+  await openHolderSettings(page, "Tripwire collection");
+  await expect(strip.getByRole("tab")).toHaveCount(2);
 
-  settings = await open();
-  await settings.getByRole("tab", { name: "Variables" }).click();
   await settings.getByRole("button", { name: "Add variable" }).click();
-  await settings
-    .getByLabel(/^Variable name, /)
-    .last()
-    .fill("kept");
-  await page.keyboard.press("Escape");
-  const ask = page.getByRole("alertdialog", { name: /Discard the changes/ });
-  await expect(ask).toBeVisible();
-  await ask.getByRole("button", { name: "Keep editing" }).click();
-  await expect(settings).toBeVisible();
-  await expect(settings.getByLabel(/^Variable name, /).last()).toHaveValue("kept");
+  await settings.getByPlaceholder("Name", { exact: true }).fill("apiToken");
+  await settings.getByPlaceholder("Value", { exact: true }).fill("typed-collection-token");
+  await page.keyboard.press("Tab");
+  const variables = async () =>
+    (((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0].variables as Record<string, unknown>[]) ??
+    [];
+  await expect.poll(variables).toEqual([{ key: "apiToken", value: "typed-collection-token", enabled: true }]);
 
-  await settings.getByRole("button", { name: "Cancel" }).click();
-  await ask.getByRole("button", { name: "Discard changes" }).click();
-  await expect(settings).toBeHidden();
+  // Switched off, written at once.
+  await settings.getByRole("checkbox", { name: "Use apiToken" }).uncheck();
+  await expect.poll(variables).toEqual([{ key: "apiToken", value: "typed-collection-token", enabled: false }]);
+  await settings.getByRole("checkbox", { name: "Use apiToken" }).check();
+
+  // Marked secret: the vault is made in the row, and the collection holds the reference only.
+  await settings.getByRole("button", { name: "Mark apiToken as secret" }).click();
+  await settings.getByLabel("Passphrase", { exact: true }).fill("a long passphrase");
+  await settings.getByLabel("Confirm passphrase").fill("a long passphrase");
+  await settings.getByRole("button", { name: "Create vault" }).click();
+  await expect(settings.getByText("Secret stored")).toBeVisible();
+  await expect.poll(async () => (await variables())[0]?.value).toMatch(/^\{\{\$secret\.[a-z0-9-]+\}\}$/);
+  expect(JSON.stringify(await dumpIdb(page))).not.toContain("typed-collection-token");
+});
+
+test.describe("a held script edited in its settings tab", () => {
+  // The target is a routed fake host, which the app's service worker would hide in WebKit.
+  test.use({ serviceWorkers: "block" });
+
+  test("@claim:C-051 a collection's script that is held stays held after an edit in its settings tab", async ({
+    page,
+  }) => {
+    const hits = await captureTarget(page);
+    await seedAndOpen(page, { order: "" }, { method: "GET", url: `${TARGET}/seeded` });
+    await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(FILE);
+    const dialog = page.getByRole("dialog", { name: "Import collection" });
+    await dialog.getByRole("button", { name: "Import", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+
+    const settings = await openHolderSettings(page, "Inherited collection");
+    await settings.getByRole("tab", { name: "Scripts", exact: true }).click();
+    await settings.locator("app-script-editor").first().locator(".monaco-editor").first().click();
+    // The pre-request script is one line.
+    await page.keyboard.press("End");
+    await page.keyboard.type("\n// edited here");
+    await closeHolderSettings(page, "Inherited collection");
+    const stored = async () =>
+      ((await dumpIdb(page))["collections"] as Record<string, unknown>[]).find(
+        (c) => c.name === "Inherited collection",
+      );
+    await expect.poll(async () => ((await stored())?.scripts as { pre: string }).pre).toContain("// edited here");
+    expect((await stored())?.scriptTrust).toEqual({ trusted: false });
+
+    // Still held: sent, and none of the scripts ran.
+    await openFolder(page, "Inherited folder");
+    await page.getByRole("tree").getByText("Inherited request", { exact: true }).click();
+    await send(page);
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    expect(hits.at(-1)?.headers()["x-order"]).toBe("ran:");
+  });
 });

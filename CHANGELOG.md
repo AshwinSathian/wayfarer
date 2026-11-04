@@ -702,6 +702,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A collection's or a folder's settings open in a tab, and their
+  variables can be secrets.** Settings… in the tree's menu, the palette's
+  "Settings of {name}…" and a variable's chip open the settings as a tab
+  beside your requests, one tab for each collection or folder, as
+  Environments does. Before, they were a dialog over a page you could not
+  reach, with its own Save and a question when you closed it with changes.
+  Now each field is written when you leave it. The variables have the
+  environment editor's rows: a switch that turns one off and keeps its
+  value, a lock that moves its value into the vault, and a JSON view.
+  Before, a collection's token could not be locked, and an export wrote
+  it in plain text; a locked one is exported as its `{{$secret.…}}`
+  reference. Each script editor is 320 px tall, from 150. Editing a collection's
+  or a folder's script that waits for review still does not approve it.
+
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of
   the fifth pass.

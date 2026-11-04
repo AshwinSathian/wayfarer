@@ -15,6 +15,9 @@
     <section class="block" aria-label="Environments">
       <app-environments-manager (requestUnlock)="unlockVault()" />
     </section>
+    } @else if (tabs.active().holder; as holder) {
+    <!-- A collection's or a folder's settings are a document in a tab too (D5-e). -->
+    <app-holder-settings [holder]="holder" [reveal]="tabs.active().reveal()" />
     } @else if (tabs.active().run; as run) {
     <app-run-view
       class="block space-y-5"

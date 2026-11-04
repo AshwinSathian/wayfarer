@@ -234,6 +234,29 @@ export async function closeEnvironments(page: Page): Promise<void> {
   await expect(page.getByRole("region", { name: "Environments", exact: true })).toHaveCount(0);
 }
 
+/** Opens a collection's or a folder's settings tab (D5-e) from its row's menu in the tree. */
+export async function openHolderSettings(
+  page: Page,
+  name: string,
+  kind: "Collection" | "Folder" = "Collection",
+): Promise<Locator> {
+  await page.getByRole("tree").getByText(name, { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Settings" }).click();
+  const region = page.getByRole("region", { name: `${kind} settings: ${name}` });
+  await expect(region).toBeVisible();
+  return region;
+}
+
+/** Closes a collection's or a folder's settings tab; what was typed in it is written as it closes. */
+export async function closeHolderSettings(page: Page, name: string): Promise<void> {
+  const tab = page
+    .getByRole("tablist", { name: "Open requests" })
+    .getByRole("tab", { name: new RegExp(`settings ${name}`) });
+  await tab.click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Close tab", exact: true }).click();
+  await expect(page.getByRole("region", { name: new RegExp(`settings: ${name}$`) })).toHaveCount(0);
+}
+
 /** In the open environment, a protected variable holding `plaintext`, saved; the vault is made for it. The editor is closed after. */
 export async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
   await openEnvironments(page);

@@ -65,7 +65,8 @@ export type { ExportNote } from "./export/postman";
 export { isCurlCommand } from "./import/curl-command";
 export { unsupportedApis } from "./import/script-scan";
 // The importers themselves are `@wayfarer/core/import`, which only the import worker loads.
-export type { ImportOptions, ImportReport, ImportWarning, Imported } from "./import/import";
+export type { ImportOptions, ImportReport, ImportWarning, Imported, ImportedCollection } from "./import/import";
+export type { CollectionImportPlanEntry } from "./import/wayfarer-collection";
 export {
   BODY_MODES,
   FORBIDDEN_METHODS,

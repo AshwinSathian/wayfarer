@@ -348,7 +348,7 @@ export class CollectionsStore {
 
   async importCollection(
     payload: CollectionExport,
-    options?: { duplicateAsNew?: boolean },
+    options?: { duplicateAsNew?: boolean; replaced?: (removed: Removed) => void },
   ): Promise<Collection | null> {
     const collection = await this.collectionsRepository.importCollectionExport(payload, options);
     await this.refresh();

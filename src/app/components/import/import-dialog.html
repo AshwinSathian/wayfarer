@@ -102,10 +102,11 @@
       <li class="import-plan-row">
         <span class="import-plan-kind type-footnote text-label-tertiary">{{ kindOf(item.type) }}</span>
         <span class="import-plan-name type-callout text-label-primary">{{ item.name }}</span>
+        @let effect = effectOf(entry, item);
         <span
           class="import-plan-action type-footnote"
-          [class]="item.action === 'create' ? 'text-label-secondary' : 'text-status-warning'"
-          >{{ item.action === 'create' ? 'New' : 'Replaces' }}</span
+          [class]="effect === 'Changes' ? 'text-status-warning' : 'text-label-secondary'"
+          >{{ effect }}</span
         >
       </li>
       }

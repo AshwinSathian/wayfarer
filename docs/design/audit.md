@@ -1912,6 +1912,7 @@ tree is empty; both rows read "Replaces");
 `packages/core/src/import/wayfarer-collection.ts:154-155`;
 `src/app/components/import/import-dialog.html:83-84`, `:99-110`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c with U-161: an item nothing stored has says New.
 
 **U-161. A re-import replaces each item without saying what changed, and
 cannot be undone.** Severity 2. H3, H5. TP.
@@ -1927,6 +1928,7 @@ Evidence: `src/app/components/import/import-dialog.html:99-110`;
 `packages/core/src/import/wayfarer-collection.ts:154-155`;
 `PLAN-design.md`, section 1 ("What success looks like").
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: each item of the review says New (nothing stored has its id), Same (the stored copy holds what the file holds) or Changes, and only Changes is marked; after the import, Undo for 10 seconds puts back what it replaced, as it was, approvals included, and takes out what it added (an import that also merges environments offers none). `e2e/import.spec.ts` holds both. What the other changed, field by field, stays phase T's (T1).
 
 **U-162. A run's report is gone after a reload, and nothing says so.**
  Severity 3. H1, H5. QA.

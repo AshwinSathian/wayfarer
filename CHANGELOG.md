@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Importing a collection again says what it changes, and can be
+  undone.** Every item of a Wayfarer collection file was marked
+  "Replaces", whether it was stored or not and whether it differed. Each
+  is now New, Same or Changes, and after the import an Undo puts back the
+  collection as it was.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

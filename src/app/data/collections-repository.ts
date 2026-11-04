@@ -282,7 +282,8 @@ export class CollectionsRepository {
 
   async importCollectionExport(
     payload: CollectionExport,
-    options?: { duplicateAsNew?: boolean },
+    /** `replaced` is handed what an import over a stored collection takes out, as it was: its Undo (U-161). */
+    options?: { duplicateAsNew?: boolean; replaced?: (removed: Removed) => void },
   ): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
@@ -301,11 +302,14 @@ export class CollectionsRepository {
       }
 
       if (!options?.duplicateAsNew) {
-        await collectionStore.delete(collectionId);
-        const [folders, requests] = await Promise.all([
+        const [existing, folders, requests] = await Promise.all([
+          collectionStore.get(collectionId),
           folderStore.index("by-collectionId").getAll(collectionId),
           requestStore.index("by-collectionId").getAll(collectionId),
         ]);
+        if (existing)
+          options?.replaced?.({ collections: [existing], folders, requests, files: await filesOf(tx, requests) });
+        await collectionStore.delete(collectionId);
         for (const folder of folders) {
           await folderStore.delete(folder.meta.id);
         }

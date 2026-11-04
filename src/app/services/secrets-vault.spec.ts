@@ -33,7 +33,7 @@ describe("SecretsVault", () => {
   describe("saveSecret()", () => {
     it("throws instead of persisting anything when the vault is locked", async () => {
       await expect(vault.saveSecret({ name: "API key", plaintext: "shh" })).rejects.toThrow(
-        "Secrets are locked. Unlock before saving new secrets.",
+        "The vault is locked. Unlock it to save this secret.",
       );
       expect(await idb.secrets.listAll()).toEqual([]);
     });
@@ -251,7 +251,7 @@ describe("SecretsVault", () => {
         error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault".',
       });
       expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({
-        error: "The file is larger than 10 MB.",
+        error: "A file to import can be 10 MB at most, and this one is larger.",
       });
 
       // The second secret's ciphertext is the first's: it is not what the file's vault encrypted for that id.
@@ -265,7 +265,7 @@ describe("SecretsVault", () => {
       await vault.create("correct horse");
       const file = (await vault.exportFile("correct horse"))!;
       vault.lock();
-      await expect(vault.importFile(file, "correct horse")).rejects.toThrow("Secrets are locked");
+      await expect(vault.importFile(file, "correct horse")).rejects.toThrow("The vault is locked");
     });
   });
 

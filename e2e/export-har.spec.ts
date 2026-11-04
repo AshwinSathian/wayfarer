@@ -57,8 +57,8 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   await sendTo(page, `${ECHO}/echo?n=3`);
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(3);
 
-  await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   // Choosing is a mode of its own: the rows have no boxes until Select… (U-024).
   await drawer.getByRole("button", { name: "Select…", exact: true }).click();
   const exportButton = drawer.getByRole("button", { name: /Export .*as HAR…/ });

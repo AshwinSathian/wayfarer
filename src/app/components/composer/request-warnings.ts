@@ -39,7 +39,7 @@ export function warningsText(limits: BrowserLimits): string {
     @let limits = store.browserLimits();
     @if (store.draft().settings.tlsInsecure === true) {
       <p
-        ><span class="tls-off-pill"><app-icon name="warning" class="icon-xs" /> TLS verification off</span></p
+        ><span class="tls-off-pill"><app-icon name="warning" class="icon-xs" /> Certificate not checked</span></p
       >
     }
     @if (limits.mixedContent === "blocked") {

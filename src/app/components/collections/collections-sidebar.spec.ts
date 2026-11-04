@@ -191,6 +191,24 @@ describe("CollectionsSidebar", () => {
     });
   });
 
+  // L-16: the first screen offers New and Import once. While the tree is empty its own line has both.
+  describe("the header's buttons", () => {
+    const buttons = () =>
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll("button")).map((b) => b.textContent?.trim());
+
+    it("are not drawn while there is no collection: the empty tree's New collection and Import… are the one way", async () => {
+      await fixture.whenStable();
+      expect(buttons()).toEqual(["New collection", "Import…"]);
+    });
+
+    it("are drawn once a collection exists", async () => {
+      collectionsService.setTree([{ collection: makeCollection("c1"), folders: [], requests: [] }]);
+      await fixture.whenStable();
+      expect(buttons()).toEqual(expect.arrayContaining(["Import", "New"]));
+      expect(buttons()).not.toContain("New collection");
+    });
+  });
+
   describe("the rendered tree", () => {
     const rows = () =>
       Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[role="treeitem"]'));

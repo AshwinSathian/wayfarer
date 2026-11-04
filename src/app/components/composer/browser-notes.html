@@ -9,8 +9,8 @@
     (valueChange)="store.setRoute($event)"
   />
   <span class="min-w-0"
-    >Auto sends from the page, and through the Local Bridge when the browser could not. Inherit is the collection's,
-    else the device's (Settings, Local Bridge).</span
+    >Auto sends from the page, and through the Local Bridge when the page gets no response. Inherit uses the
+    collection's route, else this device's (Settings › Local Bridge).</span
   >
 </div>
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
@@ -26,7 +26,7 @@
   <span class="min-w-0">Through the Local Bridge each one is listed, 20 at most.</span>
   } @else {
   <span class="min-w-0"
-    >Sent directly, a request is always followed: the browser shows a page only where it ended. The Local Bridge can
+    >Sent from the page, a redirect is always followed, and the browser shows only where it ended. The Local Bridge can
     list each redirect, or not follow.</span
   >
   }
@@ -47,7 +47,7 @@
   >
   } @else {
   <span class="min-w-0"
-    >Only the Local Bridge can: sent directly, the browser verifies every certificate, whatever this says.</span
+    >Works through the Local Bridge only. From the page, the browser always checks the certificate.</span
   >
   }
 </div>

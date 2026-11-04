@@ -41,7 +41,7 @@ describe("ResponseViewer", () => {
     expect(element.querySelector(".tls-off-pill")).toBeNull();
     fixture.componentRef.setInput("tlsInsecure", true);
     fixture.detectChanges();
-    expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("TLS verification off");
+    expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("Certificate not checked");
   });
 
   // D5-e (V1): while a request is out the last response stays. For its first second nothing changes (D3.7); then the
@@ -135,7 +135,7 @@ describe("ResponseViewer", () => {
     expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Direct");
     fixture.componentRef.setInput("route", "bridge");
     fixture.detectChanges();
-    expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Via bridge");
+    expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Local Bridge");
   });
 
   describe("the exchange record (D4.12)", () => {

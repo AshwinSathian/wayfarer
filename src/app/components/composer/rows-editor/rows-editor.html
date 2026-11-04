@@ -16,8 +16,9 @@
       class="font-mono min-w-0 flex-1 basis-40"
       uiInput
       placeholder="Name"
-      [(ngModel)]="item.key"
-      (ngModelChange)="itemChange.emit()"
+      #nameField
+      [ngModel]="item.key"
+      (ngModelChange)="rename(item, $event)"
       [attr.aria-label]="title() + ' name, ' + (index + 1) + ' of ' + items().length"
     />
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
@@ -44,13 +45,7 @@
   }
 
   <div class="pt-2">
-    <button
-      uiButton="filled"
-      class="btn-secondary"
-      type="button"
-      [attr.aria-label]="addLabel()"
-      [disabled]="addDisabled()"
-      (click)="add.emit()"
+    <button uiButton="filled" class="btn-secondary" type="button" [attr.aria-label]="addLabel()" (click)="addRow()"
       ><app-icon name="add" /> {{ addLabel() }}</button
     >
   </div>

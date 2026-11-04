@@ -160,7 +160,7 @@ describe("ImportPipeline", () => {
       await service.stage("bad.json", collectionFile.replace('"POST"', '"post it"'));
 
       expect(service.refused()).toEqual({
-        message: "The file is not a valid Wayfarer collection.",
+        message: "This file is not a Wayfarer collection. What does not match is listed below.",
         issues: [
           {
             path: "requests[0].method",
@@ -270,7 +270,9 @@ describe("ImportPipeline", () => {
     worker.run.mockRejectedValueOnce(new Error("worker crashed"));
     await service.stage("billing.json", collectionFile);
 
-    expect(service.refused()?.message).toBe("The file could not be read: the import stopped with an error.");
+    expect(service.refused()?.message).toBe(
+      "The file was not imported: reading it stopped with an error. Settings › Diagnostics has the details.",
+    );
     expect(service.reading()).toBe(false);
   });
 

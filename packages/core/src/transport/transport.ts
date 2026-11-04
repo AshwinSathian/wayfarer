@@ -1,4 +1,5 @@
 import type { Cookie } from "../cookies/jar";
+import { formatDuration } from "../send/record";
 import { SseParser, type SseEvent } from "./sse";
 
 /** A request with every variable resolved, as it goes on the wire. */
@@ -166,7 +167,11 @@ export async function withDeadline<T>(
     return await run(controller.signal, () => clearTimeout(timer));
   } catch (cause) {
     if (cause instanceof TransportError) throw cause;
-    if (timedOut) throw new TransportError("timeout", `Timed out after ${options.timeoutMs} ms`);
+    if (timedOut)
+      throw new TransportError(
+        "timeout",
+        `No response within ${formatDuration(options.timeoutMs)}, the request timeout.`,
+      );
     if (options.signal.aborted) throw new TransportError("aborted", "You stopped the request.");
     throw new TransportError("network", networkMessage(cause));
   } finally {

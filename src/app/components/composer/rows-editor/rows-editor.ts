@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, input, output, viewChildren } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../../ui/button";
 import { UiCheckbox } from "../../../ui/checkbox";
@@ -33,9 +33,19 @@ export class RowsEditor {
     return this.noun().charAt(0).toUpperCase() + this.noun().slice(1);
   }
 
-  /** No second blank row. */
-  protected addDisabled(): boolean {
-    const last = this.items().at(-1);
-    return !!last && (last.key === "" || last.value === "");
+  private readonly nameFields = viewChildren<ElementRef<HTMLInputElement>>("nameField");
+
+  /** A row is sent once it has a name: the blank row is unchecked until then (L-17). */
+  protected rename(item: Row, key: string): void {
+    if (!item.key && key) item.enabled = true;
+    item.key = key;
+    this.itemChange.emit();
+  }
+
+  /** No second blank row: with one there, the button takes the caret to its name (L-18). */
+  protected addRow(): void {
+    const blank = this.items().findIndex((item) => !item.key);
+    if (blank < 0) this.add.emit();
+    else this.nameFields()[blank]?.nativeElement.focus();
   }
 }

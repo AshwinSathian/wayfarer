@@ -76,7 +76,7 @@
           <div class="min-w-0">
             <label for="request-timeout" class="settings-title type-callout text-label-primary">Request timeout</label>
             <p class="type-footnote text-label-secondary"
-              >How long a request may take before it is given up. 0 waits for as long as it takes.</p
+              >How long to wait for a response before stopping. 0 waits without a limit.</p
             >
           </div>
           <div class="settings-number">
@@ -124,7 +124,7 @@
           <div class="min-w-0">
             <label for="history-cap" class="settings-title type-callout text-label-primary">History size</label>
             <p class="type-footnote text-label-secondary"
-              >How many requests history keeps, 1 to 5000. The oldest go first.</p
+              >How many requests history keeps, 1 to 5,000. The oldest go first.</p
             >
           </div>
           <div class="settings-number">
@@ -176,10 +176,10 @@
       <div class="settings-group">
         <div class="settings-row">
           <div class="min-w-0">
-            <p class="settings-title type-callout text-label-primary">Workspace backup</p>
+            <p class="settings-title type-callout text-label-primary">Backup</p>
             <p class="type-footnote text-label-secondary"
               >One file with every collection, request, environment, the global variables and the vault (still
-              encrypted). Files of request bodies are not in it.</p
+              encrypted). It leaves out files attached to request bodies.</p
             >
             <label class="ui-checkbox-label mt-1.5 -ml-2"
               ><input
@@ -206,7 +206,7 @@
               type="button"
               aria-label="Restore workspace"
               (click)="backupFile.click()"
-              ><app-icon name="upload" /> Restore</button
+              ><app-icon name="upload" /> Restore…</button
             >
             <input
               #backupFile
@@ -240,10 +240,10 @@
               type="button"
               aria-label="Export environments"
               (click)="exportEnvironments()"
-              ><app-icon name="download" /> Export</button
+              ><app-icon name="download" /> Export…</button
             >
             <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="environmentFile.click()"
-              ><app-icon name="upload" /> Import</button
+              ><app-icon name="upload" /> Import…</button
             >
             <input
               #environmentFile
@@ -257,8 +257,7 @@
         </div>
       </div>
       <p class="settings-note"
-        >A collection is exported and imported from its own menu in the Collections panel, or from the command palette
-        ("Export …").</p
+        >To export a collection, use its menu in the sidebar (Export…). To import one, use Import in the sidebar.</p
       >
 
       <h4 class="settings-subhead">Storage in this browser</h4>
@@ -298,8 +297,8 @@
             <p class="settings-title type-callout text-label-primary">Secrets</p>
             <p class="type-footnote text-label-secondary"
               >View, reveal, rename and delete the secrets of every environment. {{ vault.isUnlocked() ? 'The vault is
-              unlocked in this tab.' : vault.made() === false ? 'No vault has been made in this browser yet.' : 'The
-              vault is locked.' }}</p
+              unlocked in this tab.' : vault.made() === false ? 'No vault in this browser yet.' : 'The vault is locked.'
+              }}</p
             >
           </div>
           <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openSecrets.emit(); close()"
@@ -312,7 +311,8 @@
               >Lock the vault when idle</label
             >
             <p class="type-footnote text-label-secondary"
-              >Time without a key press or a click before this tab locks the vault, 1 to 240. 0 never locks it.</p
+              >Minutes without a key press or click before the vault locks in this tab: 1 to 240, or 0 to keep it
+              unlocked.</p
             >
           </div>
           <div class="settings-number">

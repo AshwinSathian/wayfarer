@@ -257,7 +257,7 @@ describe("VariableRows", () => {
     expect(component.rowNote({ key: "", value: "x", enabled: true })).toBe(
       "This row has no name, so it is not kept. Give it one.",
     );
-    expect(component.rowNote({ key: "k", value: "", enabled: true })).toBe("This variable is empty.");
+    expect(component.rowNote({ key: "k", value: "", enabled: true })).toBe("This variable has no value.");
     expect(component.rowNote({ key: "", value: "", enabled: true })).toBeNull();
   });
 

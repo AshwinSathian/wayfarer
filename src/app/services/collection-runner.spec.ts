@@ -204,7 +204,10 @@ describe("CollectionRunner", () => {
       .expectOne("https://api.test/a")
       .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await second;
-    expect(no.report()).toMatchObject({ ended: "ended", reason: expect.stringContaining("You chose not to send") });
+    expect(no.report()).toMatchObject({
+      ended: "ended",
+      reason: expect.stringContaining("you chose not to send a vault secret"),
+    });
     expect(no.results().map((result) => result.name)).toEqual(["First", "Second"]);
     expect(no.results()[1].error).toContain("was not sent");
   });

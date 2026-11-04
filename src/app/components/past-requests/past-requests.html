@@ -191,7 +191,7 @@
                 class="btn-sm"
                 [attr.aria-expanded]="showing() === 'answer'"
                 (click)="showing.set(showing() === 'answer' ? null : 'answer')"
-                >Show the answer</button
+                >Show the response</button
               >
               }
             </div>
@@ -201,7 +201,7 @@
             request.sent.method + " " + request.sent.url + "\n" + headerLines(request) + "\n\n" + (request.sent.bodyPreview ?? "")
           }}</pre>
             } @else if (showing() === "answer") {
-            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The answer, as kept">
+            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The response, as kept">
 {{
             request.response?.body?.text
           }}</pre>

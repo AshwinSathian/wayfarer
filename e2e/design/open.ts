@@ -399,8 +399,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   },
   "import-curl": async (page) => {
     await page.goto("/app/");
-    await sidebarHeaderButton(page, "Import");
-    await page.getByRole("menuitem", { name: "cURL command…", exact: true }).click();
+    // An empty tree has no Import menu (L-16): the response pane offers the paste.
+    await button(page.locator(".response-pane"), "Paste a cURL command").click();
     await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
   },
   "script-review": async (page) => {
@@ -409,7 +409,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await button(page.getByRole("dialog", { name: "Import collection" }), "Import").click();
     await openRequest(page, "Shared request", "Shared collection");
     await composerTab(page, "Scripts");
-    await button(page.locator(".scripts-held"), "Review scripts").click();
+    await button(page.locator(".scripts-held"), "Review scripts…").click();
     await expect(page.getByRole("dialog", { name: "Review scripts" })).toContainText("Read them before you trust them");
   },
   run: async (page) => {
@@ -434,12 +434,12 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
       await openRequest(page, name);
       await sendAndWait(page);
     }
-    await toolbarOrDrawer(page, "Request history");
+    await toolbarOrDrawer(page, "History");
     await expect(page.getByRole("dialog", { name: /history/i })).toBeVisible();
   },
   "history-empty": async (page) => {
     await page.goto("/app/");
-    await toolbarOrDrawer(page, "Request history");
+    await toolbarOrDrawer(page, "History");
     await expect(page.getByRole("dialog", { name: /history/i })).toBeVisible();
   },
   "vault-create": makeVault,
@@ -453,8 +453,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await page.reload();
     await expect(address(page)).toBeVisible();
     // The status bar's item from 768 px; on a phone, the toolbar's lock.
-    await page.getByRole("button", { name: /^(Vault locked|Unlock secrets)$/ }).click();
-    await expect(page.getByRole("dialog", { name: "Unlock secrets", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: /^(Vault locked|Unlock vault)$/ }).click();
+    await expect(page.getByRole("dialog", { name: "Unlock vault", exact: true })).toBeVisible();
   },
   "secrets-manager": async (page) => {
     await settingsPane(page, "Vault");

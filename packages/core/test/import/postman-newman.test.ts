@@ -25,7 +25,11 @@ const entries = Object.entries(golden.collections as unknown as Record<string, G
 const read = (path: string): unknown => JSON.parse(importTextOf(readFileSync(path)));
 
 /** Why an import cannot be held to Newman's results, from its report: what the app does not have. */
-const OUTSIDE = [/, which Wayfarer does not have\./, /Its auth is of a type the app does not have/, /is left out\.$/];
+const OUTSIDE = [
+  /, which Wayfarer does not have, so the script stops/,
+  /Its auth is of a type the app does not have/,
+  /is left out\.$/,
+];
 /** The legacy library globals the report's scan does not look for (a script that requires lodash or crypto-js gives them those names). */
 const LEGACY_GLOBAL = /(?<![\w$.])(?:_\.|CryptoJS\b)/;
 /** Outside the matrix for a reason that neither the report nor the scripts' text gives. */

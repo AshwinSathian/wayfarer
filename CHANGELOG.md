@@ -444,6 +444,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A response tab chosen while a request is on its way stays chosen.**
+  The last response now stays on screen while the next one is sent, and
+  its tabs can be clicked. Before, choosing Tests or Headers then did
+  nothing: the new response arrived and switched back to Body. A send
+  still opens at Body, as before, unless you pick another tab while it
+  is out.
+
 - **The claims ledger's IDs stay on one line.** Beside the long
   statements, the ID column broke "C-041" one character a line. The
   page's last CI result, with the number of claims, now comes first,

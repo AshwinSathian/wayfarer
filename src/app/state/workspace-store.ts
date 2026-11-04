@@ -448,7 +448,9 @@ export class WorkspaceStore {
     tab.pasteNotes.set([]);
     tab.unresolvedBlocked.set([]);
     // The last response stays in the pane while this one is on its way (D5-e, V1): it is replaced when the answer
-    // comes, not blanked at the press. An event stream's list is the new one's from its first event.
+    // comes, not blanked at the press. A send opens at the body, unless another tab is chosen while it is out. An
+    // event stream's list is the new one's from its first event.
+    tab.responseTab.set("body");
     tab.streamEvents.set([]);
     tab.streamCount.set(0);
     tab.streamNote.set("");
@@ -1026,7 +1028,6 @@ export class WorkspaceStore {
     tab.responseRoute.set(response.route ?? null);
     tab.responseContentType.set(response.contentType ?? "");
     tab.responseHeadersLimited.set(response.headersLimited ?? false);
-    tab.responseTab.set("body");
     tab.responseData.set(response.dataText);
     tab.responseError.set(response.errorText);
   }

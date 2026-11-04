@@ -406,6 +406,26 @@ describe("Composer: rows, payloads and variables", () => {
     expect(store.responseError() + store.responseData()).not.toContain('"first"');
   });
 
+  // The last response stays clickable while the next send is out (D5-e): a tab chosen then is the one the answer opens
+  // at. A send still starts at the body, as it did when the pane went blank at the press.
+  it("opens the next response at the tab chosen while it was on its way", async () => {
+    store.patch({ url: "https://example.com/first" });
+    const first = component.sendRequest();
+    httpMock
+      .expectOne("https://example.com/first")
+      .flush(jsonBytes({ first: true }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    await first;
+    store.responseTab.set("headers");
+
+    const second = component.sendRequest();
+    const req = httpMock.expectOne("https://example.com/first");
+    expect(store.responseTab()).toBe("body");
+    store.responseTab.set("tests");
+    req.flush(jsonBytes({ second: true }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    await second;
+    expect(store.responseTab()).toBe("tests");
+  });
+
   it('Follow redirects is on unless the request says no, and "on" is not written into the request (P5.4)', () => {
     expect(store.snapshot().settings).toEqual({});
     store.setFollowRedirects(false);

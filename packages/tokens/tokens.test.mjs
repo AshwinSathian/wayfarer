@@ -297,3 +297,14 @@ test("no rule sets the mono face at the footnote size", () => {
         found.push(`${file}: ${block[1].trim()}`);
   assert.deepEqual(found, []);
 });
+
+// U-197 (DQ11): hue means a method or a status. The device's own state (the route chosen, the vault open, the
+// environment in use) is not drawn in success's green.
+test("the shell's device state is not drawn in a status colour", () => {
+  const [[, shell]] = sources(/^app\/components\/app-shell\/app-shell\.html$/);
+  const [[, components]] = sources(/^design-system\/components\.css$/);
+  const found = [...shell.matchAll(/\[class\.text-status-[a-z]+\]="[^"]*"/g)].map((m) => m[0]);
+  const tag = /\.env-active-tag \{[^}]*\}/.exec(components)?.[0] ?? "";
+  if (/--status-/.test(tag)) found.push(".env-active-tag uses a status token");
+  assert.deepEqual(found, []);
+});

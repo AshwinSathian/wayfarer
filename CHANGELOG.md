@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Green and red mean a status again, nothing else.** The environment in
+  use, the Local Bridge route and an unlocked vault were drawn in
+  success's green, and "0 failed" in the error red with its glyph. They
+  are in the label's own colour now; red appears when a test fails.
+
 - **Labels are in sentence case again, and nothing in the wire's face is
   under 13 px.** Some section labels and Settings' subheads had gone back
   to spaced capitals, and table column heads and the method badges in

@@ -389,6 +389,7 @@ the second.
 2026-10-23 (hig-review, W-41a): the fix holds. The state it did not cover,
 a saved request with an address open and nothing sent, is U-095.
 **2026-11-04:** Reopened in D5-b's fifth pass: the Secrets dialog's empty list and the empty Timings and Tests tabs are dashed boxes (`secrets-manager.html:34-36`; `response-viewer.html:387-389`, `:570-572`). Open, D5-c, with U-198.
+**2026-11-04:** Fixed again in D5-c: the Secrets dialog's empty list and the empty Timings and Tests tabs are a line of text with a glyph, no box; the token test fails on `border-dashed` in a template.
 
 **U-023. The first screen explains the Local Bridge.** Severity 2. H2, H8.
 OC.
@@ -758,6 +759,7 @@ builder.
 **2026-11-03:** The environments' share checked in D4-g: the editor's and the list's labels are sentence case ("Add variable", "Key / Value", "New environment", "Global variables"), the "KEY" placeholder is "Name" (#493). The assertion builder's remains with D4-i.
 **2026-11-03:** The assertion builder's "Status Code" is "Status code" in #512 (D4-i), its last label in title case; a scan of every template and every label, title, header and placeholder in code finds none but proper names (GitHub, Local Bridge, OAuth). Every label of this row is sentence case.
 **2026-11-04:** Reopened in D5-b's fifth pass: a collection's or folder's Scripts tab heads its editors "Pre-request Script" and "Post-response Script" (`inherited-settings-dialog.html:51`, `:61`). Open, D5-c.
+**2026-11-04:** Fixed in D5-c: a collection's and a folder's Scripts tab head their editors "Pre-request script" and "Post-response script".
 
 ### Found on the other screens
 
@@ -1149,6 +1151,7 @@ Evidence: [`hig-review/1440-dark-30-palette.png`](hig-review/1440-dark-30-palett
 **2026-11-03:** The environments' share fixed in #493 (D4-g): no card inside the tab; the list's rows have no border, and the editor is set off by a line where the two sit side by side.
 **2026-11-03:** Settings' share fixed in #507 (D4-h): a group is rows between hairlines on the dialog's surface, no box and no fill; the danger zone's lines are the error colour. Every card of this row is gone.
 **2026-11-04:** D5-b's fifth pass: the Secrets dialog keeps a banner card and a dashed box inside the dialog: U-198. Open, D5-c.
+**2026-11-04:** The Secrets dialog's cards are gone (U-198).
 
 ### Environments, the vault and the runner
 
@@ -2007,6 +2010,7 @@ shortcut table.
 Evidence: `baseline/design-chromium/settings-data-1440-light.png`;
 `src/app/components/settings/settings.html:244`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: Settings names the palette without a key ("from the command palette (\"Export …\")"); the key is the palette's own, shown where it works.
 
 ### The screens in three engines, and the hig-reviews repeated (D1.2, D5.1)
 
@@ -2321,12 +2325,14 @@ headed Name and Value.** Severity 4. H4. TP.
 Evidence: `baseline/design-chromium/environments-rows-1440-light.png`;
 `src/app/components/environments/environments-manager.html:173`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the tab says "Name / Value", as its columns do.
 
 **U-193. Body's select is labelled "Body", inside the Body tab.**
 Severity 4. H8. OC.
 It chooses the body's kind (Raw, GraphQL, …).
 Evidence: `baseline/design-chromium/composer-body-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the select is named "Body type".
 
 **U-194. With no environment, the editor's pane says "Choose an
 environment".** Severity 4. H8. OC.
@@ -2334,6 +2340,7 @@ There is none to choose; the list beside it already says what to do.
 Evidence: `baseline/design-chromium/environments-empty-1440-light.png`;
 `src/app/components/environments/environments-manager.html:353`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: with no environment the pane says "Make an environment with New environment, and its variables are edited here."
 
 **U-195. History is "History" in the palette and its drawer, and "Request
 history" in the toolbar and the phone's drawer.** Severity 4. H4. OC.
@@ -2343,6 +2350,7 @@ Evidence: `baseline/design-chromium/history-1440-light.png`,
 `src/app/components/app-shell/app-shell.html:61`, `:248`;
 `src/app/components/app-shell/app-shell.ts:308`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: the palette's command is "Request history", as the toolbar's button and the drawer are; Settings' section stays "History", the settings of history.
 
 **U-196. In WebKit the sidebar button keeps a focus ring after the drawer
 closes.** Severity 4. H4. SD.
@@ -2379,6 +2387,7 @@ dialog's own surface: three grouping cues at one level
 "dashed empty boxes" as part of the template look it removed.
 Evidence: `baseline/design-chromium/secrets-manager-1440-dark.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c with U-022: the vault's state is a line of the dialog, not a filled, bordered card, and the empty list has no box.
 
 **U-199. On a phone the editing line breaks before its dash.** Severity 4.
 H8. Everyone on a phone.

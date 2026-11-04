@@ -440,6 +440,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   success's green, and "0 failed" in the error red with its glyph. They
   are in the label's own colour now; red appears when a test fails.
 
+- **Things are called the same everywhere.** The body's type select is
+  "Body type", not a second "Body"; the environment editor's tab says
+  "Name / Value" over columns named Name and Value; the palette says
+  "Request history", as the toolbar does; script headings are in sentence
+  case; Settings no longer writes the Mac's ⌘K on every platform; and the
+  environments pane, with none made, says how to make one.
+
+- **Empty places are a line of text again, not a dashed box.** The
+  Secrets dialog, and the Timings and Tests tabs before a send, drew a
+  dashed box around their one sentence, and the Secrets dialog kept a
+  card for the vault's state. Both are plain lines now.
+
 - **Labels are in sentence case again, and nothing in the wire's face is
   under 13 px.** Some section labels and Settings' subheads had gone back
   to spaced capitals, and table column heads and the method badges in

@@ -493,7 +493,7 @@ folder's folders come before its requests, as the list shows them.
 ## Scripts of a collection and of a folder
 
 A collection and a folder have scripts of their own (right-click, **Settings**,
-**Scripts**). They run for every request in them:
+then **Scripts** in the tab that opens). They run for every request in them:
 
 1. the collection's pre-request script,
 2. each folder's, from the outermost folder to the one the request is in,
@@ -542,7 +542,10 @@ you (plan decision D6):
   that reached storage any other way is not in the list and does not run.
 - **Saving does not approve what you have not reviewed.** A script that was
   waiting stays unapproved when you save it, also into another collection.
-  The same holds for a collection's and a folder's settings.
+  The same holds for a collection's and a folder's settings, which are
+  written as you edit them: each write asks whether the scripts stored
+  before it were allowed to run, so editing a script that waits for review
+  never approves it, and editing one that runs keeps it running.
 - **A history entry** carries the scripts of the request as it was sent.
   Opened from history they wait for a review of their own, which lasts
   while that entry is in the composer.

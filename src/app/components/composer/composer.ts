@@ -43,6 +43,7 @@ import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
 import { SaveAsDialog } from "./save-as-dialog";
 import { EnvironmentsManager } from "../environments/environments-manager";
+import { HolderSettings } from "../collections/holder-settings";
 import { SecretsVault } from "../../services/secrets-vault";
 import { ScriptsPanel } from "./scripts-panel";
 import { TabStrip } from "./tab-strip";
@@ -51,6 +52,7 @@ import { VariableChips } from "./variable-chips";
 import { AiDrafted } from "../ai-draft/ai-drafted";
 import { AiSettings } from "../../services/ai-settings";
 import { ModelCalls } from "../../services/model-calls";
+import type { HolderTarget } from "../../state/tab-state";
 
 /**
  * Below this width the response goes under the request. 62 em, not 64: a 1,440 px window beside the pinned sidebar
@@ -71,6 +73,7 @@ const BESIDE_MIN: readonly [number, number] = [28, 22];
   selector: "app-composer",
   imports: [
     EnvironmentsManager,
+    HolderSettings,
     Icon,
     UiButton,
     ComposerSections,
@@ -244,6 +247,10 @@ export class Composer {
 
   openEnvironments(): void {
     this.view.openEnvironments();
+  }
+
+  openHolder(target: HolderTarget, variable?: string): void {
+    this.view.openHolder(target, variable);
   }
 
   newTab(): void {

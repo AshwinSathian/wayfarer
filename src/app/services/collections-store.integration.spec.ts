@@ -98,12 +98,24 @@ describe("CollectionsStore with real storage", () => {
     const collection = await service.createCollection({ name: "Billing" });
     const settings = { auth: { type: "none" as const }, scripts: { pre: "", post: "" } };
 
-    await service.saveInherited({ collectionId: collection.meta.id }, { ...settings, route: "bridge" }, true);
+    await service.saveInherited({ collectionId: collection.meta.id }, { ...settings, route: "bridge" });
     expect(service.tree()[0].collection.route).toBe("bridge");
     expect(JSON.parse((await service.exportCollectionJson(collection.meta.id))!).collection.route).toBe("bridge");
 
-    await service.saveInherited({ collectionId: collection.meta.id }, settings, true);
+    await service.saveInherited({ collectionId: collection.meta.id }, settings);
     expect("route" in service.tree()[0].collection).toBe(false);
+  });
+
+  it("a collection's variable marked secret is exported as its reference to both files, credentials or not (L-1)", async () => {
+    await service.ensureLoaded();
+    const collection = await service.createCollection({ name: "Shop" });
+    await service.changeCollectionVariables(collection.meta.id, [{ key: "token", value: "{{$secret.abc-123}}" }]);
+    for (const credentials of [false, true]) {
+      const own = JSON.parse((await service.exportCollectionJson(collection.meta.id, { credentials }))!);
+      const postman = JSON.parse((await service.exportCollectionPostman(collection.meta.id, { credentials }))!.json);
+      expect(own.collection.variables).toEqual([{ key: "token", value: "{{$secret.abc-123}}", enabled: true }]);
+      expect(postman.variable).toEqual([{ key: "token", value: "{{$secret.abc-123}}", type: "string" }]);
+    }
   });
 
   it("exports a collection and imports the file back, as the original or as a copy", async () => {
@@ -161,13 +173,11 @@ describe("CollectionsStore with real storage", () => {
         auth: { type: "apikey", key: "X-Shop", value: "typed-collection-auth", in: "header" },
         scripts: { pre: "", post: "" },
       },
-      true,
     );
     const folder = await service.createFolder({ collectionId: collection.meta.id, name: "Admin" });
     await service.saveInherited(
       { collectionId: collection.meta.id, folderId: folder.meta.id },
       { auth: { type: "basic", username: "admin", password: "typed-folder-password" }, scripts: { pre: "", post: "" } },
-      true,
     );
     await service.changeFolderVariables(folder.meta.id, [
       { key: "admin_token", value: "typed-folder-variable" },

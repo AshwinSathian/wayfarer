@@ -836,6 +836,26 @@ describe("postmanEnvironment and what a file is taken for", () => {
     expect(environment.id).toBe(environment.meta.id);
   });
 
+  // L-1: a collection's variable can be a secret now. What the vault holds is never in the collection: the export
+  // writes the reference, and an import keeps a reference as text, as an environment's import does.
+  it("a collection's or a folder's variable that is a secret's reference is exported as the reference and read back as it", () => {
+    const reference = "{{$secret.abc-123}}";
+    const { payload } = postmanCollection(
+      collection([{ name: "Admin", item: [], variable: [{ key: "admin", value: reference }] }], {
+        variable: [{ key: "token", value: reference }],
+      }),
+    );
+    expect(payload.collection.variables).toEqual([{ key: "token", value: reference, enabled: true }]);
+    expect(payload.folders[0].variables).toEqual([{ key: "admin", value: reference, enabled: true }]);
+
+    const file = exported(payload).file as { variable: unknown[]; item: { variable: unknown[] }[] };
+    expect(file.variable).toEqual([{ key: "token", value: reference, type: "string" }]);
+    expect(file.item[0].variable).toEqual([{ key: "admin", value: reference, type: "string" }]);
+    expect(postmanEnvironment({ name: "E", values: [{ key: "token", value: reference }] }).environment.vars).toEqual(
+      payload.collection.variables,
+    );
+  });
+
   it("Postman's globals, in either of its forms, become an environment, and the report says so", () => {
     for (const file of [
       [{ key: "g", value: "1", enabled: true }],

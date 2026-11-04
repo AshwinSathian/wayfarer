@@ -173,7 +173,8 @@ place for:
 key you typed is written as `***` unless you tick "Include credentials",
 and a `{{variable}}` is left as the reference it is. A vault secret is
 never written: what the file holds of one is its `{{$secret.…}}` reference,
-which means nothing to Postman.
+which means nothing to Postman. That holds for a collection's or a folder's
+variable marked secret too.
 
 **It is tested by running it.** A collection with every body mode, and
 with auth and scripts at all three levels, is exported; Newman, Postman's

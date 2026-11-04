@@ -718,6 +718,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The site's changelog and roadmap are pages you can read.** The
+  changelog opens with a list of versions, each with its date and one
+  line on what it brought, and folds each version's notes under its
+  heading, with only the latest release open. The notes not yet released
+  are under "Coming in the next release". Before, the page was the whole
+  file in one column, about 76,000 pixels tall on a desktop, starting
+  with the file's boilerplate and "[Unreleased]". The roadmap now says
+  what 3.0 brings, what comes next and what comes later (sharing with a
+  team), each item as what you get. Before, it listed the design plan's
+  tasks by their IDs, research and reviews among them. Both pages are
+  still made from `CHANGELOG.md` and `PLAN-design.md` when the site is
+  built.
+
 - **A new mark, and the name in one weight.** The mark is now a W drawn
   as one trail, its last leg ending at a dot: the host a request reaches.
   The old one, a thin hook with a small dot, was a grey smudge in a

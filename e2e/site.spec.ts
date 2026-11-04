@@ -339,13 +339,24 @@ test("with reduced motion the demo shows its answer at once", async ({ page }) =
 });
 
 // W2.4: the changelog and the roadmap are pages, and the ledger says which CI run the deployed files passed.
-test("the changelog and the roadmap are pages, the roadmap as the plan has it", async ({ page }) => {
+test("the changelog folds each version under an index, and the roadmap is said in a user's terms", async ({ page }) => {
   await page.goto("/changelog/");
-  await expect(page.getByRole("heading", { name: "[Unreleased]" })).toBeVisible();
+  await expect(page.getByText("All notable changes")).toHaveCount(0);
+  const index = page.getByRole("navigation", { name: "Versions" });
+  await expect(index.getByRole("link", { name: /^Coming in the next release/ })).toBeVisible();
+  // Only the latest release is open; another opens with a click on its heading.
+  await expect(page.locator("details.version[open]")).toHaveCount(1);
+  const next = page.locator("details.version").first();
+  await expect(next.getByRole("heading", { name: "Coming in the next release" })).toBeVisible();
+  await expect(next).not.toHaveAttribute("open");
+  await next.locator("summary").click();
+  await expect(next).toHaveAttribute("open");
   await page.goto("/roadmap/");
-  await expect(page.getByRole("heading", { name: /^Phase W/ })).toBeVisible();
-  await expect(page.locator("li.task-done", { hasText: "W1.1" })).toBeVisible();
-  await expect(page.locator("li.task-open").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^(Shipped|Coming) in 3\.0$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Next" })).toBeVisible();
+  const later = page.locator("section", { has: page.getByRole("heading", { name: "Later" }) });
+  await expect(later.getByText(/Git repository/)).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/\b[DWT]\d+\.\d+\b/);
 });
 
 const RUN = { run: 38850000000, commit: "0123456789abcdef0123456789abcdef01234567", date: "2026-10-16T05:00:00Z" };

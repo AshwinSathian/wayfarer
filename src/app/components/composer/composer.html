@@ -36,9 +36,9 @@
       <app-icon name="folder" class="icon-xs" />
       Editing
       <nav aria-label="Saved request" class="text-label-secondary min-w-0 break-words">
-        @for (holder of breadcrumb(); track $index) {{{ holder }} / }{{ bound.name }}
+        @for (holder of breadcrumb(); track $index) {{{ holder }} / }<span>{{ bound.name }}</span>.
       </nav>
-      — Save writes back to this request.
+      Save writes back to it.
     </div>
     }
     <!-- The address's error and the paste's notes are said by regions there from the first render (U-062, U-075);

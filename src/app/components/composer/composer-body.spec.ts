@@ -67,7 +67,7 @@ describe("Composer: methods and body modes", () => {
         view.onRequestMethodChange(method);
         await component.sendRequest();
         expect(store.endpointError()).toBe(
-          `Browsers do not send ${method.toUpperCase()} requests. Choose the route Local Bridge to send one.`,
+          `A browser cannot send a ${method.toUpperCase()} request. Set this request's route to Local Bridge, in its Network tab.`,
         );
       }
 

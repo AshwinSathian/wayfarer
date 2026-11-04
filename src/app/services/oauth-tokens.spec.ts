@@ -220,7 +220,7 @@ describe("OAuthTokens", () => {
       await expect(tokens.get(withReference, key)).rejects.toThrow("refers to a vault secret that could not be read");
     }
     await expect(tokens.get(auth({ tokenUrl: "{{nowhere}}" }), key)).rejects.toThrow(
-      "The token URL is not an address.",
+      "The Token address field does not hold an address",
     );
     expect(sent).toEqual([]);
   });

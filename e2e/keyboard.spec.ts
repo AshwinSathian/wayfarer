@@ -339,11 +339,11 @@ test("settings dialog: focus moves in, Tab stays in, Escape closes at once and f
 test("history drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  const opener = page.getByRole("button", { name: "Request history" });
+  const opener = page.getByRole("button", { name: "History", exact: true });
   await opener.focus();
   await page.keyboard.press("Enter");
 
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   await expect(drawer).toBeVisible();
   await expectFocusTrapped(page, drawer, browserName, 4);
 
@@ -391,13 +391,13 @@ test("phone navigation drawer: New request closes it and puts focus in the addre
 // after the key, and a Tab (or a check) inside that frame found it still on
 // the page. Focus is inside by the end of the task that asked for the drawer.
 for (const [width, opener, name] of [
-  [1440, "Request history", "Request history"],
+  [1440, "History", "History"],
   [390, "Show sidebar", "Navigation"],
 ] as const) {
   test(`${name} drawer at ${width} px: focus is inside by the end of the click that opens it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/app/");
-    await expect(page.getByRole("button", { name: opener })).toBeVisible();
+    await expect(page.getByRole("button", { name: opener, exact: true })).toBeVisible();
     const inside = await page.evaluate(
       ([label, dialog]) => {
         document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
@@ -412,7 +412,7 @@ for (const [width, opener, name] of [
   test(`${name} drawer at ${width} px: Escape in the task that opened it closes it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/app/");
-    await expect(page.getByRole("button", { name: opener })).toBeVisible();
+    await expect(page.getByRole("button", { name: opener, exact: true })).toBeVisible();
     await page.evaluate((label) => {
       document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
       document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
@@ -427,9 +427,9 @@ for (const [width, opener, name] of [
 test("history drawer: opened, closed and opened again in one task, it is open and has focus", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   const focused = await page.evaluate(() => {
-    const opener = document.querySelector<HTMLElement>('button[aria-label="Request history"]')!;
+    const opener = document.querySelector<HTMLElement>('button[aria-label="History"]')!;
     opener.click();
     document.querySelector<HTMLElement>('button[aria-label="Close history"]')!.click();
     opener.click();
@@ -451,8 +451,8 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await page.locator("input.address-url").fill(`${ECHO}/content/json?confirm=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-  await page.getByRole("button", { name: "Request history" }).click();
-  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
   const entry = drawer.getByRole("button", { name: /confirm=1/ });
   await expect(entry).toBeVisible();
 

@@ -142,7 +142,9 @@ describe("WorkspaceBackup", () => {
     };
 
     expect(await backup.restore("{nope")).toEqual(["The file is not JSON."]);
-    expect(await backup.restore(" ".repeat(10 * 1024 * 1024 + 1))).toEqual(["The file is larger than 10 MB."]);
+    expect(await backup.restore(" ".repeat(10 * 1024 * 1024 + 1))).toEqual([
+      "A file to import can be 10 MB at most, and this one is larger.",
+    ]);
     expect(await backup.restore("{}")).toEqual(['Not a Wayfarer workspace file: "$id" must be "wayfarer/workspace".']);
     expect(validateWorkspaceFile({ $id: WORKSPACE_FORMAT, stores: 5 })).toEqual(["stores: Value must be an object."]);
     expect(validateWorkspaceFile({ $id: WORKSPACE_FORMAT, stores: {} })).toHaveLength(6);

@@ -41,7 +41,7 @@ describe("RequestWarnings (P2.14)", () => {
   it("shows a red pill while the request's certificate check is off (P6.1)", () => {
     expect(show({ url: "https://api.example/" }).querySelector(".tls-off-pill")).toBeNull();
     settings.set({ tlsInsecure: true });
-    expect(text(show({ url: "https://api.example/" }, "bridge"), ".tls-off-pill")).toBe("TLS verification off");
+    expect(text(show({ url: "https://api.example/" }, "bridge"), ".tls-off-pill")).toBe("Certificate not checked");
   });
 
   it("says before the send that an http:// address will be blocked from an HTTPS page", () => {

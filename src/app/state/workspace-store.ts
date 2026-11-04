@@ -622,7 +622,7 @@ export class WorkspaceStore {
       askRoute: () =>
         this.confirm.confirm({
           title: "Send through the Local Bridge?",
-          message: `The browser got no answer to ${draft.method} ${draft.url}, and may have sent it: the server may have received it. Sent again through the Local Bridge, it may be received twice.`,
+          message: `The browser got no response to ${draft.method} ${draft.url}, and the server may still have received it. Sent again through the Local Bridge, it may arrive twice.`,
           acceptLabel: "Send through the bridge",
           rejectLabel: "Do not send",
         }),
@@ -655,7 +655,7 @@ export class WorkspaceStore {
     const controller = new AbortController();
     tab.inFlight = controller;
     const { response } = await this.exchange(tab, { allowUnresolved: false, signal: controller.signal });
-    if (!response.statusCode) throw new Error(response.errorText || "The server gave no answer.");
+    if (!response.statusCode) throw new Error(response.errorText || "The request got no response.");
     // A GraphQL server may answer an introspection it refuses with 400 and its reason as JSON: the reader says what it holds.
     return response.dataText || response.errorText;
   }
@@ -697,7 +697,7 @@ export class WorkspaceStore {
     if (refusal) return { outcome: { error: refusal, tests: [] }, scriptsSkipped: false };
     const { outcome, exchange } = await runOutcome(
       () => this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run }),
-      "You chose not to send a request with a vault secret to a host a script had changed.",
+      "Nothing was sent: you chose not to send a vault secret to the host the pre-request script set.",
     );
     return { outcome, exchange, scriptsSkipped: tab.scriptsSkipped() };
   }
@@ -778,7 +778,7 @@ export class WorkspaceStore {
       return `"${method}" is not an HTTP method. A method is one word of at most 32 characters: letters, digits and !#$%&'*+-.^_\`|~.`;
     }
     if (FORBIDDEN_METHODS.includes(method) && this.firstRoute() !== "bridge") {
-      return `Browsers do not send ${method} requests. Choose the route Local Bridge to send one.`;
+      return `A browser cannot send a ${method} request. Set this request's route to Local Bridge, in its Network tab.`;
     }
     return "";
   }

@@ -263,9 +263,7 @@ test("a YAML file over 1 MB is refused before the reader sees it", async ({ page
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await pick(page, "dense.yaml", "[".repeat(1024 * 1024 + 1));
-  await expect(dialog(page, "Import").getByRole("alert")).toContainText(
-    "at more than 1 MB it is too large to be read as YAML",
-  );
+  await expect(dialog(page, "Import").getByRole("alert")).toContainText("a YAML file can be 1 MB at most");
 });
 
 test("the YAML reader is not in the page the server sends, and its licence ships with the app", async () => {

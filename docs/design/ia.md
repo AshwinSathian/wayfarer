@@ -280,8 +280,8 @@ it is.
 | `app-shell.html: Hide sidebar / Show sidebar` | Toolbar; named for what it will do (U-082) | Toolbar | D4-f, done |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
 | `app-shell.html: Environments` | Toolbar, icon `dns`; on a phone a row of the drawer | Toolbar; opens the Environments tab (D4.5) | D4-g, done |
-| `app-shell.html: Lock secrets / Unlock secrets` | Toolbar below 768 px | Same | — |
-| `app-shell.html: Request history` | Toolbar | Toolbar | — |
+| `app-shell.html: Lock vault / Unlock vault` | Toolbar below 768 px | Same | — |
+| `app-shell.html: History` | Toolbar | Toolbar | — |
 | `app-shell.html: Settings` | Toolbar | Toolbar | — |
 | `app-shell.html: Reload` | Banner, update ready | Banner | — |
 | `app-shell.html: Back up now` | Banner, backup reminder | Banner | — |
@@ -291,11 +291,11 @@ it is.
 | `app-shell.html: Data and storage settings` | Status bar, "Saved in this browser, which may delete it" while the browser has not promised to keep the data (D4-e, U-137) | Status bar | — |
 | `app-shell.html: Manage the vault's secrets` | Status bar, "Secrets" (one button with its words since D4-e, U-072) | Status bar | — |
 | `app-shell.html: Theme:` | Status bar, "Theme: system / light / dark", in turn (D4-e, U-087); Settings, General | Same | — |
-| `app-shell.html: Lock the vault / Make a vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |
+| `app-shell.html: Lock the vault / Create vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |
 | `app-shell.html: Choose a passphrase / Passphrase` | Unlock dialog, Enter in the passphrase (named since D4-e, U-062) | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the confirmation | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Cancel` | Unlock dialog | Status bar, Unlock dialog | D4-g |
-| `app-shell.html: Create vault / Unlock secrets` | Unlock dialog | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: Create vault / Unlock vault` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 
 ### Toolbar
 
@@ -337,7 +337,7 @@ it is.
 | `past-requests.html: Show` | History drawer, above the list, only while history holds a model call: All, Requests, Model calls (D4.10) | Toolbar, History drawer | D4-k |
 | `past-requests.html: Model call,` | History drawer, a model call's row: opens it in place into its record; it loads into no tab (D4.10) | Toolbar, History drawer | D4-k |
 | `past-requests.html: Show what was sent` | An opened model call: the request as kept, masked | Toolbar, History drawer | D4-k |
-| `past-requests.html: Show the answer` | An opened model call, when its answer was kept | Toolbar, History drawer | D4-k |
+| `past-requests.html: Show the response` | An opened model call, when its answer was kept | Toolbar, History drawer | D4-k |
 | `variables-dialog.ts: Cancel` | Global variables dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `variables-dialog.ts: Save variables` | Global variables dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 
@@ -345,7 +345,7 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `secrets-manager.html: Unlock secrets vault` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
+| `secrets-manager.html: Unlock vault` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Secret name` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Save name` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Cancel rename` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
@@ -379,7 +379,7 @@ it is.
 | `holder-settings.html: Auth` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
 | `holder-settings.html: Scripts` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
 | `holder-settings.html: Route` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
-| `holder-settings.html: How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
+| `holder-settings.html: How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the page gets no response.` | A collection's or folder's Settings dialog (context menu) | A collection's or a folder's settings tab (D5-e): the tree's menu, Settings…; the palette; a variable's chip | D5-e |
 | `export-dialog.html: Format` | Export… dialog: Wayfarer or Postman v2.1 (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
@@ -477,12 +477,12 @@ it is.
 | `rows-editor.html: Remove` | Rows of a key-value editor (params, headers, a collection's variables) | Same rows | D4-d |
 | `rows-editor.html: addLabel()` | Rows of a key-value editor (params, headers, a collection's variables) | Same rows | D4-d |
 | `save-as-dialog.html: Collection` | Save as dialog | Composer, Save as dialog | D4-d |
-| `save-as-dialog.html: Folder (optional)` | Save as dialog | Composer, Save as dialog | D4-d |
+| `save-as-dialog.html: Folder` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Cancel` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Save` | Save as dialog | Composer, Save as dialog | D4-d |
 | `script-review-dialog.html: Not now` | Script review dialog (on send, on import) | Same dialog | D4-d |
 | `script-review-dialog.html: Trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
-| `scripts-panel.html: Review scripts` | Scripts tab | Composer, Scripts tab | D4-d |
+| `scripts-panel.html: Review scripts…` | Scripts tab | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Assert on` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Operator` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Remove test` | Scripts tab, tests | Composer, Scripts tab | D4-d |

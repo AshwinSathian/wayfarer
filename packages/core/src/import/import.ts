@@ -113,7 +113,7 @@ function scriptWarnings(item: string, scripts: Scripts): ImportWarning[] {
     return [
       {
         item,
-        message: `Its ${kind === "pre" ? "pre-request" : "post-response"} script uses ${names}, which Wayfarer does not have. The script will end in an error there.`,
+        message: `Its ${kind === "pre" ? "pre-request" : "post-response"} script uses ${names}, which Wayfarer does not have, so the script stops with an error there.`,
       },
     ];
   });
@@ -140,7 +140,7 @@ export function curlToRequest(text: string): { name: string; content: RequestCon
   const parsed = parseCurl(text);
   const { content, warnings } = curlRequest(parsed);
   const issues = validateRequestContent(content, "request");
-  if (issues.length) throw new ImportError("The cURL command does not make a request the app can hold.", issues);
+  if (issues.length) throw new ImportError("This cURL command does not describe a request Wayfarer can send.", issues);
   const address = URL.parse(parsed.request.url);
   return {
     name: `${content.method} ${address ? address.host + address.pathname : parsed.request.url}`,
@@ -197,7 +197,7 @@ function built(
 /** A collection an importer made, checked like a collection file: what it writes is what the app itself would. */
 function added(payload: CollectionExport): ImportedCollection {
   const { payload: checked, plan, errors } = importCollection(payload, { duplicateAsNew: true });
-  if (!checked || !plan) throw new ImportError(`The file does not make requests the app can hold.`, errors ?? []);
+  if (!checked || !plan) throw new ImportError("This file holds no request Wayfarer can read.", errors ?? []);
   return { payload: checked, plan };
 }
 
@@ -365,7 +365,8 @@ function readText(text: string, options: ImportOptions): Imported {
   }
 
   const { payload, plan, errors } = importCollection(value as object, options);
-  if (!payload || !plan) throw new ImportError("The file is not a valid Wayfarer collection.", errors ?? []);
+  if (!payload || !plan)
+    throw new ImportError("This file is not a Wayfarer collection. What does not match is listed below.", errors ?? []);
   return {
     report: report(
       { collections: 1, folders: payload.folders.length, requests: payload.requests.length },

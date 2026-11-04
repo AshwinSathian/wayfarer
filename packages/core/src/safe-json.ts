@@ -30,7 +30,7 @@ export function stringifyJson(value: unknown, space?: number): string | undefine
 
 /** Largest collection or environment file the app imports. Its own exports are a few hundred kB. */
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
-export const IMPORT_TOO_LARGE = "The file is larger than 10 MB.";
+export const IMPORT_TOO_LARGE = "A file to import can be 10 MB at most, and this one is larger.";
 
 /**
  * The text of a picked file, reading no more than one byte past the limit so

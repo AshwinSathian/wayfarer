@@ -161,8 +161,8 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       .fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
-    await toolbarOrDrawer(page, "Request history");
-    const drawer = page.getByRole("dialog", { name: "Request history" });
+    await toolbarOrDrawer(page, "History");
+    const drawer = page.getByRole("dialog", { name: "History", exact: true });
     const remove = drawer.getByRole("button", { name: "Delete from history" }).last();
     await expect(remove).toBeVisible();
     await expect
@@ -225,7 +225,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
       await expect(page.getByRole("contentinfo", { name: "Status" })).toHaveCount(0);
-      await expect(page.getByRole("banner").getByRole("button", { name: "Unlock secrets", exact: true })).toBeVisible();
+      await expect(page.getByRole("banner").getByRole("button", { name: "Unlock vault", exact: true })).toBeVisible();
       for (const name of [/^Secrets$/, /^Route: /, /^Theme: /]) {
         await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
@@ -549,7 +549,7 @@ test.describe("Render stability under rapid tab/viewport transitions", () => {
 test.describe("The app stays usable after an overlay closes", () => {
   test("after the history drawer closes, the toolbar can be clicked", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Request history" }).click();
+    await page.getByRole("button", { name: "History", exact: true }).click();
     await page.getByRole("button", { name: "Close history" }).click();
 
     await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click({ timeout: 5_000 });
@@ -563,7 +563,7 @@ test.describe("The app stays usable after an overlay closes", () => {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog", { name: "Settings" })).toBeHidden();
 
-    await page.getByRole("button", { name: "Request history" }).click({ timeout: 5_000 });
+    await page.getByRole("button", { name: "History", exact: true }).click({ timeout: 5_000 });
     await expect(page.getByRole("button", { name: "Close history" })).toBeVisible();
   });
 
@@ -738,8 +738,8 @@ test("on a phone Environments and History are named rows of the drawer, not tool
   await page.goto("/app/");
   const toolbar = page.getByRole("banner");
   await expect(toolbar.getByRole("button", { name: "Environments" })).toHaveCount(0);
-  await expect(toolbar.getByRole("button", { name: "Request history" })).toHaveCount(0);
+  await expect(toolbar.getByRole("button", { name: "History", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
-  await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: "Request history" }).click();
-  await expect(page.getByRole("dialog", { name: "Request history" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: "History", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "History", exact: true })).toBeVisible();
 });

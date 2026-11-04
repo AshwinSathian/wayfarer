@@ -305,7 +305,7 @@ const TASKS: Task[] = [
     },
     do: async (user) => {
       const { page } = user;
-      await user.click(button(page, "Request history"));
+      await user.click(button(page, "History"));
       const history = page.getByRole("dialog", { name: /history/i });
       await user.type(history.getByPlaceholder("Search by name, address, method or status"), "weekly");
       await user.click(history.getByText(/report=weekly/).first());

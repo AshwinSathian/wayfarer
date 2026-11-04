@@ -306,7 +306,11 @@ export class AppShell implements OnInit {
       },
       {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
-        label: this.secretsUnlocked ? "Lock the vault" : "Unlock the vault",
+        label: this.secretsUnlocked
+          ? "Lock the vault"
+          : this.secretsService.made() === false
+            ? "Make a vault"
+            : "Unlock the vault",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
       {

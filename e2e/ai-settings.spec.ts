@@ -7,7 +7,7 @@ import { dumpIdb, openSettings, PASSPHRASE } from "./support/app";
 const KEY = "sk-test-key-ai-settings-4b1d";
 
 async function createVault(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+  await page.getByRole("button", { name: "No vault", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
   await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
   await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);

@@ -5,14 +5,14 @@
     >{{ requests().length }} {{ requests().length === 1 ? "request" : "requests" }}, in the order of the list</span
   >
   <span class="flex-1"></span>
-  <!-- One button, as Send is: focus stays on it, and the second click of a double click is not a Cancel (U-091). -->
+  <!-- One button, as Send is: focus stays on it, and the second click of a double click is not a Stop (U-091). -->
   <button
     uiButton="filled"
     type="button"
     [class]="state.running() ? 'btn-secondary' : ''"
     [disabled]="!state.running() && !requests().length"
-    (click)="runOrCancel($event)"
-    >{{ state.running() ? "Cancel run" : state.report() ? "Run again" : "Run" }}</button
+    (click)="runOrStop($event)"
+    >{{ state.running() ? "Stop run" : state.report() ? "Run again" : "Run" }}</button
   >
 </div>
 
@@ -226,11 +226,13 @@
           >
           }
         </td>
-        <td
-          >{{ result.skipped ? "Skipped" : result.status ? result.status + (result.statusText ? " " + result.statusText
-          : "") : "No response" }}</td
-        >
-        <td>{{ result.durationMs === undefined ? "—" : result.durationMs + " ms" }}</td>
+        <td>
+          @if (result.skipped) { Skipped } @else if (result.status) {
+          <!-- The status as the status line and history draw it (D5-e). -->
+          <span class="status-tag" [class]="statusTone(result.status)">{{ result.status }}</span>
+          {{ result.statusText }} } @else { No response }
+        </td>
+        <td class="tabular-nums">{{ formatDuration(result.durationMs) }}</td>
         <td>{{ testsOf(result) }}</td>
       </tr>
       @if (row.record && openRecord() === row.number) {

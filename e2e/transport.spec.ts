@@ -49,20 +49,44 @@ test.describe("Transport on fetch (P2.3)", () => {
     expect(await violations(page)).toEqual([]);
   });
 
-  test("@claim:C-042 Cancel replaces Send while a request is in flight, and stops it at once", async ({ page }) => {
+  test("@claim:C-042 Stop replaces Send while a request is in flight, and stops it at once", async ({ page }) => {
     await open(page);
     await sendTo(page, `${ECHO}/delay/10000`);
 
-    const cancel = page.getByRole("button", { name: "Cancel request" });
-    await expect(cancel).toBeVisible();
+    const stop = page.getByRole("button", { name: "Stop request" });
+    await expect(stop).toHaveText("Stop");
     await expect(page.getByRole("button", { name: "Send request" })).toHaveCount(0);
-    await cancel.click();
+    await stop.click();
 
-    await expect(page.locator(".response-announcement").filter({ hasText: "The request was cancelled." })).toBeVisible({
+    await expect(page.locator(".response-announcement").filter({ hasText: "You stopped the request." })).toBeVisible({
       timeout: 200,
     });
     await expect(page.getByRole("button", { name: "Send request" })).toBeEnabled();
-    await expect(cancel).toHaveCount(0);
+    await expect(stop).toHaveCount(0);
+    expect(await violations(page)).toEqual([]);
+  });
+
+  // D5-e (V1): sending moved nothing but what it changes. The button kept its width (Cancel was 11 px wider, and the
+  // address moved), and the last response stayed in the pane, dimmed after a second under "Sending…".
+  test("while a request is out, the address does not move and the last response stays", async ({ page }) => {
+    await open(page);
+    await sendTo(page, `${ECHO}/echo`);
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    const address = page.locator("input.address-url");
+    const before = (await address.boundingBox())!;
+    const send = (await page.getByRole("button", { name: "Send request" }).boundingBox())!;
+
+    await sendTo(page, `${ECHO}/delay/3000`);
+    const stop = page.getByRole("button", { name: "Stop request" });
+    await expect(stop).toBeVisible();
+    expect((await stop.boundingBox())!.width).toBe(send.width);
+    expect((await address.boundingBox())!.width).toBe(before.width);
+    // The last response, as it was, for the first second; then the line says it is sending, over it dimmed.
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await expect(page.locator(".response-sending")).toHaveText(/^Sending… 1\.\d s$/, { timeout: 1500 });
+    await expect(page.locator(".response-stale .response-tabs")).toBeVisible();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 5000 });
+    await expect(page.locator(".response-stale")).toHaveCount(0);
     expect(await violations(page)).toEqual([]);
   });
 
@@ -127,5 +151,5 @@ test("a double click on Send sends once and does not cancel it", async ({ page }
   await page.locator("input.address-url").fill(`${ECHO}/delay/300`);
   await page.getByRole("button", { name: "Send request" }).dblclick();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 5000 });
-  await expect(page.getByText("The request was cancelled.")).toHaveCount(0);
+  await expect(page.getByText("You stopped the request.")).toHaveCount(0);
 });

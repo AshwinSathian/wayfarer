@@ -108,7 +108,9 @@
             <span class="history-facts type-footnote">
               <span class="font-mono history-model-name">{{ hostOf(request) }} · {{ model.model }}</span>
               @if (request.response) {
-              <span class="font-mono tabular-nums">{{ request.response.status }}</span>
+              <span class="status-tag" [class]="statusTone(request.response.status)"
+                >{{ request.response.status }}</span
+              >
               } @else {
               <span class="text-status-error">No response</span>
               }
@@ -133,9 +135,7 @@
             </span>
             <span class="history-facts type-footnote">
               @if (request.response) {
-              <span
-                class="font-mono tabular-nums"
-                [class]="request.response.status >= 200 && request.response.status < 300 ? 'text-status-success' : request.response.status >= 300 && request.response.status < 500 ? 'text-status-warning' : 'text-status-error'"
+              <span class="status-tag" [class]="statusTone(request.response.status)"
                 >{{ request.response.status }}</span
               >
               } @else {

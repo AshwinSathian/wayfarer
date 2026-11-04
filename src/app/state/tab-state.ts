@@ -199,7 +199,8 @@ export class TabState {
     this.recordOpen.set(open && !!entry.record);
   }
 
-  resetResponse(): void {
+  /** `keepSent`: what the send now ending wrote while on its way stays (its export's context, its stream's events). */
+  resetResponse({ keepSent = false } = {}): void {
     this.responseData.set("");
     this.responseError.set("");
     this.responseBodyIsJson.set(false);
@@ -218,8 +219,9 @@ export class TabState {
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");
-    this.responseExportContext.set(null);
     this.inspection.set(null);
+    if (keepSent) return;
+    this.responseExportContext.set(null);
     this.streamEvents.set([]);
     this.streamCount.set(0);
     this.streamNote.set("");

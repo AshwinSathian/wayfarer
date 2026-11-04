@@ -447,14 +447,15 @@ export class WorkspaceStore {
     tab.endpointError.set("");
     tab.pasteNotes.set([]);
     tab.unresolvedBlocked.set([]);
-    tab.resetResponse();
-    tab.lastTestResults.set([]);
-    tab.lastScriptLogs.set([]);
-    tab.lastTimings.set(null);
-    tab.scriptsSkipped.set(false);
+    // The last response stays in the pane while this one is on its way (D5-e, V1): it is replaced when the answer
+    // comes, not blanked at the press. An event stream's list is the new one's from its first event.
+    tab.streamEvents.set([]);
+    tab.streamCount.set(0);
+    tab.streamNote.set("");
 
     const refusal = this.refusal(tab);
     if (refusal) {
+      this.clearResponse(tab);
       tab.endpointError.set(refusal);
       return false;
     }
@@ -483,6 +484,7 @@ export class WorkspaceStore {
       });
     } catch (error) {
       tab.loadingState.set(false);
+      this.clearResponse(tab);
       // Variables that refer to each other in a circle: nothing is sent.
       if (error instanceof SendBlockedError || error instanceof VariableNestingError) {
         if (error instanceof PreRequestScriptError) {
@@ -500,6 +502,8 @@ export class WorkspaceStore {
     }
 
     tab.loadingState.set(false);
+    // What the send wrote while it was on its way (its export's context, its stream's events) is kept.
+    tab.resetResponse({ keepSent: true });
     tab.lastTestResults.set(result.testResults);
     tab.lastScriptLogs.set(result.scriptLogs);
     tab.lastTimings.set(result.timings);
@@ -519,6 +523,15 @@ export class WorkspaceStore {
     // History keeps it: a tab that is not saved has nothing to lose, and is not marked unsaved for it (U-140).
     if (!tab.bound() && tab.historyKey() !== undefined) tab.baseline.set(sent);
     return true;
+  }
+
+  /** Nothing of the last response is left: a send that sent nothing has no answer to show. */
+  private clearResponse(tab: TabState): void {
+    tab.resetResponse();
+    tab.lastTestResults.set([]);
+    tab.lastScriptLogs.set([]);
+    tab.lastTimings.set(null);
+    tab.scriptsSkipped.set(false);
   }
 
   /** `text` with `tab`'s variables replaced. The vault is not read: a secret's reference stays as written. Throws `VariableNestingError`. */

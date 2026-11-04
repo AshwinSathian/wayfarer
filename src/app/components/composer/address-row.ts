@@ -112,10 +112,11 @@ export class AddressRow {
   }
 
   /**
-   * Send, or Cancel while a send is on its way: one button, so focus stays on it. The second click of a double
-   * click is not a Cancel (U-091): a double click sent and then stopped what it sent.
+   * Send, or Stop while a send is on its way: one button of one width, so focus stays on it and nothing beside it
+   * moves (D5-e). The second click of a double click is not a Stop (U-091): a double click sent and then stopped
+   * what it sent.
    */
-  protected sendOrCancel(event: MouseEvent): void {
+  protected sendOrStop(event: MouseEvent): void {
     if (!this.store.loadingState()) this.send.emit();
     else if (event.detail <= 1) this.store.cancel();
   }

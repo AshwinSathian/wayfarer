@@ -147,7 +147,7 @@ describe("CollectionRunner", () => {
     await done;
     expect(run.report()?.ended).toBe("cancelled");
     expect(run.results()).toHaveLength(1);
-    expect(run.results()[0].error).toBe("The request was cancelled.");
+    expect(run.results()[0].error).toBe("You stopped the request.");
     expect(run.running()).toBe(false);
   });
 

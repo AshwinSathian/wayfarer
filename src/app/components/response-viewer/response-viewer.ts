@@ -1,4 +1,4 @@
-import { buildCurl, copyNote, formatMs, recordRoute, redactExport, type ExchangeRecord } from "@wayfarer/core";
+import { buildCurl, copyNote, formatDuration, recordRoute, redactExport, type ExchangeRecord } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -65,6 +65,8 @@ import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { parseJson, stringifyJson } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
+import { UiSpinner } from "../../ui/spinner";
+import { statusTone } from "../../shared/http/status-tone";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 
@@ -100,6 +102,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
     HtmlPreview,
     UiButton,
     UiSelect,
+    UiSpinner,
     MenuTrigger,
     UiMenu,
   ],
@@ -134,7 +137,7 @@ export class ResponseViewer {
     const since = this.sendingSince();
     if (!this.loading() || since === null) return null;
     const ms = this.now() - since;
-    return ms >= SENDING_SHOWN_AFTER_MS ? `${(ms / 1000).toFixed(1)} s` : null;
+    return ms >= SENDING_SHOWN_AFTER_MS ? formatDuration(ms) : null;
   });
   /** Beside the request (from 768 px) the response fills its pane, and a JSON or XML body the room left in it. */
   readonly fill = input(false);
@@ -166,7 +169,7 @@ export class ResponseViewer {
     ];
     return parts
       .filter(([, ms]) => ms !== undefined)
-      .map(([name, ms]) => `${name} ${ms} ms`)
+      .map(([name, ms]) => `${name} ${formatDuration(ms)}`)
       .join(" · ");
   });
   readonly responseBinary = input<BinaryBody | null>(null);
@@ -183,6 +186,7 @@ export class ResponseViewer {
   readonly recordOpen = input(false);
   readonly recordOpenChange = output<boolean>();
   protected readonly recordRoute = recordRoute;
+  protected readonly statusTone = statusTone;
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
     const redirects = this.redirects();
@@ -688,9 +692,7 @@ export class ResponseViewer {
     return this.getTimingBars().length > 0;
   }
 
-  formatMs(value: number | undefined | null): string {
-    return formatMs(value);
-  }
+  protected readonly formatDuration = formatDuration;
 
   formatBytes(value: number | undefined): string {
     return formatBytes(value);

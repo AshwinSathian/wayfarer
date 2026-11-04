@@ -400,7 +400,7 @@ it is.
 | `tab-strip.html: Env / Run / WS` | A tab | Tab strip; its menu (right-click, Shift+F10) has Rename, Duplicate tab and Close tab; a double click or F2 renames a saved request in place (U-027, U-035) | D4-f, done |
 | `tab-strip.html: New tab` | + after the last tab; Alt+T | Tab strip, + after the last tab; Alt+T (U-027) | D4-f, done |
 | `tab-strip.html: closeFromPointer(tab, $event)` | Each tab's ×, for the pointer; Alt+W, Delete on a focused tab and the tab's menu from the keyboard | Tab strip (U-027) | D4-f, done |
-| `run-view.html: Cancel run / Run again / Run` | A run's tab | A run's tab: one button, Cancel run while it runs (U-091) | D4-i, done |
+| `run-view.html: Stop run / Run again / Run` | A run's tab | A run's tab: one button, Stop run while it runs (U-091) | D4-i, done |
 | `run-view.html: Change` | A run's tab, after a run | A run's tab: opens the folded setup (U-096) | D4-i, done |
 | `run-view.html: Review scripts…` | A run's tab, when its scripts wait for a review | A run's tab: the review of the run's collection, in place (U-039) | D4-i, done |
 | `run-view.html: Set up the Local Bridge…` | A run's tab, under an error the page got no response for | Settings, Local Bridge (U-014) | D4-i, done |
@@ -428,7 +428,7 @@ it is.
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |
 | `address-row.html: Save / Save to collection…` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |
 | `address-row.html: Connect / Disconnect` | Address row, for a `ws:` address | Composer, address row | D4-e |
-| `address-row.html: Cancel request / Send request` | Address row | Composer, address row; Send's tooltip shows ⌘↵ or Ctrl+Enter (U-032) | D4-c |
+| `address-row.html: Stop request / Send request` | Address row | Composer, address row; Send's tooltip shows ⌘↵ or Ctrl+Enter (U-032) | D4-c |
 | `address-row.html: Address` | — (new in D4-c) | Composer, address: Enter sends; its error is under it and names it (`aria-describedby`) | D4-d |
 | `auth-editor.html: Type` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |

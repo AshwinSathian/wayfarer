@@ -34,10 +34,14 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
   between a press and its release, so the press landed beside it (F48 of
   the remediation plan).
 - **A send shows nothing for its first second.** A reply sooner than that
-  has no indicator: no skeleton, no spinner, no fade. After a second the
-  response pane says "Sending…" and the time so far, in tenths of a
-  second, until the answer arrives. A screen reader hears "Sending…" at
-  once, from the pane's live region, which draws nothing.
+  has no indicator: no skeleton, no spinner, no fade. The last response
+  stays as it was (D5-e). After a second the status line says
+  "Sending…" and the time so far, in tenths of a second, with a spinner
+  where the status was, and the last response under it is dimmed, in one
+  frame, until the answer replaces it. Only the old response is dimmed:
+  the status line and a new response are never drawn below full
+  strength. A screen reader hears "Sending…" at once, from the pane's
+  live region, which draws nothing.
 - **Nothing that is pressed often moves.** A button does not shrink while
   pressed, and a chip does not lift on hover: Send is pressed all day.
 - **Overlays move a little.** A dialog rises 8 px and grows from 96%, and

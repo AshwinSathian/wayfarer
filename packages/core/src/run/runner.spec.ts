@@ -171,7 +171,7 @@ describe("runRequests", () => {
       if (request.name !== "B") return Promise.resolve(ok);
       // As a transport does: the request ends when its signal aborts.
       return new Promise((done) =>
-        signal.addEventListener("abort", () => done({ error: "The request was cancelled.", tests: [] })),
+        signal.addEventListener("abort", () => done({ error: "You stopped the request.", tests: [] })),
       );
     });
     const running = runRequests(requests, send, { iterations: 5, signal: controller.signal });

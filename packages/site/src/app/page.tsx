@@ -391,7 +391,7 @@ export default function Home() {
               <p className="text-ink-muted">
                 Sends to <code className="text-ink">http://localhost:11434/v1</code>. No key is sent.
               </p>
-              <pre className="mt-3 overflow-x-auto rounded-sm bg-code-bg p-3 font-code type-site-caption whitespace-pre-wrap text-code-ink">
+              <pre className="mt-3 rounded-sm bg-code-bg p-3 font-code type-site-caption whitespace-pre-wrap wrap-anywhere text-code-ink">
                 {
                   "GET https://api.example.com/v1/users/42\nAuthorization: ***\n\n200 OK, application/json\n(response body: not ticked, not sent)"
                 }

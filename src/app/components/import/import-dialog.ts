@@ -28,20 +28,23 @@ export class ImportDialog {
    * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds
    * what the file holds, Changes when it differs. "Replaces" said all three alike.
    */
-  protected effectOf(entry: ImportedCollection, item: CollectionImportPlanEntry): "New" | "Same" | "Changes" {
+  protected effectOf(
+    entry: ImportedCollection,
+    item: CollectionImportPlanEntry,
+  ): "New" | "Same" | "Changes" | "Moves here" {
     if (item.action === "create") return "New";
-    const tree = this.collections
-      .tree()
-      .find((stored) => stored.collection.meta.id === entry.payload.collection.meta.id);
+    // By id in every collection: a file may name one another collection holds, and the import takes it from there.
+    const trees = this.collections.tree();
     const pick = <T extends { meta: { id: string } }>(list: T[] | undefined) =>
       list?.find((doc) => doc.meta.id === item.id);
     const [stored, incoming] =
       item.type === "collection"
-        ? [tree?.collection, entry.payload.collection]
+        ? [trees.find((tree) => tree.collection.meta.id === item.id)?.collection, entry.payload.collection]
         : item.type === "folder"
-          ? [pick(tree?.folders), pick(entry.payload.folders)]
-          : [pick(tree?.requests), pick(entry.payload.requests)];
+          ? [pick(trees.flatMap((tree) => tree.folders)), pick(entry.payload.folders)]
+          : [pick(trees.flatMap((tree) => tree.requests)), pick(entry.payload.requests)];
     if (!stored) return "New";
+    if ("collectionId" in stored && stored.collectionId !== entry.payload.collection.meta.id) return "Moves here";
     return shape(stored) === shape(incoming) ? "Same" : "Changes";
   }
 

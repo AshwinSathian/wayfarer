@@ -322,6 +322,21 @@ export class CollectionsRepository {
       // also when it replaces a collection that was trusted.
       const collection: Collection = { ...data.collection, scriptTrust: { trusted: false } };
       await collectionStore.put(collection);
+      // A folder or a request of the file may carry the id of one another collection holds: `put` takes it from
+      // there. It is put back by the Undo with the rest of what the import replaced.
+      const taken: Removed = { collections: [], folders: [], requests: [], files: [] };
+      for (const folder of data.folders) {
+        this.core.ensureId(folder);
+        const other = await folderStore.get(folder.meta.id);
+        if (other && other.collectionId !== collectionId) taken.folders.push(other);
+      }
+      for (const request of data.requests) {
+        this.core.ensureId(request);
+        const other = await requestStore.get(request.meta.id);
+        if (other && other.collectionId !== collectionId) taken.requests.push(other);
+      }
+      if (taken.folders.length || taken.requests.length)
+        options?.replaced?.({ ...taken, files: await filesOf(tx, taken.requests) });
       for (const folder of data.folders) {
         folder.collectionId = collectionId;
         this.core.ensureId(folder);

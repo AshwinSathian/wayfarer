@@ -105,7 +105,7 @@
         @let effect = effectOf(entry, item);
         <span
           class="import-plan-action type-footnote"
-          [class]="effect === 'Changes' ? 'text-status-warning' : 'text-label-secondary'"
+          [class]="effect === 'Changes' || effect === 'Moves here' ? 'text-status-warning' : 'text-label-secondary'"
           >{{ effect }}</span
         >
       </li>

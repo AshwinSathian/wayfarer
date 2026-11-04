@@ -1928,7 +1928,7 @@ Evidence: `src/app/components/import/import-dialog.html:99-110`;
 `packages/core/src/import/wayfarer-collection.ts:154-155`;
 `PLAN-design.md`, section 1 ("What success looks like").
 **Status:** Open, D5-c.
-**2026-11-04:** Fixed in D5-c: each item of the review says New (nothing stored has its id), Same (the stored copy holds what the file holds) or Changes, and only Changes is marked; after the import, Undo for 10 seconds puts back what it replaced, as it was, approvals included, and takes out what it added (an import that also merges environments offers none). `e2e/import.spec.ts` holds both. What the other changed, field by field, stays phase T's (T1).
+**2026-11-04:** Fixed in D5-c: each item of the review says New (nothing stored has its id), Same (the stored copy holds what the file holds) or Changes, and only Changes is marked; after the import, Undo for 10 seconds puts back what it replaced, as it was, approvals included, and takes out what it added (an import that also merges environments offers none). `e2e/import.spec.ts` holds both. An item whose id another collection holds says "Moves here", and the Undo puts it back there (the security review of #562). What the other changed, field by field, stays phase T's (T1).
 
 **U-162. A run's report is gone after a reload, and nothing says so.**
  Severity 3. H1, H5. QA.

@@ -696,6 +696,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Every problem the last design review found has a decision.** The
+  smaller ones that remain are listed for the first work after 3.0, and
+  the design audit says why each of the others is fixed or kept as it is.
+  The test of whether Wayfarer can be told from its rivals with its logo
+  hidden passed, so its last open finding of identity is closed.
+
 - **The design audit has a fifth pass, on the release candidate.** Every
   screen was reviewed again in Chromium, Firefox and WebKit, and both
   earlier design reviews were repeated, with the test of whether the app

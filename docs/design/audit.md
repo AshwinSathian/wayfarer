@@ -165,6 +165,7 @@ are two tabs under the address, and a send opens the response: at 390 px
 the response's status is under 300 px below the address, not after every
 section of the request.
 **2026-11-04:** D5-b's fifth pass: the measure holds in Chromium (294 px) and misses by 10 px in Firefox and WebKit (310 px); taken up by U-172. Open, D5-c.
+**2026-11-04:** Accepted in D5-c, with U-172: a phone has no flows of its own (plan row 1.46); its layout is the desktop's sections stacked, in their order, nothing wider than the window. Firefox's and WebKit's 310 px against Chromium's 294 px is the engines' own scrollbar and font metrics.
 
 ### Collections and tabs
 
@@ -1512,6 +1513,7 @@ Evidence: [`hig-review/1440-dark-03-response-json.png`](hig-review/1440-dark-03-
 **Status:** Open: D2.5 (a signature element and moment, chosen by the
 maintainer) and D3.6 (the hierarchy). Closed when D5.1's logo-off and
 competitor-swap tests find the chosen element. Review rows W-21 and DS-18.
+**2026-11-04:** Closed in D5-c with D2.5: the logo-off test on the primary screen at 1,440 px, both themes, quotes the exchange record ("Sends to …", "Direct to 127.0.0.1:4300", and opened, "Sent from this page to 127.0.0.1:4300.", "No vault secret was filled."), and the competitor swap finds that record on no rival's main screen ([`hig-review-2026-11-04.md`](hig-review-2026-11-04.md), section 5; [`benchmark.md`](benchmark.md)). Verdict: authored.
 
 ## Fourth pass: the red-team review, 2026-10-26
 
@@ -1750,6 +1752,7 @@ Evidence: `tokens.css:33, 64`; the review's section 6.
 **Status:** Open, D3-b (D3.6). Review row T-2.
 **2026-11-02:** Fixed in #479 (D3-b): no mono role is under 13 px (where 0 and O are 4 to 6 device pixels apart); the method field moved from 12 to 13 px, and the token test fails on an element that is monospace and a 12 px type class.
 **2026-11-04:** D5-b's fifth pass: a table's column heads are mono at 12 px (`components.css:436-437`): U-181. Open, D5-c.
+**2026-11-04:** Holds again: U-181's fix put every mono role at 13 px or more, and the token test fails on a rule that sets the mono face at the footnote size.
 
 **U-152. The Local Bridge's own error status is drawn as the server's.**
 Severity 3. H1. SD, OC.
@@ -1822,6 +1825,7 @@ at 390 or 1,440 px.
 Evidence: [`hig-review/d18.md`](hig-review/d18.md), "2.5.8 targets".
 **Status:** Open, D5-c: measured again there, since U-155's fix moves the
 box beside the parameter's name.
+**2026-11-04:** Fixed by U-155 (#543): Params' box is beside the name now. Measured again in D5-c on `first-run`, `method-menu`, `composer-params`, `composer-headers`, `composer-body` and `environments-rows` at 390 px: no control under 24 px without its spacing.
 
 ## Fifth pass, 2026-11-04
 
@@ -1948,6 +1952,7 @@ Evidence: `src/app/state/tabs-storage.ts:124-126`;
 `src/app/components/runner/run-view.html` (no such note);
 `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-163. The first save cannot make the collection it needs.**
 Severity 3. H7, H3. SD, OC.
@@ -1959,6 +1964,7 @@ below 1,200 px), makes a collection, and saves again. The dialog could
 name a new collection itself.
 Evidence: `src/app/components/composer/save-as-dialog.html:9-12`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-164. With no vault, the app says the vault is locked.**
 Severity 3. H1, H2. PE, OC.
@@ -2001,6 +2007,7 @@ a variable's scope or an import note has nowhere in the app to read more.
 Evidence: `baseline/design-chromium/settings-about-1440-light.png`;
 `src/app/components/settings/bridge-pane.html:156-164`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-167. Settings writes ⌘K on every platform.** Severity 4. H4. SD.
 Data and storage says a collection is exported "from the command palette
@@ -2083,6 +2090,7 @@ Evidence: `baseline/design-chromium/composer-params-1440-light.png`
 `baseline/design-chromium/composer-headers-390-light.png`;
 `src/app/components/composer/composer.html:124-129`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-171. Three lines restate the tree and the tab above every saved
 request.** Severity 3. H8. SD, TP.
@@ -2098,6 +2106,7 @@ Evidence: `baseline/design-chromium/request-saved-1440-light.png`,
 `baseline/design-{chromium,firefox,webkit}/request-saved-390-light.png`;
 `src/app/components/composer/composer.html:31-39`.
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c: "Sends to …" and its chips are the exchange record's preview, D2.5's signature that the logo-off test quotes; the breadcrumb says where Save writes. Trimming them is a design change for after 3.0, not a defect.
 
 **U-172. On a phone the response's body starts below six rows of the
 request and its controls.** Severity 3. H8. OC, SD.
@@ -2113,6 +2122,7 @@ address) holds in Chromium (294 px) and misses in Firefox and WebKit
 Evidence: `baseline/design-{chromium,firefox,webkit}/response-json-390-light.png`,
 `baseline/design-{chromium,firefox,webkit}/response-record-390-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c, with U-028: a phone has no flows of its own (row 1.46); the response is under the request it answers.
 
 **U-173. The Headers tab's CORS paragraph shows on every cross-origin
 response, also one that exposes every header.** Severity 3. H8, H2. SD, OC.
@@ -2128,6 +2138,7 @@ Evidence: `baseline/design-chromium/response-headers-1440-light.png`
 `packages/core/src/send/exchange.ts:794-797`;
 `src/app/components/response-viewer/response-viewer.html:343-351`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-174. The HTML preview is 300 px tall, whatever room the pane has.**
 Severity 3. H8. SD, QA.
@@ -2137,6 +2148,7 @@ written into the element.
 Evidence: `baseline/design-{chromium,firefox,webkit}/response-html-1440-dark.png`;
 `src/app/components/response-viewer/html-preview.ts:20` (`h-[300px]`).
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-175. A failed request explains itself twice and keeps four tabs of
 nothing.** Severity 3. H8. OC, SD.
@@ -2153,6 +2165,7 @@ Evidence: `baseline/design-chromium/response-error-1440-light.png`,
 `baseline/design-{chromium,firefox,webkit}/response-error-390-light.png`;
 `packages/core/src/send/record.ts:134`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-176. The OAuth redirect URI has no Copy, and breaks inside its
 scheme.** Severity 3. H7. SD, TP.
@@ -2166,6 +2179,7 @@ Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`,
 `baseline/design-{chromium,firefox,webkit}/composer-oauth-390-light.png`;
 `src/app/components/composer/auth-editor/oauth-fields.html:16-19`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-177. Save to collection starts with an empty name, and Save
 disabled.** Severity 3. H7. SD, TP.
@@ -2177,6 +2191,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/save-request-390-light.png`
 `baseline/design-chromium/save-request-1440-light.png`;
 `src/app/components/composer/save-as-dialog.html:15-25`, `:60`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-178. F2, Alt+Arrow and Shift+F10 work in the tree and are written
 nowhere.** Severity 3. H6, H10. SD, QA.
@@ -2191,6 +2206,7 @@ Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
 `src/app/ui/menu-item.ts:6`; `F2` appears in no template
 (`grep -rn F2 src/app` finds `tree.ts` and `tab-strip.ts` only).
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-179. The cURL box is a bare text area: its placeholder is each
 engine's grey, 2.2:1 in WebKit.** Severity 3. H4. OC, TP.
@@ -2203,6 +2219,7 @@ their own resize grip, which WebKit does not. Nothing may look native
 Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
 `src/app/components/import/import-dialog.html:14-22`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
 H4. PE, TP.
@@ -2216,6 +2233,7 @@ Evidence: `baseline/design-chromium/script-review-1440-light.png` (third
 script; the composer under it shows `=>`),
 `baseline/design-{chromium,firefox,webkit}/script-review-360-dark.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-181. Table column heads are 12 px JetBrains Mono.** Severity 3. H4. All.
 `.ds-table th` sets the mono face at the footnote size (0.75 rem): the run
@@ -2239,6 +2257,7 @@ tester reads first is the one that does not show.
 Evidence: `baseline/design-{chromium,firefox,webkit}/run-390-light.png`;
 `src/app/components/runner/run-view.html:182-190`.
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c: the results are a data table, which WCAG 1.4.10 lets scroll in two dimensions; it scrolls in its own region ("Run results", a Tab stop), and nothing of the page is wider than the window.
 
 **U-183. At 390 px the vault prompt opens with its passphrase at the
 window's bottom edge in Chromium and WebKit.** Severity 3. H1. PE, OC.
@@ -2250,6 +2269,7 @@ Create vault are below it. The person sees a page that did not change.
 Evidence: `baseline/design-{chromium,firefox,webkit}/vault-create-390-light.png`,
 `baseline/design-{chromium,firefox,webkit}/vault-create-360-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-184. The Environments list's header is four bare icons, and globals
 are "{}".** Severity 3. H6. TP, OC.
@@ -2261,6 +2281,7 @@ Evidence: `baseline/design-chromium/environments-empty-1440-light.png`,
 `baseline/design-chromium/environments-rows-390-light.png`;
 `src/app/components/environments/environments-manager.html:10-47`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-185. Reset all data says to back up first, and its question offers no
 backup.** Severity 3. H5. OC, SD.
@@ -2271,6 +2292,7 @@ advice costs a Cancel, a section change and a return.
 Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`,
 `baseline/design-chromium/settings-danger-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-186. Monaco draws an empty overview ruler and scrolls past the last
 line.** Severity 4. H8. All.
@@ -2284,6 +2306,7 @@ tick at the editor's top right), `baseline/design-chromium/response-record-1440-
 `src/app/components/json-editor/json-editor.ts:209-217`;
 `src/app/components/script-editor/script-editor.ts:163`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-187. A method is drawn four ways, and the method menu marks none.**
 Severity 4. H4, H1. SD.
@@ -2294,11 +2317,13 @@ Evidence: `baseline/design-chromium/history-1440-light.png`,
 `baseline/design-chromium/method-menu-1440-light.png`,
 `baseline/design-chromium/request-saved-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c: each place draws a method at its own density (a tree row, a History pill, a tab, a menu), all in the method's colour or the label's; U-181 put every mono one at 13 px.
 
 **U-188. The response's download icon opens four copies and one export.**
 Severity 4. H4. SD.
 Evidence: `baseline/design-chromium/export-menu-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c: one menu holds what can be done with one response, the copies and the export, as U-016 and D4.12 decided.
 
 **U-189. The pre-request script's heading has a play triangle.** Severity 4.
 H4. OC.
@@ -2307,6 +2332,7 @@ it is neither.
 Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 `src/app/components/composer/scripts-panel.html:20`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
@@ -2319,6 +2345,7 @@ Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
 1 failed 4/5 tests".
 Evidence: `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 **U-192. The environment editor's tab says "Key / Value" over columns
 headed Name and Value.** Severity 4. H4. TP.
@@ -2361,6 +2388,7 @@ Evidence: `baseline/design-webkit/environments-rows-390-light.png`,
 `baseline/design-webkit/environments-empty-360-dark.png` (against the
 same files in `design-chromium`).
 **Status:** Open, D5-c.
+**2026-11-04:** Accepted in D5-c: WebKit draws its own focus-visible ring on a button that focus is handed back to by code; Chromium and Firefox do not. No rule of the app's sets it.
 
 **U-197. Green is spent on device state.** Severity 3. H4. Everyone.
 DQ11 made colour mean a method or a status and nothing else. The
@@ -2395,6 +2423,7 @@ At 360 and 390 px "Editing Pet store / Pets / List pets — Save writes
 back to this request." wraps so that the second line starts with "—".
 Evidence: `baseline/design-chromium/response-json-390-light.png`, `response-json-360-light.png`.
 **Status:** Open, D5-c.
+**2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 
 ### Every screen of D0.1, in three engines
 

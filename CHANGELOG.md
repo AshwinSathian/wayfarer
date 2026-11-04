@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **History names the saved request an entry came from.** A row used to
+  show only the method, the address and the status, so finding "the pets
+  request from last week" meant remembering its URL. A send from a saved
+  request now keeps that request's name and where it lived, and History
+  shows them above the address ("List pets", then "Pet store / Pets").
+  The search finds an entry by those names too. They are kept as they
+  were when you sent, so renaming or moving the request later leaves the
+  entry as it was.
+
 - **Wayfarer's brand files are in one place.** `packages/tokens/brand/`
   holds the mark, the wordmark, the favicon, the installed app's icons and
   a social image, written from the design tokens, so they cannot drift

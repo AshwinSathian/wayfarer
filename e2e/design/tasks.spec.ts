@@ -309,7 +309,7 @@ const TASKS: Task[] = [
       const { page } = user;
       await user.click(button(page, "Request history"));
       const history = page.getByRole("dialog", { name: /history/i });
-      await user.type(history.getByPlaceholder("Search by address, method or status"), "weekly");
+      await user.type(history.getByPlaceholder("Search by name, address, method or status"), "weekly");
       await user.click(history.getByText(/report=weekly/).first());
       await expect(address(page)).toHaveValue(/report=weekly/);
     },

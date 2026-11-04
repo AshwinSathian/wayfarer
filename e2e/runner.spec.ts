@@ -793,6 +793,21 @@ test("a run whose scripts wait for a review offers the review, and the next run 
   await expect(view).not.toContainText("wait for a review");
 });
 
+// U-157: before the first run the view promised "with its scripts" while the scripts waited for a review, and the
+// run sent without them. It says so before the run, and offers the review there.
+test("before a run whose scripts wait for a review, the view says so and offers the review", async ({ page }) => {
+  await seedCollection(
+    page,
+    [{ name: "Tested", url: `${ECHO}/status/200`, post: `pm.test("is 200", () => pm.response.to.have.status(200));` }],
+    {},
+    false,
+  );
+  const view = await openRun(page);
+  await expect(view).toContainText("wait for a review, so requests are sent without them");
+  await expect(view).not.toContainText("with its scripts");
+  await expect(view.getByRole("button", { name: "Review scripts…" })).toBeVisible();
+});
+
 // U-076: a row leads to its request. Open puts it in a tab of its own, and the run's tab keeps its results.
 test("a run's row opens its request in a tab of its own, and the run keeps its results", async ({ page }) => {
   await seedCollection(page, [{ name: "Gone", url: "http://127.0.0.1:9/a" }]);

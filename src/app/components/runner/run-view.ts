@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from "@angular/core";
+import { scriptsApproved, scriptsOf } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
@@ -100,6 +101,22 @@ export class RunView {
   protected readonly reviewing = signal(false);
   /** Set once the review in this run's view approved the scripts: the note says to run again. */
   protected readonly reviewed = signal(false);
+
+  /**
+   * The collection holds scripts that wait for a review, as stored now: a run sends without them. Said before the run,
+   * where the view had promised "with its scripts" (U-157).
+   */
+  protected readonly held = signal(false);
+  private readonly heldWatcher = effect((onCleanup) => {
+    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === this.run().target.collectionId);
+    if (!tree) return;
+    let current = true;
+    onCleanup(() => (current = false));
+    const scripts = [tree.collection, ...tree.folders, ...tree.requests].flatMap((holder) => scriptsOf(holder));
+    void scriptsApproved(tree.collection.scriptTrust, scripts).then((approved) => {
+      if (current) this.held.set(!approved);
+    });
+  });
 
   protected review(): void {
     this.trust.reviewOf.set(this.run().target.collectionId);

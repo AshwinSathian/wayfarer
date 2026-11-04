@@ -444,6 +444,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A response tab chosen while a request is on its way stays chosen.**
+  The last response now stays on screen while the next one is sent, and
+  its tabs can be clicked. Before, choosing Tests or Headers then did
+  nothing: the new response arrived and switched back to Body. A send
+  still opens at Body, as before, unless you pick another tab while it
+  is out.
+
 - **The claims ledger's IDs stay on one line.** Beside the long
   statements, the ID column broke "C-041" one character a line. The
   page's last CI result, with the number of claims, now comes first,
@@ -766,6 +773,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Add header and Add field were greyed out while the last row lacked a
   name or a value, with nothing to say why; they are always enabled now,
   and with a row that has no name they put the caret in its name.
+
+- **Environments says "none yet" once.** With no environment, the list
+  said what an environment is and offered New environment, and the empty
+  pane beside it said to make one with New environment too. The pane is
+  now empty until there is something to choose; with environments and
+  none open, it says "Choose an environment to edit its variables."
 
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished

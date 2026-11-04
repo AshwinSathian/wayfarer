@@ -61,12 +61,6 @@
   }
 }
 
-/* A dotted grid behind the hero. */
-.contours {
-  background-image: radial-gradient(var(--separator) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
 /* The line through the hero's trace, with a stop at each request: in ink, as the app's chrome is. */
 .route-line {
   background-image: linear-gradient(var(--separator-opaque), var(--separator-opaque));
@@ -79,6 +73,56 @@
 [data-demo-stop][data-on] {
   background: var(--ink);
   border-style: solid;
+}
+
+/*
+ * The demo's Sent / Kept in history (D5-e): two radio buttons with none of the browser's look, each under its
+ * option's text, which lets the pointer through. The chosen one is the ink, as the app's checked box is. What each
+ * shows is a rule here, so the switch works without script.
+ */
+.demo-switch label {
+  display: grid;
+}
+.demo-switch input {
+  appearance: none;
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+.demo-switch input:checked {
+  background: var(--ink);
+}
+.demo-switch span {
+  grid-area: 1 / 1;
+  position: relative;
+  padding: 0.375rem 0.75rem;
+  color: var(--label-secondary);
+  pointer-events: none;
+}
+.demo-switch input:checked + span {
+  color: var(--on-ink);
+}
+@media (forced-colors: active) {
+  .demo-switch input:checked {
+    background: Highlight;
+  }
+  .demo-switch input:checked + span {
+    color: HighlightText;
+  }
+}
+[data-demo]:has(input[value="history"]:checked) [data-demo-view="sent"],
+[data-demo]:not(:has(input[value="history"]:checked)) [data-demo-view="history"] {
+  display: none;
+}
+
+/* The app's picture in the page's theme: the dark one unless the page is light (/app/theme.js sets it). */
+:root:not([data-theme="light"]) .shot-light,
+[data-theme="light"] .shot-dark {
+  display: none;
 }
 
 /* The demo's caret, and each step of it appearing. Motion is only the demo's, and only when it is wanted. */
@@ -94,7 +138,7 @@
   }
 }
 .caret {
-  animation: caret 1s steps(1) infinite;
+  animation: caret var(--dur-shimmer) steps(1) infinite;
 }
 .arrive {
   animation: arrive var(--dur-standard) var(--ease-enter) both;
@@ -232,6 +276,10 @@
 }
 .prose img {
   max-width: 100%;
+}
+/* The ledger's IDs: one line each. The statement's column took them down to a character a line (D5-e). */
+.claims-ledger td:first-child {
+  white-space: nowrap;
 }
 .prose .ci-note {
   border-left: 3px solid var(--status-success);

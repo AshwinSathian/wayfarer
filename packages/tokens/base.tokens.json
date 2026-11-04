@@ -315,6 +315,23 @@
         "lineHeight": 1.05
       }
     },
+    "type-site-hero": {
+      "$description": "The landing's one headline (D5-e): about four times the body, as the study's strong sites set theirs.",
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 4.5,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": -0.03,
+          "unit": "em"
+        },
+        "lineHeight": 1
+      }
+    },
     "type-site-title-1": {
       "$type": "typography",
       "$value": {

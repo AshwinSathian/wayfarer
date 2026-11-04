@@ -11,14 +11,14 @@ const BODY: [string, string][] = [
  * The landing's demo (PLAN-design 1.8): a request typed and sent, and below it every request that left the tab,
  * which is the point. This is its first frame; public/site.js plays it when the page loads and again on Replay, and
  * with reduced motion shows the end. It sends nothing: the answer is written here.
+ *
+ * Sent / Kept in history (D5-e) shows the same request's key as it went out and as history keeps it. It is two radio
+ * buttons and a rule of globals.css (`:has`), so it works without script and moves nothing.
  */
 export function RouteDemo() {
   return (
     <figure className="relative" data-demo>
-      <div
-        aria-hidden="true"
-        className="overflow-hidden rounded-lg border border-line-strong bg-paper-raised shadow-[var(--shadow-overlay)]"
-      >
+      <div aria-hidden="true" className="overflow-hidden rounded-lg border border-line-strong bg-paper-raised">
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="rounded-sm bg-action-soft px-2 py-1 font-code type-site-caption font-bold text-action">
             GET
@@ -29,6 +29,15 @@ export function RouteDemo() {
           </span>
           <span data-demo-send className="rounded-sm bg-action px-3 py-1.5 type-site-small font-bold text-on-action">
             Send
+          </span>
+        </div>
+        <div className="flex min-w-0 gap-2 border-b border-line px-4 py-2 font-code type-site-caption">
+          <span className="text-ink-muted">Authorization:</span>
+          <span data-demo-view="sent" className="truncate text-ink">
+            Bearer 7c41f0a9d2e86b35
+          </span>
+          <span data-demo-view="history" className="text-ink">
+            ***
           </span>
         </div>
         <div className="min-h-[11.5rem] bg-code-bg px-4 py-3 font-code type-site-caption text-code-ink">
@@ -53,9 +62,29 @@ export function RouteDemo() {
         </div>
       </div>
 
-      <figcaption className="mt-6">
+      <fieldset className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <legend className="sr-only">Show the request&apos;s key</legend>
+        <span className="demo-switch inline-flex rounded-sm bg-paper-sunk p-0.5 type-site-small">
+          <label className="relative">
+            <input type="radio" name="demo-view" value="sent" defaultChecked />
+            <span>Sent</span>
+          </label>
+          <label className="relative">
+            <input type="radio" name="demo-view" value="history" />
+            <span>Kept in history</span>
+          </label>
+        </span>
+        <span data-demo-view="sent" className="type-site-small text-ink-muted">
+          The key goes in clear, to api.example.com only. <Claims ids={["C-007"]} />
+        </span>
+        <span data-demo-view="history" className="type-site-small text-ink-muted">
+          History, exports and copies keep a mask. <Claims ids={["C-008", "C-014"]} />
+        </span>
+      </fieldset>
+
+      <figcaption className="mt-8">
         <div className="flex items-baseline justify-between gap-4">
-          <p className="type-site-body font-semibold text-ink">Everything that left the tab</p>
+          <p className="type-site-lede font-bold text-ink">Your requests go to your API. Nowhere else.</p>
           <button
             type="button"
             data-demo-replay
@@ -65,7 +94,8 @@ export function RouteDemo() {
             Replay
           </button>
         </div>
-        <ol className="route-line mt-3 space-y-4">
+        <p className="mt-1 type-site-small text-ink-muted">Everything that left the tab:</p>
+        <ol className="route-line mt-4 space-y-4">
           <li className="relative pl-9">
             <span
               aria-hidden="true"
@@ -91,7 +121,7 @@ export function RouteDemo() {
         </ol>
         <p className="mt-4 pl-9 type-site-small text-ink-muted">
           <strong className="text-ink">Nothing else.</strong> No account, no analytics, no server of Wayfarer&apos;s in
-          between.
+          between. <Claims ids={["C-001"]} />
         </p>
       </figcaption>
     </figure>

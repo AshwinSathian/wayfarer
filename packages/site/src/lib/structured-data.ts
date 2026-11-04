@@ -13,7 +13,7 @@ const MAINTAINER = `${SITE}/#maintainer`;
 const FEATURES = ["C-001", "C-002", "C-003", "C-058", "C-065", "C-071"];
 
 /** The front page's graph: the site, its maintainer, the app and its source. */
-export function homeGraph(version: string) {
+export function homeGraph(version: string, description: string) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -24,8 +24,7 @@ export function homeGraph(version: string) {
         "@id": APP,
         name: "Wayfarer",
         alternateName: "Wayfarer API client",
-        description:
-          "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own.",
+        description,
         url: `${SITE}/app/`,
         applicationCategory: "DeveloperApplication",
         applicationSubCategory: "API client",

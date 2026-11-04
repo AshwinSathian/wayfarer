@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **When a request's scripts did not run, the response says so where you
+  look.** The note that its scripts wait for a review was inside the
+  response's Tests tab, while the response opens on Body. It is now under
+  the status line, above the tabs.
+
 - **New request no longer throws away what you typed.** The drawer's New
   request button and the palette's command emptied the open tab, unsaved
   edits and all, with no question. They now open a new tab, as New tab

@@ -2040,6 +2040,7 @@ tab, one under the other); `src/app/components/app-shell/app-shell.html:48`;
 `docs/design/ia.md:232-234`, `:531-532`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: New request, the drawer's button and the palette's one command (merged with New tab, as `ia.md` planned), opens a tab of its own; the open tab keeps what was typed. `e2e/tabs.spec.ts` holds it.
 
 **U-169. A collection's or folder's settings close on Escape or × and drop
 every edit.** Severity 1. H3, H5. TP, QA, SD.

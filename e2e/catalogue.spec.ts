@@ -1165,6 +1165,19 @@ test("accordion: in forced colours an open section is still marked", async ({ pa
   expect(await chevron("Params")).toBe("none");
 });
 
+test("splitter: in forced colours its line is still drawn", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
+  // A gradient is taken away, and the line was one: the panes had nothing between them.
+  const line = () =>
+    page.getByRole("separator", { name: "Resize side by side" }).evaluate((el) => getComputedStyle(el).backgroundImage);
+  await expect.poll(() => line).not.toBe("none");
+});
+
 test("tabs: in forced colours the chosen tab is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");

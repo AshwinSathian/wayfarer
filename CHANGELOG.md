@@ -759,6 +759,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The line between the request and the response reaches the status
+  bar.** It stopped 16 px short, in the page's bottom margin, so it read
+  as a line that had run out rather than an edge between two panes. It
+  now runs to the status bar, beside the response or above it, and each
+  pane keeps that room inside itself. In forced colours (Windows High
+  Contrast) the line was not drawn at all, which left the two panes with
+  nothing between them and the handle that resizes them invisible; it is
+  now drawn in the text colour, and in the highlight colour under the
+  pointer.
 - **Green means a status again, and the screens around it are quieter.**
   "Connected", "Paired", "Reachable", "Saved" and a vault's finished
   action were drawn in success's green, as a passing test is; they are

@@ -6,10 +6,21 @@
   min-height: 320px;
 }
 
+/* The room above the status bar is the panel's, except under the split: its line runs down to the status bar
+   (V22), and each pane keeps that room inside itself. */
+.composer-panel {
+  padding-bottom: 16px;
+}
+
+.composer-panel:has(> .composer-response-splitter) {
+  padding-bottom: 0;
+}
+
 .composer-pane,
 .response-pane {
   height: 100%;
   overflow-y: auto;
+  padding-bottom: 16px;
 }
 
 /* Room between each pane's content and the gutter, which is the one line between them. */

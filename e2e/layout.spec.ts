@@ -350,6 +350,21 @@ test.describe("the response under the request", () => {
     });
   }
 
+  // V22 of the final design pass: the line stopped 16 px above the status bar, in the panel's padding.
+  for (const [width, orientation] of [
+    [1460, "vertical"],
+    [820, "horizontal"],
+  ] as const) {
+    test(`at ${width} px the split runs down to the status bar (${orientation} line)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/app/");
+      await expect(gutter(page)).toHaveAttribute("aria-orientation", orientation);
+      const split = (await page.locator(".composer-response-splitter").boundingBox())!;
+      const status = (await page.locator(".status-bar").boundingBox())!;
+      expect(Math.abs(split.y + split.height - status.y)).toBeLessThan(1);
+    });
+  }
+
   test("at 820 px the response is under the request, as wide as it, and its status line is one line", async ({
     page,
   }) => {

@@ -629,6 +629,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A benchmark puts Wayfarer's eight core tasks beside its rivals'.**
+  Each task is measured on the app, with a recording, and set beside the
+  steps Postman, Bruno, Yaak, Hoppscotch and Insomnia document for it.
+  Wayfarer is fastest or tied on four of the eight; it is the only one
+  that keeps a secret off disk for free and the only one whose failure
+  screen names the cause, and it is behind on importing a collection,
+  adding an environment and finding last week's request.
+
 - **The website looks like the app.** The site had its own palette, an
   indigo for links and buttons, and a display face (Bricolage Grotesque)
   the app never uses. It now takes its colours, faces, corners and motion

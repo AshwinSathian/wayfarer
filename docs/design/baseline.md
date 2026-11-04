@@ -148,6 +148,32 @@ control and types; their time is longer and is what D1.4's recordings of
 the rivals will measure. Compare these seconds only with the same script
 on another build.
 
+## Restated as actions (D1.4, row 1.50)
+
+The table above counts characters: each one typed is an input, so typing
+an address of 34 characters is 34. The rivals' documentation counts an
+action: a value typed into a field is one, however long. D1.4 compares the
+two, so each count of D0.2 is restated that way here, beside the old one:
+clicks, plus keys, plus one for each field typed into (the script typed
+into 1, 0, 3, 6, 1, 1, 1, 0, 0 and 1 fields for tasks 1 to 4, 5a to 5c, and 6 to 8). Task 5 then
+ended when the error appeared; row 1.50 has it end when the cause is named.
+
+| # | Task | Inputs (characters, D0.2) | Actions (D0.2 restated) | Actions on `main`, 2026-11-04 |
+|---|---|---|---|---|
+| 1 | First request from nothing | 36 | 3 | 2 |
+| 2 | Import a Postman collection with scripts and run it | 10 | 10 | 11 |
+| 3 | Add an environment and switch to it | 45 | 13 | 11 |
+| 4 | Use a secret without it touching disk | 135 | 22 | 20 |
+| 5a | Find why a request failed: CORS | 33 | 3 | 8 (+2 in a terminal) |
+| 5b | Find why a request failed: DNS | 30 | 3 | 8 (+2 in a terminal) |
+| 5c | Find why a request failed: 401 | 34 | 3 | 4 |
+| 6 | Send the same request to a teammate | 2 | 2 | 2 |
+| 7 | Run a collection with a data file and read the report | 5 | 5 | 5 |
+| 8 | Find a request sent last week | 9 | 4 | 4 |
+
+The last column, with seconds and a recording of each, is
+[`benchmark.md`](benchmark.md)'s.
+
 ## What each task does
 
 The script takes the shortest road the app offers today, the one a person

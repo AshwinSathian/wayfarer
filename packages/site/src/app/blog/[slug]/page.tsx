@@ -1,7 +1,10 @@
 import { Footer } from "../../../components/Footer";
 import { Header } from "../../../components/Header";
 import { longDate, postHtml, posts } from "../../../lib/blog";
+import { JsonLd } from "../../../components/JsonLd";
 import { pageMeta } from "../../../lib/meta";
+import { postGraph } from "../../../lib/structured-data";
+import { ogImagePath } from "../../../og-path.mjs";
 
 export const dynamicParams = false;
 
@@ -22,7 +25,9 @@ const find = async (params: Props["params"]) => {
 
 export async function generateMetadata({ params }: Props) {
   const post = await find(params);
-  return pageMeta(`/blog/${post.slug}/`, `${post.title}: Wayfarer blog`, post.description);
+  return pageMeta(`/blog/${post.slug}/`, `${post.title}: Wayfarer API client blog`, post.description, {
+    published: post.date,
+  });
 }
 
 export default async function BlogPost({ params }: Props) {
@@ -30,6 +35,7 @@ export default async function BlogPost({ params }: Props) {
   return (
     <>
       <Header />
+      <JsonLd data={postGraph(post, ogImagePath(`/blog/${post.slug}/`))} />
       <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <p className="type-site-small text-ink-muted">
           <a className="underline underline-offset-4 hover:text-action" href="/blog/">

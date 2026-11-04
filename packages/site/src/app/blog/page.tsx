@@ -4,7 +4,7 @@ import { pageMeta } from "../../lib/meta";
 
 export const metadata = pageMeta(
   "/blog/",
-  "Blog: Wayfarer",
+  "Wayfarer API client blog",
   "Release notes and write-ups about how Wayfarer is built and tested.",
 );
 

@@ -5,7 +5,7 @@ import { roadmap } from "../../lib/content";
 
 export const metadata = pageMeta(
   "/roadmap/",
-  "Roadmap: Wayfarer",
+  "Roadmap: Wayfarer API client",
   "What is being built next for Wayfarer: the design rebuild, the website and sharing for teams, task by task.",
 );
 

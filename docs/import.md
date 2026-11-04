@@ -78,8 +78,10 @@ Two ways in:
   request. What the command asked
   for that the app does not do is listed under the address until you send.
   Text that does not start with `curl` is pasted as text.
-- **Import it.** The terminal button in the Collections panel opens the
-  import dialog with a box for the command. It then takes the road above:
+- **Import it.** *Paste a cURL command*, in the response pane of an empty
+  tab, or *cURL command…* in the Collections panel's Import menu (there
+  once a collection exists) opens the import dialog with a box for the
+  command. It then takes the road above:
   a report, and on Import a collection with the one request.
 
 The command is **read, never run**, and no file it names is opened.

@@ -10,7 +10,7 @@ test("a request ready to send is offered Send, not a cURL command or an import",
   const pane = page.locator(".response-pane");
   await expect(pane.getByRole("button", { name: "Paste a cURL command" })).toBeVisible();
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await expect(pane).toContainText(/^Send it, with Send or (⌘↵|Ctrl\+Enter), and its response shows here\.$/);
+  await expect(pane).toContainText(/^Send this request \((⌘↵|Ctrl\+Enter)\) and its response shows here\.$/);
   await expect(pane.getByRole("button", { name: "Paste a cURL command" })).toHaveCount(0);
 });
 

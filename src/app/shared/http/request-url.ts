@@ -65,8 +65,8 @@ function encodeQueryPart(text: string): string {
 
 /**
  * The query-param rows of an endpoint string (the composer's Params tab
- * mirrors whatever `?a=b&c=d` is in the URL field). A single blank row when
- * there is no query.
+ * mirrors whatever `?a=b&c=d` is in the URL field). A single blank row,
+ * switched off, when there is no query.
  */
 export function parseParamsFromUrl(url: string, previous: QueryParamRow[] = []): QueryParamRow[] {
   const entries = [...new URLSearchParams(splitEndpoint(url).query)].map(([key, value]) => ({
@@ -75,9 +75,10 @@ export function parseParamsFromUrl(url: string, previous: QueryParamRow[] = []):
     enabled: true,
   }));
   // A switched-off row is not in the address: it is kept from the rows before, in its place among them (U-139).
-  const rows = previous.flatMap((row) => (row.enabled ? entries.splice(0, 1) : [{ ...row }]));
+  // A blank row is the editor's, unchecked until named (L-17), not one of them.
+  const rows = previous.flatMap((row) => (row.enabled ? entries.splice(0, 1) : row.key ? [{ ...row }] : []));
   rows.push(...entries);
-  return rows.length ? rows : [{ key: "", value: "", enabled: true }];
+  return rows.length ? rows : [{ key: "", value: "", enabled: false }];
 }
 
 /**

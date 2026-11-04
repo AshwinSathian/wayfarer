@@ -34,12 +34,11 @@ describe("Composer: rows, payloads and variables", () => {
     store.patch({ headers: rows([{ key: "Accept", value: "application/json" }]) });
 
     store.addHeader();
-    expect(store.draft().headers).toEqual(
-      rows([
-        { key: "Accept", value: "application/json" },
-        { key: "", value: "" },
-      ]),
-    );
+    // The new row is not sent until it has a name (L-17).
+    expect(store.draft().headers).toEqual([
+      ...rows([{ key: "Accept", value: "application/json" }]),
+      { key: "", value: "", enabled: false },
+    ]);
     store.removeHeader(1);
     expect(store.draft().headers.length).toBe(1);
 

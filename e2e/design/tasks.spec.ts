@@ -89,9 +89,9 @@ async function ready(page: Page): Promise<void> {
 /** Imports the Postman collection and trusts its scripts: what task 2 does, and task 7 starts from. */
 async function importAndTrust(user: User): Promise<void> {
   const { page } = user;
-  await user.click(button(page.locator("app-collections-sidebar"), "Import"));
+  // The tree is empty: its own line offers Import…, and the header's menu is not there yet (L-16).
   await user.pick(
-    page.getByRole("menuitem", { name: "File…", exact: true }),
+    button(page.locator("app-collections-sidebar"), "Import…"),
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });

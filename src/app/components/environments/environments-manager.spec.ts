@@ -108,6 +108,21 @@ describe("EnvironmentsManager", () => {
     component = fixture.componentInstance;
   });
 
+  // V3 (D5-e): with no environment the list and the editor pane both said so.
+  it("with no environment, says so once: in the list, and the editor pane is empty", () => {
+    fixture.detectChanges();
+    const empties = (fixture.nativeElement as HTMLElement).querySelectorAll(".ds-empty-state");
+    expect(empties.length).toBe(1);
+    expect(empties[0].closest(".env-list")).not.toBeNull();
+  });
+
+  it("with environments and none chosen, the editor pane asks for one", () => {
+    envService.setEnvironments([makeEnv("e1")]);
+    fixture.detectChanges();
+    const pane = (fixture.nativeElement as HTMLElement).querySelector(".env-manager > .ds-empty-state");
+    expect(pane?.textContent).toContain("Choose an environment to edit its variables.");
+  });
+
   describe("selecting an environment", () => {
     it("opens its name and description, and hands its variables to the rows", () => {
       const env = makeEnv("e1", { API_KEY: "abc" });

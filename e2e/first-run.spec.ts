@@ -22,25 +22,36 @@ test("on a phone the address waits for a tap: focus would open the keyboard over
   await expect(page.locator("input.address-url")).not.toBeFocused();
 });
 
-test("the empty response offers a cURL command and an import, and the empty sidebar a collection and an import", async ({
+// L-16: the first screen offers each thing once. Import and New are the empty sidebar's; the sidebar's header has
+// neither until a collection exists, and the response pane offers only what fills the open tab.
+test("the empty response offers a cURL command, and the empty sidebar a collection and an import, once each", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const response = page.locator(".response-pane");
   await expect(response).toContainText("Send a request and its response shows here.");
+  await expect(response.getByRole("button", { name: /Import/ })).toHaveCount(0);
   await response.getByRole("button", { name: "Paste a cURL command" }).click();
   const paste = page.getByRole("dialog", { name: "Import" });
   await expect(paste.getByRole("textbox")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(paste).toHaveCount(0);
 
-  const chooser = page.waitForEvent("filechooser");
-  await response.getByRole("button", { name: "Import a collection…" }).click();
-  await chooser;
-
   const sidebar = page.locator("app-collections-sidebar");
   await expect(sidebar).toContainText("Requests you save are kept here, in collections.");
-  await sidebar.getByRole("button", { name: "New collection", exact: true }).last().click();
-  await expect(page.getByRole("dialog", { name: "New collection" })).toBeVisible();
+  await expect(sidebar.getByRole("button", { name: "Import", exact: true })).toHaveCount(0);
+  await expect(sidebar.getByRole("button", { name: "New", exact: true })).toHaveCount(0);
+  const chooser = page.waitForEvent("filechooser");
+  await sidebar.getByRole("button", { name: "Import…" }).click();
+  await chooser;
+
+  await sidebar.getByRole("button", { name: "New collection", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New collection" });
+  await dialog.getByLabel("Collection name").fill("First");
+  await dialog.getByRole("button", { name: "Create" }).click();
+  // A collection exists: the header's Import and New are there, and the empty line has gone.
+  await expect(sidebar.getByRole("button", { name: "Import", exact: true })).toBeVisible();
+  await expect(sidebar.getByRole("button", { name: "New", exact: true })).toBeVisible();
+  await expect(sidebar.getByRole("button", { name: "New collection", exact: true })).toHaveCount(0);
 });

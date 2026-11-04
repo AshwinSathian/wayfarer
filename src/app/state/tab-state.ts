@@ -26,7 +26,8 @@ export type ShownEvent = Omit<StreamEvent, "timeMs"> & { timeMs?: number };
 // ponytail: the list is the newest 500 events, each arrival copying the list. A table of every event of a long stream needs a virtual list.
 export const SHOWN_EVENTS = 500;
 
-export const blankRow = (): Row => ({ key: "", value: "", enabled: true });
+/** The editor's blank row: not sent, and unchecked, until it has a name (L-17). */
+export const blankRow = (): Row => ({ key: "", value: "", enabled: false });
 
 export function emptyDraft(): Draft {
   return { ...emptyRequest(), params: [blankRow()], headers: [blankRow()] };
@@ -231,9 +232,10 @@ export class TabState {
     this.recordOpen.set(false);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
-    this.responseTab.set("body");
     this.inspection.set(null);
+    // A send set the tab at its press; one chosen while it was on its way is kept.
     if (keepSent) return;
+    this.responseTab.set("body");
     this.responseExportContext.set(null);
     this.streamEvents.set([]);
     this.streamCount.set(0);

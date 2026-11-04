@@ -103,7 +103,8 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
-  await importMenu(page, "cURL command…");
+  // The tree is empty, so the sidebar has no Import menu yet (L-16): the response pane offers the paste.
+  await page.locator(".response-pane").getByRole("button", { name: "Paste a cURL command" }).click();
   const dialog = page.getByRole("dialog", { name: /^Import/ });
   // In the form Chrome writes for cmd.
   await dialog

@@ -1758,7 +1758,9 @@ Severity 4. H8. All.
 
 Session D5-a took the stress states the third pass ran in Chromium alone
 (320 px, 200% text, RTL, forced colours, the error states) in Chromium,
-Firefox and WebKit.
+Firefox and WebKit, and measured the 2.5.8 targets without their
+ancestors: [`hig-review/d18.md`](hig-review/d18.md) has the captures and
+the counts. They found U-153 to U-155.
 
 **U-153. At a larger default text size the wide layout stays.** Severity 2.
 H4, H7. Everyone who sets a larger text size in the browser.
@@ -1794,6 +1796,17 @@ Evidence: [`hig-review/d18/font200-composer-1440-firefox.png`](hig-review/d18/fo
 use, which wraps a row by its own room. At 390 px a row is two lines; the
 "Key" and "Value" column heads go, as Headers has none. `e2e/layout.spec.ts`
 holds a parameter's fields at 160 px or more at 200% text and 1,440 px.
+
+**U-154. The Params row's checkbox misses 2.5.8's spacing at 390 px.**
+Severity 3. H4. Everyone on a touch screen.
+Stacked under the Params section's header, the 16 px box's centre was
+11 px from the header's edge: a 24 px circle on it meets the header, so the
+spacing exception does not hold, by 1 px. On `first-run`, `method-menu`
+and `composer-params` at 390 px; no other control of the 49 screens fails,
+at 390 or 1,440 px.
+Evidence: [`hig-review/d18.md`](hig-review/d18.md), "2.5.8 targets".
+**Status:** Open, D5-c: measured again there, since U-155's fix moves the
+box beside the parameter's name.
 
 ## Every screen of D0.1, and its findings
 

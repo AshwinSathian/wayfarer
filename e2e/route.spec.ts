@@ -88,7 +88,7 @@ test.describe("through a Local Bridge", () => {
         name: "Send through the Local Bridge?",
       });
       await expect(question).toBeVisible({ timeout: 15_000 });
-      await expect(question).toContainText("may have sent it");
+      await expect(question).toContainText("the server may still have received it");
       // No preflight for a form: the browser sent the POST, and the server received it.
       expect(await seen(page, path)).toEqual({ POST: 1 });
       await question.getByRole("button", { name: "Do not send" }).click();

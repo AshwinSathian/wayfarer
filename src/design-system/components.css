@@ -88,7 +88,8 @@ pre,
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: var(--type-footnote-size);
+  /* No mono role under 13 px (U-151, U-181). */
+  font-size: var(--type-mono-body-size);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -238,12 +239,11 @@ pre,
 }
 
 /* ── Section label ───────────────────────────────────────── */
+/* Sentence case, the label's own weight: capitals spaced out were the 2021 template's (U-020). */
 .ds-section-label {
   font-size: var(--type-footnote-size);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--label-tertiary);
+  color: var(--label-secondary);
 }
 
 /* ── Form label ──────────────────────────────────────────── */
@@ -431,14 +431,13 @@ pre,
   background: var(--fill-hover);
 }
 
+/* A column's name is Wayfarer's word, not the wire's: the text face (U-181). */
 .ds-table th {
   padding: 8px 12px;
-  font-family: var(--font-mono);
   font-size: var(--type-footnote-size);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--label-secondary);
   text-align: left;
-  letter-spacing: 0.01em;
 }
 
 .ds-table td {
@@ -632,7 +631,7 @@ pre,
   padding-inline: 14px 0;
   color: var(--label-secondary);
   font-family: var(--font-mono);
-  font-size: var(--type-footnote-size);
+  font-size: var(--type-mono-body-size);
   font-weight: 600;
   letter-spacing: 0.05em;
 }

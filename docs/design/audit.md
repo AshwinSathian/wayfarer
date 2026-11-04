@@ -2056,6 +2056,7 @@ Evidence: `baseline/design-chromium/collection-settings-1440-light.png`
 `src/app/components/collections/inherited-settings-dialog.ts:71-73`, `:173`.
 Severity 1, not the review's 2: an edit lost without a question is U-060's case, which the audit rated 1.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: Escape, × or Cancel with changes asks "Discard the changes to {name}?", Keep editing being the button that has focus; with none, the dialog closes at once. `e2e/inheritance.spec.ts` holds it in three engines.
 
 **U-170. The request's tabs do not say which of them hold anything.**
 Severity 3. H1, H6. TP, QA.

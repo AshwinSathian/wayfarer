@@ -435,6 +435,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A collection's or folder's settings no longer drop your edits on
+  Escape.** Escape, × or Cancel closed the dialog and lost every change,
+  scripts included, without a word. With changes, closing now asks
+  first, and Keep editing keeps them.
+
 - **A query parameter's name and value have room at large text.** At
   200% text beside the collections tree, Params left each field about
   47 px wide, two letters of "kind". Params now wraps its rows by the room

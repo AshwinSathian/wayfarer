@@ -270,3 +270,30 @@ test("the site writes no colour or face of its own", () => {
         literal.push(`${file}:${n}: ${line.trim()}`);
   assert.deepEqual(literal, []);
 });
+
+// U-020 (reopened in D5-b): no label is upper case and letter-spaced. The Settings subheads and the section labels were.
+// A method is the exception: the wire's own token, written in capitals (GET), drawn as it is sent.
+test("no stylesheet or template sets words in upper case; only a method is", () => {
+  const found = [];
+  for (const [file, text] of sources(/\.(css|scss)$/, (f) => /design-system\/tokens\.css$/.test(f)))
+    for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+      if (/text-transform:\s*uppercase/.test(block[2]) && !/method/.test(block[1]))
+        found.push(`${file}: ${block[1].trim()}`);
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/class(?:Name)?="[^"]*(?<![\w-])uppercase(?![\w-])[^"]*"/g))
+      found.push(`${file}: ${m[0]}`);
+  assert.deepEqual(found, []);
+});
+
+// U-181 (U-151's floor): a rule that sets the wire's face does not set it at the 12 px footnote size.
+test("no rule sets the mono face at the footnote size", () => {
+  const found = [];
+  for (const [file, text] of sources(/\.(css|scss)$/))
+    for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+      if (
+        /font-family:\s*var\(--font-mono\)/.test(block[2]) &&
+        /font-size:\s*var\(--type-footnote-size\)/.test(block[2])
+      )
+        found.push(`${file}: ${block[1].trim()}`);
+  assert.deepEqual(found, []);
+});

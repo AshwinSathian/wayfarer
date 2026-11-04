@@ -435,6 +435,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Labels are in sentence case again, and nothing in the wire's face is
+  under 13 px.** Some section labels and Settings' subheads had gone back
+  to spaced capitals, and table column heads and the method badges in
+  History and the palette were JetBrains Mono at 12 px, where its 0 and O
+  are hard to tell apart.
+
 - **In Safari, the status bar and the backup reminder say Safari's seven
   days.** Safari deletes a site's data after seven days without a visit
   unless the app is added to the Dock, and only Settings said so. The

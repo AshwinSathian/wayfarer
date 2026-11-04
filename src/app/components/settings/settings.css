@@ -187,8 +187,6 @@
   color: var(--label-secondary);
   font-size: var(--type-footnote-size);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .settings-note {

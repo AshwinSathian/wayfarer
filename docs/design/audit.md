@@ -429,6 +429,7 @@ hierarchy they stood for is U-119's.
 **2026-11-02:** The sidebar's title fixed in #484 (D4-f): "Collections" is a sentence-case heading in the secondary label. The environments list's is D4-g's.
 **2026-11-03:** The environments list's title fixed in #493 (D4-g): "Environments", a sentence-case heading in the secondary label; `type-overline`, the uppercase style, is deleted (nothing reads it). Every finding of this row is fixed.
 **2026-11-04:** Reopened in D5-b's fifth pass: `.ds-section-label` (`components.css:241-247`) and `.settings-subhead` (`settings.css:186-192`) are still uppercase and tracked: the import review, Settings' Data and Shortcuts panes, the Timings tab and the Console. Open, D5-c.
+**2026-11-04:** Fixed again in D5-c: `.ds-section-label` and `.settings-subhead` are sentence case without tracking; the token test fails on an upper-case transform outside a method's rule.
 
 **U-021. Three blues and a stray grey.** Severity 3. H4.
 The Send fill, the link colour (`rgb(79,70,229)`) and the focus ring
@@ -2223,6 +2224,7 @@ Evidence: `baseline/design-chromium/run-1440-light.png`,
 `baseline/design-chromium/websocket-1440-light.png`;
 `src/design-system/components.css:434-442`.
 **Status:** Open, D5-c.
+**2026-11-04:** Fixed in D5-c: a table's column heads are the text face; the method badges of History and the palette and the WebSocket's scheme, also mono at 12 px, are at the mono size (13 px). The token test fails on a rule that sets the mono face at the footnote size.
 
 **U-182. On a phone the run's table hides its Tests column.**
 Severity 3. H8. QA.

@@ -1,7 +1,7 @@
 // The landing (W2.1, rebuilt in PLAN-design 1.8 and D5-e). Each sentence that says what Wayfarer does names the claim
 // that proves it (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger. A fact about another
 // product names its source and the date it was read.
-import { SITE, pageMeta } from "../lib/meta";
+import { pageMeta } from "../lib/meta";
 import { version } from "../../../../package.json";
 import type { ReactNode } from "react";
 import { AskFirst } from "../components/AskFirst";
@@ -9,30 +9,14 @@ import { Claims } from "../components/Claims";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { RouteDemo } from "../components/RouteDemo";
+import { JsonLd } from "../components/JsonLd";
 import { claims } from "../lib/content";
+import { homeGraph } from "../lib/structured-data";
 
 const DESCRIPTION =
   "Import Postman collections, run their scripts and keep API keys encrypted, in your browser. No install, no account, no server between you and your API. Free and MIT-licensed.";
 
 export const metadata = pageMeta("/", "Wayfarer: the API client that opens in a tab", DESCRIPTION);
-
-/**
- * What search engines read about the app (W3.1): schema.org's SoftwareApplication, as data in the page, which the
- * site's policy does not run. No rating or review: there are none to give.
- */
-const SOFTWARE = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Wayfarer",
-  description: DESCRIPTION,
-  url: `${SITE}/app/`,
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Any, in a web browser",
-  softwareVersion: version,
-  license: "https://opensource.org/license/mit",
-  isAccessibleForFree: true,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-};
 
 const POSTMAN_PRICING = "https://www.postman.com/pricing/";
 const YAAK_POST = "https://yaak.app/blog/postman-free-plan-one-user";
@@ -206,11 +190,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      {/* Data, not script: "<" is written as < so no text can end the element. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE).replace(/</g, "\\u003c") }}
-      />
+      <JsonLd data={homeGraph(version, DESCRIPTION)} />
       <main>
         <section aria-labelledby="hero">
           <div className="mx-auto max-w-6xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 lg:pb-28">

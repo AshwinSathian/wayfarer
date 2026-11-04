@@ -13,11 +13,13 @@ import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
 
 /**
- * Whether every word of `query` is part of the entry's URL, or is its method or its status; for a model call, also
- * part of its action, host or model (D4.10). Case does not matter.
+ * Whether every word of `query` is part of the entry's URL or of the name and place of the saved request it was sent
+ * from, or is its method or its status; for a model call, also part of its action, host or model (D4.10). Case does
+ * not matter.
  */
 export function matches(request: PastRequest, query: string): boolean {
   const url = request.sent.url.toLowerCase();
+  const from = request.sentFrom ? [request.sentFrom.name, ...request.sentFrom.path].join(" ").toLowerCase() : "";
   const method = request.sent.method.toLowerCase();
   const status = String(request.response?.status ?? "");
   const model = request.model
@@ -27,7 +29,9 @@ export function matches(request: PastRequest, query: string): boolean {
     .toLowerCase()
     .split(/\s+/)
     .filter(Boolean)
-    .every((word) => url.includes(word) || method === word || status === word || model.includes(word));
+    .every(
+      (word) => url.includes(word) || from.includes(word) || method === word || status === word || model.includes(word),
+    );
 }
 
 /** The host a request went to, as its record names it; the address when it has none. */
@@ -73,7 +77,7 @@ export class PastRequests {
 
   readonly skeletonPlaceholders = Array.from({ length: 4 }).map((_, i) => i);
 
-  /** What the search field holds. Each word must be in the URL, or be the method or the status. */
+  /** What the search field holds. Each word must be in the URL or the saved request's name or place, or be the method or the status. */
   readonly query = signal("");
 
   protected readonly kinds = KINDS;

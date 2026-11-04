@@ -166,9 +166,88 @@ test("each comparison page cites a source with its date for every fact about a r
   expect(await page.locator("#behind + ul > li").count()).toBeGreaterThanOrEqual(4);
 });
 
+// D5-e: a sentence about Wayfarer on the comparison pages names its claim, or, for a fact about the project (its
+// licence, its first release), cites the file that says so. "How Wayfarer differs", "Where Wayfarer is behind" and
+// the steps of Moving from Postman each said something no claim held (the licence, the protocols).
+test("every sentence about Wayfarer on the comparison pages names a claim or cites a source", async ({ page }) => {
+  const lists: [string, string][] = [
+    ...["postman", "bruno", "yaak", "hoppscotch", "insomnia"].map((rival): [string, string] => [
+      `/compare/${rival}/`,
+      "#differs + ul > li",
+    ]),
+    ["/compare/", "#behind + ul > li"],
+    ["/compare/moving-from-postman/", "main ol > li"],
+  ];
+  for (const [path, selector] of lists) {
+    await page.goto(path);
+    const items = page.locator(selector);
+    expect(await items.count(), path).toBeGreaterThan(2);
+    for (const item of await items.all())
+      expect(
+        await item.locator("[data-claims], .cite").count(),
+        `${path}: ${await item.textContent()}`,
+      ).toBeGreaterThan(0);
+  }
+});
+
+// D5-e: a claim's chip leads to its own row of the ledger, and says what the claim is.
+test("a claim's chip links to its row of the ledger and is named by the claim", async ({ page }) => {
+  await page.goto("/compare/postman/");
+  const chip = page.locator("[data-claims] a", { hasText: "C-058" }).first();
+  await expect(chip).toHaveAttribute("href", "/docs/claims/#C-058");
+  await expect(chip).toHaveAccessibleName(/^Claim C-058: Postman Collection v2\.0 and v2\.1 files/);
+  await chip.click();
+  await expect(page).toHaveURL(/\/docs\/claims\/#C-058$/);
+  await expect(page.locator("tr#C-058 td").first()).toHaveText("C-058");
+});
+
+// D5-e: the design records are working notes, not user docs. They are pages, but search engines are told not to
+// list them (except the three the comparison pages rest on), and llms.txt does not offer them as docs: an assistant
+// read "designed, not built" flows as features.
+test("the design records are noindex and outside llms.txt's docs, and llms-full.txt holds the user docs", async ({
+  page,
+  request,
+}) => {
+  for (const [path, noindex] of [
+    ["/docs/design/teams/README/", true],
+    ["/docs/design/audit/", true],
+    ["/docs/runbook/", true],
+    ["/docs/design/benchmark/", false],
+    ["/docs/auth/", false],
+  ] as const) {
+    await page.goto(path);
+    const robots = page.locator('meta[name="robots"]');
+    if (noindex) await expect(robots, path).toHaveAttribute("content", /noindex/);
+    else await expect(robots, path).toHaveCount(0);
+  }
+  await page.goto("/docs/design/teams/README/");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    /^Design record, not user documentation\. Status: designed, not built/,
+  );
+  await page.goto("/docs/");
+  await expect(page.getByRole("heading", { name: "Design records" })).toBeVisible();
+
+  const llms = await (await request.get("/llms.txt")).text();
+  const docsSection = llms.slice(llms.indexOf("## Docs"), llms.indexOf("## Compare"));
+  expect(docsSection).toContain("/docs/auth/");
+  expect(docsSection).not.toContain("/docs/design/");
+  expect(llms).toContain("## What it does not do");
+  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((m) => m[1]));
+  const named = [...llms.matchAll(/C-\d{3}/g)].map((m) => m[0]);
+  expect(named.length).toBeGreaterThan(10);
+  expect(named.filter((id) => !ledger.has(id))).toEqual([]);
+
+  const full = await request.get("/llms-full.txt");
+  expect(full.status()).toBe(200);
+  const text = await full.text();
+  expect(text).toContain("# Secrets vault");
+  expect(text).not.toContain("# Team flows");
+});
+
 // W3.1: every page names its canonical address, its Open Graph and Twitter cards and an image of its own, which is a
-// 1200 by 630 PNG; the sitemap lists every page; robots.txt names the sitemap; the front page describes the app as
-// schema.org data; /llms.txt says what the site is.
+// 1200 by 630 PNG; the sitemap lists every page but the working notes, which say noindex (D5-e); robots.txt names the
+// sitemap; the front page describes the app as schema.org data; /llms.txt says what the site is.
 test("every page has its canonical address, its cards and its own image, and the sitemap, robots.txt, the app's data and llms.txt are there", async ({
   page,
   request,
@@ -181,7 +260,12 @@ test("every page has its canonical address, its cards and its own image, and the
     await page.goto(path);
     const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
     expect(canonical, path).toBe(`${SITE}${path}`);
-    expect(sitemap, path).toContain(`<loc>${SITE}${path}</loc>`);
+    // Only a noindex page has the tag: read it without waiting for one.
+    const robots = await page.evaluate(
+      () => document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "",
+    );
+    if (robots.includes("noindex")) expect(sitemap, path).not.toContain(`<loc>${SITE}${path}</loc>`);
+    else expect(sitemap, path).toContain(`<loc>${SITE}${path}</loc>`);
     const og = async (name: string) => page.locator(`meta[property="og:${name}"]`).getAttribute("content");
     expect(await og("title"), path).toBe(await page.title());
     expect(await og("description"), path).toBe(await page.locator('meta[name="description"]').getAttribute("content"));
@@ -201,17 +285,23 @@ test("every page has its canonical address, its cards and its own image, and the
 
   expect(await (await request.get("/robots.txt")).text()).toContain(`Sitemap: ${SITE}/sitemap.xml`);
   await page.goto("/");
-  const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}") as Record<
-    string,
-    unknown
-  >;
-  expect(data).toMatchObject({
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+  const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}") as {
+    "@context": string;
+    "@graph": Record<string, unknown>[];
+  };
+  expect(data["@context"]).toBe("https://schema.org");
+  const app = data["@graph"].find((node) => node["@type"] === "SoftwareApplication");
+  expect(app).toMatchObject({
     name: "Wayfarer",
+    alternateName: "Wayfarer API client",
     url: `${SITE}/app/`,
     offers: { "@type": "Offer", price: "0" },
   });
+  // Each feature it lists is a row of the ledger, named.
+  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((m) => m[1]));
+  const features = (app?.["featureList"] ?? []) as string[];
+  expect(features.length).toBeGreaterThan(3);
+  for (const feature of features) expect(ledger.has(/\((C-\d{3})\)$/.exec(feature)?.[1] ?? ""), feature).toBe(true);
   const llms = await request.get("/llms.txt");
   expect(llms.status()).toBe(200);
   expect(await llms.text()).toMatch(/^# Wayfarer\n\n> /);
@@ -397,13 +487,24 @@ test("each ID of the claims ledger is on one line", async ({ page }) => {
 });
 
 // W2.4: the changelog and the roadmap are pages, and the ledger says which CI run the deployed files passed.
-test("the changelog and the roadmap are pages, the roadmap as the plan has it", async ({ page }) => {
+test("the changelog folds each version under an index, and the roadmap is said in a user's terms", async ({ page }) => {
   await page.goto("/changelog/");
-  await expect(page.getByRole("heading", { name: "[Unreleased]" })).toBeVisible();
+  await expect(page.getByText("All notable changes")).toHaveCount(0);
+  const index = page.getByRole("navigation", { name: "Versions" });
+  await expect(index.getByRole("link", { name: /^Coming in the next release/ })).toBeVisible();
+  // Only the latest release is open; another opens with a click on its heading.
+  await expect(page.locator("details.version[open]")).toHaveCount(1);
+  const next = page.locator("details.version").first();
+  await expect(next.getByRole("heading", { name: "Coming in the next release" })).toBeVisible();
+  await expect(next).not.toHaveAttribute("open");
+  await next.locator("summary").click();
+  await expect(next).toHaveAttribute("open");
   await page.goto("/roadmap/");
-  await expect(page.getByRole("heading", { name: /^Phase W/ })).toBeVisible();
-  await expect(page.locator("li.task-done", { hasText: "W1.1" })).toBeVisible();
-  await expect(page.locator("li.task-open").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^(Shipped|Coming) in 3\.0$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Next" })).toBeVisible();
+  const later = page.locator("section", { has: page.getByRole("heading", { name: "Later" }) });
+  await expect(later.getByText(/Git repository/)).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/\b[DWT]\d+\.\d+\b/);
 });
 
 const RUN = { run: 38850000000, commit: "0123456789abcdef0123456789abcdef01234567", date: "2026-10-16T05:00:00Z" };

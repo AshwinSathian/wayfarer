@@ -22,6 +22,12 @@ test("a table takes focus, and quotes stay as written", () => {
   assert.match(html, /&quot;b&quot; -- c|"b" -- c/);
 });
 
+test("a row of the claims ledger has its claim's ID as its id, and another row has none", () => {
+  const html = renderMarkdown("| ID | Claim |\n|---|---|\n| C-001 | a |\n| x | C-002 |\n", "docs/claims.md");
+  assert.match(html, /<tr id="C-001">\n<td>C-001<\/td>/);
+  assert.doesNotMatch(html, /id="C-002"/);
+});
+
 test("a title is the first heading without code marks, or the fallback", () => {
   assert.equal(titleOf("intro\n# The `pm` API\n## x", "f"), "The pm API");
   assert.equal(titleOf("no heading", "f"), "f");

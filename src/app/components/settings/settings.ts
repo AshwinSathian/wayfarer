@@ -18,6 +18,7 @@ import { UiInput } from "../../ui/input";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme, type ThemeChoice } from "../../services/theme";
+import { PaneLayout, type PaneLayoutChoice } from "../../services/pane-layout";
 import { AiPane } from "./ai-pane";
 import { BridgePane } from "./bridge-pane";
 import { BridgeSettings } from "../../services/bridge-settings";
@@ -141,6 +142,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
 })
 export class Settings {
   readonly themeService = inject(Theme);
+  protected readonly paneLayout = inject(PaneLayout);
   readonly bridgeService = inject(BridgeSettings);
   readonly requestSettings = inject(RequestSettings);
   readonly vault = inject(SecretsVault);
@@ -164,6 +166,11 @@ export class Settings {
     { value: "system", label: "System", icon: "settings" },
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },
+  ];
+  protected readonly paneLayoutChoices: UiSegment<PaneLayoutChoice>[] = [
+    { value: "room", label: "By the room it has" },
+    { value: "beside", label: "Beside the request" },
+    { value: "under", label: "Under the request" },
   ];
   /** Same actions registered in the command palette (AppShell's sidebarPaletteActions), reused here for the shortcuts reference so this list can never drift out of sync with what's actually registered. */
   readonly paletteActions = input<PaletteAction[]>([]);

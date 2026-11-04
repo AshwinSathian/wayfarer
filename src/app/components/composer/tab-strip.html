@@ -17,12 +17,9 @@
     >
       @if (tab.holder; as holder) {
       <!-- A collection's or a folder's settings: its glyph, as the tree draws it, not a word (L-24). -->
-      <app-icon
-        [name]="holder.folderId ? 'folder' : 'folder_open'"
-        class="request-tab-glyph icon-xs"
-        role="img"
-        [attr.aria-label]="holder.folderId ? 'Folder settings' : 'Collection settings'"
-      />
+      <!-- The icon is aria-hidden: the words that name the tab are text. -->
+      <app-icon [name]="holder.folderId ? 'folder' : 'folder_open'" class="request-tab-glyph icon-xs" />
+      <span class="sr-only">{{ holder.folderId ? "Folder settings" : "Collection settings" }}</span>
       } @else {
       <span class="request-tab-method"
         >{{ tab.environments ? "Env" : tab.run ? "Run" : isSocket(tab) ? "WS" : tab.draft().method }}</span

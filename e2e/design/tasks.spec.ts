@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, renameSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { startBridge, type TestBridge } from "../support/bridge";
 import { ECHO } from "../support/echo";
@@ -9,6 +9,10 @@ import { ECHO } from "../support/echo";
 // input to the result on the screen: the app's own waiting, not a person's, who reads and thinks as well.
 // Each task runs three times; docs/design/baseline.md gives the median. The counts land in
 // test-results/design-tasks/<project>-<task>.json.
+//
+// D1.4 (row 1.50) counts as the rivals' documentation does: a text entry is one action, however long, so `actions`
+// is clicks + keys + entries, beside the characters D0.2 counted. With RECORD=1 each task's first run is recorded
+// to docs/design/benchmark/task-<id>.webm (docs/design/benchmark.md).
 
 const RUNS = 3;
 // A step that is wrong fails at once, not after the test's four minutes.
@@ -19,9 +23,14 @@ class User {
   clicks = 0;
   keys = 0;
   typed = 0;
+  /** Text entries: a value typed into a field, one each however long (D1.4's action). */
+  entries = 0;
   constructor(readonly page: Page) {}
   get events(): number {
     return this.clicks + this.keys + this.typed;
+  }
+  get actions(): number {
+    return this.clicks + this.keys + this.entries;
   }
   async click(target: Locator, options: { button?: "right" } = {}): Promise<void> {
     await target.click(options);
@@ -36,6 +45,7 @@ class User {
     if (focus) await this.click(target);
     await target.fill(text);
     this.typed += [...text].length;
+    this.entries++;
   }
   /** Picks a file in the system's dialog: the click that opens it, and one to choose the file. */
   async pick(opener: Locator, file: { name: string; mimeType: string; buffer: Buffer }): Promise<void> {
@@ -312,6 +322,8 @@ interface Measure {
   clicks: number;
   keys: number;
   typed: number;
+  entries: number;
+  actions: number;
   events: number;
   seconds: number[];
   /** For a failure (task 5): what the response pane says, the user's lead to the cause. */
@@ -326,7 +338,12 @@ for (const task of TASKS) {
     let says: string | undefined;
     for (let i = 0; i < RUNS; i++) {
       // Each run in a browser of its own: nothing stored, nothing cached.
-      const context = await browser.newContext({ ...info.project.use, viewport: { width: 1440, height: 900 } });
+      const record = process.env["RECORD"] && i === 0;
+      const context = await browser.newContext({
+        ...info.project.use,
+        viewport: { width: 1440, height: 900 },
+        ...(record && { recordVideo: { dir: "test-results/design-tasks/video", size: { width: 1440, height: 900 } } }),
+      });
       const page = await context.newPage();
       await ready(page);
       await task.before?.(page);
@@ -337,13 +354,29 @@ for (const task of TASKS) {
       await task.after?.();
       if (task.id.startsWith("5"))
         says = (await page.locator("app-response-viewer").innerText()).replace(/\s+/g, " ").trim();
+      const video = page.video();
       await context.close();
+      if (record && video) {
+        mkdirSync("docs/design/benchmark", { recursive: true });
+        renameSync(await video.path(), `docs/design/benchmark/task-${task.id}.webm`);
+      }
       if (counted && counted.events !== user.events) throw new Error(`task ${task.id}: the count changed between runs`);
       counted = user;
     }
     if (!counted) return;
-    const { clicks, keys, typed, events } = counted;
-    const measure: Measure = { id: task.id, name: task.name, clicks, keys, typed, events, seconds, says };
+    const { clicks, keys, typed, entries, events, actions } = counted;
+    const measure: Measure = {
+      id: task.id,
+      name: task.name,
+      clicks,
+      keys,
+      typed,
+      entries,
+      events,
+      actions,
+      seconds,
+      says,
+    };
     mkdirSync("test-results/design-tasks", { recursive: true });
     writeFileSync(`test-results/design-tasks/${info.project.name}-${task.id}.json`, `${JSON.stringify(measure)}\n`);
   });

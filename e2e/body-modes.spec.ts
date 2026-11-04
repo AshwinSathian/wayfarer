@@ -42,7 +42,7 @@ async function postWithBody(page: Page, mode: string): Promise<void> {
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();
-  await choose(page, "Body", mode);
+  await choose(page, "Body type", mode);
 }
 
 async function choose(page: Page, select: string, option: string): Promise<void> {
@@ -113,13 +113,13 @@ test("none: a POST is sent with no body and no Content-Type, and the text typed 
       storedBody: { mode: "raw", raw: { language: "text", text: "kept" } },
     },
   );
-  await choose(page, "Body", "None");
+  await choose(page, "Body type", "None");
 
   const none = await sendAndEcho(page);
   expect(none.bodySize).toBe(0);
   expect(header(none, "content-type")).toBeUndefined();
 
-  await choose(page, "Body", "Raw");
+  await choose(page, "Body type", "Raw");
   expect((await sendAndEcho(page)).body).toBe("kept");
   expect(await violations(page)).toEqual([]);
 });

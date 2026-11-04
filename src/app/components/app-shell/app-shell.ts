@@ -304,7 +304,7 @@ export class AppShell implements OnInit {
       },
       {
         id: "open-history",
-        label: "History",
+        label: "Request history",
         run: () => this.openHistory(),
       },
       {

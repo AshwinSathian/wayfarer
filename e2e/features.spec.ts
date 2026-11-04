@@ -273,7 +273,7 @@ test("@claim:C-039 the Body tab is there for every method, offers none, raw, for
   // A new request is a GET, and has the tab.
   await expect(bodyTab).toHaveCount(1);
   await bodyTab.click();
-  await page.getByRole("combobox", { name: "Body", exact: true }).click();
+  await page.getByRole("combobox", { name: "Body type", exact: true }).click();
   await expect(page.getByRole("option")).toHaveText([
     "None",
     "Raw",

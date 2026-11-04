@@ -307,7 +307,7 @@ it is.
 | `environments-manager.html: Use` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Duplicate` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Delete` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Key / Value` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Name / Value` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: JSON` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Reveal` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Mark` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
@@ -437,7 +437,7 @@ it is.
 | `oauth-fields.html: Hide client secret / Show client secret` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: Client sent in` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: On a 401, get a new token and send once more` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
-| `body-panel.html: Body` | Body tab | Composer, Body tab | D4-d |
+| `body-panel.html: Body type` | Body tab | Composer, Body tab | D4-d |
 | `body-panel.html: Raw body language` | Body tab | Composer, Body tab | D4-d |
 | `browser-notes.html: Route` | Settings tab of the request | Composer, Settings tab | D4-d |
 | `browser-notes.html: Follow redirects` | Settings tab of the request | Composer, Settings tab | D4-d |

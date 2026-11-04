@@ -22,18 +22,18 @@ export default function Compare() {
     >
       <ul className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2">
         {RIVALS.map((rival) => (
-          <li key={rival.id} className="rounded-xl border border-line bg-paper-raised p-6">
-            <h2 className="font-display text-xl font-semibold text-ink">
-              <a className="hover:text-route" href={`/compare/${rival.id}/`}>
+          <li key={rival.id} className="rounded-lg border border-line bg-paper-raised p-6">
+            <h2 className="type-site-lede font-semibold text-ink">
+              <a className="hover:text-action" href={`/compare/${rival.id}/`}>
                 Wayfarer and {rival.name}
               </a>
             </h2>
             <p className="mt-2 text-ink-muted">{rival.is}</p>
           </li>
         ))}
-        <li className="rounded-xl border border-route bg-route-soft p-6">
-          <h2 className="font-display text-xl font-semibold text-ink">
-            <a className="hover:text-route" href="/compare/moving-from-postman/">
+        <li className="rounded-lg border border-action bg-action-soft p-6">
+          <h2 className="type-site-lede font-semibold text-ink">
+            <a className="hover:text-action" href="/compare/moving-from-postman/">
               Moving from Postman
             </a>
           </h2>
@@ -47,8 +47,8 @@ export default function Compare() {
       <ul className="mt-6 max-w-3xl space-y-6">
         {BEHIND.map((item) => (
           <li key={item.title}>
-            <h3 className="font-display text-lg font-semibold text-ink">{item.title}</h3>
-            <p className="mt-1 text-ink-muted [&_a]:text-route [&_a]:underline [&_a]:underline-offset-4">
+            <h3 className="type-site-lede font-semibold text-ink">{item.title}</h3>
+            <p className="mt-1 text-ink-muted [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
               {item.text}{" "}
               {item.sources.map((source) => (
                 <Cite key={source.url} source={source} />

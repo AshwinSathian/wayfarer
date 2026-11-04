@@ -43,7 +43,7 @@ export default async function Comparison({ params }: Props) {
       </ul>
 
       <H2 id="differs">How Wayfarer differs</H2>
-      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-route [&_a]:underline [&_a]:underline-offset-4">
+      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
         {rival.differs.map((sentence, i) => (
           <li key={i}>{sentence}</li>
         ))}
@@ -59,7 +59,7 @@ export default async function Comparison({ params }: Props) {
       </ul>
       <p className="mt-10 text-ink-muted">
         All of it in one list:{" "}
-        <a className="text-route underline underline-offset-4" href="/compare/#behind">
+        <a className="text-action underline underline-offset-4" href="/compare/#behind">
           where Wayfarer is behind
         </a>
         .

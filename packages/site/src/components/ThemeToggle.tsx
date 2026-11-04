@@ -6,7 +6,7 @@ export function ThemeToggle() {
       type="button"
       data-theme-toggle
       aria-label="Switch between light and dark"
-      className="grid size-10 place-items-center rounded-lg text-ink-muted hover:bg-paper-sunk hover:text-ink"
+      className="grid size-10 place-items-center rounded-sm text-ink-muted hover:bg-paper-sunk hover:text-ink"
     >
       <svg
         viewBox="0 0 24 24"

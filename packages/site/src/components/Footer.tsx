@@ -39,18 +39,18 @@ export function Footer() {
     <footer className="border-t border-line">
       <div className="mx-auto grid grid-cols-1 max-w-6xl gap-10 px-4 py-14 sm:px-6 sm:grid-cols-3 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="max-w-xs sm:col-span-3 md:col-span-1">
-          <a href="/" className="flex items-center gap-2 font-display text-lg font-bold text-ink">
+          <a href="/" className="flex items-center gap-2 type-site-lede font-bold text-ink">
             <Mark className="size-7" />
             Wayfarer
           </a>
-          <p className="mt-3 text-sm text-ink-muted">
+          <p className="mt-3 type-site-small text-ink-muted">
             An API client that runs in your browser. No account, no server of its own, no analytics on this site.
           </p>
         </div>
         {COLUMNS.map(([title, links]) => (
           <nav key={title} aria-label={title}>
-            <h2 className="font-display text-sm font-semibold text-ink">{title}</h2>
-            <ul className="mt-3 space-y-2 text-sm text-ink-muted">
+            <h2 className="type-site-small font-semibold text-ink">{title}</h2>
+            <ul className="mt-3 space-y-2 type-site-small text-ink-muted">
               {links.map(([name, href]) => (
                 <li key={name}>
                   <a href={href} className="hover:text-ink">

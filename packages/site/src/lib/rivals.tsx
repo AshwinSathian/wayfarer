@@ -277,9 +277,9 @@ export const BEHIND: { title: string; text: ReactNode; sources: Source[] }[] = [
 /** A source, as the pages cite it: its title as a link, and the date it was read. */
 export function Cite({ source }: { source: Source }) {
   return (
-    <span className="cite text-sm text-ink-muted">
+    <span className="cite type-site-small text-ink-muted">
       (
-      <a className="underline underline-offset-4 hover:text-route" href={source.url}>
+      <a className="underline underline-offset-4 hover:text-action" href={source.url}>
         {source.title}
       </a>
       , read <time dateTime={source.read}>{source.read}</time>)

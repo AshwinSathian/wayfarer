@@ -70,7 +70,23 @@ const typography = [
   "",
 ].join("\n");
 
+// The site (W5.1): the same colours, both themes and both contrast levels, and its own type scale as Tailwind
+// utilities, so that a breakpoint can change a size. The site's stylesheet imports it and writes no colour or face.
+const site = [
+  "/* Generated from packages/tokens (DTCG 2025.10) by `npm run gen:tokens`. Do not edit. The app's colours",
+  "   and faces, and the site's type scale (D3.2, W5.1) as Tailwind utilities. */",
+  "",
+  ...css.split("\n").slice(3),
+  ...typeClasses("site-type").flatMap(({ name, declarations }) => [
+    `@utility ${name} {`,
+    ...declarations.map(([prop, value]) => `  ${prop}: ${value};`),
+    "}",
+    "",
+  ]),
+].join("\n");
+
 const outputs = [
+  [new URL("../site/src/app/tokens.css", import.meta.url), site],
   [target, css],
   [new URL("../../src/design-system/typography.css", import.meta.url), typography],
   [new URL("../../src/design-system/tokens.ts", import.meta.url), ts],
@@ -87,9 +103,11 @@ if (process.argv.includes("--check")) {
     process.exit(1);
   }
   console.log(
-    "tokens.css, typography.css, tokens.ts, the brand's SVGs and the icon set are what packages/tokens gives.",
+    "tokens.css, typography.css, tokens.ts, the site's tokens.css, the brand's SVGs and the icon set are what packages/tokens gives.",
   );
 } else {
   for (const [file, text] of outputs) writeFileSync(file, text);
-  console.log("tokens.css, typography.css, tokens.ts, the brand's SVGs and the icon set written from packages/tokens.");
+  console.log(
+    "tokens.css, typography.css, tokens.ts, the site's tokens.css, the brand's SVGs and the icon set written from packages/tokens.",
+  );
 }

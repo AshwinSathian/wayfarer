@@ -22,11 +22,11 @@ export default function Blog() {
       <ul className="mt-12 max-w-3xl divide-y divide-line border-y border-line">
         {posts().map((post) => (
           <li key={post.slug} className="py-7">
-            <p className="text-sm text-ink-muted">
+            <p className="type-site-small text-ink-muted">
               <time dateTime={post.date}>{longDate(post.date)}</time>
             </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight">
-              <a className="text-ink hover:text-route" href={`/blog/${post.slug}/`}>
+            <h2 className="mt-1 type-site-title-2 font-semibold">
+              <a className="text-ink hover:text-action" href={`/blog/${post.slug}/`}>
                 {post.title}
               </a>
             </h2>

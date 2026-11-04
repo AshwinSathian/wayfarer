@@ -136,11 +136,11 @@ function typeValues(key, token) {
   ];
 }
 
-/** The type styles, as the classes typography.css holds. */
-export function typeClasses() {
+/** A scale's type styles, as classes: the app's (`type`, typography.css) or the site's (`site-type`). */
+export function typeClasses(group = "type") {
   const out = [];
   for (const [key, token] of theme("dark")) {
-    if (token.$type !== "typography") continue;
+    if (token.$type !== "typography" || token.group !== group) continue;
     const family = token.$value.fontFamily;
     const extra = token.$extensions?.["com.wayfarer.css"] ?? {};
     out.push({

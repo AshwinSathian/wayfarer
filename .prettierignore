@@ -8,6 +8,7 @@ packages/site/out/
 packages/site/next-env.d.ts
 package-lock.json
 src/design-system/tokens.css
+packages/site/src/app/tokens.css
 src/design-system/tokens.ts
 src/design-system/typography.css
 src/app/shared/icon/icon-paths.ts

@@ -101,6 +101,13 @@ code errors.
   attribute (`style={{}}`) and no inline script; a test reads every built
   page for both and for Next's scripts. Links are plain `<a>`, not
   `next/link`.
+- The site's colours, faces, radii, motion and type scale are the app's
+  tokens (W5.1): `npm run gen:tokens` writes `packages/site/src/app/tokens.css`
+  (never edit it), with the site's own type scale (`type-site-*`, the
+  `site-type` group of `base.tokens.json`) as Tailwind utilities.
+  `globals.css` names tokens in its `@theme` and writes no colour or face
+  (the token test); actions are ink, as the app's are (DQ11).
+  `scripts/contrast.test.mjs` holds the site's text on its surfaces.
 - The site's theme and mark are the app's: the layout loads
   `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
   mark is the brand's (`packages/tokens/brand/`, D2.4): drawn inline in

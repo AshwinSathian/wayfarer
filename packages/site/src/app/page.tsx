@@ -54,13 +54,10 @@ function Section({
   return (
     <section aria-labelledby={id} className="border-t border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-        <h2
-          id={id}
-          className="max-w-3xl font-display text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-[2.6rem]"
-        >
+        <h2 id={id} className="max-w-3xl type-site-title-1 font-bold text-ink sm:type-site-title-1">
           {title}
         </h2>
-        {intro && <div className="mt-5 max-w-2xl text-lg text-ink-muted">{intro}</div>}
+        {intro && <div className="mt-5 max-w-2xl type-site-lede text-ink-muted">{intro}</div>}
         {children}
       </div>
     </section>
@@ -72,7 +69,7 @@ function Feature({ title, children, figure }: { title: string; children: ReactNo
   return (
     <div className="grid grid-cols-1 items-start gap-8 border-t border-line py-12 first:border-t-0 first:pt-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
       <div>
-        <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">{title}</h3>
+        <h3 className="type-site-title-2 font-semibold text-ink">{title}</h3>
         <div className="mt-3 space-y-3 text-ink-muted">{children}</div>
       </div>
       <div className="min-w-0">{figure}</div>
@@ -82,9 +79,9 @@ function Feature({ title, children, figure }: { title: string; children: ReactNo
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-line-strong bg-paper-raised">
-      <div className="border-b border-line bg-paper-sunk px-4 py-2 text-sm font-bold text-ink">{title}</div>
-      <div className="p-4 text-sm">{children}</div>
+    <div className="overflow-hidden rounded-lg border border-line-strong bg-paper-raised">
+      <div className="border-b border-line bg-paper-sunk px-4 py-2 type-site-small font-bold text-ink">{title}</div>
+      <div className="p-4 type-site-small">{children}</div>
     </div>
   );
 }
@@ -95,7 +92,7 @@ function Terminal({ label, children }: { label: string; children: ReactNode }) {
     <pre
       tabIndex={0}
       aria-label={label}
-      className="overflow-x-auto rounded-xl bg-code-bg p-5 font-mono text-[0.8rem] leading-6 whitespace-pre text-code-ink"
+      className="overflow-x-auto rounded-lg bg-code-bg p-5 font-code type-site-caption whitespace-pre text-code-ink"
     >
       {children}
     </pre>
@@ -158,31 +155,28 @@ export default function Home() {
         <section aria-labelledby="hero" className="contours">
           <div className="mx-auto grid grid-cols-1 max-w-6xl items-start gap-14 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
             <div className="lg:pt-6">
-              <h1
-                id="hero"
-                className="font-display text-[2.6rem] leading-[1.02] font-bold tracking-[-0.03em] text-ink sm:text-6xl lg:text-[4.4rem]"
-              >
+              <h1 id="hero" className="type-site-title-1 font-bold text-ink sm:type-site-display lg:type-site-display">
                 Your requests go to your API. Nowhere else.
               </h1>
-              <p className="mt-6 max-w-xl text-lg text-ink-muted sm:text-xl">
+              <p className="mt-6 max-w-xl type-site-lede text-ink-muted sm:type-site-lede">
                 Wayfarer is an API client that runs in a browser tab, with nothing to install and no account to make. It
                 has no server of its own: a request goes from your tab to the host you name. <Claims ids={["C-001"]} />
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <a
                   href="/app/"
-                  className="rounded-xl bg-route px-6 py-3.5 text-lg font-bold text-route-ink hover:opacity-90"
+                  className="rounded-sm bg-action px-6 py-3.5 type-site-lede font-bold text-on-action hover:opacity-90"
                 >
                   Open Wayfarer
                 </a>
                 <a
                   href="/docs/"
-                  className="rounded-xl border border-line-strong bg-paper px-6 py-3.5 text-lg font-bold text-ink hover:border-route"
+                  className="rounded-sm border border-line-strong bg-paper px-6 py-3.5 type-site-lede font-bold text-ink hover:border-action"
                 >
                   Read the docs
                 </a>
               </div>
-              <p className="mt-5 text-sm text-ink-muted">
+              <p className="mt-5 type-site-small text-ink-muted">
                 Free and open source, MIT licence. Tested in Chromium, Firefox and WebKit.
               </p>
             </div>
@@ -192,18 +186,15 @@ export default function Home() {
 
         <section aria-labelledby="app" className="border-t border-line bg-paper-sunk">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <h2
-              id="app"
-              className="max-w-3xl font-display text-3xl leading-[1.1] font-bold tracking-tight text-ink sm:text-[2.6rem]"
-            >
+            <h2 id="app" className="max-w-3xl type-site-title-1 font-bold text-ink sm:type-site-title-1">
               The rest of the app is in the same tab.
             </h2>
-            <p className="mt-5 max-w-2xl text-lg text-ink-muted">
+            <p className="mt-5 max-w-2xl type-site-lede text-ink-muted">
               Collections, environments, history, the vault and scripts, kept in your browser.{" "}
               <Claims ids={["C-002"]} />
             </p>
             <img
-              className="mt-12 w-full rounded-xl border border-line-strong shadow-[0_30px_80px_-40px_rgb(18_22_32/0.6)]"
+              className="mt-12 w-full rounded-lg border border-line-strong shadow-[var(--shadow-overlay)]"
               src="/app.jpg"
               srcSet="/app-720.jpg 720w, /app.jpg 1440w"
               sizes="(max-width: 1200px) 100vw, 1152px"
@@ -221,11 +212,11 @@ export default function Home() {
           intro={
             <p>
               Postman Free has one user, and a team needs the Team plan, at $19 a user a month billed yearly (
-              <a className="text-route underline underline-offset-4" href={POSTMAN_PRICING}>
+              <a className="text-action underline underline-offset-4" href={POSTMAN_PRICING}>
                 Postman&apos;s pricing
               </a>
               , read on 19 October 2026). The limit started in March 2026 (
-              <a className="text-route underline underline-offset-4" href={YAAK_POST}>
+              <a className="text-action underline underline-offset-4" href={YAAK_POST}>
                 Yaak&apos;s write-up
               </a>
               ). Wayfarer has no plans, because it has no accounts and no server to keep your work on.
@@ -256,8 +247,8 @@ export default function Home() {
                 </>,
               ],
             ].map(([title, text]) => (
-              <div key={String(title)} className="rounded-xl border border-line bg-paper-raised p-6">
-                <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
+              <div key={String(title)} className="rounded-lg border border-line bg-paper-raised p-6">
+                <h3 className="type-site-lede font-semibold text-ink">{title}</h3>
                 <p className="mt-2 text-ink-muted">{text}</p>
               </div>
             ))}
@@ -270,12 +261,12 @@ export default function Home() {
               title="Secrets are encrypted before they are stored"
               figure={
                 <Panel title="Environment: Production">
-                  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-3 font-mono text-[0.8rem]">
+                  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-3 font-code type-site-caption">
                     <span className="text-ink-muted">base_url</span>
                     <span className="truncate text-ink">https://api.example.com</span>
                     <span className="text-ink-muted">API_TOKEN</span>
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="rounded border border-ok/50 px-1.5 font-sans text-xs font-bold text-ok">
+                      <span className="rounded-xs border border-ok/50 px-1.5 font-text type-site-caption font-bold text-ok">
                         Secret stored
                       </span>
                       <span className="truncate text-ink-muted">{"{{$secret.…}}"}</span>
@@ -310,7 +301,7 @@ export default function Home() {
                       "HAR 1.2 files",
                       "cURL commands, pasted",
                     ].map((format) => (
-                      <li key={format} className="rounded-lg border border-line px-3 py-2 text-ink">
+                      <li key={format} className="rounded-sm border border-line px-3 py-2 text-ink">
                         {format}
                       </li>
                     ))}
@@ -381,7 +372,7 @@ export default function Home() {
               </p>
               <p>
                 It writes JSON and JUnit reports for the CI to keep. See{" "}
-                <a className="text-route underline underline-offset-4" href="/docs/cli/">
+                <a className="text-action underline underline-offset-4" href="/docs/cli/">
                   the command line
                 </a>
                 .
@@ -401,8 +392,8 @@ export default function Home() {
             </p>
           }
         >
-          <div className="mt-10 overflow-hidden rounded-xl border border-line-strong">
-            <table className="w-full border-collapse text-left text-sm">
+          <div className="mt-10 overflow-hidden rounded-lg border border-line-strong">
+            <table className="w-full border-collapse text-left type-site-small">
               <caption className="sr-only">Five rows of the claims ledger</caption>
               <thead className="bg-paper-sunk text-ink">
                 <tr>
@@ -418,13 +409,13 @@ export default function Home() {
                 {evidence.map((claim) => (
                   <tr key={claim.id} className="border-t border-line align-top">
                     <td className="px-4 py-4 text-ink">
-                      <span className="mr-2 font-mono text-xs font-bold text-route">{claim.id}</span>
+                      <span className="mr-2 font-code type-site-caption font-bold text-action">{claim.id}</span>
                       {claim.text}
-                      <span className="mt-2 block font-mono text-xs break-all text-ink-muted md:hidden">
+                      <span className="mt-2 block font-code type-site-caption break-all text-ink-muted md:hidden">
                         {claim.tests.join(", ")}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-4 font-mono text-xs break-all text-ink-muted md:table-cell">
+                    <td className="hidden px-4 py-4 font-code type-site-caption break-all text-ink-muted md:table-cell">
                       {claim.tests.join(", ")}
                     </td>
                   </tr>
@@ -433,7 +424,7 @@ export default function Home() {
             </table>
           </div>
           <p className="mt-6">
-            <a href="/docs/claims/" className="font-bold text-route underline underline-offset-4">
+            <a href="/docs/claims/" className="font-bold text-action underline underline-offset-4">
               Read all {ledger.length} claims, with the CI run this site passed
             </a>
           </p>
@@ -443,16 +434,16 @@ export default function Home() {
           <div className="mt-8 max-w-3xl divide-y divide-line border-y border-line">
             {QUESTIONS.map(([question, answer]) => (
               <details key={question} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 type-site-lede font-semibold text-ink [&::-webkit-details-marker]:hidden">
                   {question}
                   <span
                     aria-hidden="true"
-                    className="text-2xl leading-none text-route transition-transform group-open:rotate-45"
+                    className="type-site-title-2 text-action transition-transform group-open:rotate-45"
                   >
                     +
                   </span>
                 </summary>
-                <p className="mt-3 text-ink-muted [&_a]:text-route [&_a]:underline [&_a]:underline-offset-4">
+                <p className="mt-3 text-ink-muted [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
                   {answer}
                 </p>
               </details>
@@ -460,15 +451,20 @@ export default function Home() {
           </div>
         </Section>
 
-        <section aria-labelledby="start" className="bg-route text-route-ink">
+        <section aria-labelledby="start" className="bg-action text-on-action">
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-16 sm:px-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 id="start" className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 id="start" className="type-site-title-1 font-bold sm:type-site-title-1">
                 Send your first request.
               </h2>
-              <p className="mt-2 text-lg opacity-90">It opens in this tab. Nothing to install, no account to make.</p>
+              <p className="mt-2 type-site-lede opacity-90">
+                It opens in this tab. Nothing to install, no account to make.
+              </p>
             </div>
-            <a href="/app/" className="rounded-xl bg-paper px-6 py-3.5 text-lg font-bold text-ink hover:opacity-90">
+            <a
+              href="/app/"
+              className="rounded-sm bg-paper px-6 py-3.5 type-site-lede font-bold text-ink hover:opacity-90"
+            >
               Open Wayfarer
             </a>
           </div>

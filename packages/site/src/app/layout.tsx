@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { body, display } from "./fonts";
+import { body, code } from "./fonts";
 import "./globals.css";
 import { SITE } from "../lib/meta";
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
+    <html lang="en" className={`${body.variable} ${code.variable}`}>
       <head>
         <script src="/app/theme.js" />
         <script src="/site.js" defer />

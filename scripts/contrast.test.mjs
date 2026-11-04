@@ -263,3 +263,42 @@ test("no field, select, segmented choice, checkbox or file field reads --separat
   for (const file of ["input", "select", "segmented", "checkbox", "file"])
     assert.ok(!/--separator\b/.test(stylesheet(`ui/${file}.css`)), `ui/${file}.css reads --separator`);
 });
+
+// W5.1: the site's colours are the tokens, named in its stylesheet's @theme. Each colour that carries text reads on
+// each of the site's surfaces, the ink's own text on the ink, and a control's edge is 3:1, in both themes and at both
+// contrast levels.
+const siteTheme = Object.fromEntries(
+  [
+    ...readFileSync(new URL("../packages/site/src/app/globals.css", import.meta.url), "utf8").matchAll(
+      /--color-([\w-]+):\s*var\((--[\w-]+)\);/g,
+    ),
+  ].map((m) => [m[1], m[2]]),
+);
+const SITE_SURFACES = ["paper", "paper-raised", "paper-sunk", "code-bg"];
+const SITE_TEXT = ["ink", "ink-muted", "action", "ok", "code-ink", "code-muted", "code-key", "code-string"];
+
+node("the site's stylesheet names a token for every colour it uses", () => {
+  assert.deepEqual(
+    [...SITE_SURFACES, ...SITE_TEXT, "on-action", "line-strong"].filter((name) => !siteTheme[name]),
+    [],
+  );
+});
+
+for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((level) => [name, level]))) {
+  const vars = cssValues(name, level);
+  const colour = (site) => parse(resolve(vars, vars[siteTheme[site]]));
+  node(`${name}, ${level} contrast: the site's text reads on each of its surfaces, and on the ink`, () => {
+    const low = [];
+    for (const surface of SITE_SURFACES) {
+      for (const text of SITE_TEXT) {
+        const ratio = contrast(over(colour(text), colour(surface)), colour(surface));
+        if (ratio < 4.5) low.push(`${text} on ${surface}: ${ratio.toFixed(2)}`);
+      }
+      const edge = contrast(over(colour("line-strong"), colour(surface)), colour(surface));
+      if (edge < 3) low.push(`line-strong on ${surface}: ${edge.toFixed(2)}`);
+    }
+    const onInk = contrast(colour("on-action"), colour("action"));
+    if (onInk < 4.5) low.push(`on-action on action: ${onInk.toFixed(2)}`);
+    assert.deepEqual(low, []);
+  });
+}

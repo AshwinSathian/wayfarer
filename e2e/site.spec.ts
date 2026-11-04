@@ -219,10 +219,10 @@ test("every page has its canonical address, its cards and its own image, and the
 
 // One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).
 for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
-  test(`${path} is not wider than a window of 360, 390, 820 or 1,440 px, and has no axe violation`, async ({
+  test(`${path} is not wider than a window of 320, 360, 390, 820 or 1,440 px, and has no axe violation`, async ({
     page,
   }) => {
-    for (const width of [360, 390, 820, 1440]) {
+    for (const width of [320, 360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(path);
       expect(
@@ -245,6 +245,12 @@ test("the header fits the window when the web fonts do not load", async ({ page 
       await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
       `at ${width} px`,
     ).toBeLessThanOrEqual(0);
+    // Row 1.63: the name does not run under Menu.
+    const name = await page.getByRole("banner").getByRole("link", { name: "Wayfarer", exact: true }).boundingBox();
+    const menu = await page.getByRole("banner").getByText("Menu", { exact: true }).boundingBox();
+    expect((name?.x ?? 0) + (name?.width ?? 0), `the name ends before Menu at ${width} px`).toBeLessThanOrEqual(
+      menu?.x ?? 0,
+    );
   }
 });
 

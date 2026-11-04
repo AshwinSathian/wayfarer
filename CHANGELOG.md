@@ -629,6 +629,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website looks like the app.** The site had its own palette, an
+  indigo for links and buttons, and a display face (Bricolage Grotesque)
+  the app never uses. It now takes its colours, faces, corners and motion
+  from the same design tokens as the app, in both themes: ink for
+  actions, Atkinson Hyperlegible Next for text, JetBrains Mono for
+  addresses and code, and a type scale of its own built from the same
+  face. The pages' social images take the same colours. Lighthouse's
+  mobile scores for the landing stay at 100.
+
 - **The design captures show the app as session D5-a left it.** The
   Chromium baseline of every screen is taken again: Params wraps its rows,
   a run's tab selects no row in the tree, and a tab bar with more tabs

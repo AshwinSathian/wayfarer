@@ -39,8 +39,18 @@ const sources = (pattern, skip = () => false) =>
     .filter((file) => pattern.test(file) && !skip(file))
     .map((file) => [file, readFileSync(join(root, file), "utf8")]);
 
-test("the app uses every token", () => {
-  const files = sources(/\.(css|scss|html|ts)$/, (file) => /design-system\/(tokens|typography)\.css$/.test(file))
+/** The site's sources (W5.1), without the tokens' output. */
+const siteRoot = new URL("../site/src/", import.meta.url).pathname;
+const siteSources = (pattern) =>
+  readdirSync(siteRoot, { recursive: true })
+    .filter((file) => pattern.test(file) && file !== "app/tokens.css")
+    .map((file) => [file, readFileSync(join(siteRoot, file), "utf8")]);
+
+test("the app or the site uses every token", () => {
+  const files = [
+    ...sources(/\.(css|scss|html|ts)$/, (file) => /design-system\/(tokens|typography)\.css$/.test(file)),
+    ...siteSources(/\.(css|tsx?|mjs)$/),
+  ]
     .map(([, text]) => text)
     .join("\n");
   // A type style is used by its class (`type-body`); any other token by its custom property.
@@ -246,4 +256,17 @@ test("no breakpoint is in px: a media query and a matchMedia are in em", () => {
       )
         px.push(`${file}:${n}: ${line.trim()}`);
   assert.deepEqual(px, []);
+});
+
+// W5.1: the site's colours and faces are the tokens'. Its stylesheet and its classes write none of their own.
+test("the site writes no colour or face of its own", () => {
+  const literal = [];
+  // A stylesheet: no colour value and no family but a var(). A class: no arbitrary colour or face (`bg-[#…]`).
+  const css = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch)\(|font-family:(?!\s*var\()/i;
+  const classes = /-\[[^\]]*(#[0-9a-f]{3}|rgba?\(|hsla?\(|oklch\(|rgb_|hsl_)|font-\[/i;
+  for (const [file, text] of siteSources(/\.(css|tsx?)$/))
+    for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1]))
+      if ((file.endsWith(".css") ? css : classes).test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line))
+        literal.push(`${file}:${n}: ${line.trim()}`);
+  assert.deepEqual(literal, []);
 });

@@ -97,7 +97,7 @@
 <p class="type-footnote text-status-error flex items-center gap-1.5"
   ><app-icon name="error" class="icon-xs" /> {{ state.dataError() }}</p
 >
-} @if (state.scriptsSkipped() && !state.running()) {
+} @if ((state.scriptsSkipped() || held()) && !state.running()) {
 <!-- The review is here, not four clicks away in a request's Scripts tab (U-039). -->
 <p class="type-footnote flex flex-wrap items-center gap-x-3 gap-y-1">
   @if (reviewed()) {
@@ -106,8 +106,8 @@
   >
   } @else {
   <span class="text-status-warning flex items-center gap-1.5"
-    ><app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests were sent
-    without them.</span
+    ><app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests {{
+    state.report() ? "were sent" : "are sent" }} without them.</span
   >
   <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="review()">Review scripts…</button>
   }
@@ -127,7 +127,10 @@
   <span>{{ ending() }}</span>
   <span>{{ counts() }}</span>
   } @else {
-  <span>Nothing is sent until you choose Run. Each request is sent as Send would send it, with its scripts.</span>
+  <span
+    >Nothing is sent until you choose Run. Each request is sent as Send would send it{{ held() ? "." : ", with its
+    scripts." }}</span
+  >
   }
 </div>
 

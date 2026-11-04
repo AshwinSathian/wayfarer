@@ -96,3 +96,16 @@ test("it finds a past request in History and loads it", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?from=history`);
 });
+
+// U-156: a run was reached only from the tree's context menu (a right-click or Shift+F10), and nowhere a tester or a
+// Postman user looks. The palette offers each collection's run.
+test("the palette runs a collection: type run, choose it, and its run's tab opens", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  await openPalette(page);
+  await page.keyboard.type("run");
+  await expect(option(page, /^Run Tripwire collection/)).toBeVisible();
+  await option(page, /^Run Tripwire collection/).click();
+  await expect(
+    page.getByRole("tablist", { name: "Open requests" }).getByRole("tab", { name: /^Run Tripwire collection/ }),
+  ).toBeVisible();
+});

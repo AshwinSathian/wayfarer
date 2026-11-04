@@ -82,7 +82,7 @@ test("with the vault unlocked the token is a vault secret: after a reload a send
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
-    await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+    await page.getByRole("button", { name: "No vault", exact: true }).click();
     const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
     await create.locator("input[type='password']").nth(0).fill(PASSPHRASE);
     await create.locator("input[type='password']").nth(1).fill(PASSPHRASE);

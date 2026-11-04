@@ -258,3 +258,37 @@ test("the Auth tab names where an inherited token is set and where its value com
   const echo = await sendAndEcho(page);
   expect(header(echo, "authorization")).toBe("Bearer env-secret-value");
 });
+
+// U-169: Escape, × or Cancel closed a collection's settings and dropped every edit, scripts included (U-060's
+// pattern). With changes, closing asks; Keep editing keeps them, and closing with none asks nothing.
+test("closing a collection's settings with changes asks first, and Keep editing keeps them", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  const open = async () => {
+    await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Settings" }).click();
+    const dialog = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
+    await expect(dialog).toBeVisible();
+    return dialog;
+  };
+  let settings = await open();
+  await page.keyboard.press("Escape");
+  await expect(settings).toBeHidden();
+
+  settings = await open();
+  await settings.getByRole("tab", { name: "Variables" }).click();
+  await settings.getByRole("button", { name: "Add variable" }).click();
+  await settings
+    .getByLabel(/^Variable name, /)
+    .last()
+    .fill("kept");
+  await page.keyboard.press("Escape");
+  const ask = page.getByRole("alertdialog", { name: /Discard the changes/ });
+  await expect(ask).toBeVisible();
+  await ask.getByRole("button", { name: "Keep editing" }).click();
+  await expect(settings).toBeVisible();
+  await expect(settings.getByLabel(/^Variable name, /).last()).toHaveValue("kept");
+
+  await settings.getByRole("button", { name: "Cancel" }).click();
+  await ask.getByRole("button", { name: "Discard changes" }).click();
+  await expect(settings).toBeHidden();
+});

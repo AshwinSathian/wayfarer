@@ -103,6 +103,11 @@ export class SecretsManager {
     return this.secretsService.isUnlocked();
   }
 
+  /** No passphrase has been chosen in this browser yet (U-164). */
+  protected get noVault(): boolean {
+    return this.secretsService.made() === false;
+  }
+
   constructor() {
     // Locking the vault hides what was revealed while it was open.
     effect(() => {

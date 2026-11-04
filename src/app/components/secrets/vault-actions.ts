@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiInput } from "../../ui/input";
@@ -20,6 +20,8 @@ type Mode = "passphrase" | "export" | "import";
 export class VaultActions {
   private readonly vault = inject(SecretsVault);
 
+  /** Whether there is a vault: with none there is no passphrase to change and nothing to export (U-164). */
+  readonly made = input(true);
   /** Secrets were imported: the list is out of date. */
   readonly imported = output<void>();
   readonly requestUnlock = output<void>();

@@ -4,7 +4,7 @@ test.describe("Secrets vault", () => {
   test("@claim:C-027 first-use flow: create a vault passphrase, then it's usable to lock/unlock", async ({ page }) => {
     await page.goto("/app/");
 
-    await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+    await page.getByRole("button", { name: "No vault", exact: true }).click();
     await expect(page.getByText("Create vault passphrase")).toBeVisible();
 
     const passphraseInputs = page.locator("input[type='password']");
@@ -28,7 +28,7 @@ test.describe("Secrets vault", () => {
   test("rejects a mismatched passphrase confirmation on first use", async ({ page }) => {
     await page.goto("/app/");
 
-    await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+    await page.getByRole("button", { name: "No vault", exact: true }).click();
     const passphraseInputs = page.locator("input[type='password']");
     await passphraseInputs.nth(0).fill("first passphrase here");
     await passphraseInputs.nth(1).fill("a different passphrase");

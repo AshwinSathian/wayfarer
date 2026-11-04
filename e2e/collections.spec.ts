@@ -168,7 +168,7 @@ test("a click on the backdrop keeps Save to collection and the vault's dialog op
   await page.keyboard.press("Escape");
   await expect(save).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
+  await page.getByRole("button", { name: "No vault", exact: true }).click();
   const vault = page.getByRole("dialog", { name: /Create vault passphrase|Unlock secrets/ });
   await expect(vault).toBeVisible();
   await vault.locator("input").first().fill("typed");

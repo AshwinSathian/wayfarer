@@ -564,6 +564,18 @@ pre,
   flex: 1 1 0;
   min-height: 300px;
 }
+/* The headers take the pane's height and no more (L-15): a long list scrolls inside it, a short one ends at its
+   last row. They stopped at 288 px with the pane free under them. */
+.response-fill .response-headers-pane:not([inert]),
+.response-fill .response-headers-pane > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .response-headers {
+  min-height: 0;
+}
 
 /* ── The response's status line (U-030) ──────────────────── */
 /* What a response took, in words with a dot between: no pill each. The

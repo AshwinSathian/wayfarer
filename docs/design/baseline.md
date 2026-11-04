@@ -56,6 +56,7 @@ way (three runs, the median), beside its row above.
 | 7 | Run a collection with a data file and read the report | D4-i (#510 to #513) | 5 | 5 | 0 | 0 | 0.51 | 0.51, 0.52, 0.51 |
 | 8 | Find a request sent last week | D5-a (U-144) | 9 | 3 | 0 | 6 | 0.52 | 0.52, 0.53, 0.51 |
 | 2 | Import a Postman collection with scripts and run it | D5-e | 8 (counted from the steps) | 8 | 0 | 0 | not yet measured | — |
+| 3 | Add an environment and switch to it | D5-e | 40 (counted from the steps) | 4 | 1 | 35 | not yet measured | — |
 
 D5-e takes task 2 from 11 inputs to 8: the import's report offers Import
 and review scripts…, which stores the collection with its scripts
@@ -63,6 +64,15 @@ unapproved and opens their review on it. The three inputs it saves are
 opening a request, its Scripts tab and Review scripts. The count is the
 steps of `e2e/design/tasks.spec.ts`; the seconds wait for the task's next
 run.
+
+D5-e takes task 3 from 43 inputs to 40 (from 11 actions to 8). The task's
+first environment was already put in use when it was made: the store
+picks the first of the list when none is in use, so the script's last two
+steps, the toolbar's select and its option, chose what was chosen. D5-e
+makes any environment made while none is in use the one in use (L-19),
+not only a first, drops those two steps, and no longer clicks into the
+variable's name, where the caret already is (U-145). Counted from the
+steps, not measured.
 
 D5-a left task 8 its nine inputs: the request found now opens in a tab of
 its own, beside the request that was open (U-144), and the tree no longer

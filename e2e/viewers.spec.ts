@@ -64,20 +64,27 @@ test("JSON is formatted, can be filtered by path, and is searched with the edito
   await expect(viewSelect(page)).toHaveText("JSON");
   await expect.poll(() => editorText(page)).toContain('"name":"second"');
 
-  const filter = viewer(page).getByRole("textbox", { name: "Filter the JSON by path" });
+  // One field (L-14): a path filters, any other text is searched for.
+  const filter = viewer(page).getByRole("textbox", { name: "Search the response, or filter it by path" });
+  await expect(viewer(page).getByRole("button", { name: "Next search match" })).toHaveCount(0);
   await filter.fill("data.items[*].id");
   await expect.poll(() => editorText(page)).toBe("[11,22]");
+  await expect(viewer(page).getByText("Filtering by path")).toBeVisible();
   await filter.fill("data.items[1].name");
   await expect.poll(() => editorText(page)).toBe('"second"');
-  await filter.fill("data.nothing.here");
+  await filter.fill("$.data.nothing.here");
   await expect(
     viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
   ).toBeVisible();
   // A path cannot reach what JSON does not hold (F63).
-  await filter.fill("data.constructor");
+  await filter.fill(".data.constructor");
   await expect(
     viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
   ).toBeVisible();
+  await filter.fill("second");
+  await expect(viewer(page).getByText("Filtering by path")).toHaveCount(0);
+  await expect(viewer(page).getByRole("button", { name: "Next search match" })).toBeEnabled();
+  await expect.poll(() => editorText(page)).toContain('"name":"first"');
   await filter.fill("");
   await expect.poll(() => editorText(page)).toContain('"name":"first"');
 

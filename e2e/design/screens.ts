@@ -24,7 +24,7 @@ export const SCREENS_INDEX = [
   { id: "composer-auth", shows: "The composer's Auth tab, no auth." },
   { id: "composer-oauth", shows: "The Auth tab's OAuth 2.0 flow, authorization code grant." },
   { id: "composer-scripts", shows: "The composer's Scripts tab with a post-response script." },
-  { id: "composer-settings", shows: "The request's Settings tab: route, redirects, certificate check." },
+  { id: "composer-settings", shows: "The request's Network tab: route, redirects, certificate check." },
   { id: "method-menu", shows: "The method list, open." },
   { id: "graphql-explorer", shows: "A GraphQL body with its schema fetched and the explorer shown." },
   { id: "websocket", shows: "A WebSocket connected, one message sent and echoed." },

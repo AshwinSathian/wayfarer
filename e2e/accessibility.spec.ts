@@ -247,7 +247,7 @@ test.describe("Accessibility (primary flows)", () => {
       await button("Create").click();
       await expect(page.getByRole("dialog")).toHaveCount(0);
       await page.getByText("Sweep", { exact: true }).click({ button: "right" });
-      await page.getByRole("menuitem", { name: "Settings" }).click();
+      await page.getByRole("menuitem", { name: "Collection settings…" }).click();
       const settings = page.getByRole("dialog", { name: /^Collection settings/ });
       for (const tab of ["Auth", "Variables", "Scripts", "Route"]) {
         await settings.getByRole("tab", { name: tab }).click();

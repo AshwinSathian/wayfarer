@@ -45,7 +45,7 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   );
 
   await page.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.getByRole("menuitem", { name: "Folder settings…" }).click();
   const settings = page.getByRole("dialog", { name: "Folder settings: Tripwire folder" });
   // A new folder inherits, and says what from.
   await expect(settings.locator(".auth-inherited")).toHaveText(
@@ -69,7 +69,7 @@ test("a request made in a collection starts with inherit; a collection's setting
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.getByRole("menuitem", { name: "Collection settings…" }).click();
   const settings = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
   // A collection has nothing above it to inherit from.
   await settings.getByRole("combobox", { name: "Type" }).click();
@@ -265,7 +265,7 @@ test("closing a collection's settings with changes asks first, and Keep editing 
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   const open = async () => {
     await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-    await page.getByRole("menuitem", { name: "Settings" }).click();
+    await page.getByRole("menuitem", { name: "Collection settings…" }).click();
     const dialog = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
     await expect(dialog).toBeVisible();
     return dialog;

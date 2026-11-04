@@ -84,7 +84,7 @@ row below.
 | `composer-auth` | The composer's Auth tab, no auth. |
 | `composer-oauth` | The Auth tab's OAuth 2.0 flow, authorization code grant. |
 | `composer-scripts` | The composer's Scripts tab with a post-response script. |
-| `composer-settings` | The request's Settings tab: route, redirects, certificate check. |
+| `composer-settings` | The request's Network tab: route, redirects, certificate check. |
 | `method-menu` | The method list, open. |
 | `graphql-explorer` | A GraphQL body with its schema fetched and the explorer shown. |
 | `websocket` | A WebSocket connected, one message sent and echoed. |

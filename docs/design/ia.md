@@ -26,7 +26,7 @@ At 1,200 px and wider, with the sidebar pinned:
 │ COLLECTIONS  │ GET users ×   POST login ×   +                                 │ tab strip
 │ [New ▾]      ├──────────────────────────────────┬────────────────────────────┤
 │ [Import ▾]   │ GET ▾  address        Copy ▾ Save Send │ 200 OK · 16 ms · 2 kB │
-│              │ Params Headers Body Auth Scripts Settings │ Body Headers Timings │ composer │ response
+│              │ Params Headers Body Auth Scripts Network │ Body Headers Timings │ composer │ response
 │ tree         │                                  │                            │
 ├──────────────┴──────────────────────────────────┴────────────────────────────┤
 │ Route: auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
@@ -387,7 +387,8 @@ it is.
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New folder` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
 | `menu collection-context-menu.ts: New request` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
-| `menu collection-context-menu.ts: Settings` | Context menu of a tree row | Sidebar, context menu | D4-f |
+| `menu collection-context-menu.ts: Collection settings…` | Context menu of a collection; Settings until D5-e (L-20) | Sidebar, context menu | D4-f |
+| `menu collection-context-menu.ts: Folder settings…` | Context menu of a folder; Settings until D5-e (L-20) | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Rename` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Duplicate` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Export…` | Collection's menu | Sidebar, context menu, one dialog with the format and the credentials (U-016) | D4-f, done |
@@ -440,16 +441,16 @@ it is.
 | `oauth-fields.html: On a 401, get a new token and send once more` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `body-panel.html: Body type` | Body tab | Composer, Body tab | D4-d |
 | `body-panel.html: Raw body language` | Body tab | Composer, Body tab | D4-d |
-| `browser-notes.html: Route` | Settings tab of the request | Composer, Settings tab | D4-d |
-| `browser-notes.html: Follow redirects` | Settings tab of the request | Composer, Settings tab | D4-d |
-| `browser-notes.html: Do not verify the server's certificate` | Settings tab of the request | Composer, Settings tab | D4-d |
-| `browser-notes.html: What each of these means, and what the Local Bridge changes` | Settings tab of the request | Composer, Settings tab | D4-d |
+| `browser-notes.html: Route` | Network tab of the request (Settings until D5-e, L-20) | Composer, Network tab | D4-d |
+| `browser-notes.html: Follow redirects` | Network tab of the request (Settings until D5-e, L-20) | Composer, Network tab | D4-d |
+| `browser-notes.html: Do not verify the server's certificate` | Network tab of the request (Settings until D5-e, L-20) | Composer, Network tab | D4-d |
+| `browser-notes.html: What each of these means, and what the Local Bridge changes` | Network tab of the request (Settings until D5-e, L-20) | Composer, Network tab | D4-d |
 | `composer-sections.html: Params` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Headers` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Body` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Auth` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Scripts` | Composer, sections as an accordion below 768 px | Composer | D4-d |
-| `composer-sections.html: Settings` | Composer, sections as an accordion below 768 px | Composer | D4-d |
+| `composer-sections.html: Network` | Composer, sections as an accordion below 768 px; Settings until D5-e (L-20) | Composer | D4-d |
 | `composer.html: Send anyway` | Beside an unresolved variable's error | Composer (U-037) | D4-d |
 | `composer.html: Request` | — (new in D4-d) | Composer below 768 px: the request's parts, a pane of their own (U-028) | D4-d |
 | `composer.html: Response` | — (new in D4-d) | Composer below 768 px: the response, a pane of its own; a send opens it (U-028) | D4-d |
@@ -458,7 +459,7 @@ it is.
 | `composer.html: Body` | Composer | Composer | D4-d |
 | `composer.html: Auth` | Composer | Composer | D4-d |
 | `composer.html: Scripts` | Composer | Composer | D4-d |
-| `composer.html: Settings` | Composer | Composer | D4-d |
+| `composer.html: Network` | Composer: the route, redirects, the certificate check, what the browser does; Settings until D5-e (L-20) | Composer | D4-d |
 | `headers-panel.html: Edit as rows / Edit as text` | Headers tab | Composer, Headers tab | D4-d |
 | `multipart-editor.html: Send` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Type of` | Body tab, multipart form | Composer, Body tab | D4-d |

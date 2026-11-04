@@ -90,7 +90,12 @@
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <!-- A row is not a button: it holds one that selects it, stretched over the row, and the row's own buttons beside it. -->
-      <div class="env-item" [class.active]="selectedId() === env.meta.id" [class.current]="activeEnvId === env.meta.id">
+      <div
+        class="env-item"
+        [attr.data-env]="env.meta.id"
+        [class.active]="selectedId() === env.meta.id"
+        [class.current]="activeEnvId === env.meta.id"
+      >
         <button
           type="button"
           class="env-item-select"
@@ -110,7 +115,7 @@
           @if (activeEnvId !== env.meta.id) {
           <button
             uiButton
-            class="btn-secondary btn-sm"
+            class="env-use btn-secondary btn-sm"
             [attr.aria-label]="'Use ' + env.name + ' for requests'"
             (click)="setActive(env)"
             >Use</button

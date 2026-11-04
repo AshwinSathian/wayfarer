@@ -29,7 +29,7 @@ export function warningsText(limits: BrowserLimits): string {
 /**
  * What will go wrong with the request as it is, said above it: the browser
  * blocks the address, or drops a header (P2.14). The certificate check
- * turned off shows here too, from every tab, since it is set in Settings
+ * turned off shows here too, from every tab, since it is set in the Network tab
  * (`BrowserNotes`). The rest of what the browser does is in that tab.
  */
 @Component({

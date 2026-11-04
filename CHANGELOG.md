@@ -718,6 +718,28 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The response body has more room.** A JSON body had two rows of
+  controls above it: the search with its count and arrows, then a
+  separate field for a path. Now there is one field. Type a path such as
+  `data.items[*].id` (or one that starts with `$`, `.` or `[`) and it
+  filters the body, with "Filtering by path" beside it; type anything
+  else and it searches. The count and the arrows show only while you are
+  searching. The Headers tab also uses the pane's full height: the list
+  used to stop at 288 px and scroll inside itself, with empty pane below.
+
+- **A new environment is put in use when none is.** If you chose No
+  environment and then made one, the first environment in the list was
+  put back in use, not the one you made. Now the new one is. After you
+  name it, focus moves to its row, or to its Use button when another
+  environment is in use, so switching takes one key. Before, focus was
+  lost when the name field closed.
+
+- **"Settings" means one thing.** The request's tab for its route,
+  redirects and certificate check is now **Network**. A collection's
+  menu item is **Collection settings…** and a folder's is **Folder
+  settings…**. Before, all three were called "Settings", the same name
+  as the app's Settings dialog.
+
 - **An import with scripts can end in their review.** When the file is
   one collection with scripts, the import's report has a third button,
   Import and review scripts…. It imports the collection untrusted, as

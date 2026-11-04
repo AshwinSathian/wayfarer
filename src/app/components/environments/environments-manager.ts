@@ -96,6 +96,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   protected readonly importPipeline = inject(ImportPipeline);
   private readonly persistence = inject(StoragePersistence);
   private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");
   private readonly valueInputs = viewChildren<ElementRef<HTMLInputElement>>("valueInput");
   private readonly vaultPassphraseInput = viewChild<ElementRef<HTMLInputElement>>("vaultPassphraseField");
@@ -267,7 +268,16 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     if (first) {
       this.editorTab.set("pairs");
       this.addVariable(first);
+      return;
     }
+    // The name's field has gone: focus goes on in the new row, on Use when another is in use (L-19).
+    afterNextRender(
+      () => {
+        const row = this.host.nativeElement.querySelector(`[data-env="${CSS.escape(doc.meta.id)}"]`);
+        (row?.querySelector<HTMLElement>(".env-use") ?? row?.querySelector<HTMLElement>(".env-item-select"))?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   closeNewEnvironmentDialog(): void {

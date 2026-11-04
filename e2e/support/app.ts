@@ -257,9 +257,9 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
-/** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */
+/** Opens the request's Network tab: its route, redirects, certificate check and what the browser does to it. */
 export async function openRequestSettings(page: Page): Promise<void> {
-  await page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.locator("app-composer").getByRole("tab", { name: "Network", exact: true }).click();
 }
 
 export async function send(page: Page): Promise<void> {

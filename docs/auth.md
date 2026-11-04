@@ -1,6 +1,6 @@
 # Auth
 
-The Auth tab of a request, and the Settings of a collection or a folder,
+The Auth tab of a request, and the settings of a collection or a folder,
 set how a request signs in. A request set to **Inherit from parent** is
 sent with the auth of the nearest folder that sets one, and otherwise with
 its collection's; the tab says what will be sent and where it comes from.

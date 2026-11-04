@@ -178,10 +178,11 @@ const TASKS: Task[] = [
       await user.type(page.locator("#new-env-name-input"), "Staging", false);
       await user.press("Enter");
       await user.click(button(page, "Add variable"));
-      await user.type(page.getByPlaceholder("Name", { exact: true }).last(), "baseUrl");
+      // The caret is in the new row's name (U-145).
+      await expect(page.getByPlaceholder("Name", { exact: true }).last()).toBeFocused();
+      await user.type(page.getByPlaceholder("Name", { exact: true }).last(), "baseUrl", false);
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), ECHO);
-      await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
-      await user.click(page.getByRole("option", { name: "Staging" }));
+      // Made while none is in use, it is the one in use (L-19): the toolbar's select is not part of the task.
       await expect(page.getByRole("banner").getByRole("combobox", { name: "Environment" })).toContainText("Staging");
     },
   },

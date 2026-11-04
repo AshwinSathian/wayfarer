@@ -61,7 +61,7 @@ test("a collection variable and a global reach the server, an environment's valu
 
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   // A collection's variables are in its settings since P4.9, with its auth and its scripts.
-  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.getByRole("menuitem", { name: "Collection settings…" }).click();
   await page
     .getByRole("dialog", { name: /^Collection settings/ })
     .getByRole("tab", { name: "Variables" })

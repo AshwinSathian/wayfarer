@@ -324,7 +324,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "composer-settings": async (page) => {
     await seed(page);
     await openRequest(page, "List pets");
-    await composerTab(page, "Settings");
+    await composerTab(page, "Network");
   },
   "method-menu": async (page) => {
     await page.goto("/app/");
@@ -380,7 +380,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "collection-settings": async (page) => {
     await seed(page);
     await contextMenu(page, "Pet store");
-    await page.getByRole("menuitem", { name: "Settings" }).click();
+    await page.getByRole("menuitem", { name: "Collection settings…" }).click();
     await expect(page.getByRole("dialog", { name: /^Collection settings/ })).toBeVisible();
   },
   "new-collection": async (page) => {

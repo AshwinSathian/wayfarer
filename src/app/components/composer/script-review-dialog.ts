@@ -67,6 +67,14 @@ export class ScriptReviewDialog {
       .toReview()
       .reduce((sum, request) => sum + (request.pre.trim() ? 1 : 0) + (request.post.trim() ? 1 : 0), 0),
   );
+  /** Where the scripts are: "the collection, 1 folder and 2 requests". The list may scroll past the window: this says
+   * how much is trusted before the button is reached. */
+  protected readonly places = computed(() => {
+    const count = (kind: string) => this.trust.toReview().filter((entry) => entry.kind === kind).length;
+    const some = (kind: string) => (count(kind) ? [`${count(kind)} ${kind}${count(kind) === 1 ? "" : "s"}`] : []);
+    const parts = [...(count("collection") ? ["the collection"] : []), ...some("folder"), ...some("request")];
+    return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+  });
   protected readonly scripts = computed(() =>
     this.trust.toReview().flatMap((holder) =>
       (

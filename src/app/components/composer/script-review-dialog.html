@@ -1,8 +1,9 @@
 <ui-dialog header="Review scripts" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
   <div class="flex flex-col gap-4">
     <p class="type-callout text-label-secondary">
-      These scripts run each time their requests are sent. A script can change your variables, and with them where a
-      later request goes. Read them before you trust them.
+      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ places() }}. They run each time their requests are
+      sent. A script can change your variables, and with them where a later request goes. Read them before you trust
+      them.
     </p>
     <!-- One script each, in the order they run (U-040): which it is, whether this review is its first, and what of
          Postman's it uses that the app does not have. -->

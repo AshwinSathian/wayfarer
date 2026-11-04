@@ -36,7 +36,11 @@ At 1,200 px and wider, with the sidebar pinned:
 Below 1,200 px the sidebar is a drawer over the page; below 768 px the
 composer's sections stack and the status bar's controls go to the toolbar
 (the lock) and to Settings (the rest), as `CLAUDE.md` describes. This map
-changes neither width.
+changes neither width. Where the composer itself is narrower than 62 em
+(992 px: a 1,024 px window, or up to about 1,400 px beside the pinned
+sidebar), the response goes under the request, with the line between them
+across (D5-e, L-6, L-7); Settings › General can keep it beside or under
+whatever the room.
 
 Each region holds one kind of thing:
 
@@ -536,6 +540,8 @@ it is.
 | `palette: environments` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: focus-address-bar` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: toggle-theme` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: response-under` | — (new in D5-e, L-6, L-7): "Put the response under the request"; Settings › General, Response | Palette (the shell's) | D5-e |
+| `palette: response-beside` | — (new in D5-e, L-6, L-7): "Put the response beside the request"; Settings › General, Response | Palette (the shell's) | D5-e |
 | `palette: toggle-sidebar` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: open-history` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: lock-secrets` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
@@ -641,7 +647,7 @@ it is.
 | `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
-| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before | The split between the request and the response | — |
+| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before. Across, with Up and Down, when the response is under the request (D5-e, L-6, L-7) | The split between the request and the response | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |
 | `tree.ts: node.ariaLabel ?? node.label` | The collections tree | Sidebar | — |
 

@@ -1,13 +1,16 @@
 import { NgTemplateOutlet } from "@angular/common";
 import {
   computed,
+  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   effect,
   inject,
   input,
   output,
+  signal,
   untracked,
   viewChild,
 } from "@angular/core";
@@ -21,6 +24,7 @@ import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
 import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
+import { PaneLayout } from "../../services/pane-layout";
 import { Splitter } from "../../ui/splitter";
 import { UiButton } from "../../ui/button";
 import { UiTabList } from "../../ui/tabs";
@@ -44,14 +48,25 @@ import { ScriptsPanel } from "./scripts-panel";
 import { TabStrip } from "./tab-strip";
 import { VariableChips } from "./variable-chips";
 
+import { AiDrafted } from "../ai-draft/ai-drafted";
+import { AiSettings } from "../../services/ai-settings";
+import { ModelCalls } from "../../services/model-calls";
+
+/**
+ * Below this width the response goes under the request. 62 em, not 64: a 1,440 px window beside the pinned sidebar
+ * leaves the composer 1,024 px, and U-003's split there must not flip on a scrollbar or a rounding. A 1,024 px
+ * window leaves it 960 px, and stacks.
+ */
+const STACK_BELOW_EM = 62;
+const STACKED_SIZES: readonly [number, number] = [40, 60];
+const STACKED_MIN: readonly [number, number] = [20, 30];
+const BESIDE_MIN: readonly [number, number] = [28, 22];
+
 /**
  * The request composer: the address row, one panel per part of the request,
  * and the response beside or below them. The request itself is the draft in
  * `WorkspaceStore`; `ComposerView` holds which panel is open.
  */
-import { AiDrafted } from "../ai-draft/ai-drafted";
-import { AiSettings } from "../../services/ai-settings";
-import { ModelCalls } from "../../services/model-calls";
 @Component({
   selector: "app-composer",
   imports: [
@@ -108,13 +123,25 @@ export class Composer {
    */
   readonly isMobile = input(false);
 
+  private readonly layout = inject(PaneLayout);
+  /** The composer's own box is narrower than `STACK_BELOW_EM`: the window's width does not say it (L-6, L-7). */
+  private readonly narrow = signal(false);
+  /** The response under the request: chosen in Settings, or by the room the two have. */
+  protected readonly stacked = computed(() => {
+    const choice = this.layout.choice();
+    return choice === "room" ? this.narrow() : choice === "under";
+  });
   /**
    * The split until one is chosen (U-003). From 1,440 px the response gets the larger part: beside the pinned
-   * sidebar it was 432 px to the composer's 530. Below that the composer keeps it, so its six tabs fit.
+   * sidebar it was 432 px to the composer's 530. Below that the composer keeps it, so its six tabs fit. Stacked,
+   * the request takes at most two fifths of the height and the response keeps at least 30%.
    */
-  protected readonly splitSizes: readonly [number, number] = matchMedia("(min-width: 90em)").matches
-    ? [45, 55]
-    : [55, 45];
+  private readonly wideSplit: readonly [number, number] = matchMedia("(min-width: 90em)").matches ? [45, 55] : [55, 45];
+  protected readonly split = computed(() =>
+    this.stacked()
+      ? { key: "wayfarer:composer-split-stacked", sizes: STACKED_SIZES, min: STACKED_MIN }
+      : { key: "wayfarer:composer-split", sizes: this.wideSplit, min: BESIDE_MIN },
+  );
 
   /** Not there while the open tab is a run's. */
   private readonly addressRow = viewChild(AddressRow);
@@ -149,7 +176,24 @@ export class Composer {
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
     const keydown = (event: KeyboardEvent) => this.onKeydown(event);
     window.addEventListener("keydown", keydown, true);
-    inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => window.removeEventListener("keydown", keydown, true));
+
+    // The request and the response share the composer's width, and the pinned sidebar or a narrow window take
+    // from it: its own box decides, not a media query. In em of the root, as the breakpoints are (U-153).
+    const appRef = inject(ApplicationRef);
+    const observer = new ResizeObserver(([entry]) => {
+      // A box with no width (not in the page) says nothing about the room.
+      if (!entry.contentRect.width) return;
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const narrow = entry.contentRect.width < STACK_BELOW_EM * rem;
+      if (narrow === this.narrow()) return;
+      this.narrow.set(narrow);
+      // Drawn before this frame is painted: at the next render the first frame showed the other layout.
+      appRef.tick();
+    });
+    observer.observe(inject<ElementRef<HTMLElement>>(ElementRef).nativeElement);
+    destroyRef.onDestroy(() => observer.disconnect());
 
     // First run (D4.2): an empty request waits for its address, so the caret starts there and typing sends a
     // request with Enter. Not on a phone, where focus would open the keyboard over the page.

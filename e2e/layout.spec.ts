@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { openEnvironments, toolbarOrDrawer } from "./support/app";
+import { test, expect, type Page } from "@playwright/test";
+import { openEnvironments, openPalette, openSettings, toolbarOrDrawer } from "./support/app";
 import { ECHO } from "./support/echo";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
@@ -68,7 +68,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The composer ran 49 px past the window (no box-sizing reset), and below
   // 1024 px the toolbar was wider than the space beside the pinned sidebar.
-  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 390, 360, 320]) {
+  for (const width of [1440, 1220, 1200, 1100, 1024, 900, 820, 768, 767, 640, 420, 390, 360, 320]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
@@ -291,10 +291,11 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect.poll(at).toBe(45);
   });
 
-  // U-003: from 1,440 px the response has the larger part of the split; below, the composer keeps it.
+  // U-003: from 1,440 px the response has the larger part of the split; below, the composer keeps it. 1,100 px and
+  // not 1,300: beside the pinned sidebar a 1,300 px window puts the response under the request (L-6, L-7).
   for (const [width, wider] of [
     [1460, "response"],
-    [1300, "composer"],
+    [1100, "composer"],
   ] as const) {
     test(`at ${width} px the ${wider} has the larger part of the split`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -327,6 +328,104 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     expect((await composer.boundingBox())!.width).toBeGreaterThanOrEqual(total * 0.28 - 1);
     await dragTo(1439);
     expect((await response.boundingBox())!.width).toBeGreaterThanOrEqual(total * 0.22 - 1);
+  });
+});
+
+// L-6, L-7: below 62 em of work area (not of window) the two panes were columns of 300 to 420 px; the status line
+// wrapped to three lines and the JSON scrolled sideways. The response goes under the request there.
+test.describe("the response under the request", () => {
+  const gutter = (page: Page) => page.locator(".composer-response-splitter").getByRole("separator");
+
+  for (const [width, orientation] of [
+    [820, "horizontal"],
+    [1024, "horizontal"],
+    [1100, "vertical"],
+    [1220, "horizontal"],
+    [1460, "vertical"],
+  ] as const) {
+    test(`at ${width} px the line between the request and the response is ${orientation}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/app/");
+      await expect(gutter(page)).toHaveAttribute("aria-orientation", orientation);
+    });
+  }
+
+  test("at 820 px the response is under the request, as wide as it, and its status line is one line", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 820, height: 900 });
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+    const composer = (await page.locator(".composer-pane").boundingBox())!;
+    const response = (await page.locator(".response-pane").boundingBox())!;
+    expect(response.y).toBeGreaterThanOrEqual(composer.y + composer.height);
+    expect(Math.abs(response.width - composer.width)).toBeLessThan(2);
+    // The request takes at most two fifths of the split until it is moved.
+    expect(response.height).toBeGreaterThan(composer.height);
+    const status = await page.locator("app-response-viewer .response-status").boundingBox();
+    expect(status?.height ?? 0).toBeLessThanOrEqual(56);
+  });
+
+  test("@claim:C-031 each orientation keeps its own split across a reload", async ({ page }) => {
+    await page.setViewportSize({ width: 820, height: 900 });
+    await page.goto("/app/");
+    const composer = page.locator(".composer-pane");
+    const box = (await gutter(page).boundingBox())!;
+    const before = (await composer.boundingBox())!.height;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + 120, { steps: 10 });
+    await page.mouse.up();
+    const after = (await composer.boundingBox())!.height;
+    expect(after).toBeGreaterThan(before + 80);
+    expect(await page.evaluate(() => localStorage.getItem("wayfarer:composer-split-stacked"))).not.toBeNull();
+    // The split beside the request is not the one that moved.
+    expect(await page.evaluate(() => localStorage.getItem("wayfarer:composer-split"))).toBeNull();
+
+    await page.reload();
+    await expect.poll(async () => Math.abs((await composer.boundingBox())!.height - after)).toBeLessThan(2);
+    await page.setViewportSize({ width: 1460, height: 900 });
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "vertical");
+    await expect(gutter(page)).toHaveAttribute("aria-valuenow", "45");
+  });
+
+  test("Settings › General chooses beside or under whatever the room, and the choice stays after a reload", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 820, height: 900 });
+    await page.goto("/app/");
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "horizontal");
+    const dialog = await openSettings(page, "General");
+    await dialog.getByRole("radio", { name: "Beside the request" }).click();
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "vertical");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await page.reload();
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "vertical");
+    expect(await page.evaluate(() => localStorage.getItem("wayfarer:pane-layout"))).toBe("beside");
+
+    await page.setViewportSize({ width: 1460, height: 900 });
+    const again = await openSettings(page, "General");
+    await again.getByRole("radio", { name: "Under the request" }).click();
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "horizontal");
+    await again.getByRole("radio", { name: "By the room it has" }).click();
+    await expect(gutter(page)).toHaveAttribute("aria-orientation", "vertical");
+  });
+
+  test("the palette puts the response under the request, and beside it again", async ({ page }) => {
+    await page.setViewportSize({ width: 1460, height: 900 });
+    await page.goto("/app/");
+    for (const [command, orientation] of [
+      ["Put the response under the request", "horizontal"],
+      ["Put the response beside the request", "vertical"],
+    ] as const) {
+      const field = await openPalette(page);
+      await field.fill(command);
+      await page.getByRole("listbox", { name: "Results" }).getByRole("option", { name: command }).click();
+      await expect(gutter(page)).toHaveAttribute("aria-orientation", orientation);
+    }
   });
 });
 

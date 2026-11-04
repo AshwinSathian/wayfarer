@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import { Splitter } from "./splitter";
@@ -157,6 +157,103 @@ describe("ui-splitter", () => {
     await fixture.whenStable();
     expect(width("start")).toBeCloseTo(before, 0);
     expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual([55, 45]);
+    fixture.destroy();
+  });
+});
+
+const STACKED_KEY = "test:split-stacked";
+
+@Component({
+  imports: [Splitter],
+  template: `
+    <ui-splitter
+      style="width: 100px; height: 1008px"
+      [orientation]="orientation()"
+      [storageKey]="orientation() === 'horizontal' ? '${STACKED_KEY}' : '${KEY}'"
+      [sizes]="[55, 45]"
+      [minSizes]="[28, 22]"
+      ariaLabel="Resize panes"
+    >
+      <div uiSplitterStart id="start">start</div>
+      <div uiSplitterEnd id="end">end</div>
+    </ui-splitter>
+  `,
+})
+class StackedHost {
+  readonly orientation = signal<"vertical" | "horizontal">("horizontal");
+}
+
+// L-6, L-7: the response under the request, with the line across.
+describe("ui-splitter, one pane above the other", () => {
+  afterEach(() => {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(STACKED_KEY);
+  });
+
+  async function setup() {
+    const fixture = TestBed.createComponent(StackedHost);
+    document.body.append(fixture.nativeElement);
+    await fixture.whenStable();
+    const root: HTMLElement = fixture.nativeElement;
+    const gutter = root.querySelector<HTMLElement>('[role="separator"]')!;
+    const height = (id: string) =>
+      root.querySelector<HTMLElement>(`#${id}`)!.parentElement!.getBoundingClientRect().height;
+    const press = async (key: string) => {
+      gutter.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+      await fixture.whenStable();
+    };
+    gutter.setPointerCapture = () => undefined;
+    gutter.releasePointerCapture = () => undefined;
+    const pointer = (type: string, clientY: number) =>
+      gutter.dispatchEvent(
+        new PointerEvent(type, { clientY, pointerId: 1, button: 0, bubbles: true, cancelable: true }),
+      );
+    return { fixture, gutter, height, press, pointer };
+  }
+
+  it("lays the panes out by height, and says the separator is horizontal", async () => {
+    const { fixture, gutter, height } = await setup();
+    expect(height("start")).toBeCloseTo(550.4, 0);
+    expect(height("end")).toBeCloseTo(449.6, 0);
+    expect(gutter.getBoundingClientRect().height).toBe(8);
+    expect(gutter.getAttribute("aria-orientation")).toBe("horizontal");
+    fixture.destroy();
+  });
+
+  it("Up and Down move the gutter, Left and Right do not, and a drag follows the pointer down", async () => {
+    const { fixture, gutter, height, press, pointer } = await setup();
+    const before = height("start");
+    await press("ArrowDown");
+    expect(height("start")).toBeCloseTo(before + 1008 * 0.02, 0);
+    await press("ArrowUp");
+    expect(height("start")).toBeCloseTo(before, 0);
+    await press("ArrowRight");
+    expect(height("start")).toBeCloseTo(before, 0);
+
+    const at = gutter.getBoundingClientRect().top;
+    pointer("pointerdown", at + 4);
+    pointer("pointermove", at + 104);
+    pointer("pointerup", at + 104);
+    await fixture.whenStable();
+    expect(gutter.getBoundingClientRect().top).toBeCloseTo(at + 100, 0);
+    expect(JSON.parse(localStorage.getItem(STACKED_KEY)!)[0]).toBeGreaterThan(60);
+    fixture.destroy();
+  });
+
+  it("keeps a ratio for each orientation, under its own key", async () => {
+    localStorage.setItem(KEY, "[70,29]");
+    const { fixture, gutter, press } = await setup();
+    await press("End");
+    expect(gutter.getAttribute("aria-valuenow")).toBe("77");
+
+    fixture.componentInstance.orientation.set("vertical");
+    await fixture.whenStable();
+    expect(gutter.getAttribute("aria-orientation")).toBe("vertical");
+    expect(gutter.getAttribute("aria-valuenow")).toBe("70");
+
+    fixture.componentInstance.orientation.set("horizontal");
+    await fixture.whenStable();
+    expect(gutter.getAttribute("aria-valuenow")).toBe("77");
     fixture.destroy();
   });
 });

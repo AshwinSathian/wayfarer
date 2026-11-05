@@ -1,4 +1,4 @@
-import { Directive } from "@angular/core";
+import { Directive, HostAttributeToken, inject } from "@angular/core";
 
 /**
  * A text field (D3.3k): the platform's `<input>` or `<textarea>` with none
@@ -10,10 +10,14 @@ import { Directive } from "@angular/core";
  *
  * `field-inline` is the short field of a tree row's rename; `address-field`
  * and `method-field` are the halves of the address bar, which draws their box.
- * Focus, the keys, `disabled` and the value are the element's own.
+ * Focus, the keys, `disabled` and the value are the element's own. A text
+ * area grows with its text (`field-sizing`), so its `rows` are its least
+ * height: `--ui-rows` hands them to `input.css`.
  */
 @Directive({
   selector: "input[uiInput], textarea[uiInput]",
-  host: { class: "ui-input" },
+  host: { class: "ui-input", "[style.--ui-rows]": "rows" },
 })
-export class UiInput {}
+export class UiInput {
+  protected readonly rows = inject(new HostAttributeToken("rows"), { optional: true });
+}

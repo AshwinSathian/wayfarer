@@ -1969,6 +1969,7 @@ name a new collection itself.
 Evidence: `src/app/components/composer/save-as-dialog.html:9-12`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): with no collection yet, the dialog names one ("My collection") and Save makes it and saves the request into it in one act.
 
 **U-164. With no vault, the app says the vault is locked.**
 Severity 3. H1, H2. PE, OC.
@@ -2196,6 +2197,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/save-request-390-light.png`
 `src/app/components/composer/save-as-dialog.html:15-25`, `:60`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): the Name starts as the tab's name, selected, and Save is enabled.
 
 **U-178. F2, Alt+Arrow and Shift+F10 work in the tree and are written
 nowhere.** Severity 3. H6, H10. SD, QA.

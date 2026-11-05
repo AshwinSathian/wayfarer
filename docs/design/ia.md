@@ -509,6 +509,8 @@ it is.
 | `response-viewer.html: Timings` | Response | Response | D4-e |
 | `response-viewer.html: Events` | Response | Response | D4-e |
 | `response-viewer.html: Tests` | Response | Response | D4-e |
+| `response-viewer.html: Add a test` | Response, Tests tab, with no tests | Response, Tests tab: opens the request's Scripts (U-202) | D6-a |
+| `response-viewer.html: Open Scripts` | Response, over its tabs, when scripts are held | Response: opens the request's Scripts, where they are reviewed (U-202) | D6-a |
 | `response-viewer.html: View the body as` | Response | Response | D4-e |
 | `response-viewer.html: Previous search match` | Response | Response | D4-e |
 | `response-viewer.html: Next search match` | Response | Response | D4-e |

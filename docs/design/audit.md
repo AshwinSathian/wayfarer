@@ -1957,6 +1957,7 @@ Evidence: `src/app/state/tabs-storage.ts:124-126`;
 `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): a line under the download buttons says the report is kept only until its tab closes or the page reloads, and to download it to keep it.
 
 **U-163. The first save cannot make the collection it needs.**
 Severity 3. H7, H3. SD, OC.
@@ -2350,6 +2351,7 @@ Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
 Evidence: `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): the counts sentence is only the run's announcement now (`sr-only` in its status), and the summary under it is the one drawn statement of the counts.
 
 **U-192. The environment editor's tab says "Key / Value" over columns
 headed Name and Value.** Severity 4. H4. TP.

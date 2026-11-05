@@ -912,31 +912,240 @@ has never heard of it and gets them into the app.
   - AC: every severity 1 and 2 finding of the audit appears with its
     before and after, or with the reason it was accepted.
 
-### Phase T: Teams (4 or more sessions, after D5)
+### Phase T: Teams (6 sessions, after D5; split in row 1.73)
 
 **Goal:** a team shares its work without a Wayfarer server, in the four
 ways the maintainer chose, built in this order.
 
-- [ ] **T0** Re-read and split; turn D4.8's specs into tasks with stored
+**Sessions** (row 1.73): **T-a** T1, files and links, with no change to
+the database; **T-b1** T2's format, the Local Bridge's `--folder` and
+Chromium's folder; **T-b2** T2's outside changes, review, Git's conflict
+markers and the round trip; **T-c1** the team server's program in its
+`relay` mode, the device key, invites and the space's key; **T-c2** T3's
+sync, presence, Changes, conflicts and Put back; **T-d** T4, the `server`
+mode, its Docker image and `docs/team-server.md`. Each session takes the
+specs of `docs/design/teams/` for its way; a task below names the spec
+section it builds. The rules of `docs/design/teams/README.md`, "What every
+way shares", hold for every task: a task that cannot keep one stops and
+asks the maintainer.
+
+**Waits for the maintainer:** this split (row 1.73) before T-a starts;
+the database change of T2.0 before T-b1 starts; T2.3 (`--folder`, the
+bridge's security model) and T3.1 (a new program that carries a team's
+data) on their PRs; each claim below in the PR that adds it (a change to
+public claims).
+
+- [x] **T0** Re-read and split; turn D4.8's specs into tasks with stored
   shapes and validators.
   - AC: a section 14 row with the split; each new stored shape has a
     validator task and a claim to add.
-- [ ] **T1** Files and links: share a collection or workspace as a file
-  or as a link that carries the encrypted content in its fragment (the
-  part a server never receives).
+  - Done (row 1.73).
+- [ ] **T1** Files and links (session T-a): share a collection or
+  workspace as a file or as a link that carries the encrypted content in
+  its fragment (the part a server never receives).
   - AC: a claim and an e2e that the link's content never reaches a
     server; the receiver sees a review of what changes before it is
     written.
-- [ ] **T2** Git, as D1.6 decided.
+  - **T1.1** The link's codec, in `packages/core/src/share/link.ts`
+    (`share.md`, "File or link"). The content is the collection file
+    `exportCollection` writes today (through `redactExport`), compressed
+    (`CompressionStream("deflate-raw")`) and encrypted with AES-GCM-256 under
+    a random key and a random 12-byte IV. The fragment is
+    `#share=<base64url(iv ‖ ciphertext)>`; the key is a separate code of
+    base64url text (TQ2), or `&key=<code>` in the fragment when the sender
+    chooses "Put the key in the link". No version field (one version).
+    - Stored shape: none. A file or a link is a copy, not a link between
+      copies (`share.md`, "What is stored").
+    - Validator: `parseShareFragment` refuses any fragment that is not
+      exactly those parameters, an IV that is not 12 bytes and a code that
+      is not 32 bytes; the decrypted text goes to `importText` as a file
+      does, so the collection is held to `validateRequestContent` and
+      `validateRows` and must carry `$id` `wayfarer/collection`.
+    - Tests: core property test, `decode(encode(c)) = c`; a byte flipped
+      in the IV, the ciphertext or the code is refused with `ImportError`.
+  - **T1.2** Share… (`share.md`): an entry of a collection's context menu
+    and the palette, the Share dialog with File and Link, Include
+    credentials off by default, and the destination (the file's name, the
+    link's length) said before the action is enabled. A link longer than
+    the limit offers a file (T1.4).
+  - **T1.3** Receive a link (`receive.md`, "Link"): at start the app reads
+    `location.hash`, removes it from the address bar
+    (`history.replaceState`) before anything else, asks for the code when
+    the key is not in the link, and hands the text to `ImportPipeline`: the
+    same report, nothing stored before Import, one transaction per
+    collection, `scriptTrust: { trusted: false }`. The service worker
+    serves the shell for a link as for any navigation.
+  - **T1.4** TQ3 measured: the longest link that opens in each engine
+    (Playwright, three engines) and the size at which mail and chat
+    clients are known to cut one; the limit is set from it (default
+    32 kB) and the measure recorded in the PR.
+  - Decision (row 1.73): **no base copy in T1.** `receive.md` keeps a
+    base for a file and a link "so that a newer file of the same
+    collection can be compared three ways". That needs the `bases` store,
+    which is T2.0's database change. Without it, a newer file is compared
+    two ways with what is stored, which the import report does today
+    (U-161); against it, a change made here and one made by the sender to
+    the same field show as one difference, not as a conflict. The base
+    for files and links comes with T2.0's stores, and T-b2 compares a
+    newer file three ways.
+  - Claims to add (T-a): the content of a link reaches no server, its
+    fragment and its code included (e2e, three engines: a marker in a
+    request's address; the page's request log and the prod server's
+    access log hold no part of it); opening a link removes its fragment
+    from the address bar (e2e); a collection received by link is not
+    stored until Import, and cancelled stores nothing (C-054 extended); a
+    shared file or link holds no vault secret's plaintext
+    (`e2e/secrets-wire.spec.ts` gains both); a credential is `***` in a
+    file or a link unless Include credentials was ticked for it (C-014
+    extended); before anything is shared the dialog names where it goes
+    (unit test); the report names every host the received requests go to
+    before anything is stored (unit test).
+- [ ] **T2** Git, as D1.6 decided (sessions T-b1 and T-b2).
   - AC: an e2e commits a collection, changes it on a second clone, and
     the first app shows the change and its diff before taking it.
-- [ ] **T3** Peer-to-peer sync with end-to-end encryption and presence.
+  - **T2.0** The database change (TQ9; the maintainer's decision, before
+    T-b1). `DB_VERSION` 3, with three new stores made in its upgrade:
+    `shares` (key `collectionId`), `bases` (key `collectionId`) and
+    `changes` (key `id`, index `by-collection`). The upgrade only makes
+    what is missing and moves no data: a browser at version 2 keeps every
+    record. `CLAUDE.md`'s "There is no upgrade" is rewritten in the same
+    PR to say what this one upgrade does. The `meta` store holds
+    `sharing.name` and `sharing.deviceKey` (T3.2) and needs no change.
+    Argued: one upgrade with all three stores, or one per session that
+    needs a store (`shares` and `bases` in T-b1, `changes` in T-c2).
+    Against one upgrade: `changes` sits empty for two sessions. Against
+    one per session: two upgrades, each a version a browser can be caught
+    between, for one line of code each. Chosen: one upgrade.
+  - **T2.1** The folder format (`git.md`, "The format"):
+    `docs/collections-schema.md` gains its folder section (one file per
+    request and per folder, named for it, keys in a fixed order, one
+    field per line where a field holds text, nothing a send changes);
+    `packages/core/src/folder/` writes and reads it.
+    - Validator: every file read is untrusted: `readFolder` checks each
+      file's name against the format's names, its `$id`, and its content
+      with `validateRequestContent` and `validateRows`; a file of another
+      shape is refused with its reason, not read in part.
+    - Tests: core property test, `readFolder(writeFolder(c)) = c`; a
+      protected variable is written as its reference.
+  - **T2.2** Chromium's folder (`git.md`, "Access in Chromium"):
+    `showDirectoryPicker`, the handle kept in the `Share` record, the
+    browser's permission asked again after a restart.
+  - **T2.3** The Local Bridge's `--folder <path>` (D1.6; a change of the
+    bridge's security model: its PR waits for the maintainer): list, read
+    and write in that folder only, resolved with `realpath`; only the
+    format's file names; the token and origin checks of `/relay`; no
+    program run; without `--folder` no file touched.
+  - **T2.4** An outside change (`review.md`, "Folder (Git)"): checked on
+    focus and every few seconds while visible, by the digests of
+    `Share.files`; the review view with a diff per request; Take writes in
+    one transaction; an unsaved tab is never overwritten; a changed or new
+    script is held.
+  - **T2.5** Git's conflict markers (`conflict.md`, TQ5): a request file
+    with markers is not read as a request; the app shows both sides per
+    field and writes the chosen result back; it runs no Git command.
+  - **T2.6** A newer file or link of a collection received before is
+    compared three ways against its base (T1's decision above).
+  - Stored shapes and their validators (T-b1): `Share`
+    (`collectionId`, `way: "folder"`, `access: "picker" | "bridge"`, the
+    handle for `picker`, `folderName`, `files: { path, sha256 }[]`,
+    `lastTaken`), validated by `validateShare` on every read of the
+    store and before every write; `Base` (`collectionId`, `version`: the
+    change id, the file's digest or the folder's digest list, `content`:
+    the collection as taken), validated by `validateBase`, whose
+    `content` goes through the collection validators. Each validator has
+    a core unit test that refuses each field wrong in turn.
+  - Claims to add (T-b1, T-b2): the app writes no vault secret's
+    plaintext to a collection's folder (the secrets-wire scan over the
+    folder); scripts read from a folder do not run until reviewed here
+    (e2e); with `--folder` the bridge reads and writes only inside that
+    folder and only the format's files (`packages/bridge/test`: `../`, a
+    symlink out, an absolute path, another name, each refused); an outside
+    change is not written before Take, and Take nothing writes nothing
+    (e2e); an unsaved tab is never overwritten by an outside change (e2e);
+    a request file with Git's conflict markers is not read as a request
+    (e2e through the bridge's folder); resolving writes a file without
+    markers and runs no program (bridge test and e2e).
+- [ ] **T3** Peer-to-peer sync with end-to-end encryption and presence
+  (sessions T-c1 and T-c2).
   - AC: a claim and a test that the relay sees ciphertext only.
-- [ ] **T4** A self-hosted server, as a Docker image teams run.
+  - **T3.1** The team server's program, `packages/team-server`, in its
+    `relay` mode (`README.md`, "The relay and the server are one
+    program"): zero dependencies, as the bridge; it passes
+    `{ spaceId, ciphertext }` between members online at once and keeps
+    nothing. A new program that carries a team's data: its PR waits for
+    the maintainer.
+  - **T3.2** This browser's identity (`share.md`): `sharing.name` and
+    `sharing.deviceKey` in `meta`, the key an Ed25519 pair made with
+    WebCrypto, its private half non-extractable, kept as a `CryptoKey`.
+    Measured in T0 (2026-11-05, Playwright 1.64.1's Chromium 156, Firefox
+    157 and WebKit 27.2): Ed25519 generates, signs, verifies and
+    round-trips through IndexedDB as a non-extractable key in all three
+    engines, so the P-256 fallback `share.md` names is not needed.
+    Settings gains Sharing (an entry of `SECTIONS`).
+  - **T3.3** Invites and the space's key (`share.md`, "Peer to peer";
+    `receive.md`): the space's key kept as a vault secret (TQ7: syncing
+    needs the vault unlocked, and the sidebar says so); an invite names
+    the relay's address before anything is sent.
+  - **T3.4** Sync and presence: each change signed and encrypted
+    (AES-GCM-256, a random 12-byte IV) and held for review (TQ6) unless
+    the collection takes changes as they arrive, which still holds a
+    change to a script, an auth, a host or a protected variable.
+  - **T3.5** Changes (`history.md`): the drawer, Put back as a new
+    change.
+  - **T3.6** Conflicts (`conflict.md`): a three-way merge per field in
+    core; edits to different fields both kept; two edits of one field
+    asked; both kept in Changes.
+  - Stored shapes and their validators (T-c1, T-c2): `Share` for
+    `peer` (`address`, `spaceId`, `spaceKeyRef`, `members: { name,
+    publicKey, joinedAt, letInBy }[]`, `inviting`), held by
+    `validateShare`; `Change` (`id`, `collectionId`, `parents`,
+    `author`, `at`, `ops: { target, field, before, after }[]`,
+    `signature`, `state`, `conflict`), validated by `validateChange` on
+    arrival before it is stored (the signature checked against a member's
+    key, `id` the SHA-256 of the signed content, `field` one of the
+    format's fields or a row's id, `before` and `after` masked) and on
+    every read; the invite, validated by `parseInvite`; the wire's
+    envelope, `{ spaceId, iv, ciphertext }`, validated by the relay and by
+    the page. Each validator has a core unit test that refuses each field
+    wrong in turn and a change with one byte flipped.
+  - Claims to add (T-c1, T-c2): the relay receives changes as ciphertext
+    only (a seeded marker; the relay's traffic log holds no part of it);
+    a change is listed with an author only when it is signed by a key
+    that joined the space, and any other is refused and not taken (core
+    unit test; e2e with a forged key); the `changes` store holds no
+    credential or vault secret's plaintext (secrets-wire scan); Put back
+    makes a new change and removes none (unit test); when two people
+    change one field neither change is taken silently, and both stay in
+    Changes (core unit test; e2e with two browsers); edits to different
+    fields of one request are both kept without a question (core unit
+    test); a change that sends a vault secret or a credential to a new
+    host is listed under To look at first before it can be taken (unit
+    test; e2e); taking a change never approves a script (e2e); scripts
+    that arrive by any way do not run until reviewed here (C-051
+    extended). C-001 is reworded to add "and, when you share a collection
+    with a relay or a team server, the encrypted changes, sent to the
+    address you gave" (`README.md`, principle 7).
+- [ ] **T4** A self-hosted server, as a Docker image teams run (session
+  T-d).
   - AC: the image starts with one command from `docs/self-hosting.md`;
     two browsers share a collection through it in an e2e; a claim and a
     test say what the server stores and that it never stores a vault
     secret's plaintext.
+  - **T4.1** The program's `server` mode: it keeps each change for
+    members not online (the same envelope; it stores `spaceId`, the
+    ciphertext, its length and when it came, and nothing else).
+  - **T4.2** The Docker image, started with one command;
+    `docs/team-server.md` (TQ10), linked from `docs/self-hosting.md`,
+    whose name already means the app's files.
+  - **T4.3** The team server's way in the app: Share… › Team server,
+    the invite, changes made while this browser was closed.
+  - Stored shapes: the server's own store holds the envelope only, held by
+    the relay's validator; the page's `Share` gains `way: "server"` with
+    the fields of `peer`.
+  - Claims to add (T-d): the team server stores changes as ciphertext
+    only, and no vault secret's plaintext (a seeded marker; the server's
+    stored files hold no part of it); the image starts with one command
+    (e2e from `docs/team-server.md`).
 
 ## 10. Testing strategy
 
@@ -1062,5 +1271,6 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-11-05 | 1.70 | **Sessions W5-b and W5-c closed: W5.2 to W5.5 done.** **The maintainer's decisions of 2026-11-05:** #597 merged as it was (`media-src 'self'` in the site's CSP); `docs/design/reach.md` is option (b), off the site and the README with the file kept; the VoiceOver and Safari recording that gates D5.2 is done. **PRs:** #596 (W5.3: the stills retaken, the check that a doc names only controls the app has, `getting-started.md`), #597 (W5.2: the landing's three recordings, rebuilt by `scripts/site-record.mjs` from the app's build with canned answers, each with a still for reduced motion), #600 (W5.5: What changed in 3.0 and its post, every severity 1 and 2 finding with its before and after, held by `scripts/whats-new.test.mjs`), #602 (a doc marked `<!-- off-site -->` gets no page and need not be linked from the README: `reach.md`), #603 (U-203: task 4 without the select, and the eight tasks run again in Playwright's Linux image with `RECORD=1`: task 2 is 7, not D5-e's hand count of 8, task 3 is 8, task 4 is 18; the ten recordings new), #604 (W5.4: each rival page has a table at a glance, the eight tasks with Wayfarer's measured actions linked to their recordings, now served at `/benchmark/`, beside the rival's documented steps with source and date and no seconds, then where the rival is ahead, how Wayfarer differs with AI and the vault on every page, who should pick which, how to move, and a close; the index has the table for every rival and the benchmark's summary; `packages/site/src/benchmark.mjs` reads `docs/design/benchmark.md` at build), #605 (`/compare/scalar/`, read from Scalar's pages on 2026-11-05, its key quotes checked against each page's Markdown, and its rows in the benchmark), #606 (W4's rollback: the site and the app are one deploy, one rollback). **Session close:** `e2e.yml` run 42006875260 on `main` at `68e76b2`: success, E2E and the design capture green in Chromium, Firefox and WebKit; #606, docs only, merged after it. **Choices.** (1) *`reach.md` off the site: move the file out of `docs/`, or mark it?* The plan's W3.2 names its path. Chosen: a mark in the file, `<!-- off-site -->`, which the site's `docs()` and `check-links.mjs` both read. (2) *The benchmark on the pages: copied numbers, or read from the doc?* Chosen: read at build, so a page cannot say other than `benchmark.md`, and a missing table fails the build (`site-seo-compare.md` 4.4). (3) *A recording per number: embedded videos or links?* Ten videos a page without posters would cost the pages' load and Lighthouse. Chosen: each number is a link to its recording, which the browser plays; the steps are written beside it as text. (4) *Task 2's 8 or 7?* D5-e counted 8 from the steps; the run counts 7, since an empty sidebar's Import… opens the file dialog itself (L-16). Chosen: the run's 7, and Moving from Postman says 7 clicks. Task 2 is now fastest by 1 (Insomnia's documented 8); the summary is still five of eight fastest or tied, six app to app. (5) *Scalar's WebSocket.* A release note adds a WebSocket transport and the pricing page lists it as "Coming Soon". Chosen: left off the page. **Next:** D5-d (the v3.0.0 changelog and release notes, the tag, W4's AC); the maintainer deploys from the tag, then W3.1's outside validators. |
 | 2026-11-05 | 1.71 | **Session D5-d closed: v3.0.0 is tagged and released; D5.2 done.** #608 made `[Unreleased]` the 3.0.0 section, opened with release notes written with humanizing-writing (each claim checked against the changelog's entries and the code: the database is `wayfarer` at version 2 at `v2.6.0` and on `main`, so 3.0 opens what 2.6 wrote), and set the version to 3.0.0. The notes say VoiceOver with Safari was checked on a send, an unlock and a banner (the maintainer, 2026-11-05: D1.8's recording, the AC of row 1.64), and that NVDA and the installed app were not. On the way, the site's changelog page showed an empty "Coming in the next release" on the day of a release, and its test failed on it; an empty `[Unreleased]` is now left out (a test that failed first). `e2e.yml` run 42013852915 on `main` at `27d0c95`: success in Chromium, Firefox and WebKit. Then `v3.0.0` was tagged on that commit: `release.yml` run 42018076049 made https://github.com/AshwinSathian/wayfarer/releases/tag/v3.0.0 with `wayfarer-3.0.0.tar.gz`, its CycloneDX SBOM and `SHA256SUMS`, which verify (`shasum -a 256 -c`). **W4's AC, checked (#606):** the synthetic monitor runs the released `@smoke` tests, which load `/` and `/app/`; the rollback was in `docs/deployment.md` without saying it covers both, and now says the site and the app are one deploy, one `wrangler rollback`, and how to check each after it. W4 stays open until the maintainer deploys from the tag (`deploy.yml`, which needs this green run); W3.1's outside validators run after that. **Choices.** (1) *Keep an empty `[Unreleased]` in the file, as v2.6.0 did, or drop it?* Chosen: keep it, so the next PR has its heading, and leave it off the page while it is empty. (2) *Tag before or after the e2e run?* `deploy.yml` deploys only a commit with a green `e2e.yml` run. Chosen: after, on the run's commit. **Next:** the maintainer's deploy (W4), W3.1's validators, D6.1, then Phase T's T0. |
 | 2026-11-05 | 1.72 | **D1 and D4's open boxes audited (session D6-a): D1.8, D4.3 to D4.7 and D4.10 to D4.13 ticked; nothing of D1 or D4 is left open.** Every box was open for one reason, the maintainer's owner steps (rows 1.53, 1.54, 1.56 to 1.61): the screen readers and the installed app. **The maintainer's checks, 2026-11-05:** VoiceOver with Safari on a send, an unlock and a banner (row 1.70, before the tag); NVDA with Firefox on the same; and each view's main task and the errors it shows, with VoiceOver and NVDA, for D4.3 to D4.7 and D4.10 to D4.12; the installed app on macOS, Windows and iOS. Their word: "no issues", and no capture or recording was kept (their choice, asked twice in this session). D1.8's and D4.13's AC ask for captures in `docs/design/hig-review/`; those two are ticked on the maintainer's word instead, and this row is the record. `hig-review-2026-10-23.md` section 6 marks the screen readers and the installed app verified, with that note; ⌥T and ⌥W in Firefox on Windows (W-25) were not named in the check and stay open there, outside D1.8's list. **Each box, with what met the rest of its AC:** **D1.8**: the stress states in three engines and the 2.5.8 targets without ancestors, #544 (`hig-review/d18.md`, D5-a, row 1.65); U-060 at runtime, #437 (D4-e); the screen readers and the installed app, the maintainer. **D4.3** (the composer and the response) and **D4.11** (the Blockers and the save path): D4-e, #437 to #467 (row 1.53). **D4.12** (the exchange record): D4-l, #469 to #475 (row 1.54); the logo-off test, D5.1 (row 1.68). **D4.4** (collections, folders, tabs, history): D4-f, #483 to #487, #489 and #490 (row 1.56). **D4.5** (environments, variables, the vault): D4-g, #492 to #499 (row 1.57). **D4.7** (settings, the bridge, routes, import, export) and **D4.13** (the installed app): D4-h, #501 to #507 (row 1.58). **D4.6** (the runner): D4-i, #509 to #517 (row 1.59). **D4.10** (the AI flows): D4-k, #519 to #527 (row 1.60). The shared AC's benchmark tasks were measured again in D5-b (#548) and after U-203 (#603). **Left of D1:** D1.9, dropped in row 1.55. **Left of D4:** nothing. |
+| 2026-11-05 | 1.73 | **T0: Phase T re-read and split into six sessions; D4.8's specs turned into tasks, each new stored shape with its validator and its claims. Waits for the maintainer before T-a starts** (the phase changes stored data and public claims). Read against `main` after v3.0.0 (`docs/design/teams/`, `docs/design/git.md`, `docs/claims.md` at C-083, `src/app/data/idb-stores.ts`: ten stores at `DB_VERSION` 2). **The split:** T-a (T1, files and links), T-b1 and T-b2 (T2, Git: the format, `--folder` and Chromium's folder; then outside changes, review, conflict markers, the round trip), T-c1 and T-c2 (T3: the program's `relay` mode, the device key, invites; then sync, presence, Changes, conflicts), T-d (T4: `server` mode, the image, `docs/team-server.md`). **Ordered so that T1 changes no store:** `receive.md` keeps a base copy of a file or a link for a three-way compare; that needs the `bases` store, so T1 compares a newer file two ways, as the import report does today (U-161), and T2.6 adds the three-way compare once the store exists. Against it: in T1 a field changed here and by the sender shows as one difference, not a conflict, until T-b2. For it: T-a ships without the one change the maintainer must approve. **Measured:** Ed25519 in WebCrypto, which `share.md` left unverified, in Playwright 1.64.1's Chromium 156, Firefox 157 and WebKit 27.2 (a throwaway page, not committed): it generates, signs, verifies, and round-trips through IndexedDB as a non-extractable `CryptoKey` in all three, so the P-256 fallback goes. **The specs' open questions, each argued against, then taken:** **TQ1** environments by file only: against it, a team retypes a shared base address; for it, an environment is where a person's own values live, and a variable at the collection's scope already travels with the collection. **TQ2** the link's key in a separate code, the key in the link a choice that is off: against it, two things to pass instead of one; for it, a link in a chat's preview or a synced history is read by whoever sees it, and the fragment already keeps the key from the server, so a key in the link guards against the server alone. **TQ3** 32 kB, measured in T1.4: no argument settles a number, so the task measures it. **TQ4** the folder way does not read `.git`: against it, the Changes drawer cannot name who changed a file; for it, reading Git's objects in the page is reading Git's format, which D1.6 rejected, and it differs by repository (packfiles, worktrees); the drawer says where to look (`git log -- {path}`). **TQ5** the app resolves Git's markers inside a request file only: against it, a second merge tool beside the user's own; for it, the format puts one field on a line, so a conflict is a field the app can show both sides of, and it still runs no Git command. **TQ6** live changes held for review, with "Take changes as they arrive" a collection's choice that still holds scripts, auth, hosts and protected variables: against it, a review for a teammate's typo; for it, principle 1 ("nothing from another person is written before Take") with the noise left to the person who chose it. **TQ7** the space's key as a vault secret: against it, syncing needs the vault unlocked; for it, in plain IndexedDB the disk reads the team's collection, and in memory every reload needs the invite again; the bridge's token follows the same rule (F83). **TQ8** a person is the name they type, bound to their device key, shown with a short fingerprint: against it, nobody verifies the name; for it, there are no accounts (section 3), and the fingerprint is how two people check a key by voice. **TQ9** the stores: one upgrade, `DB_VERSION` 3, making `shares`, `bases` and `changes` and moving no data (T2.0); against one upgrade, `changes` sits empty for two sessions; against one per session, two versions a browser can be caught between, for a line each. **This is the maintainer's decision** (`CLAUDE.md`: a change to the stores needs their OK), asked before T-b1. **TQ10** `docs/team-server.md`, linked from `docs/self-hosting.md`: against it, two docs about hosting; for it, "self-hosting" already means the app's files, and one name means one thing. **Stored shapes, each with its validator task** (section 9, T1 to T4): none in T1 (`parseShareFragment` holds the link, and its text goes through `importText`); `Share` (`validateShare`) and `Base` (`validateBase`) in T-b1; `Change` (`validateChange`, the signature checked against a member's key), the invite (`parseInvite`) and the wire's envelope in T-c1 and T-c2; the server's envelope store in T-d. **Claims to add:** 7 in T-a, 7 in T-b, 9 and the rewording of C-001 in T-c, 2 in T-d; each with the test the specs name, and added in the PR that builds it. **Waits for the maintainer:** this row, before T-a; TQ9's upgrade, before T-b1; `--folder` (T2.3) and the team server's program (T3.1) on their PRs, as changes of security posture; each claim in its PR. |
 | 2026-11-05 | 1.74 | **The site's claim IDs are held by the tests, not shown (maintainer, 2026-11-05).** The maintainer found that the inline claim tags (`C-001` chips beside the landing's, the comparison pages', the roadmap's, "What changed in 3.0"'s and the posts' sentences, the landing's table of five ledger rows) read like a project report. Three options were put: **A**, the inline tags go and the claims page stays, reached by one link; **B**, the claims go from the site altogether; **C**, keep them as they are (rejected). **A chosen.** `Claims` (`packages/site/src/components/Claims.tsx`) and a post's `<!-- claims C-NNN -->` draw a `hidden` span with `data-claims` and nothing else, so `e2e/site.spec.ts` still holds every ID a sentence names to `docs/claims.md`, and `claimText` still fails the build on an ID the ledger has not got. The landing's "N claims on this site" line and its evidence section go, the header's "Claims" goes, and the footer's Trust column links the claims page as "How we test what we say"; the Trust center, the threat model and `/docs/claims/` with its Last CI column (`claims-ci.js`) stay as they were. `docs/scripts.md` drops its three "(claim C-NNN)" asides; the `<!-- claim:C-NNN -->` markers of the docs are comments and stay. A new e2e holds that no page a reader opens shows an ID, and that the landing has one link to the claims page, the footer's. W2.1's AC carries a note (W2.4's names no claim shown on a page). No row of `docs/claims.md` and no claim's test changed. |
 | 2026-11-05 | 1.75 | **W4 done: v3.0.0 is in production, the site at `/` and the app at `/app/`; Phase W is closed.** **The deploy was made by hand** (`docs/deployment.md`, "Manual deploy"), by the maintainer on 2026-11-05, from a worktree at `v3.0.0` (`27d0c95`, CI run 42013323101, `e2e.yml` run 42013852915): `wrangler versions upload` gave version `e126aa6a-ce03-4679-b5ff-689f98badfea`, promoted to 100% over `13d67ec3` (v2.6.0, 2026-10-20). `deploy.yml` could not run it: the repository has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID` secret (its last runs, 2026-09-27 and 28, failed on that), so production has no `ci-run.json` and the claims page says it was not deployed from a CI run. **Checked:** `/version.json` is `{"version":"3.0.0"}`; the `@smoke` tests against production, three engines, three times each, 60 passed (the session); the synthetic monitor by hand, run 42033382267, success in Chromium, Firefox and WebKit, `docs/runbook.md`'s rollback for each written in #606. The preview's smoke failed twice on the response body's 5 s wait over this machine's connection while the service worker fetched the app, and once on a Cloudflare 1101 (1 of about 200 requests); 4 of 4 then passed. **W3.1's validators:** what can be read from here is recorded on #383 (each page's cards and canonical address, the landing's JSON-LD, `robots.txt`, `sitemap.xml` with 39 pages, `llms.txt`); Google's Rich Results test and an OG checker are the maintainer's, and their results go there. **Not true on production, the maintainer's step:** C-012 ("no script the app didn't ship, 0 CSP violations"): the zone still injects the Web Analytics beacon (`static.cloudflareinsights.com`) and Bot Fight Mode's inline challenge script; the CSP blocks both, and `no-edge-injection` counts 4 violations in each engine. The fix is `docs/runbook.md`, "Cloudflare zone", steps 1 to 5, then the repository variable `ZONE_HARDENED` set to `true`; until then `deploy.yml` and `synthetic.yml` skip that test with a warning, so nothing checks C-012 every 6 hours. Also the maintainer's: the two secrets, so the next deploy is `deploy.yml`'s. |

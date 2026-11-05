@@ -2,51 +2,37 @@
 <div class="env-manager grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
   <!-- ── Environment list ──────────────────────────────────── -->
   <div class="env-list">
+    <!-- Named controls, as the sidebar's header (U-010): four bare icons said nothing, globals were "{}" (U-184). -->
     <div class="mb-2 flex items-center justify-between gap-2">
       <h2 class="type-subhead text-label-secondary m-0">Environments</h2>
-      <div class="flex items-center gap-0.5">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain"
-          (click)="globalsVisible.set(true)"
-          uiTooltip="Global variables"
-          aria-label="Global variables"
-        >
-          <app-icon name="data_object" class="icon-sm" />
-        </button>
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain"
-          (click)="envImportInput.click()"
-          uiTooltip="Import environments"
-          aria-label="Import environments"
-        >
-          <app-icon name="upload" class="icon-sm" />
-        </button>
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain"
-          (click)="exportDialogVisible.set(true)"
-          uiTooltip="Export environments"
-          aria-label="Export environments"
-        >
-          <app-icon name="download" class="icon-sm" />
-        </button>
-        <!-- Inside the header's line, as the other three (U-146). -->
-        <button
-          #newEnvButton
-          type="button"
-          uiButton="icon"
-          class="btn-plain"
-          uiTooltip="New environment"
-          aria-label="New environment"
-          (click)="openNewEnvironmentDialog()"
-          ><app-icon name="add" class="icon-sm"
-        /></button>
-      </div>
+      <button
+        #newEnvButton
+        type="button"
+        uiButton
+        class="btn-secondary btn-sm"
+        aria-label="New environment"
+        (click)="openNewEnvironmentDialog()"
+        ><app-icon name="add" class="icon-xs" />New</button
+      >
+    </div>
+    <div class="mb-2 flex flex-wrap items-center gap-1">
+      <button type="button" uiButton class="btn-secondary btn-sm" (click)="globalsVisible.set(true)">Globals</button>
+      <button
+        type="button"
+        uiButton
+        class="btn-secondary btn-sm"
+        aria-label="Import environments"
+        (click)="envImportInput.click()"
+        >Import</button
+      >
+      <button
+        type="button"
+        uiButton
+        class="btn-secondary btn-sm"
+        aria-label="Export environments"
+        (click)="exportDialogVisible.set(true)"
+        >Export</button
+      >
     </div>
 
     <input

@@ -2014,6 +2014,7 @@ Evidence: `baseline/design-chromium/settings-about-1440-light.png`;
 `src/app/components/settings/bridge-pane.html:156-164`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #632 (D6-a): About lists Documentation, the palette has a Documentation command, and the held scripts, the variable chips and an import's warnings link to their doc, all the site's pages beside the app.
 
 **U-167. Settings writes ⌘K on every platform.** Severity 4. H4. SD.
 Data and storage says a collection is exported "from the command palette
@@ -2298,6 +2299,7 @@ Evidence: `baseline/design-chromium/environments-empty-1440-light.png`,
 `src/app/components/environments/environments-manager.html:10-47`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #630 (D6-a): the header is the title with + New, and under it three named buttons, Globals, Import and Export, as the sidebar's (U-010).
 
 **U-185. Reset all data says to back up first, and its question offers no
 backup.** Severity 3. H5. OC, SD.

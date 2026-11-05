@@ -37,5 +37,13 @@
     >
     }
   </div>
+  } @if (store.previewVariables().length) {
+  <a
+    class="var-chips-doc type-footnote text-label-primary underline self-center"
+    [href]="docs.variableScopes"
+    target="_blank"
+    rel="noopener noreferrer"
+    >Where a value comes from</a
+  >
   }
 </div>

@@ -8,6 +8,7 @@ import { UiMenu } from "../../ui/menu";
 import type { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
 import { AUTH_TYPES } from "./auth-editor/auth-editor";
+import { DOCS } from "../../shared/docs";
 
 /**
  * The preview before Send (D4.12, DQ8): the address as it would go, the
@@ -23,6 +24,7 @@ import { AUTH_TYPES } from "./auth-editor/auth-editor";
   host: { class: "block space-y-2" },
 })
 export class VariableChips {
+  protected readonly docs = DOCS;
   protected readonly store = inject(WorkspaceStore);
   private readonly variableFocus = inject(VariableFocus);
   private readonly environments = inject(EnvironmentsStore);

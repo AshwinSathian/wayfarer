@@ -38,7 +38,7 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   );
   await protectVariable(page, "API_TOKEN", SECRET);
   await openEnvironments(page);
-  await page.getByRole("button", { name: "Global variables" }).click();
+  await page.getByRole("button", { name: "Globals", exact: true }).click();
   const globals = page.getByRole("dialog", { name: "Global variables" });
   await globals.getByRole("button", { name: "Add variable" }).click();
   await globals.getByPlaceholder("name").last().fill("region");

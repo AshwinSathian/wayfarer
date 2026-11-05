@@ -306,7 +306,7 @@ it is.
 | `environment-export-dialog.html: Secret variables` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Cancel` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Export file` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Global variables` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Globals` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5); a named button, not "{}" (U-184) | D4-g |
 | `environments-manager.html: Import environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Export environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: New environment` | Environments dialog (toolbar) | Environments tab (D4.5); and its empty list's button (D4-c, U-022) | D4-g |
@@ -390,6 +390,7 @@ it is.
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import and review scripts…` | — (new in D5-e) | Import report dialog, when the file is one collection with scripts: imports it untrusted, then opens the script review on it | — |
+| `import-dialog.html: What the warnings mean` | — (new in D6-a, U-166) | Import report dialog, under its warnings: the import doc's "What the report warns about", in a new tab | — |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New folder` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
 | `menu collection-context-menu.ts: New request` | Context menu of a tree row | Sidebar, context menu | D4-f, done |
@@ -483,11 +484,13 @@ it is.
 | `script-review-dialog.html: Not now` | Script review dialog (on send, on import) | Same dialog | D4-d |
 | `script-review-dialog.html: Trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
 | `scripts-panel.html: Review scripts…` | Scripts tab | Composer, Scripts tab | D4-d |
+| `scripts-panel.html: How scripts are trusted` | — (new in D6-a, U-166) | Composer, Scripts tab, beside Review scripts… while scripts are held: the scripts doc's "Which scripts may run", in a new tab | — |
 | `tests-panel.html: Assert on` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Operator` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Remove test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Add test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `variable-chips.html: does` | The preview under the address (D4-l, D4.12): one chip per variable, with its holder, its value or *** and what it hides; an environment's chip shows the variable in its environment, a missing one's adds it to the active environment | Composer; opens Environments at the variable | D4-l |
+| `variable-chips.html: Where a value comes from` | — (new in D6-a, U-166) | The preview under the address, after the chips: the variables doc's "Where a value comes from", in a new tab | — |
 | `menu address-row.ts: Copy as cURL` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as cURL with credentials` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as JavaScript (fetch)` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
@@ -555,6 +558,7 @@ it is.
 | `palette: open-local-bridge-settings` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: reset-all-data` | Palette; Settings, Danger zone | Same | — |
 | `palette: open-settings` | Palette; toolbar | Same | — |
+| `palette: open-docs` | — (new in D6-a, U-166) | Palette: the site's docs, in a new tab (also Settings, About, Documentation) | — |
 | `palette: ai-draft` | — | Palette, with a provider and the action on (D4.10) | D4-k |
 | `palette: new-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |

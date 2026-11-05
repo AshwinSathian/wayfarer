@@ -421,6 +421,33 @@ describe("Composer", () => {
     expect(requestSave.saveAsDialogVisible()).toBe(false);
   });
 
+  // U-177: the Name opened empty and Save disabled, though the tab already named the request.
+  it("openSaveAsDialog names an unsaved request as its tab does, and Save is enabled", () => {
+    collectionsService.setTree([
+      {
+        collection: {
+          id: "c1",
+          meta: meta("c1"),
+          name: "C",
+          order: 0,
+          variables: [],
+          ...inCollection,
+          scriptTrust: { trusted: true },
+        },
+        folders: [],
+        requests: [],
+      },
+    ]);
+    store.patch({ url: "  https://new.example.com/items?a=1 " });
+    requestSave.openSaveAsDialog();
+    expect(requestSave.saveAsName()).toBe("new.example.com/items?a=1");
+    expect(requestSave.isSaveAsDisabled).toBe(false);
+
+    store.patch({ url: "" });
+    requestSave.openSaveAsDialog();
+    expect(requestSave.saveAsName()).toBe("New request");
+  });
+
   it("isSaveAsDisabled is true without a name or a chosen collection", () => {
     requestSave.saveAsName.set("");
     requestSave.saveAsCollectionId.set("c1");

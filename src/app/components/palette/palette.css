@@ -86,6 +86,7 @@ dialog.palette[open] {
   overflow: hidden;
   color: var(--label-secondary);
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
   font-size: var(--type-mono-body-size);
   text-overflow: ellipsis;
   white-space: nowrap;

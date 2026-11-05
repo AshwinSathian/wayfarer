@@ -384,7 +384,6 @@ it is.
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
 | `export-dialog.html: Export file` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
-| `import-dialog.html: Read the command` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
@@ -440,6 +439,7 @@ it is.
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Add to` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide secret key / Show secret key` | Auth tab | Composer, Auth tab | D4-d |
+| `oauth-fields.html: Copy the redirect URI` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: beside the redirect URI (U-176) | D6-a |
 | `oauth-fields.html: Grant` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: Hide client secret / Show client secret` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: Client sent in` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
@@ -581,7 +581,8 @@ it is.
 | `shortcut: undo` | — (new in D4-f) | ⌘Z or Ctrl+Z while an Undo is offered, focus not where text is typed (U-080) | D4-f, done |
 | `shortcut: C` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: N` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
-| `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027) | D4-c |
+| `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027); keycap by Delete in the tree's menu and by Close tab in a tab's (U-178) | D4-c |
+| `shortcut: F2` | — (written in D6-a, U-178) | A tree row or a saved request's tab: rename; keycap by Rename in both menus. Settings, Shortcuts also lists Alt+↑/↓ (move among siblings) and Shift+F10 (the row's or tab's menu) | — |
 | `shortcut: Escape` | Any dialog, drawer, menu or the palette | Same | — |
 
 ### Settings

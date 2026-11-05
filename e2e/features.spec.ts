@@ -267,7 +267,7 @@ test("@claim:C-039 the Body tab is there for every method, offers none, raw, for
   page,
 }) => {
   await page.goto("/app/");
-  const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
+  const bodyTab = page.getByRole("tab", { name: /^Body( |$)/ });
   const method = page.getByRole("textbox", { name: "HTTP method" });
   const notSent = page.locator(".body-not-sent");
   // A new request is a GET, and has the tab.
@@ -461,7 +461,10 @@ test("a copy says what it was copied as, and that a credential in it was masked"
   await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
   await expect(note).toHaveText("Copied as cURL.");
 
-  await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
+  await page
+    .locator(".composer-pane")
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .click();
   await page.getByLabel("Header name, 1 of 1").fill("Authorization");
   await page.getByLabel("Value of Authorization").fill("Bearer abcdef123");
   await copy.click();

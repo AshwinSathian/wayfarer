@@ -721,6 +721,26 @@ test("a run's report counts passed and failed, says a shared error once, and can
   await expect(resultRows(view).first().locator("td").first()).toHaveText("2");
 });
 
+// U-191 and U-162 of docs/design/audit.md: the report states its counts once on the page (the sentence is the run's
+// announcement, for a screen reader), and says it goes with its tab or a reload, so it is downloaded to keep it.
+test("a run's report says its counts once and that it is kept only until the tab closes or the page reloads", async ({
+  page,
+}) => {
+  await seedCollection(page, [
+    { name: "Fine", url: `${ECHO}/status/200` },
+    { name: "Gone", url: "http://127.0.0.1:9/a" },
+  ]);
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+
+  await expect(status(view).getByText("2 results in 1 iteration; 1 failed; 0 of 0 tests passed.")).toHaveClass(
+    /sr-only/,
+  );
+  await expect(view.locator(".run-summary")).toContainText("1 passed");
+  await expect(view.getByText("The report is kept only until this tab closes or the page reloads.")).toBeVisible();
+});
+
 test("a run's row opens into its exchange record: where the request went, and that the run kept it (D4.12, U-076)", async ({
   page,
 }) => {

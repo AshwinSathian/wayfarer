@@ -150,6 +150,40 @@ test("Ctrl+S keeps the request's folder open and its row selected", async ({ pag
   await expect(request).toHaveAttribute("aria-selected", "true");
 });
 
+// U-163, U-177: with no collection the first save said to make one in the sidebar and offered a disabled Save; with
+// one, its Name opened empty and Save disabled, though the tab named the request. The first save is now one press.
+test("the first save, with no collection yet, is one press: the tab's name, a collection made with it", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?first=1`);
+  await page.keyboard.press("ControlOrMeta+s");
+  const save = page.getByRole("dialog", { name: "Save to collection" });
+  const name = save.getByRole("textbox", { name: "Name" });
+  await expect(name).toHaveValue("127.0.0.1:4300/content/json?first=1");
+  await expect(name).toBeFocused();
+  await expect(save.getByRole("textbox", { name: "New collection" })).toHaveValue("My collection");
+  // Selected: what is typed replaces it.
+  await page.keyboard.type("Typed name");
+  await expect(name).toHaveValue("Typed name");
+  await save.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(save).toHaveCount(0);
+  const tree = page.getByRole("tree");
+  await expect(tree.getByText("My collection", { exact: true })).toBeVisible();
+  await expect(tree.getByText("Typed name", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Save writes back to it/)).toBeVisible();
+
+  // With a collection, the name is the tab's and Save is enabled at once.
+  await page.getByRole("button", { name: "New tab" }).click();
+  await page.locator("input.address-url").fill(`${ECHO}/echo`);
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(name).toHaveValue("127.0.0.1:4300/echo");
+  await expect(save.getByRole("textbox", { name: "New collection" })).toHaveCount(0);
+  await save.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(tree.getByText("127.0.0.1:4300/echo", { exact: true })).toBeVisible();
+});
+
 // U-094: a stray click on the backdrop closed Save to collection and Create vault passphrase, and what was typed went.
 test("a click on the backdrop keeps Save to collection and the vault's dialog open, with what was typed", async ({
   page,

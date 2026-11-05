@@ -41,7 +41,10 @@ async function postWithBody(page: Page, mode: string): Promise<void> {
   await page.goto("/app/");
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Body( |$)/ })
+    .first()
+    .click();
   await choose(page, "Body type", mode);
 }
 
@@ -192,15 +195,27 @@ test("multipart: a Content-Type header is flagged, because it would replace the 
   const warning = page.getByText(/replaces the one the browser writes for a multipart body/);
   await expect(warning).toHaveCount(0);
 
-  await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .first()
+    .click();
   await page.getByLabel("Header name, 1 of 1").fill("content-type");
   await page.getByLabel("Value of content-type").fill("multipart/form-data");
-  await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Body( |$)/ })
+    .first()
+    .click();
   await expect(warning).toBeVisible();
 
-  await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .first()
+    .click();
   await page.getByRole("checkbox", { name: "Send content-type" }).uncheck();
-  await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Body( |$)/ })
+    .first()
+    .click();
   await expect(warning).toHaveCount(0);
 });
 

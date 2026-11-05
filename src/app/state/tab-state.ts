@@ -49,6 +49,11 @@ export function contentOf(draft: Draft): RequestContent {
 
 /** Scripts that wait for a review, and what the review calls them when they are not a history entry's. */
 /** A collection, or a folder in it: what holds auth, variables and scripts for the requests in it (P4.9). */
+/** What an unsaved request is called: its address without the scheme, or that it is new. Its tab and its first save say it. */
+export function unsavedName(url: string): string {
+  return url.trim().replace(/^https?:\/\//, "") || "New request";
+}
+
 export interface HolderTarget {
   collectionId: string;
   folderId?: string;

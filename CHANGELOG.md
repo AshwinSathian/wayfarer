@@ -55,6 +55,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   "Post-response script" and "Tests" had icons of their own; all three are
   gone. (U-189)
 
+
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
+- **The Scripts tab's headings are only words.** "Pre-request script" had a play
+  triangle beside it, which read as a Run button or a closed section, and
+  "Post-response script" and "Tests" had icons of their own; all three are
+  gone. (U-189)
+
 ### Changed
 
 - **The response's Tests tab takes you to the request's scripts.** "This request
@@ -76,18 +87,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
   the app does changes; `npm audit` still reports 0 vulnerabilities, and
   the mutation score is 90.17.
-
-### Fixed
-
-- **A form body's first row is not sent until it has a name.** Choosing
-  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
-  that was already checked while empty; Params and Headers stopped doing
-  that in 3.0. The row is now unchecked, and typing its name checks it, as
-  theirs do. (U-200)
-- **The Scripts tab's headings are only words.** "Pre-request script" had a play
-  triangle beside it, which read as a Run button or a closed section, and
-  "Post-response script" and "Tests" had icons of their own; all three are
-  gone. (U-189)
 
 ## [3.0.0] - 2026-11-05
 

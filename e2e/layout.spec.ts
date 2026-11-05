@@ -57,7 +57,10 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.locator("input.address-url").fill(`${ECHO}/content/json?wide=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .click();
     await expect(page.getByText("Loading editor…")).toHaveCount(0);
     // The editor sizes itself to its container: a container that sizes itself to the editor grows without end.
     await page.waitForTimeout(1000);
@@ -184,7 +187,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
-      await page.getByRole("tab", { name: "Headers", exact: true }).click();
+      await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
       const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
       // 85 px at 768 px; it was 20 px.
       expect(field!.width).toBeGreaterThanOrEqual(80);
@@ -204,13 +207,16 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
-    await page.getByRole("tab", { name: "Headers", exact: true }).click();
+    await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
     const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
     // 111 px at 1220 px: "Content-Type" in full. Pinned at 1024 px it was 85 px.
     expect(field!.width).toBeGreaterThanOrEqual(100);
     // Every composer tab is on screen, none cut off by the pane's edge.
     const pane = await page.locator(".ui-splitter-pane").first().boundingBox();
-    const last = await page.getByRole("tab", { name: "Scripts", exact: true }).first().boundingBox();
+    const last = await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .boundingBox();
     expect(last!.x + last!.width).toBeLessThanOrEqual(pane!.x + pane!.width + 1);
   });
 
@@ -456,15 +462,15 @@ test.describe("Mobile composer (390px)", () => {
 
     // Params is open by default; the others are present as labeled,
     // collapsed headers — not stacked-and-unlabeled content (Part D bug).
-    await expect(page.getByRole("button", { name: "Params", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Headers", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Auth", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Scripts", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Params( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Headers( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Auth( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Scripts( |$)/ })).toBeVisible();
 
     // Opening Auth must collapse Headers — only one panel open at a time.
-    await page.getByRole("button", { name: "Headers", exact: true }).click();
+    await page.getByRole("button", { name: /^Headers( |$)/ }).click();
     await expect(page.getByLabel(/^Header name, 1 of /)).toBeVisible();
-    await page.getByRole("button", { name: "Auth", exact: true }).click();
+    await page.getByRole("button", { name: /^Auth( |$)/ }).click();
     await expect(page.getByLabel(/^Header name, 1 of /)).toBeHidden();
     await expect(page.locator("#auth-type-select")).toBeVisible();
   });
@@ -473,7 +479,7 @@ test.describe("Mobile composer (390px)", () => {
     page,
   }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Scripts", exact: true }).click();
+    await page.getByRole("button", { name: /^Scripts( |$)/ }).click();
 
     // Neither script editor should be permanently stuck on the placeholder.
     await expect(page.getByText("Loading editor…")).toHaveCount(0, { timeout: 5_000 });
@@ -591,7 +597,7 @@ test.describe("The app stays usable after an overlay closes", () => {
       .click();
     await page.getByRole("button", { name: "Close navigation" }).click();
 
-    await page.getByRole("button", { name: "Scripts", exact: true }).click({ timeout: 5_000 });
+    await page.getByRole("button", { name: /^Scripts( |$)/ }).click({ timeout: 5_000 });
     await expect(page.getByRole("button", { name: "Add test" })).toBeVisible();
   });
 });
@@ -626,6 +632,43 @@ test.describe("the response's height", () => {
     const pane = await page.locator(".response-pane").boundingBox();
     const box = await editor.boundingBox();
     expect(box && pane && box.y + box.height <= pane.y + pane.height).toBe(true);
+  });
+
+  // U-174: the HTML preview was 300 px whatever room the pane had.
+  test("an HTML preview fills the height of its pane, beside the request and under it, and keeps 300 px on a phone", async ({
+    page,
+  }) => {
+    await page.route("https://fills.test/**", (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { "content-type": "text/html", "access-control-allow-origin": "*" },
+        body: "<!doctype html><h1>A page</h1>",
+      }),
+    );
+    const preview = page.locator("app-response-viewer iframe.html-preview");
+    const height = async () => (await preview.boundingBox())?.height ?? 0;
+    const endsInPane = async () => {
+      const pane = await page.locator(".response-pane").boundingBox();
+      const box = await preview.boundingBox();
+      // Its bottom is the pane's, less the body's padding: no empty pane under it.
+      return box && pane ? pane.y + pane.height - (box.y + box.height) : -1;
+    };
+    // Beside the request (1,460 px is wide enough for the panes side by side).
+    await page.setViewportSize({ width: 1460, height: 1000 });
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill("https://fills.test/page");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await expect.poll(height).toBeGreaterThan(500);
+    expect(await endsInPane()).toBeGreaterThanOrEqual(0);
+    expect(await endsInPane()).toBeLessThanOrEqual(32);
+    // Under the request, as Playwright's 1,280 by 720 puts it: the pane is short, and the preview keeps 300 px.
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect.poll(height).toBeGreaterThanOrEqual(300);
+    // On a phone the sections stack and the page scrolls: 300 px.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("tab", { name: "Response", exact: true }).click();
+    await expect.poll(height).toBe(300);
   });
 
   // U-030 of docs/design/audit.md: the status, the tabs and the body's tools took 310 px before the body.

@@ -1,6 +1,6 @@
 import { ImportRefused, ImportWorkerClient } from "../../shared/import/import-worker-client";
-import { Injectable, effect, inject, signal } from "@angular/core";
-import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
+import { Injectable, computed, effect, inject, signal } from "@angular/core";
+import { emptyAuth, type AuthConfig, type RequestContent, type Row } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
@@ -9,6 +9,10 @@ import { RunState, type RunTarget } from "../../state/run-state";
 import { TabState, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { WorkspaceStore } from "../../state/workspace-store";
+import type { TabMarkValue } from "./tab-mark";
+
+/** The rows a send takes: switched on and named. */
+const sent = (rows: Row[]): number | null => rows.filter((row) => row.enabled && row.key.trim()).length || null;
 
 /**
  * What the composer shows of its draft, shared by its panels: the open tab
@@ -35,6 +39,26 @@ export class ComposerView {
   /** On a phone, whether the request's parts or the response is shown (U-028). */
   readonly mobilePane = signal("request");
   readonly showAuthPassword = signal(false);
+
+  /**
+   * What each request tab holds, beside its name (U-170): Params and Headers count the rows that are sent; Body, Auth,
+   * Scripts and Network are marked when not at their default. Scripts that are held back are marked so (U-158).
+   */
+  readonly tabMarks = computed(
+    (): Record<"params" | "headers" | "body" | "auth" | "scripts" | "settings", TabMarkValue> => {
+      const { params, headers, body, auth, scripts, tests, settings } = this.store.draft();
+      const hasScripts = !!(scripts.pre.trim() || scripts.post.trim() || tests.length);
+      return {
+        params: sent(params),
+        headers: sent(headers),
+        body: body.mode === "none" ? null : "set",
+        auth: auth.type === "none" || auth.type === "inherit" ? null : "set",
+        scripts: this.store.scriptsHeld() ? "held" : hasScripts ? "set" : null,
+        settings:
+          settings.route !== undefined || settings.followRedirects === false || settings.tlsInsecure ? "changed" : null,
+      };
+    },
+  );
 
   constructor() {
     this.syncMobilePanelsFromActiveTab();

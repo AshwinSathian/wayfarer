@@ -125,7 +125,8 @@
   <span>Running: {{ results.length }} {{ results.length === 1 ? "request" : "requests" }} done.</span>
   } @else if (state.report(); as report) {
   <span>{{ ending() }}</span>
-  <span>{{ counts() }}</span>
+  <!-- Heard, not drawn: the summary under it shows the same counts (U-191). -->
+  <span class="sr-only">{{ counts() }}</span>
   } @else {
   <span>Run sends each request as Send does{{ held() ? "." : ", with its scripts." }}</span>
   }
@@ -272,6 +273,10 @@
     [disabled]="!state.exchanges.length"
     (click)="saveHar()"
     >HAR…</button
+  >
+  <!-- A run tab is not stored and a run writes no history: the download is the only way to keep it (U-162). -->
+  <p class="type-footnote text-label-tertiary w-full"
+    >The report is kept only until this tab closes or the page reloads. Download it to keep it.</p
   >
 </div>
 }

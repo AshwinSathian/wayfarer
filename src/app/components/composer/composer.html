@@ -126,12 +126,18 @@
         <!-- Body is there for every method (U-017): the row does not reflow when the method changes. -->
         <div ngTabs class="tabs">
           <div uiTabList [selectedTab]="view.activeTab()" (selectedTabChange)="view.onActiveTabChange($event)">
-            <button ngTab type="button" value="params">Params</button>
-            <button ngTab type="button" value="headers">Headers</button>
-            <button ngTab type="button" value="body">Body</button>
-            <button ngTab type="button" value="auth">Auth</button>
-            <button ngTab type="button" value="scripts">Scripts</button>
-            <button ngTab type="button" value="settings">Network</button>
+            <button ngTab type="button" value="params">Params <app-tab-mark [mark]="view.tabMarks().params" /></button>
+            <button ngTab type="button" value="headers"
+              >Headers <app-tab-mark [mark]="view.tabMarks().headers"
+            /></button>
+            <button ngTab type="button" value="body">Body <app-tab-mark [mark]="view.tabMarks().body" /></button>
+            <button ngTab type="button" value="auth">Auth <app-tab-mark [mark]="view.tabMarks().auth" /></button>
+            <button ngTab type="button" value="scripts"
+              >Scripts <app-tab-mark [mark]="view.tabMarks().scripts"
+            /></button>
+            <button ngTab type="button" value="settings"
+              >Network <app-tab-mark [mark]="view.tabMarks().settings"
+            /></button>
           </div>
 
           <div class="tab-panes">

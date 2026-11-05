@@ -25,7 +25,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c016=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
-  const scriptsTab = page.getByRole("tab", { name: "Scripts", exact: true }).first();
+  const scriptsTab = page.getByRole("tab", { name: /^Scripts( |$)/ }).first();
   await scriptsTab.click();
   await expect(page.getByText("Loading editor…")).toHaveCount(0);
   for (const name of ["Settings", "History", "Secrets", "Route: direct"]) {

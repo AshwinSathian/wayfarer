@@ -325,6 +325,14 @@ test("the Headers tab says once that the browser withholds headers of a response
   await expectNoViolations(page);
 });
 
+test("a response from another origin that exposes every header has no such note (U-173)", async ({ page }) => {
+  // The echo server answers with Access-Control-Expose-Headers: *.
+  await open(page, `${ECHO}/content/text`);
+  await viewer(page).getByRole("tab", { name: "Headers" }).click();
+  await expect(viewer(page).locator("table.ds-table th", { hasText: "access-control-expose-headers" })).toBeVisible();
+  await expect(viewer(page).locator(".headers-note")).toHaveCount(0);
+});
+
 test("a response from the app's own origin has no such note", async ({ page, baseURL }) => {
   await open(page, new URL("/app/manifest.webmanifest", baseURL).href);
   await viewer(page).getByRole("tab", { name: "Headers" }).click();
@@ -339,7 +347,10 @@ test("on a phone a response's header name is on one line, over its value", async
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo?u058=1`);
   await page.getByRole("button", { name: "Send request" }).click();
-  await page.getByRole("tab", { name: "Headers", exact: true }).last().click();
+  await page
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .last()
+    .click();
   const name = page.locator(".response-headers th", { hasText: "access-control-allow-credentials" });
   await expect(name).toBeVisible();
   // One line of text and its padding: two lines would be more than twice the font's size.

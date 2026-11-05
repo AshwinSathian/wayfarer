@@ -282,7 +282,10 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
 
 /** Opens the request's Network tab: its route, redirects, certificate check and what the browser does to it. */
 export async function openRequestSettings(page: Page): Promise<void> {
-  await page.locator("app-composer").getByRole("tab", { name: "Network", exact: true }).click();
+  await page
+    .locator("app-composer")
+    .getByRole("tab", { name: /^Network( |$)/ })
+    .click();
 }
 
 export async function send(page: Page): Promise<void> {

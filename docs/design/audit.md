@@ -2097,6 +2097,7 @@ Evidence: `baseline/design-chromium/composer-params-1440-light.png`
 `src/app/components/composer/composer.html:124-129`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #626 (D6-a): Params and Headers count the rows sent, Body, Auth, Scripts and Network carry a dot named in words ("Body (set)"), and held scripts the warning glyph ("Scripts (not reviewed)"), on the tabs and the phone's sections; `composer-tab-marks.spec.ts` holds it.
 
 **U-171. Three lines restate the tree and the tab above every saved
 request.** Severity 3. H8. SD, TP.
@@ -2188,6 +2189,7 @@ Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`,
 `src/app/components/composer/auth-editor/oauth-fields.html:16-19`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #622 (D6-a): the redirect URI is a read-only monospace field, labelled by the sentence, with Copy beside it that says what it did; `oauth-fields.spec.ts` holds it.
 
 **U-177. Save to collection starts with an empty name, and Save
 disabled.** Severity 3. H7. SD, TP.
@@ -2216,6 +2218,7 @@ Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
 (`grep -rn F2 src/app` finds `tree.ts` and `tab-strip.ts` only).
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #623 (D6-a): the tree's menu shows F2 by Rename and Delete by Delete, a tab's menu F2 and Delete, and Shortcuts lists F2, Alt with ↑ or ↓ and Shift+F10 in the platform's keys.
 
 **U-179. The cURL box is a bare text area: its placeholder is each
 engine's grey, 2.2:1 in WebKit.** Severity 3. H4. OC, TP.

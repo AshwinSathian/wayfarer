@@ -424,7 +424,10 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   );
   // The vault is made and left unlocked; the client's secret is in it.
   await protectVariable(page, "CLIENT_SECRET", "client-secret-in-vault");
-  await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Auth( |$)/ })
+    .first()
+    .click();
   const [asked] = await Promise.all([
     page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST"),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
@@ -588,7 +591,10 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
 
   // A secret's reference is not a variable without a value. It is never sent, whatever the user chose.
   const sent = requests;
-  await page.getByRole("tab", { name: "Headers", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .first()
+    .click();
   await page
     .getByRole("textbox", { name: "Value of X-Plain" })
     .fill("{{nowhere}} {{$secret.00000000-0000-4000-8000-00000000d5d5}}");

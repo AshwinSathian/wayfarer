@@ -39,7 +39,10 @@ test.describe("Transport on fetch (P2.3)", () => {
     await expect(page.locator(".status-badge")).toHaveText("200");
 
     // A new request has one header row, empty.
-    await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
+    await page
+      .locator(".composer-pane")
+      .getByRole("tab", { name: /^Headers( |$)/ })
+      .click();
     await page.getByLabel("Header name, 1 of 1").fill("Accept");
     await page.getByLabel("Value of Accept").fill("text/plain");
     const second = page.waitForResponse(`${ECHO}/echo`);

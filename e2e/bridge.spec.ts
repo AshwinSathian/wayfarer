@@ -70,7 +70,10 @@ test("a file is the body through the bridge too, byte for byte, with the file's 
     await routeThroughBridge(page, bridge);
     await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
     await page.locator("input.address-url").fill(`${ECHO}/echo`);
-    await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: /^Body( |$)/ })
+      .first()
+      .click();
     await page.getByRole("combobox", { name: "Body type", exact: true }).click();
     await page.getByRole("option", { name: "Binary file", exact: true }).click();
     await page

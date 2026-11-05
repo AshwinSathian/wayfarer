@@ -20,7 +20,10 @@ test("F71: nothing of Monaco's throws once its language services have loaded and
   await page.goto("/app/");
 
   // A script editor: the TypeScript service starts.
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const script = page.locator("app-script-editor .monaco-editor").first();
   await expect(script).toBeVisible({ timeout: 10_000 });
   await script.click();

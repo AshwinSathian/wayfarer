@@ -347,7 +347,10 @@ test("on a phone a response's header name is on one line, over its value", async
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo?u058=1`);
   await page.getByRole("button", { name: "Send request" }).click();
-  await page.getByRole("tab", { name: "Headers", exact: true }).last().click();
+  await page
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .last()
+    .click();
   const name = page.locator(".response-headers th", { hasText: "access-control-allow-credentials" });
   await expect(name).toBeVisible();
   // One line of text and its padding: two lines would be more than twice the font's size.

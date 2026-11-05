@@ -295,7 +295,7 @@ test("five tabs, two of them edited, are all there after a reload, the two still
   await address(page).fill("https://api.example.test/second");
   await tabs(page).nth(3).click();
   await address(page).fill("https://api.example.test/fourth?page=2");
-  await page.getByRole("tab", { name: "Headers", exact: true }).click();
+  await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
   await page.locator("app-headers-panel").getByPlaceholder("Name", { exact: true }).first().fill("X-Kept");
   await page.locator("app-headers-panel").getByPlaceholder("Value", { exact: true }).first().fill("over a reload");
   await storedTabs(page, (stored) => stored.length === 5 && JSON.stringify(stored).includes("over a reload"));
@@ -309,7 +309,10 @@ test("five tabs, two of them edited, are all there after a reload, the two still
   await expect(tabs(page).nth(3)).toHaveAttribute("aria-selected", "true");
   await expect(address(page)).toHaveValue("https://api.example.test/fourth?page=2");
   // An opened request starts on Params (U-017).
-  await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
+  await page
+    .locator(".composer-pane")
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .click();
   await expect(page.locator("app-headers-panel").getByPlaceholder("Name", { exact: true }).first()).toHaveValue(
     "X-Kept",
   );
@@ -413,7 +416,10 @@ test("a script of a restored tab runs when it was allowed as the tab was stored,
     .getByRole("tab", { name: /^Tests/ })
     .click();
   await expect(page.locator("app-response-viewer")).not.toContainText("put there from outside");
-  await page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true }).click();
+  await page
+    .locator(".composer-pane")
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .click();
   await expect(page.getByRole("button", { name: "Review scripts" })).toBeVisible();
   expect(violations).toEqual([]);
 });
@@ -488,7 +494,10 @@ test("the editor's undo does not bring another tab's text into this one", async 
   const editor = page.locator("app-script-editor .monaco-editor").first();
   const text = async () => (await editor.locator(".view-lines").innerText()).replace(/\s+/g, " ").trim();
   const typeInto = async (script: string) => {
-    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .click();
     await expect(editor).toBeVisible({ timeout: 20_000 });
     await editor.click();
     await page.keyboard.type(script);

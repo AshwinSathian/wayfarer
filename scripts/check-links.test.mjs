@@ -38,6 +38,11 @@ test("a doc under docs/ that the README does not link fails", () => {
   assert.deepEqual(checkLinks(dir), ["README.md does not link docs/c.md"]);
 });
 
+test("a doc marked off-site need not be linked from the README", () => {
+  const dir = fixture({ ...GOOD, "docs/c.md": "# C\n\n<!-- off-site -->\n" });
+  assert.deepEqual(checkLinks(dir), []);
+});
+
 test("a link in a code block is not a link", () => {
   const dir = fixture({ ...GOOD, "docs/b.md": "```md\n[x](nowhere.md)\n```\nand `[y](nor-here.md)`\n" });
   assert.deepEqual(checkLinks(dir), []);

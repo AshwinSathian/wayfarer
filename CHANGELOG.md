@@ -808,6 +808,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The reach plan is no longer a page of the site.** `docs/design/reach.md`
+  is the maintainer's working list of where Wayfarer will be posted; it was
+  published at `/docs/design/reach/` (hidden from search engines) and linked
+  from the README. It stays in the repository, and the site and the README
+  leave it out. A doc that says `<!-- off-site -->` gets no page, and the
+  link check does not ask the README to link it.
+
 - **The landing shows the app at work in three short recordings.** Its
   picture of the app was one screenshot of the whole window, which a
   phone shrank until nothing in it could be read. In its place are three

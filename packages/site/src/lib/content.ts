@@ -34,6 +34,8 @@ const GROUP_OF: Record<string, DocGroup> = {
  */
 const INDEXED_RECORDS = ["design/benchmark", "design/benchmark/rivals", "design/research-2026"];
 
+const OFF_SITE = "<!-- off-site -->";
+
 export interface Doc {
   /** Its path under docs/, without `.md`: `auth`, `design/research-2026`. */
   id: string;
@@ -41,13 +43,18 @@ export interface Doc {
   group: DocGroup;
 }
 
-/** Every Markdown file under docs/, each a page at `/docs/<id>/`. */
+/**
+ * Every Markdown file under docs/, each a page at `/docs/<id>/`, but one marked `<!-- off-site -->`: the repository
+ * keeps it and the site does not show it (the reach plan, maintainer, 2026-11-05). `scripts/check-links.mjs` reads
+ * the same mark.
+ */
 export function docs(): Doc[] {
   return readdirSync(join(ROOT, "docs"), { recursive: true })
     .map(String)
     .filter((name) => name.endsWith(".md"))
-    .map((name) => {
-      const id = name.split("\\").join("/").slice(0, -3);
+    .map((name) => name.split("\\").join("/").slice(0, -3))
+    .filter((id) => !read(`docs/${id}.md`).includes(OFF_SITE))
+    .map((id) => {
       const group: DocGroup = id.startsWith("design/") ? "Design records" : (GROUP_OF[id] ?? "Guides");
       return { id, title: titleOf(read(`docs/${id}.md`), id), group };
     })

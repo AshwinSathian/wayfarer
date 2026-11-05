@@ -19,7 +19,7 @@ const POSTMAN_EXPORT: Source = {
 const BENCHMARK: Source = {
   title: "Wayfarer benchmark, task 2, with its recording",
   url: `${SITE}/docs/design/benchmark/#wayfarer-measured`,
-  read: "2026-11-04",
+  read: "2026-11-05",
 };
 
 /** The steps, in the order they are done. */
@@ -87,8 +87,7 @@ export default function MovingFromPostman() {
         <p>
           Export each collection and environment from Postman, import them here, read the scripts, and run the
           collection. In our scripted benchmark, importing a collection with scripts, trusting them and running it took
-          11 clicks. <Cite source={BENCHMARK} /> Below are the steps, then what does not come across, and how to go
-          back.
+          7 clicks. <Cite source={BENCHMARK} /> Below are the steps, then what does not come across, and how to go back.
         </p>
       }
     >

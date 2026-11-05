@@ -474,6 +474,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The benchmark counts its eight tasks again, from a new run.** Two
+  counts were wrong after D5-e's changes: task 4 (a secret that never
+  touches disk) still opened the toolbar's environment list and chose the
+  environment already in use, two actions too many, and task 2 (import a
+  Postman collection and run it) was counted by hand as 8 with a File…
+  step that an empty sidebar does not ask for. Run again in Docker on
+  2026-11-05, task 2 takes 7 actions, task 3 takes 8 and task 4 takes 18,
+  with new recordings of all ten. Moving from Postman now says 7 clicks,
+  not 11.
+
 - **The site's pictures of the app show the app as it is now.** The
   landing's screenshots, in both themes and on a phone, were taken before
   the final design pass: they showed a Settings tab where the composer now

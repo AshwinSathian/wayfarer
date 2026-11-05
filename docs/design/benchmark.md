@@ -27,8 +27,9 @@ steps are the ones their own documentation gives, each with its source and
 the date it was read, and marked as documented. No rival has seconds: none
 publishes them, and a time is compared only where a rival does.
 
-**Versions.** Wayfarer: `main` at `62d85ef` (2026-11-04, the release
-candidate for v3.0.0), a production build served by
+**Versions.** Wayfarer: `main` at `1a2ed52` (2026-11-05, the release
+candidate for v3.0.0; first measured at `62d85ef` on 2026-11-04, and run
+again after D5-e's changes to tasks 2 and 3, U-203), a production build served by
 `e2e/support/prod-server.mjs` with production's headers; Chromium 156 in
 Playwright 1.64.1's Linux image (`mcr.microsoft.com/playwright:v1.64.1-noble`)
 under Docker on an Apple M4 Pro. The echo server of `e2e/support` is every
@@ -39,16 +40,16 @@ rivals' versions are those their documentation describes, below.
 
 | # | Task | Actions | Clicks | Keys | Fields | Seconds (median) | Runs | Recording |
 |---|---|---|---|---|---|---|---|---|
-| 1 | First request from nothing | 2 | 0 | 1 | 1 | 0.07 | 0.08, 0.07, 0.07 | [task-1.webm](benchmark/task-1.webm) |
-| 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 | 0 | 0 | 1.66 before D5-e | 1.77, 1.63, 1.66 | [task-2.webm](benchmark/task-2.webm) (before D5-e) |
-| 3 | Add an environment and switch to it | 8 (D5-e, counted from its steps; was 11) | 4 | 1 | 3 | 0.60 before D5-e | 0.60, 0.56, 0.61 | [task-3.webm](benchmark/task-3.webm) (before D5-e) |
-| 4 | Use a secret without it touching disk | 20 | 13 | 1 | 6 | 1.10 | 1.10, 1.10, 1.07 | [task-4.webm](benchmark/task-4.webm) |
-| 5a | Find why a request failed: CORS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.37 | 0.37, 0.37, 0.37 | [task-5a.webm](benchmark/task-5a.webm) |
-| 5b | Find why a request failed: DNS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.32 | 0.34, 0.32, 0.29 | [task-5b.webm](benchmark/task-5b.webm) |
-| 5c | Find why a request failed: 401 | 4 | 3 | 0 | 1 | 0.19 | 0.20, 0.19, 0.19 | [task-5c.webm](benchmark/task-5c.webm) |
-| 6 | Send the same request to a teammate | 2 | 2 | 0 | 0 | 0.35 | 0.35, 0.35, 0.35 | [task-6.webm](benchmark/task-6.webm) |
-| 7 | Run a collection with a data file and read the report | 5 | 5 | 0 | 0 | 0.51 | 0.51, 0.51, 0.51 | [task-7.webm](benchmark/task-7.webm) |
-| 8 | Find a request sent last week | 4 | 3 | 0 | 1 | 0.52 | 0.52, 0.53, 0.50 | [task-8.webm](benchmark/task-8.webm) |
+| 1 | First request from nothing | 2 | 0 | 1 | 1 | 0.06 | 0.08, 0.04, 0.06 | [task-1.webm](benchmark/task-1.webm) |
+| 2 | Import a Postman collection with scripts and run it | 7 | 7 | 0 | 0 | 1.36 | 1.38, 1.36, 1.35 | [task-2.webm](benchmark/task-2.webm) |
+| 3 | Add an environment and switch to it | 8 | 4 | 1 | 3 | 0.27 | 0.28, 0.25, 0.27 | [task-3.webm](benchmark/task-3.webm) |
+| 4 | Use a secret without it touching disk | 18 | 11 | 1 | 6 | 0.81 | 0.81, 0.80, 0.86 | [task-4.webm](benchmark/task-4.webm) |
+| 5a | Find why a request failed: CORS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.34 | 0.35, 0.32, 0.34 | [task-5a.webm](benchmark/task-5a.webm) |
+| 5b | Find why a request failed: DNS | 8 (+2 in a terminal) | 6 | 0 | 2 | 0.33 | 1.60, 0.33, 0.31 | [task-5b.webm](benchmark/task-5b.webm) |
+| 5c | Find why a request failed: 401 | 4 | 3 | 0 | 1 | 0.20 | 0.20, 0.22, 0.20 | [task-5c.webm](benchmark/task-5c.webm) |
+| 6 | Send the same request to a teammate | 2 | 2 | 0 | 0 | 0.34 | 0.35, 0.34, 0.33 | [task-6.webm](benchmark/task-6.webm) |
+| 7 | Run a collection with a data file and read the report | 5 | 5 | 0 | 0 | 0.50 | 0.50, 0.51, 0.49 | [task-7.webm](benchmark/task-7.webm) |
+| 8 | Find a request sent last week | 4 | 3 | 0 | 1 | 0.50 | 0.50, 0.48, 0.52 | [task-8.webm](benchmark/task-8.webm) |
 
 What each task ends on, and how it gets there, is
 [`baseline.md`](baseline.md)'s "What each task does"; since then:
@@ -56,18 +57,22 @@ What each task ends on, and how it gets there, is
 - **1.** The caret starts in the address (D4-c): the address, then Enter.
 - **2.** Since D5-e the import's report offers **Import and review
   scripts…**: the collection is stored with its scripts unapproved, and the
-  review opens on it. Import, File…, the file, Import and review scripts…,
-  Trust these scripts, then right-click, Run…, Run: 8. Before, the review
-  was reached through a request's Scripts tab (11). The 8 is counted from
-  the steps; the seconds are D5.1's until the task is run again.
+  review opens on it. With nothing stored, the sidebar's Import… opens the
+  file dialog itself (L-16): Import…, the file, Import and review
+  scripts…, Trust these scripts, then right-click, Run…, Run: 7. Before,
+  the review was reached through a request's Scripts tab (11). D5-e
+  counted 8 from the steps, with a File… that an empty sidebar does not
+  ask for; the run of 2026-11-05 counts 7.
 - **3.** An environment made while none is in use is the one in use (a
   first one already was; since D5-e any is), so the toolbar's select is
   not part of the task: Environments, New environment, the name, Enter,
   Add variable, the variable's name (the caret is already there, U-145),
   a click into the value and the value: 8. Before, the script also opened
   the select and chose the environment already in use (2), and clicked
-  into the name it was already in (1). The 8 is counted from the steps;
-  the seconds are D5.1's until the task is run again.
+  into the name it was already in (1).
+- **4.** The same holds for the vault's environment: made while none is in
+  use, it is the one in use, so the task no longer opens the toolbar's
+  select and chooses it (U-203): 18, was 20.
 - **5a and 5b** end when the cause is named. A direct send says "No
   response" and why the browser cannot say more, with **Send through the
   Local Bridge**. From the failure's record the task copies the command,
@@ -243,9 +248,9 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 | # | Task | Wayfarer | Fewest documented | Wayfarer is |
 |---|---|---|---|---|
 | 1 | First request from nothing | 2 | 2 (Hoppscotch, a target that allows CORS) | Tied, and Wayfarer's count holds for any target the bridge reaches |
-| 2 | Import a Postman collection with scripts and run it | 8 (D5-e, counted from its steps; was 11) | 8 (Insomnia) | Tied (was behind by 3) |
-| 3 | Add an environment and switch to it | 8 (D5-e, counted from its steps; was 11) | 5, 2 of them inferred (Insomnia) | Behind by 3 (was 6) |
-| 4 | Use a secret without it touching disk | 20 | None: no free rival keeps a secret off disk | The only one that does it |
+| 2 | Import a Postman collection with scripts and run it | 7 (was 11) | 8 (Insomnia) | Fastest, by 1 (was behind by 3) |
+| 3 | Add an environment and switch to it | 8 (was 11) | 5, 2 of them inferred (Insomnia) | Behind by 3 (was 6) |
+| 4 | Use a secret without it touching disk | 18 (was 20) | None: no free rival keeps a secret off disk | The only one that does it |
 | 5 | Find why a request failed | 8, 8 (+2 in a terminal), 4 | None documented to a named cause | The only one documented to the cause |
 | 6 | Send the same request to a teammate | 2 | 2 (Yaak, Postman) | Tied |
 | 7 | Run a collection with a data file and read the report | 5 | 2 (Bruno's and Hoppscotch's CLIs); 5 in an app (Bruno, paid) | Tied in an app; behind a CLI by 3 |

@@ -208,8 +208,8 @@ const TASKS: Task[] = [
       await expect(page.getByText("Secret stored")).toBeVisible();
       // The environments are a tab (D4.5): back to the request's.
       await user.click(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first());
-      await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
-      await user.click(page.getByRole("option", { name: "Prod" }));
+      // Made while none is in use, it is the one in use (L-19, U-203): the toolbar's select is not part of the task.
+      await expect(page.getByRole("banner").getByRole("combobox", { name: "Environment" })).toContainText("Prod");
       await user.type(address(page), `${ECHO}/echo?token={{token}}`);
       await user.click(send(page));
       await expect(page.locator(".status-badge")).toHaveText("200");

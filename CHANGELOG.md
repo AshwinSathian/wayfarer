@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
 - The first save of a request is one press. Save to collection opens with the request named as its tab names it,
   selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
   was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it

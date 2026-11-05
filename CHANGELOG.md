@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- The website no longer prints claim IDs ("C-001") beside its sentences. The landing, the comparison pages, the
+  roadmap, "What changed in 3.0" and the blog read as plain text; before, nearly every sentence ended in a row of small
+  boxed codes, and the landing had a table of five ledger rows. Each sentence is still held to its row of the claims
+  ledger by the site's tests, and a build that names a claim the ledger has not got still fails. The ledger itself,
+  with each claim's test and the CI run the site passed, is one link in the footer: "How we test what we say".
 - A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
   opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
   stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)

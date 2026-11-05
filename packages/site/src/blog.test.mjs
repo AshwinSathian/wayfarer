@@ -5,11 +5,15 @@ import { parse, postHtml } from "./lib/blog.ts";
 
 const head = "---\ntitle: T\ndate: 2026-10-19\ndescription: D\n---\nBody\n";
 
-test("a post's claims and screen comments become claim chips and a screen's before and after", () => {
+test("a post's claims comment becomes IDs readers do not see, and a screen comment a screen's before and after", () => {
   const post = parse("2026-11-05-a.md", `${head}Sentence. <!-- claims C-001 C-002 -->\n\n<!-- screen tree -->\n`);
   const html = postHtml(post, (id) => `text of ${id}`);
-  assert.match(html, /Sentence\. <span class="claims[^"]*" data-claims="C-001 C-002">/);
-  assert.match(html, /aria-label="Claim C-002: text of C-002"/);
+  assert.match(html, /Sentence\. <span hidden data-claims="C-001 C-002"><\/span>/);
+  assert.doesNotMatch(html, /href="\/docs\/claims\/|>C-00\d</);
+  assert.throws(
+    () => postHtml(parse("2026-11-05-a.md", `${head}<!-- claims C-999 -->\n`), (id) => assert.fail(`no claim ${id}`)),
+    /no claim C-999/,
+  );
   assert.match(html, /src="\/whats-new\/tree-1440-light\.jpg" width="1080" height="675" loading="lazy"/);
   assert.doesNotMatch(html, /<!--/);
   assert.throws(() => postHtml(parse("2026-11-05-a.md", `${head}<!-- screen nope -->\n`), String), /no screen nope/);

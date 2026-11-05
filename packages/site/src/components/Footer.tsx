@@ -18,7 +18,7 @@ const COLUMNS = [
   [
     "Trust",
     [
-      ["Claims ledger", "/docs/claims/"],
+      ["How we test what we say", "/docs/claims/"],
       ["Trust center", "/docs/trust-center/"],
       ["Threat model", "/docs/threat-model/"],
       ["Security policy", `${REPO}/blob/main/SECURITY.md`],

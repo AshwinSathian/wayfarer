@@ -13,6 +13,42 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   to register with the identity provider is now a read-only field with a
   Copy button, which says when it has copied. It used to be plain text with
   no Copy, and it could break anywhere, even inside "http" on a phone. (U-176)
+- **Code and values show the characters they hold.** Text in the
+  monospace face drew JetBrains Mono's ligatures, so the script review
+  showed `=>` as an arrow and joined `!=`, `>=` and `===` into single
+  glyphs, in the one dialog meant to show exactly what will run.
+  Ligatures are now off wherever the monospace face is used, in the app
+  and on the website (U-180).
+- **An HTML response's preview fills its pane.** The preview was 300 px
+  tall however much room the pane had, so a tall window showed a small
+  white box with empty pane under it. It now takes the pane's height, as
+  a JSON body does, and keeps 300 px where the pane is shorter or the
+  page scrolls on a phone (U-174).
+- Marking a variable secret with no vault on a phone brings the whole passphrase form into the window: both fields,
+  Cancel and Create vault. Before, at 390 px the page scrolled only as far as the passphrase field's edge, and the
+  confirmation field and the buttons stayed under the bottom of the window, so the page looked as if nothing had
+  happened (U-183).
+- Settings › Danger zone has a Back up button beside Reset all data. It makes the workspace backup that Data and
+  storage makes, with the history included, since the reset deletes the history too. Before, the row said "back up
+  first" and the backup was in another section, so following the advice meant Cancel, a change of section and a way
+  back (U-185).
+- A collection run's report says, beside its download buttons, that it is kept only until its tab closes or the
+  page reloads. Before, a reload took the report away and nothing had said that downloading it was the only way to
+  keep it (U-162).
+- A run's report states its counts once. Before, the sentence "4 results in 1 iteration; 1 failed; 4 of 5 tests
+  passed." sat over a summary with the same counts; the sentence is now heard by a screen reader as the run ends and
+  no longer drawn (U-191).
+- **The editors end at their last line.** The body, response and script
+  editors drew an empty overview ruler down their right edge, and the body
+  and response editors scrolled a page past the last line, so a six-line
+  response showed a scrollbar as tall as the pane. Neither is drawn now
+  (U-186).
+- **The Headers tab no longer warns of hidden headers when none were
+  hidden.** A response from another origin that sends
+  `Access-Control-Expose-Headers: *` lets the page read every header, but
+  the tab still opened with a paragraph saying the server may have sent
+  more. It now shows that paragraph only when the browser may have kept
+  headers back (U-173).
 - **A form body's first row is not sent until it has a name.** Choosing
   Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
   that was already checked while empty; Params and Headers stopped doing

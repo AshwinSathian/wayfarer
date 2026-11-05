@@ -325,6 +325,14 @@ test("the Headers tab says once that the browser withholds headers of a response
   await expectNoViolations(page);
 });
 
+test("a response from another origin that exposes every header has no such note (U-173)", async ({ page }) => {
+  // The echo server answers with Access-Control-Expose-Headers: *.
+  await open(page, `${ECHO}/content/text`);
+  await viewer(page).getByRole("tab", { name: "Headers" }).click();
+  await expect(viewer(page).locator("table.ds-table th", { hasText: "access-control-expose-headers" })).toBeVisible();
+  await expect(viewer(page).locator(".headers-note")).toHaveCount(0);
+});
+
 test("a response from the app's own origin has no such note", async ({ page, baseURL }) => {
   await open(page, new URL("/app/manifest.webmanifest", baseURL).href);
   await viewer(page).getByRole("tab", { name: "Headers" }).click();

@@ -147,6 +147,8 @@ export function typeClasses(group = "type") {
       name: key,
       declarations: [
         ...(family === "{font.font-sans}" ? [] : [["font-family", `var(--${family.slice(1, -1).split(".").pop()})`]]),
+        // A value shows its characters (U-180): JetBrains Mono would join `=>` and `!==` into one glyph.
+        ...(family === "{font.font-mono}" ? [["font-variant-ligatures", "none"]] : []),
         ["font-size", `var(--${key}-size)`],
         ["line-height", `var(--${key}-line)`],
         ["font-weight", `var(--${key}-weight)`],

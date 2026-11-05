@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Scripts tab's headings are only words.** "Pre-request script" had a play
+  triangle beside it, which read as a Run button or a closed section, and
+  "Post-response script" and "Tests" had icons of their own; all three are
+  gone. (U-189)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

@@ -151,6 +151,16 @@ test.describe("Settings surface", () => {
     await expect(dialog.getByText("Local Bridge settings", { exact: true })).toBeVisible();
   });
 
+  // U-178 of docs/design/audit.md: the tree's and the tabs' own keys are written where every shortcut is.
+  test("Shortcuts lists F2, Alt with an arrow and Shift+F10, the keys of the tree and the tabs", async ({ page }) => {
+    await page.goto("/app/");
+    const dialog = await openSettings(page, "Shortcuts");
+    const keysOf = (text: string) => dialog.locator(".settings-row").filter({ hasText: text }).locator("kbd");
+    await expect(keysOf("Rename the item selected in the collections panel, or the focused tab")).toHaveText("F2");
+    await expect(keysOf("Move the selected item up or down among its siblings")).toHaveText(/^(⌥↑ ⌥↓|Alt\+↑ Alt\+↓)$/);
+    await expect(keysOf("Open the menu of the selected item or the focused tab")).toHaveText(/^(⇧F10|Shift\+F10)$/);
+  });
+
   test("@claim:C-033 Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {
     await page.goto("/app/");
     await openSettings(page, "Danger zone");

@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- The keys of the collections tree and the request tabs are written down. The tree's menu shows F2 beside Rename and
+  Delete beside Delete, a tab's menu shows F2 beside Rename and Delete beside Close tab, and Settings › Shortcuts
+  lists F2 (rename), Alt with ↑ or ↓ (⌥ on a Mac; move an item among its siblings) and Shift+F10 (⇧F10 on a Mac;
+  open the item's menu). Before, all of these worked but none was shown anywhere (U-178).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

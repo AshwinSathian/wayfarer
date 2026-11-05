@@ -2238,6 +2238,7 @@ script; the composer under it shows `=>`),
 `baseline/design-{chromium,firefox,webkit}/script-review-360-dark.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #625 (D6-a): every rule that sets the mono face, in the app, its generated type classes and the site, turns ligatures off, and a token test holds it.
 
 **U-181. Table column heads are 12 px JetBrains Mono.** Severity 3. H4. All.
 `.ds-table th` sets the mono face at the footnote size (0.75 rem): the run

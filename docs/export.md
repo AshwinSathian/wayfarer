@@ -138,8 +138,8 @@ has ended: every exchange of it, masked as history is.
 
 <!-- claim:C-057 -->
 
-**A collection.** Right-click a collection and choose **Export for
-Postman…**. The file is a Postman Collection v2.1 file
+**A collection.** Right-click a collection and choose **Export…**, then
+**Postman v2.1** and **Export file**. The file is a Postman Collection v2.1 file
 (`<name>.postman_collection.json`), which Postman, Newman and most other
 API clients read.
 
@@ -148,7 +148,7 @@ API clients read.
 | The collection's name and description | `info` |
 | Its variables | `variable`; one that is switched off is `disabled` |
 | A folder, in a folder | an item that holds items |
-| Auth of the collection, a folder or a request | `auth`: `bearer`, `basic`, `apikey`, `awsv4`, `oauth2` (the code grant as `authorization_code_with_pkce`; no token is written, and "On a 401, get a new token" has no place in the format). "No auth" is `noauth`. "Inherit from parent" is no `auth` at all, which is how Postman says it |
+| Auth of the collection, a folder or a request | `auth`: `bearer`, `basic`, `apikey`, `awsv4`, `oauth2` (the code grant as `authorization_code_with_pkce`; no token is written, and "On a 401, get a new token" has no place in the format). "None" is `noauth`. "Inherit from parent" is no `auth` at all, which is how Postman says it |
 | A pre-request and a post-response script, at each of the three levels | `event`: `prerequest` and `test` |
 | The address | `url`, as typed and in the parts Postman sends by. A `{{variable}}` stays as typed. The query is the one in the address; a Params row that is switched off is there too, `disabled` |
 | Headers | `header`; a row that is switched off is `disabled` |

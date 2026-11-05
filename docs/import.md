@@ -19,8 +19,8 @@ Every file reaches the app by one road, whichever Import button you press
 3. **Report.** A dialog shows what the file is, what it will add (how many
    collections, folders, requests and environments), and what of it could
    not be kept. **Nothing is stored yet.** <!-- claim:C-054 -->
-4. **Confirm.** *Import* stores it: each collection in one transaction, all
-   of it or none. *Cancel*, Escape or closing the dialog stores nothing.
+4. **Confirm.** **Import** stores it: each collection in one transaction, all
+   of it or none. **Cancel**, Escape or closing the dialog stores nothing.
 
 ## What the report warns about
 
@@ -78,8 +78,8 @@ Two ways in:
   request. What the command asked
   for that the app does not do is listed under the address until you send.
   Text that does not start with `curl` is pasted as text.
-- **Import it.** *Paste a cURL command*, in the response pane of an empty
-  tab, or *cURL command…* in the Collections panel's Import menu (there
+- **Import it.** **Paste a cURL command**, in the response pane of an empty
+  tab, or **cURL command…** in the Collections panel's Import menu (there
   once a collection exists) opens the import dialog with a box for the
   command. It then takes the road above:
   a report, and on Import a collection with the one request.

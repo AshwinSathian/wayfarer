@@ -507,8 +507,9 @@ as the one before it left it. `pm.info.eventName` says which kind it is;
 `pm.info.requestName` names the request being sent.
 
 A pre-request script that ends in an error stops the send, whichever of them
-it is: no later script runs and nothing is sent. The Tests tab names it
-("Pre-request script of folder …"). A post-response script that ends in an
+it is: no later script runs and nothing is sent. The Tests tab names it by
+its kind and where it is from (a folder's, the collection's or the
+request's own). A post-response script that ends in an
 error is a failed row, and the ones after it still run.
 
 The question about another host (above) compares the request before the

@@ -12,10 +12,11 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
 export const REPO = "https://github.com/AshwinSathian/wayfarer";
 
-/** The headings of /docs/, in order. A doc under docs/design/ is a design record; a doc not listed is a guide. */
-export const DOC_GROUPS = ["Guides", "Reference", "Trust", "Operations", "Design records"] as const;
+/** The headings of /docs/, in order: Start first, for a reader who is new. A doc under docs/design/ is a design record; a doc not listed is a guide. */
+export const DOC_GROUPS = ["Start", "Guides", "Reference", "Trust", "Operations", "Design records"] as const;
 export type DocGroup = (typeof DOC_GROUPS)[number];
 const GROUP_OF: Record<string, DocGroup> = {
+  "getting-started": "Start",
   "collections-schema": "Reference",
   "postman-compatibility": "Reference",
   storage: "Reference",

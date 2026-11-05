@@ -1,5 +1,8 @@
 # Reach plan
 
+<!-- off-site -->
+<!-- The maintainer's working list (2026-11-05): kept here, not a page of the site and not linked from the README. -->
+
 Where Wayfarer is listed and announced, what goes there, and when (W3.2 of
 [the design plan](../../PLAN-design.md)). **Nothing here is posted until the
 maintainer approves that entry**, and each entry's status says whether it

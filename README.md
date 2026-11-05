@@ -154,7 +154,6 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
-- [Reach plan](docs/design/reach.md): where Wayfarer is listed and announced, and when; nothing is posted before the maintainer approves it
 - [Design audit, 2026](docs/design/audit.md): what is wrong with the interface, finding by finding, with screenshots and what became of each
 - [hig-review, 2026-10-23](docs/design/hig-review-2026-10-23.md): the audit's third pass, against Apple's Human Interface Guidelines and WCAG 2.2, and where each finding went in the plan
 - [hig-review, 2026-10-26](docs/design/hig-review-2026-10-26.md): the audit's fourth pass, a red-team review with research of rival API clients, three proposed reworks, a theming sketch and a measured look at the typefaces

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Link gate for the docs (P7.6), offline: no request is made. Fails (exit 1)
 // when a Markdown file links a repository file that is not there, or when a
-// doc under docs/ is not linked from the README. A link to another site, or
+// doc under docs/ is not linked from the README, unless it says `<!-- off-site -->`
+// (kept in the repository, shown nowhere: packages/site/src/lib/content.ts reads
+// the same mark). A link to another site, or
 // to a heading of the same file, is not checked.
 //
 // Usage: node scripts/check-links.mjs   (from the repo root)
@@ -56,7 +58,12 @@ export function checkLinks(root) {
   const linked = new Set(readme.map((target) => normalize(target.split("#")[0]).replaceAll("\\", "/")));
   const docs =
     existsSync(join(root, "docs")) && statSync(join(root, "docs")).isDirectory()
-      ? files.filter((file) => file.startsWith("docs/") && !file.startsWith("docs/archive/"))
+      ? files.filter(
+          (file) =>
+            file.startsWith("docs/") &&
+            !file.startsWith("docs/archive/") &&
+            !readFileSync(join(root, file), "utf8").includes("<!-- off-site -->"),
+        )
       : [];
   for (const doc of docs) if (!linked.has(doc)) errors.push(`README.md does not link ${doc}`);
   return errors;

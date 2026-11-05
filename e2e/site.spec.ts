@@ -273,6 +273,17 @@ test("the design records are noindex and outside llms.txt's docs, and llms-full.
   expect(text).not.toContain("# Team flows");
 });
 
+// The reach plan is the maintainer's working list of where to post (2026-11-05): it stays in the repository and is no
+// page of the site. A doc marked `<!-- off-site -->` is left out of the site's docs, its index and llms.txt.
+test("a doc marked off-site is no page of the site", async ({ page, request }) => {
+  expect((await request.get("/docs/design/reach/")).status()).toBe(404);
+  await page.goto("/docs/");
+  await expect(page.locator('a[href*="/docs/design/reach"]')).toHaveCount(0);
+  for (const file of ["/sitemap.xml", "/llms.txt", "/llms-full.txt"])
+    expect(await (await request.get(file)).text(), file).not.toContain("Reach plan");
+  expect(readFileSync("docs/design/reach.md", "utf8")).toContain("<!-- off-site -->");
+});
+
 // W3.1: every page names its canonical address, its Open Graph and Twitter cards and an image of its own, which is a
 // 1200 by 630 PNG; the sitemap lists every page but the working notes, which say noindex (D5-e); robots.txt names the
 // sitemap; the front page describes the app as schema.org data; /llms.txt says what the site is.
@@ -372,11 +383,11 @@ test("the header fits the window when the web fonts do not load", async ({ page 
   }
 });
 
-// W2.2: every file of docs/ is a page, and the search, the site's one script, finds them.
+// W2.2: every file of docs/ but one marked off-site is a page, and the search, the site's one script, finds them.
 test("every doc of the repository is a page of the site, its links leading to pages", async ({ page }) => {
   const docs = readdirSync("docs", { recursive: true })
     .map(String)
-    .filter((name) => name.endsWith(".md"))
+    .filter((name) => name.endsWith(".md") && !readFileSync(`docs/${name}`, "utf8").includes("<!-- off-site -->"))
     .map((name) => name.split("\\").join("/").slice(0, -3));
   expect(docs.length).toBeGreaterThan(15);
   for (const doc of docs) {

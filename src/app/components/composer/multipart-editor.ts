@@ -5,6 +5,7 @@ import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import type { MultipartPart } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
+import { rename } from "../../state/tab-state";
 import { UiSelect, type UiSelectOption } from "../../ui/select";
 import { UiFile } from "../../ui/file";
 
@@ -29,4 +30,10 @@ export class MultipartEditor {
     { value: "text", label: "Text" },
     { value: "file", label: "File" },
   ];
+
+  /** A part is sent once it has a name: the blank part is unchecked until then (L-17, U-200). */
+  protected rename(part: MultipartPart, key: string): void {
+    rename(part, key);
+    this.partChange.emit();
+  }
 }

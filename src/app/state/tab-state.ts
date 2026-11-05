@@ -29,6 +29,12 @@ export const SHOWN_EVENTS = 500;
 /** The editor's blank row: not sent, and unchecked, until it has a name (L-17). */
 export const blankRow = (): Row => ({ key: "", value: "", enabled: false });
 
+/** Names a row in place: the first name switches it on (L-17); after that the switch is the person's. */
+export function rename(row: { key: string; enabled: boolean }, key: string): void {
+  if (!row.key && key) row.enabled = true;
+  row.key = key;
+}
+
 export function emptyDraft(): Draft {
   return { ...emptyRequest(), params: [blankRow()], headers: [blankRow()] };
 }
@@ -49,6 +55,11 @@ export function contentOf(draft: Draft): RequestContent {
 
 /** Scripts that wait for a review, and what the review calls them when they are not a history entry's. */
 /** A collection, or a folder in it: what holds auth, variables and scripts for the requests in it (P4.9). */
+/** What an unsaved request is called: its address without the scheme, or that it is new. Its tab and its first save say it. */
+export function unsavedName(url: string): string {
+  return url.trim().replace(/^https?:\/\//, "") || "New request";
+}
+
 export interface HolderTarget {
   collectionId: string;
   folderId?: string;

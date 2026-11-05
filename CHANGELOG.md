@@ -9,6 +9,24 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **A getting-started page.** `docs/getting-started.md` walks through a
+  first request, saving it in a collection, moving its address into an
+  environment and keeping a key in the vault, with the claim behind each
+  promise. The README links it, and the site's docs index opens with it
+  under Start. Before, a new reader had to piece the first steps together
+  from the reference pages.
+
+- **The docs name only controls the app has.** A test in
+  `npm run test:scripts` reads every control a user doc names (bold inside
+  a sentence, a short quoted label, a Settings path, "the X tab") and fails
+  on one that no template, no string of the app and no e2e spec holds. It
+  found six names the redesign had retired: "Export for Postman…" (now
+  Export…, then Postman v2.1), "Export with credentials" (now Include
+  credentials, in the Export dialog), "No auth" (None), "Must be JSON"
+  (Check it is JSON before sending), "Workspace backup" (Settings › Data
+  and storage, Back up) and a Tests tab line the app no longer writes. The
+  docs now use the app's names.
+
 - **History names the saved request an entry came from.** A row used to
   show only the method, the address and the status, so finding "the pets
   request from last week" meant remembering its URL. A send from a saved
@@ -443,6 +461,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   test keeps that list equal to the app's.
 
 ### Fixed
+
+- **The site's pictures of the app show the app as it is now.** The
+  landing's screenshots, in both themes and on a phone, were taken before
+  the final design pass: they showed a Settings tab where the composer now
+  has Network, the sidebar's old empty state and a separate path field
+  under the response's search. They are taken again from today's build.
+  The script that takes them waited half a second for a fade the app no
+  longer has; it now waits for the response's body, the fonts and any
+  transition still running.
 
 - **You can choose No environment, and it stays chosen.** Once an
   environment existed, the toolbar's list offered only environments, so

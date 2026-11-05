@@ -277,7 +277,7 @@ shows the connection in place of a request's panels and its response.
   server chose. A name that is not a token is refused by the browser, and
   the tab shows the browser's reason.
 - **Messages** are text. `{{variables}}` are replaced in the address and in
-  a message. "Must be JSON" holds back a message that does not parse.
+  a message. "Check it is JSON before sending", ticked, holds back a message that does not parse.
   A binary message that arrives is logged with its size, not its bytes;
   none can be sent.
 - **A vault secret cannot be sent.** The vault is not read for a WebSocket,

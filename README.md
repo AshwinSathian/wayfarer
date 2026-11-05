@@ -7,7 +7,7 @@
 
 Wayfarer has no account, no server of its own and no telemetry. Your requests, collections, environments and history live in your browser's IndexedDB. The values you put in the secrets vault are encrypted, and everything else is stored as plain text. Export or back up whenever you want.
 
-**Use it:** https://wayfarer.ashwinsathian.com/ (a release is a tag; the deployed copy may be older), or [host it yourself](docs/self-hosting.md). What changed: [CHANGELOG](CHANGELOG.md).
+**Use it:** https://wayfarer.ashwinsathian.com/ (a release is a tag; the deployed copy may be older), or [host it yourself](docs/self-hosting.md). New to it: [Getting started](docs/getting-started.md). What changed: [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -134,6 +134,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 
 ## Docs
 
+- [Getting started](docs/getting-started.md): a first request, a collection, an environment and the vault, in that order
 - [Variables](docs/variables.md): scopes, `{{names}}`, and the values a request is sent with
 - [Auth](docs/auth.md): Bearer, Basic, API key, AWS Signature and OAuth 2.0, and what a folder or a collection passes down
 - [Scripts](docs/scripts.md): the sandbox, what `pm` offers, which scripts may run, and collection runs

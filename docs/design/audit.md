@@ -2235,6 +2235,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
 **2026-11-05:** Fixed in #581 (D5-e): the box is `uiInput`, so its placeholder is the app's tertiary label in every engine; #621 (D6-a) adds the test. The resize grip is `textarea.ui-input`'s, shared by every text area.
+**2026-11-06:** Decided and fixed in D6-b (PLAN-design row 1.77): no grip in any engine (`resize: none`); a text area grows with its text (`field-sizing: content`, measured in Chromium 156, Firefox 157 and WebKit 27.2) from its rows to 16 lines, then scrolls. Against it: a person can no longer make a box taller than 16 lines. For it: the grip was the browser's look, and growing with the text needs no handle at all.
 
 **U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
 H4. PE, TP.

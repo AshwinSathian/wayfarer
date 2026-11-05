@@ -26,12 +26,17 @@
     box-shadow var(--dur-quick) var(--ease-standard);
 }
 
+/* No grip: Chromium's and Firefox's own was the browser's look (U-179). The box grows with its text instead, from
+   its rows (`--ui-rows`, set by UiInput) to 16 lines, then scrolls. 18 px is the padding and the border. */
 textarea.ui-input {
   display: block;
   height: auto;
   padding-block: 8px;
   overflow: auto;
-  resize: vertical;
+  resize: none;
+  field-sizing: content;
+  min-block-size: calc(var(--ui-rows, 2) * 1lh + 18px);
+  max-block-size: calc(16lh + 18px);
 }
 
 .ui-input::placeholder {

@@ -1437,6 +1437,36 @@ test("text field: Tab reaches each one and passes over a disabled one, and what 
   await expect(field("Timeout")).toHaveValue("30001");
 });
 
+test("text area: no resize grip; it grows with its text from its rows to 16 lines, then scrolls (U-179)", async ({
+  page,
+}) => {
+  await open(page, "light");
+  const area = page.getByLabel("Message", { exact: true });
+  const box = () =>
+    area.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const line = parseFloat(style.lineHeight);
+      const chrome =
+        parseFloat(style.paddingTop) +
+        parseFloat(style.paddingBottom) +
+        parseFloat(style.borderTopWidth) +
+        parseFloat(style.borderBottomWidth);
+      return {
+        resize: style.resize,
+        lines: Math.round((el.getBoundingClientRect().height - chrome) / line),
+        scrolls: el.scrollHeight > el.clientHeight,
+      };
+    });
+  const lines = (n: number) => Array.from({ length: n }, (_, i) => `line ${i + 1}`).join("\n");
+
+  // Chromium and Firefox drew their own grip in the corner: the browser's look (maintainer, 2026-10-20).
+  expect(await box()).toEqual({ resize: "none", lines: 3, scrolls: false });
+  await area.fill(lines(5));
+  expect(await box()).toEqual({ resize: "none", lines: 5, scrolls: false });
+  await area.fill(lines(40));
+  expect(await box()).toEqual({ resize: "none", lines: 16, scrolls: true });
+});
+
 test("text field: none of the browser's look; under the pointer, focused and disabled", async ({
   page,
   browserName,

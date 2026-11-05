@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- Text areas (bulk headers, a pasted cURL command, a WebSocket message, an AI draft's description) grow with their
+  text, up to 16 lines, then scroll. Before, they kept their first height, and Chromium and Firefox drew their own
+  resize grip in the corner, the one part of a field that still looked like the browser's.
 - A tab of Wayfarer whose database a later version of the app has opened in another tab now says "Wayfarer was
   updated in another tab" and asks for a reload. Before, it said the data had been reset, and a tab that found the
   database at a later version at its start said the browser refused storage, then kept what you did in memory only.

@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Code and values show the characters they hold.** Text in the
+  monospace face drew JetBrains Mono's ligatures, so the script review
+  showed `=>` as an arrow and joined `!=`, `>=` and `===` into single
+  glyphs, in the one dialog meant to show exactly what will run.
+  Ligatures are now off wherever the monospace face is used, in the app
+  and on the website (U-180).
 - **An HTML response's preview fills its pane.** The preview was 300 px
   tall however much room the pane had, so a tall window showed a small
   white box with empty pane under it. It now takes the pane's height, as

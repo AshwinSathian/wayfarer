@@ -44,6 +44,7 @@ textarea.ui-input {
 
 .ui-input.placeholder-mono::placeholder {
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
 }
 
 .ui-input:hover:not(:disabled, :read-only) {
@@ -157,6 +158,7 @@ textarea.ui-input {
   width: calc(clamp(3, var(--method-chars, 3), 8) * (1ch + 0.05em) + 16px);
   padding-inline: 14px 0;
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
   /* No mono role under 13 px: JetBrains Mono's 0 and O were a device pixel apart at 12 (U-151). */
   font-size: var(--type-mono-body-size);
   font-weight: 600;

@@ -101,6 +101,10 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
     .click();
   const held = page.locator(".scripts-held");
   await expect(held).toBeVisible();
+  // It links to the doc that explains the review, in a tab of its own (U-166).
+  const doc = held.getByRole("link", { name: "How scripts are trusted" });
+  await expect(doc).toHaveAttribute("href", "../docs/scripts/#which-scripts-may-run");
+  await expect(doc).toHaveAttribute("target", "_blank");
   await held.getByRole("button", { name: "Review scripts" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review).toContainText("2 scripts in 1 request");

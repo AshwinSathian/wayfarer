@@ -89,6 +89,9 @@ test("@claim:C-054 an import shows what it will add and what it could not keep b
     '"shared.json" will add 1 collection, 1 folder and 2 requests.',
   );
   // What it could not keep: a script that uses what the app does not have, named by where it is.
+  // The warnings link to the doc that explains them (U-166).
+  const doc = report.locator(".import-warnings").getByRole("link", { name: "What the warnings mean" });
+  await expect(doc).toHaveAttribute("href", "../docs/import/#what-the-report-warns-about");
   await expect(report.locator(".import-warnings")).toContainText(
     'Request "With a cookie jar". Its pre-request script uses pm.cookies.jar, which Wayfarer does not have, so the script stops with an error there.',
   );

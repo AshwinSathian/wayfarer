@@ -6,6 +6,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
 import { ScriptEditor } from "../script-editor/script-editor";
 import { ScriptReviewDialog } from "./script-review-dialog";
 import { TestsPanel } from "./tests-panel";
+import { DOCS } from "../../shared/docs";
 
 /** The pre-request and post-response scripts, and the test assertions below them. */
 @Component({
@@ -17,6 +18,7 @@ import { TestsPanel } from "./tests-panel";
 export class ScriptsPanel {
   protected readonly store = inject(WorkspaceStore);
   protected readonly reviewing = signal(false);
+  protected readonly docs = DOCS;
   protected readonly heldText =
     "These scripts came from a file or from history and are not reviewed yet, so they do not run. Assertions still run.";
 

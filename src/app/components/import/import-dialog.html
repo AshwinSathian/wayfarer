@@ -59,6 +59,13 @@
         <li><span class="font-semibold">{{ sentence(warning.item) }}.</span> {{ warning.message }}</li>
         }
       </ul>
+      <a
+        class="type-footnote text-label-primary underline mt-1.5 inline-block"
+        [href]="docs.importWarnings"
+        target="_blank"
+        rel="noopener noreferrer"
+        >What the warnings mean</a
+      >
     </div>
     } @for (entry of imported.collections; track entry.payload.collection.meta.id) {
     <div>

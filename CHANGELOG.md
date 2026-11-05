@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

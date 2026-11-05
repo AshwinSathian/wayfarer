@@ -104,7 +104,7 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   await page.locator("#auth-oauth-token-url").fill(`${ECHO}/oauth/token`);
   await page.locator("#auth-oauth-client-id").fill("wayfarer-e2e");
   await page.locator("#auth-oauth-scope").fill("read");
-  await expect(page.locator(".oauth-redirect-uri")).toHaveText("http://localhost:4200/app/oauth/callback");
+  await expect(page.locator(".oauth-redirect-uri")).toHaveValue("http://localhost:4200/app/oauth/callback");
   await expect(status(page)).toContainText("No token yet.");
 
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));

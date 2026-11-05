@@ -1957,6 +1957,7 @@ Evidence: `src/app/state/tabs-storage.ts:124-126`;
 `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): a line under the download buttons says the report is kept only until its tab closes or the page reloads, and to download it to keep it.
 
 **U-163. The first save cannot make the collection it needs.**
 Severity 3. H7, H3. SD, OC.
@@ -1969,6 +1970,7 @@ name a new collection itself.
 Evidence: `src/app/components/composer/save-as-dialog.html:9-12`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): with no collection yet, the dialog names one ("My collection") and Save makes it and saves the request into it in one act.
 
 **U-164. With no vault, the app says the vault is locked.**
 Severity 3. H1, H2. PE, OC.
@@ -2143,6 +2145,7 @@ Evidence: `baseline/design-chromium/response-headers-1440-light.png`
 `src/app/components/response-viewer/response-viewer.html:343-351`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #610 (D6-a): the note shows only when the browser may have hidden headers, not when the response exposes every header with `Access-Control-Expose-Headers: *`.
 
 **U-174. The HTML preview is 300 px tall, whatever room the pane has.**
 Severity 3. H8. SD, QA.
@@ -2153,6 +2156,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/response-html-1440-dark.png
 `src/app/components/response-viewer/html-preview.ts:20` (`h-[300px]`).
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #624 (D6-a): beside the request the preview takes the pane's height, as a JSON body does, with 300 px as its minimum and its height on a phone.
 
 **U-175. A failed request explains itself twice and keeps four tabs of
 nothing.** Severity 3. H8. OC, SD.
@@ -2184,6 +2188,7 @@ Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`,
 `src/app/components/composer/auth-editor/oauth-fields.html:16-19`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #622 (D6-a): the redirect URI is a read-only monospace field, labelled by the sentence, with Copy beside it that says what it did; `oauth-fields.spec.ts` holds it.
 
 **U-177. Save to collection starts with an empty name, and Save
 disabled.** Severity 3. H7. SD, TP.
@@ -2196,6 +2201,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/save-request-390-light.png`
 `src/app/components/composer/save-as-dialog.html:15-25`, `:60`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): the Name starts as the tab's name, selected, and Save is enabled.
 
 **U-178. F2, Alt+Arrow and Shift+F10 work in the tree and are written
 nowhere.** Severity 3. H6, H10. SD, QA.
@@ -2225,6 +2231,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
 `src/app/components/import/import-dialog.html:14-22`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #581 (D5-e): the box is `uiInput`, so its placeholder is the app's tertiary label in every engine; #621 (D6-a) adds the test. The resize grip is `textarea.ui-input`'s, shared by every text area.
 
 **U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
 H4. PE, TP.
@@ -2239,6 +2246,7 @@ script; the composer under it shows `=>`),
 `baseline/design-{chromium,firefox,webkit}/script-review-360-dark.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #625 (D6-a): every rule that sets the mono face, in the app, its generated type classes and the site, turns ligatures off, and a token test holds it.
 
 **U-181. Table column heads are 12 px JetBrains Mono.** Severity 3. H4. All.
 `.ds-table th` sets the mono face at the footnote size (0.75 rem): the run
@@ -2275,6 +2283,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/vault-create-390-light.png`
 `baseline/design-{chromium,firefox,webkit}/vault-create-360-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #627 (D6-a): the form is scrolled into view whole (`block: "nearest"`, smooth unless motion is reduced) before the passphrase takes focus without a scroll of its own.
 
 **U-184. The Environments list's header is four bare icons, and globals
 are "{}".** Severity 3. H6. TP, OC.
@@ -2298,6 +2307,7 @@ Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`,
 `baseline/design-chromium/settings-danger-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #616 (D6-a): the Danger zone's row has Back up beside Reset all data, Data and storage's backup with the history kept; the confirm keeps its two buttons.
 
 **U-186. Monaco draws an empty overview ruler and scrolls past the last
 line.** Severity 4. H8. All.
@@ -2312,6 +2322,7 @@ tick at the editor's top right), `baseline/design-chromium/response-record-1440-
 `src/app/components/script-editor/script-editor.ts:163`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #614 (D6-a): every editor's shared options (`editorText`) turn off the overview ruler and the scrolling past the last line.
 
 **U-187. A method is drawn four ways, and the method menu marks none.**
 Severity 4. H4, H1. SD.
@@ -2338,6 +2349,7 @@ Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 `src/app/components/composer/scripts-panel.html:20`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #612 (D6-a): the Scripts tab's three headings (Pre-request script, Post-response script, Tests) carry no icon; `scripts-panel.spec.ts` holds it.
 
 **U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
@@ -2351,6 +2363,7 @@ Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
 Evidence: `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): the counts sentence is only the run's announcement now (`sr-only` in its status), and the summary under it is the one drawn statement of the counts.
 
 **U-192. The environment editor's tab says "Key / Value" over columns
 headed Name and Value.** Severity 4. H4. TP.
@@ -2552,6 +2565,7 @@ empty row.
 Evidence: #584's body ("Not done").
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #613 (D6-a): a URL-encoded or multipart body starts and adds its row unchecked, and the first name checks it, by the same function as Params' and Headers' rows; `body-panel.spec.ts` holds it.
 
 **U-201. A pasted cURL command takes two buttons to import.** Severity 3.
 H8. SD, TP.
@@ -2562,6 +2576,7 @@ the visual-craft review.
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): it changes the import's
 steps (ImportPipeline), not only words; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #621 (D6-a): the box's "Read the command" is gone; Import reads the command and opens the report a file opens.
 
 **U-202. The Tests tab's empty line and the held-scripts line name a tab,
 not a button.** Severity 4. H7. TP, QA.

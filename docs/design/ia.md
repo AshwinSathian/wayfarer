@@ -384,7 +384,6 @@ it is.
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
 | `export-dialog.html: Export file` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
-| `import-dialog.html: Read the command` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
@@ -440,6 +439,7 @@ it is.
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Add to` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide secret key / Show secret key` | Auth tab | Composer, Auth tab | D4-d |
+| `oauth-fields.html: Copy the redirect URI` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: beside the redirect URI (U-176) | D6-a |
 | `oauth-fields.html: Grant` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: Hide client secret / Show client secret` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `oauth-fields.html: Client sent in` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |

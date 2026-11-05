@@ -386,12 +386,23 @@
             <p class="settings-title type-callout text-label-primary">Reset all data</p>
             <p class="type-footnote text-label-secondary"
               >Deletes every collection, environment, secret and history entry, and every setting on this page. Cannot
-              be undone: back up first.</p
+              be undone: back up first. The backup here keeps the history too.</p
             >
           </div>
-          <button uiButton="filled" class="btn-danger btn-sm" type="button" (click)="resetAllData.emit()"
-            >Reset all data…</button
-          >
+          <!-- The backup the line asks for, here: Data and storage's own (U-185). -->
+          <div class="settings-actions">
+            <button
+              uiButton="outlined"
+              class="btn-secondary btn-sm"
+              type="button"
+              aria-label="Back up workspace"
+              (click)="exportBackup(true)"
+              ><app-icon name="download" /> Back up</button
+            >
+            <button uiButton="filled" class="btn-danger btn-sm" type="button" (click)="resetAllData.emit()"
+              >Reset all data…</button
+            >
+          </div>
         </div>
       </div>
       } }

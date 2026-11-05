@@ -1051,6 +1051,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   is a history entry with scripts of its own: before, it showed and
   cleared the entry's, and the collection stayed unreviewed.
 
+- **The plan records the final design pass as done.** Row 1.69 of
+  `PLAN-design.md` lists what session D5-e changed, the choices it made,
+  and what it left for later sessions.
+
 - **The design audit lists what the final design pass changed.** Each
   item of its four reviews names the pull request that made it, or the
   session that has it next, and seven findings the pass made are added,

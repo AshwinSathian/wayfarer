@@ -581,7 +581,8 @@ it is.
 | `shortcut: undo` | — (new in D4-f) | ⌘Z or Ctrl+Z while an Undo is offered, focus not where text is typed (U-080) | D4-f, done |
 | `shortcut: C` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: N` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
-| `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027) | D4-c |
+| `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027); keycap by Delete in the tree's menu and by Close tab in a tab's (U-178) | D4-c |
+| `shortcut: F2` | — (written in D6-a, U-178) | A tree row or a saved request's tab: rename; keycap by Rename in both menus. Settings, Shortcuts also lists Alt+↑/↓ (move among siblings) and Shift+F10 (the row's or tab's menu) | — |
 | `shortcut: Escape` | Any dialog, drawer, menu or the palette | Same | — |
 
 ### Settings

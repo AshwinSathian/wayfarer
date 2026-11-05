@@ -91,8 +91,14 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   await expect(row(page, "the file's script ran")).toHaveCount(0);
   await expect(row(page, "the pre-request script ran")).toHaveCount(0);
 
+  // The request's Scripts tab says they are held, as its banner does (U-170, U-158).
+  const scriptsTab = page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
+  await expect(scriptsTab).toHaveAccessibleName("Scripts (not reviewed)");
   // The Scripts tab says why, and offers the review.
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const held = page.locator(".scripts-held");
   await expect(held).toBeVisible();
   // It links to the doc that explains the review, in a tab of its own (U-166).
@@ -111,6 +117,7 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   await review.getByRole("button", { name: "Trust these scripts" }).click();
   await expect(review).toHaveCount(0);
   await expect(held).toHaveCount(0);
+  await expect(scriptsTab).toHaveAccessibleName("Scripts (set)");
 
   // Trusted: both scripts run.
   await send(page);
@@ -123,7 +130,10 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
 
   // The same collection arrives again with one script changed: nothing of it runs until it is reviewed again.
   await importFile(page, 'pm.test("the changed script ran", () => {});');
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   await expect(held).toBeVisible();
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -166,7 +176,10 @@ test("a script written here runs without a review, also after it is saved into a
   });
   await page.reload();
   await page.locator("input.address-url").fill(`${TARGET}/mine`);
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const editor = page.locator("app-script-editor").nth(1).locator(".monaco-editor").first();
   await editor.click();
   await page.keyboard.type("pm.test('typed here', function () {})");
@@ -198,6 +211,27 @@ test("a send whose scripts are held says so above the response's tabs, on Body t
   await importFile(page, 'pm.test("the file\'s script ran", () => {});');
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect(page.getByRole("tab", { name: "Body", exact: true }).last()).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: /^Body( |$)/ }).last()).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".scripts-skipped")).toBeVisible();
+});
+
+test("the review shows a script's characters as they are: no ligature joins => or !== (U-180)", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  await importFile(page, 'pm.test("arrows", () => pm.expect(1 !== 2 && 3 >= 2).to.be.true);');
+  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review.locator(".script-review-code").last()).toContainText("() =>");
+  await expect(review.locator(".script-review-code").last()).toHaveCSS("font-variant-ligatures", "none");
+  // Nothing in the wire's face draws a ligature, in the dialog or the page under it (U-040: a value shows its
+  // characters). Monaco turns its own off (`fontLigatures: false` in editorText).
+  const joined = await page.evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((el) => !el.closest(".monaco-editor") && el.textContent?.trim())
+      .filter((el) => getComputedStyle(el).fontFamily.includes("JetBrains Mono"))
+      .filter((el) => getComputedStyle(el).fontVariantLigatures !== "none")
+      .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}`),
+  );
+  expect(joined).toEqual([]);
 });

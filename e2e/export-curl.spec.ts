@@ -64,7 +64,11 @@ interface Fixture {
   prepare?: (page: Page) => Promise<void>;
 }
 
-const body = (page: Page) => page.getByRole("tab", { name: "Body", exact: true }).first().click();
+const body = (page: Page) =>
+  page
+    .getByRole("tab", { name: /^Body( |$)/ })
+    .first()
+    .click();
 
 const FIXTURES: Fixture[] = [
   {

@@ -10,7 +10,11 @@ import { ECHO } from "./support/echo";
 const notes = (page: Page) => page.locator("app-browser-notes");
 
 async function setHeader(page: Page, name: string, value: string): Promise<void> {
-  await page.locator("app-composer").getByRole("tab", { name: "Headers", exact: true }).first().click();
+  await page
+    .locator("app-composer")
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .first()
+    .click();
   const panel = page.locator("app-headers-panel");
   await panel.getByPlaceholder("name").last().fill(name);
   await panel.getByPlaceholder("value").last().fill(value);

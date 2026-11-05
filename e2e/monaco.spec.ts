@@ -20,7 +20,10 @@ test("F71: nothing of Monaco's throws once its language services have loaded and
   await page.goto("/app/");
 
   // A script editor: the TypeScript service starts.
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const script = page.locator("app-script-editor .monaco-editor").first();
   await expect(script).toBeVisible({ timeout: 10_000 });
   await script.click();
@@ -69,4 +72,20 @@ test("the response's editor is in the app's monospace, with plain brackets and n
       }).length,
   );
   expect(blue).toBe(0);
+});
+
+test("a short response has no overview ruler and nothing to scroll past its last line (U-186)", async ({ page }) => {
+  await page.setViewportSize({ width: 1460, height: 900 });
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?u186=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  const editor = page.locator("app-response-viewer .monaco-editor").first();
+  await expect(editor.locator(".view-line").first()).toContainText("{");
+  await expect(editor.locator(".decorationsOverviewRuler")).toBeHidden();
+  // The scrollbar's slider is as tall as the editor: there is nothing below the last line to scroll to.
+  const [slider, track] = await editor.evaluate((root) => [
+    root.querySelector<HTMLElement>(".scrollbar.vertical .slider")!.getBoundingClientRect().height,
+    root.querySelector<HTMLElement>(".monaco-scrollable-element")!.getBoundingClientRect().height,
+  ]);
+  expect(slider).toBe(track);
 });

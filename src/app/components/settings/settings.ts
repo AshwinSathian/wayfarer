@@ -213,6 +213,12 @@ export class Settings {
     { keys: "C", description: "New collection, with the collections panel focused" },
     { keys: "N", description: "New request in the selected collection or folder" },
     { keys: "Delete", description: "Delete the item selected in the collections panel" },
+    { keys: "F2", description: "Rename the item selected in the collections panel, or the focused tab" },
+    {
+      keys: `${keysOf({ key: "↑", alt: true })} ${keysOf({ key: "↓", alt: true })}`,
+      description: "Move the selected item up or down among its siblings",
+    },
+    { keys: keysOf({ key: "F10", shift: true }), description: "Open the menu of the selected item or the focused tab" },
     { keys: "Escape", description: "Close the open dialog, drawer or palette" },
   ]);
 
@@ -283,9 +289,10 @@ export class Settings {
     return Math.min(100, Math.max(1, (estimate.usage / estimate.quota) * 100));
   }
 
-  async exportBackup(): Promise<void> {
+  /** The Danger zone's backup keeps the history too: the reset beside it deletes that as well (U-185). */
+  async exportBackup(history = this.backupHistory()): Promise<void> {
     this.backupErrors.set([]);
-    this.downloadJson(await this.backup.exportJson({ history: this.backupHistory() }), "wayfarer-workspace.json");
+    this.downloadJson(await this.backup.exportJson({ history }), "wayfarer-workspace.json");
   }
 
   /** Replaces everything stored here with the file's workspace, after the user confirms. */

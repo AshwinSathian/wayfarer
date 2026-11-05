@@ -30,12 +30,12 @@ test("the Network section opened on a phone is the Network tab when the window w
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
   await page
-    .getByRole("button", { name: "Network", exact: true })
+    .getByRole("button", { name: /^Network( |$)/ })
     .filter({ has: page.locator(".section-chevron") })
     .click();
   await expect(page.getByRole("checkbox", { name: "Follow redirects" })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(page.locator("app-composer").getByRole("tab", { name: "Network", exact: true })).toHaveAttribute(
+  await expect(page.locator("app-composer").getByRole("tab", { name: /^Network( |$)/ })).toHaveAttribute(
     "aria-selected",
     "true",
   );

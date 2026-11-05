@@ -7,6 +7,8 @@ export interface Shortcut {
   key: string;
   mod?: boolean;
   alt?: boolean;
+  /** Written only (the tree's Shift+F10): `matches` takes no shortcut with Shift. */
+  shift?: boolean;
 }
 
 export const SHORTCUTS = {
@@ -22,9 +24,9 @@ const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
 /** "⌘↵" on a Mac, "Ctrl+Enter" elsewhere; a key alone is its name. */
 export function keysOf(shortcut: Shortcut, mac = MAC): string {
-  const { key, mod, alt } = shortcut;
-  if (mac) return `${mod ? "⌘" : ""}${alt ? "⌥" : ""}${(mod || alt) && key === "Enter" ? "↵" : key}`;
-  return [mod && "Ctrl", alt && "Alt", key].filter(Boolean).join("+");
+  const { key, mod, alt, shift } = shortcut;
+  if (mac) return `${mod ? "⌘" : ""}${alt ? "⌥" : ""}${shift ? "⇧" : ""}${(mod || alt) && key === "Enter" ? "↵" : key}`;
+  return [mod && "Ctrl", alt && "Alt", shift && "Shift", key].filter(Boolean).join("+");
 }
 
 /** The value of `aria-keyshortcuts`. */

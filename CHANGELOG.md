@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Headers tab no longer warns of hidden headers when none were
+  hidden.** A response from another origin that sends
+  `Access-Control-Expose-Headers: *` lets the page read every header, but
+  the tab still opened with a paragraph saying the server may have sent
+  more. It now shows that paragraph only when the browser may have kept
+  headers back (U-173).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

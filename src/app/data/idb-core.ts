@@ -226,16 +226,10 @@ export class IdbCore {
   async getMetaState(): Promise<MetaState> {
     const db = await this.getDatabase();
     if (!db) {
-      return {
-        key: META_STATE_KEY,
-        activeEnvironmentId: null,
-      };
+      return { key: META_STATE_KEY };
     }
     const tx = db.transaction("meta", "readonly");
-    const state = ((await tx.store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
-      key: META_STATE_KEY,
-      activeEnvironmentId: null,
-    };
+    const state = ((await tx.store.get(META_STATE_KEY)) as MetaState | undefined) ?? { key: META_STATE_KEY };
     await tx.done;
     return state;
   }

@@ -79,6 +79,7 @@ export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY };
 
 export interface MetaState {
   key: typeof META_STATE_KEY;
+  /** The environment in use; `null` is No environment, chosen; absent is no choice made yet. */
   activeEnvironmentId?: string | null;
 }
 

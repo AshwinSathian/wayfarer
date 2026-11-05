@@ -155,11 +155,15 @@ export class AppShell implements OnInit {
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();
-    this.dropdownOptions.set(envs.map((env) => ({ label: env.name, value: env.meta.id })));
+    // No environment is a choice too, once there is one to leave, and it lasts.
+    this.dropdownOptions.set([
+      ...(envs.length ? [{ label: "No environment", value: null }] : []),
+      ...envs.map((env) => ({ label: env.name, value: env.meta.id })),
+    ]);
     this.selectedEnvironmentId.set(this.environmentsService.activeEnvironment()?.meta.id ?? null);
   });
 
-  readonly dropdownOptions = signal<{ label: string; value: string }[]>([]);
+  readonly dropdownOptions = signal<{ label: string; value: string | null }[]>([]);
   readonly selectedEnvironmentId = signal<string | null>(null);
   readonly lockDialogVisible = signal(false);
   /** A send that needs a vault secret asks for the vault to be opened. */

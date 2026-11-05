@@ -133,8 +133,9 @@ export class EnvironmentsRepository {
 
     const meta = await this.core.getMetaState();
     const wasActive = meta.activeEnvironmentId === id;
+    // The one in use is gone, not unchosen: the first environment takes its place, as on a first run.
     if (wasActive) {
-      await this.setActiveEnvironment(null);
+      await this.setActiveEnvironment(undefined);
     }
     return doc ? { doc, wasActive } : null;
   }
@@ -188,22 +189,22 @@ export class EnvironmentsRepository {
     });
   }
 
-  async getActiveEnvironmentId(): Promise<string | null> {
+  /** The environment in use: `null` when No environment was chosen, `undefined` when no choice was made. */
+  async getActiveEnvironmentId(): Promise<string | null | undefined> {
     await this.core.ensurePersistentSupport();
     const meta = await this.core.getMetaState();
-    return meta.activeEnvironmentId ?? null;
+    return meta.activeEnvironmentId;
   }
 
-  async setActiveEnvironment(id: string | null): Promise<void> {
+  /** `null` stores the choice of No environment; `undefined` forgets the choice, so the first environment is used. */
+  async setActiveEnvironment(id: string | null | undefined): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["meta"]);
     const store = tx.objectStore("meta");
     await this.core.commitOrRollback(tx, async () => {
-      const state: MetaState = ((await store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
-        key: META_STATE_KEY,
-        activeEnvironmentId: null,
-      };
-      state.activeEnvironmentId = id;
+      const state: MetaState = ((await store.get(META_STATE_KEY)) as MetaState | undefined) ?? { key: META_STATE_KEY };
+      if (id === undefined) delete state.activeEnvironmentId;
+      else state.activeEnvironmentId = id;
       await store.put(state);
     });
   }

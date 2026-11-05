@@ -569,7 +569,7 @@ describe("environments (real IndexedDB)", () => {
       expect(await environments.changeGlobals([{ key: "fromA", value: null }])).toEqual(rowsOf({ fromB: "2" }));
       await vi.waitFor(() => expect(heard).toEqual([["meta"], ["meta"], ["meta"]]));
       // The active environment lives in the same store, in another record.
-      expect(await environments.getActiveEnvironmentId()).toBeNull();
+      expect(await environments.getActiveEnvironmentId()).toBeUndefined();
     } finally {
       otherTab.close();
     }
@@ -635,7 +635,7 @@ describe("environments (real IndexedDB)", () => {
   it("remembers the active environment and clears it when that environment is deleted", async () => {
     const dev = await environments.createEnvironment({ name: "Dev" });
     const prod = await environments.createEnvironment({ name: "Prod" });
-    expect(await environments.getActiveEnvironmentId()).toBeNull();
+    expect(await environments.getActiveEnvironmentId()).toBeUndefined();
 
     await environments.setActiveEnvironment(dev.meta.id);
     expect(await environments.getActiveEnvironmentId()).toBe(dev.meta.id);
@@ -645,7 +645,7 @@ describe("environments (real IndexedDB)", () => {
     expect(await environments.getActiveEnvironmentId()).toBe(dev.meta.id);
 
     await environments.deleteEnvironment(dev.meta.id);
-    expect(await environments.getActiveEnvironmentId()).toBeNull();
+    expect(await environments.getActiveEnvironmentId()).toBeUndefined();
     expect(await environments.listEnvironments()).toEqual([]);
   });
 });
@@ -705,7 +705,7 @@ describe("secrets (real IndexedDB)", () => {
     expect(await secrets.writeVault(vault("rotated"), true)).toBe(true);
     expect(await secrets.readVault()).toEqual(vault("rotated"));
     // The record shares its store with the active environment and the globals, and leaves them alone.
-    expect(await core.environments.getActiveEnvironmentId()).toBeNull();
+    expect(await core.environments.getActiveEnvironmentId()).toBeUndefined();
     expect(await core.environments.getGlobals()).toEqual([]);
   });
 

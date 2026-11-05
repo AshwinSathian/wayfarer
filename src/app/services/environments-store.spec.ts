@@ -1,8 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { EnvironmentsStore } from "./environments-store";
-import { provideRepositories } from "../../testing/repositories";
+import { provideRepositories, repositories, type Repositories } from "../../testing/repositories";
 import { EnvironmentDoc } from "@wayfarer/core";
-import { describe, it, beforeEach, expect, vi } from "vitest";
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
   /** The listener the service registers for writes made in another tab. */
@@ -67,17 +67,27 @@ describe("EnvironmentsStore", () => {
   });
 
   describe("refresh()", () => {
-    it("auto-activates the first environment when none is active", async () => {
+    it("puts the first environment in use when no choice was made", async () => {
       const envA = buildEnv("a");
       const envB = buildEnv("b");
       idb.listEnvironments.mockResolvedValue([envA, envB]);
-      idb.getActiveEnvironmentId.mockResolvedValue(null);
+      idb.getActiveEnvironmentId.mockResolvedValue(undefined);
 
       await service.refresh();
 
       expect(service.environments()).toEqual([envA, envB]);
       expect(idb.setActiveEnvironment).toHaveBeenCalledWith("a");
       expect(service.activeEnvironment()).toEqual(envA);
+    });
+
+    it("keeps No environment when that was chosen", async () => {
+      idb.listEnvironments.mockResolvedValue([buildEnv("a")]);
+      idb.getActiveEnvironmentId.mockResolvedValue(null);
+
+      await service.refresh();
+
+      expect(idb.setActiveEnvironment).not.toHaveBeenCalled();
+      expect(service.activeEnvironment()).toBeNull();
     });
 
     it("respects an already-active environment id instead of overriding it", async () => {
@@ -228,5 +238,74 @@ describe("EnvironmentsStore", () => {
 
       expect(service.activeEnvironment()).toBeNull();
     });
+  });
+});
+
+// Over the real IndexedDB: the choice of environment through a refresh and a reload.
+describe("EnvironmentsStore: the environment in use (real IndexedDB)", () => {
+  let core: Repositories;
+  /** A reload: a new store over the same database. */
+  const reload = () => TestBed.runInInjectionContext(() => new EnvironmentsStore());
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    core = repositories();
+  });
+
+  afterEach(async () => {
+    await core.resetDatabase();
+  });
+
+  it("puts the first environment in use when no choice was ever made", async () => {
+    const dev = await core.environments.createEnvironment({ name: "Dev" });
+    await core.environments.createEnvironment({ name: "Prod" });
+
+    const store = reload();
+    await store.refresh();
+
+    expect(store.activeEnvironment()?.meta.id).toBe(dev.meta.id);
+  });
+
+  it("keeps No environment through a refresh", async () => {
+    const store = TestBed.inject(EnvironmentsStore);
+    const dev = await store.createEnvironment({ name: "Dev" });
+    expect(store.activeEnvironment()?.meta.id).toBe(dev.meta.id);
+
+    await store.setActiveEnvironment(null);
+    await store.updateEnvironment(dev.meta.id, { name: "Development" });
+
+    expect(store.activeEnvironment()).toBeNull();
+  });
+
+  it("keeps No environment through a reload", async () => {
+    const store = TestBed.inject(EnvironmentsStore);
+    await store.createEnvironment({ name: "Dev" });
+    await store.setActiveEnvironment(null);
+
+    const reloaded = reload();
+    await reloaded.refresh();
+    expect(reloaded.environments().length).toBe(1);
+    expect(reloaded.activeEnvironment()).toBeNull();
+  });
+
+  it("puts a new environment in use while No environment is chosen", async () => {
+    const store = TestBed.inject(EnvironmentsStore);
+    await store.createEnvironment({ name: "Dev" });
+    await store.setActiveEnvironment(null);
+
+    const staging = await store.createEnvironment({ name: "Staging" });
+
+    expect(store.activeEnvironment()?.meta.id).toBe(staging.meta.id);
+  });
+
+  it("puts the first environment in use after the one in use is deleted", async () => {
+    const store = TestBed.inject(EnvironmentsStore);
+    const dev = await store.createEnvironment({ name: "Dev" });
+    const prod = await store.createEnvironment({ name: "Prod" });
+    await store.setActiveEnvironment(prod.meta.id);
+
+    await store.deleteEnvironment(prod.meta.id);
+
+    expect(store.activeEnvironment()?.meta.id).toBe(dev.meta.id);
   });
 });

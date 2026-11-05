@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- A collection run's report says, beside its download buttons, that it is kept only until its tab closes or the
+  page reloads. Before, a reload took the report away and nothing had said that downloading it was the only way to
+  keep it (U-162).
+- A run's report states its counts once. Before, the sentence "4 results in 1 iteration; 1 failed; 4 of 5 tests
+  passed." sat over a summary with the same counts; the sentence is now heard by a screen reader as the run ends and
+  no longer drawn (U-191).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

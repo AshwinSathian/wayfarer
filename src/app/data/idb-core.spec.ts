@@ -234,6 +234,27 @@ describe("IdbCore", () => {
       }
     }, 15_000);
 
+    it("an open that finds the database at a later version says Wayfarer was updated in another tab, not that storage is refused (TQ9)", async () => {
+      const newer = await openAt(3);
+      newer.close();
+
+      await service.init();
+
+      expect(service.memoryOnly()).toBe(false);
+      expect(service.closedForUpdate()).toBe(true);
+      await expect(service.getDatabase()).rejects.toThrow(/updated in another tab/);
+    });
+
+    it("a later version's upgrade in another tab closes this tab's connection and says why, and is not held up (TQ9)", async () => {
+      await service.init();
+
+      const newer = await openAt(3);
+      newer.close();
+
+      expect(service.closedForUpdate()).toBe(true);
+      expect(service.closedByOtherTab()).toBe(true);
+    });
+
     it("closes this tab's connection and flags it when another tab resets", async () => {
       const otherTab = new IdbCore();
       await otherTab.init();
@@ -247,3 +268,12 @@ describe("IdbCore", () => {
     });
   });
 });
+
+/** Opens the database at `version` as a later Wayfarer would, making nothing. */
+function openAt(version: number): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open(DB_NAME, version);
+    open.onsuccess = () => resolve(open.result);
+    open.onerror = () => reject(open.error);
+  });
+}

@@ -51,6 +51,7 @@
     "gen:tokens": "npm -w packages/tokens run build",
     "check:tokens": "npm -w packages/tokens run check",
     "gen:brand": "node packages/tokens/brand-png.mjs",
+    "gen:recordings": "node scripts/site-record.mjs",
     "check:csp": "node scripts/gen-csp.mjs --check",
     "gen:compat": "node scripts/gen-compat-doc.mjs",
     "check:compat": "node scripts/gen-compat-doc.mjs --check",

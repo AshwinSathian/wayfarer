@@ -381,7 +381,32 @@ test("/docs/ has the docs' policy, with script from the site's own files, and / 
   expect(docs).not.toContain(", ");
   const site = (await request.get("/")).headers()["content-security-policy"] ?? "";
   expect(site.split(";").map((d) => d.trim())).toContain("script-src 'self'");
+  // W5.2: the landing's recordings are the site's own files.
+  expect(site.split(";").map((d) => d.trim())).toContain("media-src 'self'");
   expect(site).not.toMatch(/unsafe-inline|unsafe-eval/);
+});
+
+// W5.2: each recording of the app on the landing waits to be played (no autoplay, nothing fetched but its poster),
+// has a still, its steps as text beside it, and a file for each source it names.
+test("the landing's recordings play only when asked, each with its poster, its steps and its files", () => {
+  const html = readFileSync(`${DEPLOY}/index.html`, "utf8");
+  const videos = html.match(/<video\b[^>]*>[\s\S]*?<\/video>/gi) ?? [];
+  expect(videos).toHaveLength(6);
+  for (const video of videos) {
+    const tag = video.slice(0, video.indexOf(">") + 1);
+    for (const attribute of ["controls", "muted", "playsinline"])
+      expect(tag, attribute).toMatch(new RegExp(`\\s${attribute}[\\s=>]`, "i"));
+    expect(tag).toContain('preload="none"');
+    expect(tag).not.toMatch(/\sautoplay|\sloop/i);
+    const steps = /aria-describedby="([^"]+)"/.exec(tag)?.[1];
+    expect(html).toMatch(new RegExp(`<ol id="${steps}"`));
+    const files = [
+      /poster="([^"]+)"/.exec(tag)?.[1],
+      ...[...video.matchAll(/<source src="([^"]+)"/g)].map((m) => m[1]),
+    ];
+    expect(files).toHaveLength(3);
+    for (const file of files) expect(existsSync(`${DEPLOY}${file}`), file).toBe(true);
+  }
 });
 
 // PLAN-design 1.8: the site is built with React and sends none of it (packages/site/strip-scripts.mjs), and its

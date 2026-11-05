@@ -93,6 +93,7 @@ export class VariableRows implements OnDestroy {
   private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");
   private readonly valueInputs = viewChildren<ElementRef<HTMLInputElement>>("valueInput");
   private readonly vaultPassphraseInput = viewChild<ElementRef<HTMLInputElement>>("vaultPassphraseField");
+  private readonly vaultForm = viewChild<ElementRef<HTMLElement>>("vaultForm");
 
   readonly holder = input.required<VariableHolder>();
   /** A variable someone asked to see (a chip, U-132): it is shown, and made as a new row when there is none. */
@@ -246,7 +247,16 @@ export class VariableRows implements OnDestroy {
         this.vaultPassphrase.set("");
         this.vaultConfirmation.set("");
         this.vaultError.set("");
-        afterNextRender(() => this.vaultPassphraseInput()?.nativeElement.focus(), { injector: this.injector });
+        afterNextRender(
+          () => {
+            // Focus alone scrolled Chromium and WebKit only to the field's edge, with Confirm and Create vault under
+            // the window (U-183): the whole form is brought in first. A script's scroll asks for reduced motion itself.
+            const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+            this.vaultForm()?.nativeElement.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
+            this.vaultPassphraseInput()?.nativeElement.focus({ preventScroll: true });
+          },
+          { injector: this.injector },
+        );
         return;
       }
       console.debug("[wayfarer] mark as secret: the vault is locked, asking to unlock");

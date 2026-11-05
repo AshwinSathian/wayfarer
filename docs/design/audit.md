@@ -2279,6 +2279,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/vault-create-390-light.png`
 `baseline/design-{chromium,firefox,webkit}/vault-create-360-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #627 (D6-a): the form is scrolled into view whole (`block: "nearest"`, smooth unless motion is reduced) before the passphrase takes focus without a scroll of its own.
 
 **U-184. The Environments list's header is four bare icons, and globals
 are "{}".** Severity 3. H6. TP, OC.

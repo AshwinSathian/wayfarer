@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Marking a variable secret with no vault on a phone brings the whole passphrase form into the window: both fields,
+  Cancel and Create vault. Before, at 390 px the page scrolled only as far as the passphrase field's edge, and the
+  confirmation field and the buttons stayed under the bottom of the window, so the page looked as if nothing had
+  happened (U-183).
 - Settings › Danger zone has a Back up button beside Reset all data. It makes the workspace backup that Data and
   storage makes, with the history included, since the reset deletes the history too. Before, the row said "back up
   first" and the backup was in another section, so following the advice meant Cancel, a change of section and a way

@@ -12,6 +12,9 @@ const MODEL = "http://127.0.0.1:4300/model";
 async function check(page: Page, view: Locator, width: number, what: string): Promise<void> {
   await expect(view).toBeVisible();
   await page.mouse.move(0, 0);
+  // Scrolled, the page passes under the sticky toolbar, and axe counts a field half under it as a target too small
+  // (2.5.8): where a send left the scroll differed between runs in CI's WebKit. Scanned from the top, nothing is.
+  await page.evaluate(() => window.scrollTo(0, 0));
   await settled(page);
   const { violations } = await axe(page).include("body").analyze();
   expect(violations, `${what}: ${violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`).join("\n")}`).toEqual(

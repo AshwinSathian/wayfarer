@@ -151,6 +151,30 @@ test.describe("Settings surface", () => {
     await expect(dialog.getByText("Local Bridge settings", { exact: true })).toBeVisible();
   });
 
+  // U-166 of docs/design/audit.md: the app links to its documentation, the site's pages beside it.
+  test("About and the command palette open the documentation, the site's page beside the app", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/app/");
+    const dialog = await openSettings(page, "About");
+    const link = dialog.getByRole("link", { name: /^Documentation/ });
+    await expect(link).toHaveAttribute("href", "../docs/");
+    const [docs] = await Promise.all([context.waitForEvent("page"), link.click()]);
+    await docs.waitForLoadState();
+    expect(new URL(docs.url()).pathname).toBe("/docs/");
+    await expect(docs.getByRole("heading", { level: 1 })).toBeVisible();
+    await docs.close();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+
+    await page.keyboard.press("ControlOrMeta+K");
+    await page.getByRole("combobox", { name: /^Search requests/ }).fill("documentation");
+    const [fromPalette] = await Promise.all([context.waitForEvent("page"), page.keyboard.press("Enter")]);
+    await fromPalette.waitForLoadState();
+    expect(new URL(fromPalette.url()).pathname).toBe("/docs/");
+  });
+
   test("@claim:C-033 Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {
     await page.goto("/app/");
     await openSettings(page, "Danger zone");

@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The app links to its documentation. Settings › About starts with Documentation, the command palette has a
+  Documentation command, and three places link to the doc that explains them: held scripts ("How scripts are
+  trusted"), the variable chips ("Where a value comes from") and an import's warnings ("What the warnings mean").
+  Each opens the site's page in a new tab. Before, no screen of the app linked to the docs, so someone stuck on a held
+  script, a variable's scope or an import note had nowhere in the app to read more (U-166).
+
+### Fixed
+
 - **A form body's first row is not sent until it has a name.** Choosing
   Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
   that was already checked while empty; Params and Headers stopped doing

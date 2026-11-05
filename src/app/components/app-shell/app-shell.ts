@@ -49,6 +49,7 @@ import { SecretsManager } from "../secrets/secrets-manager";
 import { Settings, type SettingsSection } from "../settings/settings";
 import { Icon } from "../../shared/icon/icon";
 import { Mark } from "../../shared/icon/mark";
+import { DOCS } from "../../shared/docs";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 import type { RunTarget } from "../../state/run-state";
@@ -347,6 +348,12 @@ export class AppShell implements OnInit {
         id: "open-settings",
         label: "Settings",
         run: () => this.openSettings(),
+      },
+      {
+        // The site's pages, beside the app (U-166); a tab of their own, as Settings › About's link.
+        id: "open-docs",
+        label: "Documentation",
+        run: () => void window.open(DOCS.index, "_blank", "noopener"),
       },
       // Only with a provider and the action on (AI-1), and Write tests and Explain only where their control is.
       ...this.aiCommands(),

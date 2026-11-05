@@ -11,6 +11,13 @@
   <button type="button" uiButton="outlined" class="btn-secondary btn-sm" (click)="reviewing.set(true)"
     >Review scripts…</button
   >
+  <a
+    class="type-footnote text-label-primary underline"
+    [href]="docs.scriptTrust"
+    target="_blank"
+    rel="noopener noreferrer"
+    >How scripts are trusted</a
+  >
 </div>
 <app-script-review-dialog [visible]="reviewing()" (visibleChange)="reviewing.set($event)" />
 }

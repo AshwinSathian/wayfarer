@@ -26,6 +26,12 @@ export default function DocsIndex() {
           <section key={group} aria-labelledby={slug(group)}>
             <h2 id={slug(group)}>{group}</h2>
             {NOTES[group] && <p>{NOTES[group]}</p>}
+            {group === "Design records" && (
+              <p>
+                What the design audit changed, as you see it in the app:{" "}
+                <a href="/what-changed-in-3-0/">What changed in 3.0</a>.
+              </p>
+            )}
             <ul>
               {all
                 .filter((doc) => doc.group === group)

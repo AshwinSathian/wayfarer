@@ -9,6 +9,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **What changed in 3.0, screen by screen.** A new page on the site,
+  `/what-changed-in-3-0/`, puts twelve screens of 2.x beside the same
+  screens in 3.0, and lists every finding of the design audit that blocked
+  a task or misled someone (severity 1 or 2, 62 of them) with what it was
+  and what the app does now. A blog post, "The 3.0 redesign, screen by
+  screen", tells the short version. The landing, the changelog and the docs
+  index link the page. `scripts/whats-new.test.mjs` reads each finding's
+  severity and last status line in `docs/design/audit.md` and fails when one
+  of severity 1 or 2 is missing from the page, still open, or accepted
+  without a reason; `node scripts/whats-new-images.mjs` makes the pictures
+  from `docs/design/baseline/` (25 JPEGs, 1.1 MB in all, each loaded only
+  when it scrolls into view).
 - **A getting-started page.** `docs/getting-started.md` walks through a
   first request, saving it in a collection, moving its address into an
   environment and keeping a key in the vault, with the claim behind each
@@ -1051,6 +1063,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   import or a run) also shows that collection's scripts when the open tab
   is a history entry with scripts of its own: before, it showed and
   cleared the entry's, and the collection stayed unreviewed.
+
+- **The plan records the final design pass as done.** Row 1.69 of
+  `PLAN-design.md` lists what session D5-e changed, the choices it made,
+  and what it left for later sessions.
 
 - **The design audit lists what the final design pass changed.** Each
   item of its four reviews names the pull request that made it, or the

@@ -518,10 +518,19 @@ export default function Home() {
           sunk
           title="See it work"
           intro={
-            <p>
-              Recorded from the app as it is built, at a phone&apos;s width. Collections, environments, history, the
-              vault and scripts are kept in your browser. <Claims ids={["C-002"]} />
-            </p>
+            <>
+              <p>
+                Recorded from the app as it is built, at a phone&apos;s width. Collections, environments, history, the
+                vault and scripts are kept in your browser. <Claims ids={["C-002"]} />
+              </p>
+              <p className="mt-4">
+                Version 3.0 redesigned every screen.{" "}
+                <a className={LINK} href="/what-changed-in-3-0/">
+                  See what changed, before and after
+                </a>
+                .
+              </p>
+            </>
           }
         >
           <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-3 lg:gap-10">

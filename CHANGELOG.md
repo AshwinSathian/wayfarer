@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **OAuth's redirect URI can be copied.** In Auth › OAuth 2.0, the address
+  to register with the identity provider is now a read-only field with a
+  Copy button, which says when it has copied. It used to be plain text with
+  no Copy, and it could break anywhere, even inside "http" on a phone. (U-176)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

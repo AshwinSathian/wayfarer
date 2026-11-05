@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, input, output } from "@angular/core
 import { FormsModule } from "@angular/forms";
 import type { AuthConfig } from "@wayfarer/core";
 import { oauthRedirectUri } from "../../../services/oauth-tokens";
+import { NOT_COPIED, writeToClipboard } from "../../../shared/http/clipboard";
+import { transientNote } from "../../../shared/http/transient-note";
 import { Icon } from "../../../shared/icon/icon";
 import { UiButton } from "../../../ui/button";
 import { UiCheckbox } from "../../../ui/checkbox";
@@ -38,4 +40,10 @@ export class OAuthFields {
   ];
   /** What a client registers with its identity provider. */
   protected readonly redirectUri = oauthRedirectUri();
+  /** What the last copy did, for a few seconds (U-050). */
+  protected readonly copyStatus = transientNote();
+
+  protected async copyRedirectUri(): Promise<void> {
+    this.copyStatus.show((await writeToClipboard(this.redirectUri)) ? "Copied the redirect URI." : NOT_COPIED);
+  }
 }

@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Headers tab no longer warns of hidden headers when none were
+  hidden.** A response from another origin that sends
+  `Access-Control-Expose-Headers: *` lets the page read every header, but
+  the tab still opened with a paragraph saying the server may have sent
+  more. It now shows that paragraph only when the browser may have kept
+  headers back (U-173).
 - **A form body's first row is not sent until it has a name.** Choosing
   Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
   that was already checked while empty; Params and Headers stopped doing

@@ -152,7 +152,9 @@ Of a response from another origin, a page can read only `Cache-Control`,
 `Content-Language`, `Content-Length`, `Content-Type`, `Expires`,
 `Last-Modified` and `Pragma`, plus the headers the server names in
 `Access-Control-Expose-Headers`. `Set-Cookie` is never readable. The
-Headers tab says so above the list. Through the bridge every header is
+Headers tab says so above the list, unless the server exposes every header
+(`Access-Control-Expose-Headers: *`, which holds for a request without
+credentials, as every direct one is). Through the bridge every header is
 shown, each as it was received: two `Set-Cookie` headers are two lines.
 
 ## Cookies

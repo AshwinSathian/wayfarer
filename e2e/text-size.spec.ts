@@ -17,7 +17,7 @@ test("at a default text size of 32 px a 1,440 px window is laid out as a 720 px 
   await page.goto("/app/");
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe("32px");
   await expect(page.getByRole("tree", { name: "Collections" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "Params", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Params( |$)/ })).toBeVisible();
   expect((await page.locator("input.address-url").boundingBox())?.width).toBeGreaterThan(400);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
 });

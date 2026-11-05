@@ -57,7 +57,10 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.locator("input.address-url").fill(`${ECHO}/content/json?wide=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .click();
     await expect(page.getByText("Loading editor…")).toHaveCount(0);
     // The editor sizes itself to its container: a container that sizes itself to the editor grows without end.
     await page.waitForTimeout(1000);
@@ -184,7 +187,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
-      await page.getByRole("tab", { name: "Headers", exact: true }).click();
+      await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
       const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
       // 85 px at 768 px; it was 20 px.
       expect(field!.width).toBeGreaterThanOrEqual(80);
@@ -204,13 +207,16 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
-    await page.getByRole("tab", { name: "Headers", exact: true }).click();
+    await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
     const field = await page.getByLabel(/^Header name, 1 of /).boundingBox();
     // 111 px at 1220 px: "Content-Type" in full. Pinned at 1024 px it was 85 px.
     expect(field!.width).toBeGreaterThanOrEqual(100);
     // Every composer tab is on screen, none cut off by the pane's edge.
     const pane = await page.locator(".ui-splitter-pane").first().boundingBox();
-    const last = await page.getByRole("tab", { name: "Scripts", exact: true }).first().boundingBox();
+    const last = await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .boundingBox();
     expect(last!.x + last!.width).toBeLessThanOrEqual(pane!.x + pane!.width + 1);
   });
 
@@ -456,15 +462,15 @@ test.describe("Mobile composer (390px)", () => {
 
     // Params is open by default; the others are present as labeled,
     // collapsed headers — not stacked-and-unlabeled content (Part D bug).
-    await expect(page.getByRole("button", { name: "Params", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Headers", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Auth", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Scripts", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Params( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Headers( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Auth( |$)/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Scripts( |$)/ })).toBeVisible();
 
     // Opening Auth must collapse Headers — only one panel open at a time.
-    await page.getByRole("button", { name: "Headers", exact: true }).click();
+    await page.getByRole("button", { name: /^Headers( |$)/ }).click();
     await expect(page.getByLabel(/^Header name, 1 of /)).toBeVisible();
-    await page.getByRole("button", { name: "Auth", exact: true }).click();
+    await page.getByRole("button", { name: /^Auth( |$)/ }).click();
     await expect(page.getByLabel(/^Header name, 1 of /)).toBeHidden();
     await expect(page.locator("#auth-type-select")).toBeVisible();
   });
@@ -473,7 +479,7 @@ test.describe("Mobile composer (390px)", () => {
     page,
   }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Scripts", exact: true }).click();
+    await page.getByRole("button", { name: /^Scripts( |$)/ }).click();
 
     // Neither script editor should be permanently stuck on the placeholder.
     await expect(page.getByText("Loading editor…")).toHaveCount(0, { timeout: 5_000 });
@@ -591,7 +597,7 @@ test.describe("The app stays usable after an overlay closes", () => {
       .click();
     await page.getByRole("button", { name: "Close navigation" }).click();
 
-    await page.getByRole("button", { name: "Scripts", exact: true }).click({ timeout: 5_000 });
+    await page.getByRole("button", { name: /^Scripts( |$)/ }).click({ timeout: 5_000 });
     await expect(page.getByRole("button", { name: "Add test" })).toBeVisible();
   });
 });

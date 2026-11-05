@@ -91,8 +91,14 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   await expect(row(page, "the file's script ran")).toHaveCount(0);
   await expect(row(page, "the pre-request script ran")).toHaveCount(0);
 
+  // The request's Scripts tab says they are held, as its banner does (U-170, U-158).
+  const scriptsTab = page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
+  await expect(scriptsTab).toHaveAccessibleName("Scripts (not reviewed)");
   // The Scripts tab says why, and offers the review.
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const held = page.locator(".scripts-held");
   await expect(held).toBeVisible();
   await held.getByRole("button", { name: "Review scripts" }).click();
@@ -107,6 +113,7 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   await review.getByRole("button", { name: "Trust these scripts" }).click();
   await expect(review).toHaveCount(0);
   await expect(held).toHaveCount(0);
+  await expect(scriptsTab).toHaveAccessibleName("Scripts (set)");
 
   // Trusted: both scripts run.
   await send(page);
@@ -119,7 +126,10 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
 
   // The same collection arrives again with one script changed: nothing of it runs until it is reviewed again.
   await importFile(page, 'pm.test("the changed script ran", () => {});');
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   await expect(held).toBeVisible();
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -162,7 +172,10 @@ test("a script written here runs without a review, also after it is saved into a
   });
   await page.reload();
   await page.locator("input.address-url").fill(`${TARGET}/mine`);
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   const editor = page.locator("app-script-editor").nth(1).locator(".monaco-editor").first();
   await editor.click();
   await page.keyboard.type("pm.test('typed here', function () {})");
@@ -194,7 +207,7 @@ test("a send whose scripts are held says so above the response's tabs, on Body t
   await importFile(page, 'pm.test("the file\'s script ran", () => {});');
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect(page.getByRole("tab", { name: "Body", exact: true }).last()).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: /^Body( |$)/ }).last()).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".scripts-skipped")).toBeVisible();
 });
 

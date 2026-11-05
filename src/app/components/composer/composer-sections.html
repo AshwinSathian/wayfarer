@@ -7,7 +7,8 @@
       [panel]="paramsSection"
       [expanded]="view.mobileActivePanels() === 'params'"
       (expandedChange)="$event ? view.onMobileIndexChange('params') : view.onMobilePanelClosed('params', paramsTrigger)"
-      >Params <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Params <app-tab-mark [mark]="view.tabMarks().params" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel
@@ -29,7 +30,8 @@
       [panel]="headersSection"
       [expanded]="view.mobileActivePanels() === 'headers'"
       (expandedChange)="$event ? view.onMobileIndexChange('headers') : view.onMobilePanelClosed('headers', headersTrigger)"
-      >Headers <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Headers <app-tab-mark [mark]="view.tabMarks().headers" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel
@@ -51,7 +53,8 @@
       [panel]="bodySection"
       [expanded]="view.mobileActivePanels() === 'body'"
       (expandedChange)="$event ? view.onMobileIndexChange('body') : view.onMobilePanelClosed('body', bodyTrigger)"
-      >Body <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Body <app-tab-mark [mark]="view.tabMarks().body" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel
@@ -73,7 +76,8 @@
       [panel]="authSection"
       [expanded]="view.mobileActivePanels() === 'auth'"
       (expandedChange)="$event ? view.onMobileIndexChange('auth') : view.onMobilePanelClosed('auth', authTrigger)"
-      >Auth <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Auth <app-tab-mark [mark]="view.tabMarks().auth" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel
@@ -95,7 +99,8 @@
       [panel]="scriptsSection"
       [expanded]="view.mobileActivePanels() === 'scripts'"
       (expandedChange)="$event ? view.onMobileIndexChange('scripts') : view.onMobilePanelClosed('scripts', scriptsTrigger)"
-      >Scripts <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Scripts <app-tab-mark [mark]="view.tabMarks().scripts" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel
@@ -120,7 +125,8 @@
       [panel]="settingsSection"
       [expanded]="view.mobileActivePanels() === 'settings'"
       (expandedChange)="$event ? view.onMobileIndexChange('settings') : view.onMobilePanelClosed('settings', settingsTrigger)"
-      >Network <app-icon class="section-chevron" name="keyboard_arrow_down"
+      ><span>Network <app-tab-mark [mark]="view.tabMarks().settings" /></span
+      ><app-icon class="section-chevron" name="keyboard_arrow_down"
     /></button>
     <div
       ngAccordionPanel

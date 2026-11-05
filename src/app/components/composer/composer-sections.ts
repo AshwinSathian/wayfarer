@@ -9,6 +9,7 @@ import { ComposerView } from "./composer-view";
 import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
 import { ScriptsPanel } from "./scripts-panel";
+import { TabMark } from "./tab-mark";
 
 /**
  * The composer's parts on a phone: one section each, one open at a time (see
@@ -29,6 +30,7 @@ import { ScriptsPanel } from "./scripts-panel";
     Icon,
     ParamsPanel,
     ScriptsPanel,
+    TabMark,
     UiAccordion,
     UiAccordionPanel,
   ],

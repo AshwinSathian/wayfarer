@@ -110,7 +110,7 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   await page.keyboard.type(`${ECHO}/echo?by=keys`);
 
   // A header: to the composer's tabs (one stop: the open one), arrows to Headers, then its first row.
-  const headers = page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true });
+  const headers = page.locator(".composer-pane").getByRole("tab", { name: /^Headers( |$)/ });
   await tabTo(page, page.locator('.composer-pane [role="tab"][tabindex="0"]'));
   for (let step = 0; step < 6 && !(await headers.evaluate((element) => element === document.activeElement)); step++)
     await page.keyboard.press("ArrowLeft");

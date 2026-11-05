@@ -72,7 +72,10 @@ async function issuedWith(page: Page, by: { token: string } | { refresh_token: s
 }
 
 async function openAuth(page: Page): Promise<void> {
-  await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Auth( |$)/ })
+    .first()
+    .click();
 }
 
 async function sendAndEcho(page: Page, path = "/echo"): Promise<Echo> {

@@ -7,6 +7,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The request's tabs say what they hold.** Params and Headers show how
+  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
+  show a dot when they are not at their default. A screen reader hears the
+  dot as words ("Body (set)"). Scripts that have not been reviewed show
+  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
+  the same marks. Before, the tabs were bare words, and a request with a
+  header, a body and a script looked the same as an empty one. (U-170)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

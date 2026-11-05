@@ -243,7 +243,10 @@ test("the review shows a script's characters as they are: no ligature joins => o
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await importFile(page, 'pm.test("arrows", () => pm.expect(1 !== 2 && 3 >= 2).to.be.true);');
-  await page.getByRole("tab", { name: /^Scripts( |$)/ }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review.locator(".script-review-code").last()).toContainText("() =>");

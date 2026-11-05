@@ -2184,6 +2184,7 @@ Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`,
 `src/app/components/composer/auth-editor/oauth-fields.html:16-19`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #622 (D6-a): the redirect URI is a read-only monospace field, labelled by the sentence, with Copy beside it that says what it did; `oauth-fields.spec.ts` holds it.
 
 **U-177. Save to collection starts with an empty name, and Save
 disabled.** Severity 3. H7. SD, TP.

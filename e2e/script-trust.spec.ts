@@ -225,3 +225,24 @@ for (const { width, height } of [
     await expect(page.locator(".scripts-held")).toBeVisible();
   });
 }
+
+test("the review shows a script's characters as they are: no ligature joins => or !== (U-180)", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  await importFile(page, 'pm.test("arrows", () => pm.expect(1 !== 2 && 3 >= 2).to.be.true);');
+  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review.locator(".script-review-code").last()).toContainText("() =>");
+  await expect(review.locator(".script-review-code").last()).toHaveCSS("font-variant-ligatures", "none");
+  // Nothing in the wire's face draws a ligature, in the dialog or the page under it (U-040: a value shows its
+  // characters). Monaco turns its own off (`fontLigatures: false` in editorText).
+  const joined = await page.evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((el) => !el.closest(".monaco-editor") && el.textContent?.trim())
+      .filter((el) => getComputedStyle(el).fontFamily.includes("JetBrains Mono"))
+      .filter((el) => getComputedStyle(el).fontVariantLigatures !== "none")
+      .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}`),
+  );
+  expect(joined).toEqual([]);
+});

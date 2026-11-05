@@ -89,7 +89,7 @@
           <p class="type-footnote text-label-secondary px-1.5">{{ note }}</p>
           } @if (vaultFor() === $index) {
           <!-- The vault is made in the row that asked for it, not in a second dialog (U-136). -->
-          <div class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
+          <div #vaultForm class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
             <p id="env-vault-create-title" class="type-footnote text-label-primary"
               >Choose a passphrase for the vault. It encrypts {{ item.key }} and every secret after it, and nothing can
               open them without it: a forgotten passphrase cannot be recovered.</p

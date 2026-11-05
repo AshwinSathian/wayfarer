@@ -57,7 +57,12 @@
   kbd,
   pre {
     font-family: var(--font-code);
+    font-variant-ligatures: none;
     font-size: 0.875em;
+  }
+  /* The face as a utility (a claim's ID, a method, a header) shows its characters as the app does (U-180). */
+  .font-code {
+    font-variant-ligatures: none;
   }
 }
 

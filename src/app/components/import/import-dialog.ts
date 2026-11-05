@@ -44,6 +44,17 @@ export class ImportDialog {
     return [collection, ...folders, ...requests].some((holder) => scriptsOf(holder).length);
   });
   protected readonly reviewing = signal(false);
+  /**
+   * Import: with the box for a command open, reads it in the worker and opens the report a file opens (U-201); there,
+   * it stores what the report shows. Nothing is stored before the report's Import.
+   */
+  protected async importClicked(): Promise<void> {
+    if (!this.pipeline.pasting()) {
+      await this.pipeline.confirm();
+      return;
+    }
+    await this.pipeline.stage("the pasted command", this.pipeline.pasted());
+  }
 
   protected async importAndReview(): Promise<void> {
     const [id] = await this.pipeline.confirm();

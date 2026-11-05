@@ -1969,6 +1969,7 @@ name a new collection itself.
 Evidence: `src/app/components/composer/save-as-dialog.html:9-12`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): with no collection yet, the dialog names one ("My collection") and Save makes it and saves the request into it in one act.
 
 **U-164. With no vault, the app says the vault is locked.**
 Severity 3. H1, H2. PE, OC.
@@ -2196,6 +2197,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/save-request-390-light.png`
 `src/app/components/composer/save-as-dialog.html:15-25`, `:60`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #615 (D6-a): the Name starts as the tab's name, selected, and Save is enabled.
 
 **U-178. F2, Alt+Arrow and Shift+F10 work in the tree and are written
 nowhere.** Severity 3. H6, H10. SD, QA.
@@ -2224,6 +2226,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
 `src/app/components/import/import-dialog.html:14-22`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #581 (D5-e): the box is `uiInput`, so its placeholder is the app's tertiary label in every engine; #621 (D6-a) adds the test. The resize grip is `textarea.ui-input`'s, shared by every text area.
 
 **U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
 H4. PE, TP.
@@ -2337,6 +2340,7 @@ Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 `src/app/components/composer/scripts-panel.html:20`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #612 (D6-a): the Scripts tab's three headings (Pre-request script, Post-response script, Tests) carry no icon; `scripts-panel.spec.ts` holds it.
 
 **U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
@@ -2562,6 +2566,7 @@ the visual-craft review.
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): it changes the import's
 steps (ImportPipeline), not only words; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #621 (D6-a): the box's "Read the command" is gone; Import reads the command and opens the report a file opens.
 
 **U-202. The Tests tab's empty line and the held-scripts line name a tab,
 not a button.** Severity 4. H7. TP, QA.

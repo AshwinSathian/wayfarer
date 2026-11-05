@@ -40,6 +40,8 @@ export class ImportPipeline {
   readonly storing = signal(false);
   /** The dialog is open for a cURL command to be pasted into it: no file was picked. */
   readonly pasting = signal(false);
+  /** The command in that box. */
+  readonly pasted = signal("");
 
   private text = "";
 
@@ -51,7 +53,7 @@ export class ImportPipeline {
     if (file) await this.stage(file.name, await readImportText(file));
   }
 
-  /** Opens the dialog with a box for a cURL command. Reading it is `stage`, like a file. */
+  /** Opens the dialog with a box for a cURL command. Its Import reads it with `stage`, like a file. */
   openPaste(): void {
     this.close();
     this.pasting.set(true);
@@ -123,6 +125,7 @@ export class ImportPipeline {
   close(): void {
     this.dialogVisible.set(false);
     this.pasting.set(false);
+    this.pasted.set("");
     this.refused.set(null);
     this.imported.set(null);
     this.environmentEntries.set([]);

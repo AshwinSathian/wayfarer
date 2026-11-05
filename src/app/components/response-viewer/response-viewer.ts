@@ -158,6 +158,8 @@ export class ResponseViewer {
   readonly scriptLogs = input<string[]>([]);
   /** The request had scripts that were left out because they are not approved. */
   readonly scriptsSkipped = input(false);
+  /** The held line's and the empty Tests line's button: the request's Scripts tab, which the composer holds (U-202). */
+  readonly openScripts = output<void>();
   /** How long the scripts and the request took, each by itself; shown when a script ran. */
   readonly timings = input<SendTimings | null>(null);
   protected readonly scriptTimings = computed(() => {

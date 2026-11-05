@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The response's Tests tab takes you to the request's scripts.** "This request
+  has no tests" ends in Add a test, and the line that says a request's
+  scripts did not run ends in Open Scripts. Each opens the request's Scripts
+  tab with focus on it, on a phone too. Before, each line only said "the
+  Scripts tab", and you had to find it. (U-202)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

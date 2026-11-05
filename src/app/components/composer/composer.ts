@@ -233,6 +233,20 @@ export class Composer {
     this.addressRow()?.focusUrl();
   }
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly appRef = inject(ApplicationRef);
+
+  /**
+   * The response's "Open Scripts" and "Add a test" (U-202): the request's Scripts, with focus on its tab, or on a
+   * phone on its section, past the Response tab. Drawn at once, so that focus goes to what is now there.
+   */
+  protected openScripts(): void {
+    this.view.mobilePane.set("request");
+    this.view.onActiveTabChange("scripts");
+    this.appRef.tick();
+    this.host.querySelector<HTMLElement>(".composer-pane [ngTab][value='scripts'], .scripts-section-header")?.focus();
+  }
+
   loadPastRequest(request: PastRequest): void {
     this.view.loadPastRequest(request);
   }

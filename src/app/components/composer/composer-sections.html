@@ -91,7 +91,7 @@
     <button
       ngAccordionTrigger
       #scriptsTrigger="ngAccordionTrigger"
-      class="section-header"
+      class="section-header scripts-section-header"
       [panel]="scriptsSection"
       [expanded]="view.mobileActivePanels() === 'scripts'"
       (expandedChange)="$event ? view.onMobileIndexChange('scripts') : view.onMobilePanelClosed('scripts', scriptsTrigger)"

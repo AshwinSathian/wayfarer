@@ -57,6 +57,57 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the app does changes; `npm audit` still reports 0 vulnerabilities, and
   the mutation score is 90.17.
 
+
+- The website no longer prints claim IDs ("C-001") beside its sentences. The landing, the comparison pages, the
+  roadmap, "What changed in 3.0" and the blog read as plain text; before, nearly every sentence ended in a row of small
+  boxed codes, and the landing had a table of five ledger rows. Each sentence is still held to its row of the claims
+  ledger by the site's tests, and a build that names a claim the ledger has not got still fails. The ledger itself,
+  with each claim's test and the CI run the site passed, is one link in the footer: "How we test what we say".
+- **The request's tabs say what they hold.** Params and Headers show how
+  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
+  show a dot when they are not at their default. A screen reader hears the
+  dot as words ("Body (set)"). Scripts that have not been reviewed show
+  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
+  the same marks. Before, the tabs were bare words, and a request with a
+  header, a body and a script looked the same as an empty one. (U-170)
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
+- Six development and site tools updated to their latest minor or patch
+  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
+  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
+  the app does changes; `npm audit` still reports 0 vulnerabilities, and
+  the mutation score is 90.17.
+
+
+- **The request's tabs say what they hold.** Params and Headers show how
+  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
+  show a dot when they are not at their default. A screen reader hears the
+  dot as words ("Body (set)"). Scripts that have not been reviewed show
+  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
+  the same marks. Before, the tabs were bare words, and a request with a
+  header, a body and a script looked the same as an empty one. (U-170)
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
+- Six development and site tools updated to their latest minor or patch
+  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
+  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
+  the app does changes; `npm audit` still reports 0 vulnerabilities, and
+  the mutation score is 90.17.
+
 ### Fixed
 
 - The Environments list's header names its controls: New beside the title, then Globals, Import and Export. Before,
@@ -154,57 +205,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   triangle beside it, which read as a Run button or a closed section, and
   "Post-response script" and "Tests" had icons of their own; all three are
   gone. (U-189)
-### Changed
-
-- The website no longer prints claim IDs ("C-001") beside its sentences. The landing, the comparison pages, the
-  roadmap, "What changed in 3.0" and the blog read as plain text; before, nearly every sentence ended in a row of small
-  boxed codes, and the landing had a table of five ledger rows. Each sentence is still held to its row of the claims
-  ledger by the site's tests, and a build that names a claim the ledger has not got still fails. The ledger itself,
-  with each claim's test and the CI run the site passed, is one link in the footer: "How we test what we say".
-- **The request's tabs say what they hold.** Params and Headers show how
-  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
-  show a dot when they are not at their default. A screen reader hears the
-  dot as words ("Body (set)"). Scripts that have not been reviewed show
-  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
-  the same marks. Before, the tabs were bare words, and a request with a
-  header, a body and a script looked the same as an empty one. (U-170)
-
-- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
-  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
-  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
-- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
-  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
-  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
-  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
-  (U-163, U-177)
-- Six development and site tools updated to their latest minor or patch
-  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
-  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
-  the app does changes; `npm audit` still reports 0 vulnerabilities, and
-  the mutation score is 90.17.
-
-
-- **The request's tabs say what they hold.** Params and Headers show how
-  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
-  show a dot when they are not at their default. A screen reader hears the
-  dot as words ("Body (set)"). Scripts that have not been reviewed show
-  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
-  the same marks. Before, the tabs were bare words, and a request with a
-  header, a body and a script looked the same as an empty one. (U-170)
-
-- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
-  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
-  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
-- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
-  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
-  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
-  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
-  (U-163, U-177)
-- Six development and site tools updated to their latest minor or patch
-  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
-  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
-  the app does changes; `npm audit` still reports 0 vulnerabilities, and
-  the mutation score is 90.17.
 
 ## [3.0.0] - 2026-11-05
 

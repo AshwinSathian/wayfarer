@@ -29,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/compare/moving-from-postman/", undefined],
     ["/blog/", posts()[0]?.date],
     ...posts().map((post): [string, string | undefined] => [`/blog/${post.slug}/`, post.date]),
+    ["/what-changed-in-3-0/", lastChanged("packages/site/src/whats-new.mjs")],
     ["/changelog/", lastChanged("CHANGELOG.md")],
     ["/roadmap/", lastChanged("PLAN-design.md")],
   ];

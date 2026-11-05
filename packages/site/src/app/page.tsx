@@ -457,10 +457,19 @@ export default function Home() {
           sunk
           title="The rest of the app is in the same tab."
           intro={
-            <p>
-              Collections, environments, history, the vault and scripts, kept in your browser.{" "}
-              <Claims ids={["C-002"]} />
-            </p>
+            <>
+              <p>
+                Collections, environments, history, the vault and scripts, kept in your browser.{" "}
+                <Claims ids={["C-002"]} />
+              </p>
+              <p className="mt-4">
+                Version 3.0 redesigned every screen.{" "}
+                <a className={LINK} href="/what-changed-in-3-0/">
+                  See what changed, before and after
+                </a>
+                .
+              </p>
+            </>
           }
         >
           <Shot theme="dark" />

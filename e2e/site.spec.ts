@@ -98,6 +98,34 @@ test("each claim the landing names is a row of the claims ledger", async ({ page
   expect(named.filter((id) => !ledger.has(id))).toEqual([]);
 });
 
+// W5.5: "What changed in 3.0" and its post show each picture with its text, at its size, in the page's theme only,
+// and name only claims of the ledger. Which findings it shows is scripts/whats-new.test.mjs's.
+test("What changed in 3.0 and its post show their pictures with alt text and name only claims of the ledger", async ({
+  page,
+}) => {
+  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((m) => m[1]));
+  for (const path of ["/what-changed-in-3-0/", "/blog/the-3-0-redesign/"]) {
+    await page.goto(path);
+    const images = page.locator("main img");
+    expect(await images.count(), path).toBeGreaterThan(3);
+    for (const img of await images.all()) {
+      expect((await img.getAttribute("alt"))?.length ?? 0, path).toBeGreaterThan(20);
+      expect(await img.getAttribute("src"), path).toMatch(/^\/whats-new\/[\w-]+\.jpg$/);
+      expect(Number(await img.getAttribute("width")), path).toBeGreaterThan(0);
+    }
+    const named = (
+      await page.locator("[data-claims]").evaluateAll((spans) => spans.map((s) => s.getAttribute("data-claims") ?? ""))
+    ).flatMap((ids) => ids.split(" "));
+    expect(named.length, path).toBeGreaterThan(0);
+    expect(named.filter((id) => !ledger.has(id))).toEqual([]);
+  }
+  // One theme's pair of the response is drawn, not both.
+  await page.goto("/what-changed-in-3-0/");
+  await expect(
+    page.locator("#response ~ div .shot-light, #response ~ div .shot-dark").filter({ visible: true }),
+  ).toHaveCount(1);
+});
+
 // W2.5: the blog's posts are pages, newest first, and its RSS feed lists each with its address and date.
 test("the blog lists its posts, each a page, and its RSS feed has an item for each", async ({ page, request }) => {
   const files = readdirSync("packages/site/content/blog").filter((name) => name.endsWith(".md"));

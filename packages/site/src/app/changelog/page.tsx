@@ -28,7 +28,11 @@ export default function Changelog() {
           <a className="text-action underline underline-offset-4" href={`${REPO}/blob/main/CHANGELOG.md`}>
             CHANGELOG.md
           </a>{" "}
-          in the repository.
+          in the repository. 3.0&apos;s redesign is shown screen by screen, before and after, on{" "}
+          <a className="text-action underline underline-offset-4" href="/what-changed-in-3-0/">
+            What changed in 3.0
+          </a>
+          .
         </p>
 
         <nav aria-labelledby="versions" className="mt-12">

@@ -13,6 +13,7 @@ import {
 } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { Tabs, forwarded } from "../state/tabs";
+import { unsavedName } from "../state/tab-state";
 import { recordDiagnostic } from "./diagnostics";
 
 /** What a save that did not land says under the address (U-066). The draft stays, and the tab stays unsaved. */
@@ -88,6 +89,8 @@ export class RequestSave {
   readonly saveAsName = signal("");
   readonly saveAsCollectionId = signal<string | null>(null);
   readonly saveAsFolderId = signal<string | null>(null);
+  /** The collection the first save makes, when there is none yet (U-163). */
+  readonly saveAsNewCollection = signal("");
 
   readonly saveAsCollectionOptions: Signal<{ label: string; value: string }[]> = computed(() =>
     this.collectionsService.tree().map((entry) => ({
@@ -106,7 +109,9 @@ export class RequestSave {
   });
 
   get isSaveAsDisabled(): boolean {
-    return !this.saveAsName().trim() || !this.saveAsCollectionId();
+    const where =
+      this.saveAsCollectionId() ?? (this.saveAsCollectionOptions().length ? "" : this.saveAsNewCollection().trim());
+    return !this.saveAsName().trim() || !where;
   }
 
   /** Binds (or clears, with `null`) the composer session to a saved request — call on load/new-request, not on every keystroke. */
@@ -168,7 +173,9 @@ export class RequestSave {
   openSaveAsDialog(): void {
     const bound = this.loadedCollectionRequest();
     const options = this.saveAsCollectionOptions();
-    this.saveAsName.set(bound?.name ?? "");
+    // Named as its tab is, selected in the field: Save at once keeps it, a key replaces it (U-177).
+    this.saveAsName.set(bound?.name ?? unsavedName(this.tabs.active().draft().url));
+    this.saveAsNewCollection.set("My collection");
     this.saveAsCollectionId.set(bound?.collectionId ?? options[0]?.value ?? null);
     this.saveAsFolderId.set(bound?.folderId ?? null);
     this.saveAsDialogVisible.set(true);
@@ -183,17 +190,19 @@ export class RequestSave {
     this.saveAsFolderId.set(null);
   }
 
-  /** Creates a new collection request from the Save-As dialog's current fields, then binds the composer to it. */
+  /** Creates a new collection request from the Save-As dialog's current fields (and its collection, with none yet), then binds the composer to it. */
   async confirmSaveAs(snapshot: RequestContentSnapshot, scriptsAllowed: boolean): Promise<void> {
-    const collectionId = this.saveAsCollectionId();
+    if (this.isSaveAsDisabled) return;
     const name = this.saveAsName().trim();
-    if (!collectionId || !name) {
-      return;
-    }
+    const chosen = this.saveAsCollectionId();
     void this.persistence.request();
     this.savingRequest.set(true);
     const tab = this.tabs.active();
     try {
+      // With no collection yet, the one named in the dialog is made first, as the sidebar's New collection makes one
+      // (trusted: made here), and the request goes into it by the same road as into any other (U-163).
+      const collectionId =
+        chosen ?? (await this.collectionsService.createCollection({ name: this.saveAsNewCollection().trim() })).meta.id;
       await this.approveScripts(collectionId, snapshot, scriptsAllowed);
       const doc = await this.collectionsService.createRequest(
         { ...snapshot, collectionId, folderId: this.saveAsFolderId() ?? undefined, name },

@@ -2211,6 +2211,7 @@ Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
 (`grep -rn F2 src/app` finds `tree.ts` and `tab-strip.ts` only).
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #623 (D6-a): the tree's menu shows F2 by Rename and Delete by Delete, a tab's menu F2 and Delete, and Shortcuts lists F2, Alt with ↑ or ↓ and Shift+F10 in the platform's keys.
 
 **U-179. The cURL box is a bare text area: its placeholder is each
 engine's grey, 2.2:1 in WebKit.** Severity 3. H4. OC, TP.

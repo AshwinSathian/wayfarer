@@ -146,6 +146,9 @@ async function openRequest(page: Page, name: string, parent = "Pets"): Promise<v
   await expect(address(page)).not.toHaveValue("");
   const drawer = page.getByRole("dialog", { name: "Navigation" });
   if (await drawer.isVisible()) await button(drawer, "Close navigation").click();
+  // The pointer stays where the drawer's row was: over the page it may show a chip's tooltip, which covers the tabs.
+  const size = page.viewportSize();
+  if (size) await page.mouse.move(size.width - 2, Math.round(size.height / 2));
 }
 
 async function sendAndWait(page: Page): Promise<void> {

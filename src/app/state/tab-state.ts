@@ -29,6 +29,12 @@ export const SHOWN_EVENTS = 500;
 /** The editor's blank row: not sent, and unchecked, until it has a name (L-17). */
 export const blankRow = (): Row => ({ key: "", value: "", enabled: false });
 
+/** Names a row in place: the first name switches it on (L-17); after that the switch is the person's. */
+export function rename(row: { key: string; enabled: boolean }, key: string): void {
+  if (!row.key && key) row.enabled = true;
+  row.key = key;
+}
+
 export function emptyDraft(): Draft {
   return { ...emptyRequest(), params: [blankRow()], headers: [blankRow()] };
 }

@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

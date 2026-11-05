@@ -1,3 +1,4 @@
+import { Close, Glance, Tasks } from "../../../components/Compare";
 import { JsonLd } from "../../../components/JsonLd";
 import { H2, Page } from "../../../components/Page";
 import { pageMeta } from "../../../lib/meta";
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props) {
   return pageMeta(
     `/compare/${rival.id}/`,
     titleOf(rival),
-    `Wayfarer, the API client in a browser tab, beside ${rival.name}: what each does, where ${rival.name} is ahead, and the source and date of every fact.`,
+    `Wayfarer, the API client in a browser tab, beside ${rival.name}: a table at a glance, eight tasks counted, where ${rival.name} is ahead, and the source and date of every fact.`,
   );
 }
 
@@ -40,7 +41,7 @@ function Next({ rival }: { rival: Rival }) {
   const links: [string, string][] = [
     ...moving,
     ["Where Wayfarer is behind, against every rival", "/compare/#behind"],
-    ["The benchmark: eight tasks, counted", "/docs/design/benchmark/"],
+    ["The benchmark: eight tasks, counted, with every step and source", "/docs/design/benchmark/"],
     ["Import: what comes across from each format", "/docs/import/"],
     ["The secrets vault", "/docs/secrets/"],
     ["What a browser cannot send, and the Local Bridge", "/docs/browser-limits/"],
@@ -64,23 +65,32 @@ function Next({ rival }: { rival: Rival }) {
   );
 }
 
-/** One comparison (W2.3): what the rival says of itself, how Wayfarer differs, and where the rival is ahead. */
+/**
+ * One comparison (W2.3, W5.4): the table at a glance, the eight tasks counted, where the rival is ahead, how Wayfarer
+ * differs, who should pick which, how to move, what the rival's pages say, and the close.
+ */
 export default async function Comparison({ params }: Props) {
   const rival = await find(params);
+  const LIST =
+    "mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4";
   return (
-    <Page title={`Wayfarer vs ${rival.name}`} lede={<p>{rival.is}</p>}>
+    <Page
+      title={`Wayfarer vs ${rival.name}`}
+      lede={
+        <p>
+          {rival.is} Checked against {rival.name}&apos;s own pages on <time dateTime={rival.read}>{rival.read}</time>.
+        </p>
+      }
+    >
       <JsonLd data={comparisonGraph(rival, `Wayfarer vs ${rival.name}`, sourcesOf(rival))} />
-      <H2 id="facts">What {rival.name}&apos;s pages say</H2>
-      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink">
-        {rival.facts.map((fact) => (
-          <li key={fact.text}>
-            {fact.text} <Cite source={fact.source} />
-          </li>
-        ))}
-      </ul>
+      <H2 id="glance">At a glance</H2>
+      <Glance rivals={[rival]} label={`Wayfarer and ${rival.name} at a glance`} />
+
+      <H2 id="tasks">Eight tasks, counted</H2>
+      <Tasks rival={rival} />
 
       <H2 id="ahead">Where {rival.name} is ahead</H2>
-      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink">
+      <ul className={LIST}>
         {rival.ahead.map((fact) => (
           <li key={fact.text}>
             {fact.text} <Cite source={fact.source} />
@@ -89,13 +99,31 @@ export default async function Comparison({ params }: Props) {
       </ul>
 
       <H2 id="differs">How Wayfarer differs</H2>
-      <ul className="mt-6 max-w-3xl list-disc space-y-3 pl-5 text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
+      <ul className={LIST}>
         {rival.differs.map((sentence, i) => (
           <li key={i}>{sentence}</li>
         ))}
       </ul>
 
+      <H2 id="pick">Who should pick which</H2>
+      <p className="mt-6 max-w-3xl text-ink">{rival.pick}</p>
+
+      <H2 id="moving">Moving from {rival.name}</H2>
+      <p className="mt-6 max-w-3xl text-ink [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
+        {rival.moving}
+      </p>
+
+      <H2 id="facts">What {rival.name}&apos;s pages say</H2>
+      <ul className={LIST}>
+        {rival.facts.map((fact) => (
+          <li key={fact.text}>
+            {fact.text} <Cite source={fact.source} />
+          </li>
+        ))}
+      </ul>
+
       <Next rival={rival} />
+      <Close rival={rival} />
     </Page>
   );
 }

@@ -194,6 +194,60 @@ test("each comparison page cites a source with its date for every fact about a r
   expect(await page.locator("#behind + ul > li").count()).toBeGreaterThanOrEqual(4);
 });
 
+// W5.4: each comparison carries the benchmark. Wayfarer's numbers are measured and each links to its recording,
+// served by the site, and to its row of the benchmark; a rival's are its documented steps, each with a dated source
+// and no seconds (row 1.64). The table at a glance holds Wayfarer's cells to claims and a rival's to its sources.
+test("each comparison page sets Wayfarer's recorded numbers beside the rival's documented steps, and closes with the app", async ({
+  page,
+  request,
+}) => {
+  const recordings = new Set<string>();
+  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia"]) {
+    await page.goto(`/compare/${rival}/`);
+    const glance = page.getByRole("region", { name: /at a glance$/ }).locator("tbody tr");
+    expect(await glance.count(), rival).toBe(8);
+    for (const row of await glance.all()) {
+      expect(await row.locator("td").nth(0).locator("[data-claims], .cite").count(), rival).toBeGreaterThan(0);
+      const theirs = row.locator("td").nth(1);
+      if ((await theirs.textContent()) !== "Not documented")
+        await expect(theirs.locator(".cite"), rival).toHaveCount(1);
+    }
+    const tasks = page.getByRole("region", { name: /^Eight tasks/ }).locator("tbody tr");
+    expect(await tasks.count(), rival).toBe(8);
+    for (const row of await tasks.all()) {
+      const ours = row.locator("td.wayfarer-measured");
+      for (const link of await ours.locator('a[href^="/benchmark/"]').all())
+        recordings.add((await link.getAttribute("href")) ?? "");
+      expect(await ours.locator('a[href^="/benchmark/"]').count(), rival).toBeGreaterThan(0);
+      await expect(ours.locator('a[href="/docs/design/benchmark/#wayfarer-measured"]').first(), rival).toBeVisible();
+      const theirs = row.locator("td.rival-documented");
+      await expect(theirs.locator(".cite time"), rival).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}$/);
+      await expect(theirs, rival).toContainText("(documented)");
+      await expect(theirs, rival).not.toContainText(/\d s\b/);
+    }
+    const close = page.getByRole("region", { name: /^Try it with your/ });
+    await expect(close.getByRole("link", { name: "Open Wayfarer" })).toHaveAttribute("href", "/app/");
+  }
+  expect(recordings.size).toBe(10);
+  for (const path of recordings) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()["content-type"], path).toBe("video/webm");
+  }
+  await page.goto("/docs/design/benchmark/");
+  await expect(page.locator('a[href="/benchmark/task-2.webm"]').first()).toBeVisible();
+  await page.goto("/compare/");
+  expect(
+    await page.getByRole("region", { name: "Wayfarer and its rivals at a glance" }).locator("thead th").count(),
+  ).toBe(7);
+  expect(
+    await page
+      .getByRole("region", { name: /^Eight tasks/ })
+      .locator("tbody tr")
+      .count(),
+  ).toBe(8);
+});
+
 // D5-e: a sentence about Wayfarer on the comparison pages names its claim, or, for a fact about the project (its
 // licence, its first release), cites the file that says so. "How Wayfarer differs", "Where Wayfarer is behind" and
 // the steps of Moving from Postman each said something no claim held (the licence, the protocols).

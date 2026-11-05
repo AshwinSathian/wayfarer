@@ -33,3 +33,7 @@ test("a link to the changelog is its page", () => {
   assert.equal(siteLink("../CHANGELOG.md#unreleased", "docs/a.md"), "/changelog/#unreleased");
   assert.equal(siteLink("../../../../CHANGELOG.md", "packages/site/content/blog/p.md"), "/changelog/");
 });
+
+test("a benchmark recording is the site's copy, not the file on GitHub", () => {
+  assert.equal(siteLink("benchmark/task-2.webm", "docs/design/benchmark.md"), "/benchmark/task-2.webm");
+});

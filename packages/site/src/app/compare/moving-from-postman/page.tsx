@@ -1,6 +1,7 @@
 import { SITE, pageMeta } from "../../../lib/meta";
 import type { ReactNode } from "react";
 import { Claims } from "../../../components/Claims";
+import { Close } from "../../../components/Compare";
 import { H2, Page } from "../../../components/Page";
 import { Cite, type Source } from "../../../lib/rivals";
 
@@ -35,8 +36,9 @@ const STEPS: [string, ReactNode][] = [
   [
     "Import the collection",
     <>
-      In Wayfarer, Import in the sidebar, then File…, and choose the file. You see what it will add, and what of it
-      could not be kept, before anything is stored. <Claims ids={["C-054", "C-058"]} />
+      In Wayfarer&apos;s sidebar, Import… (with collections there already, Import, then File…), and choose the file. You
+      see what it will add, and what of it could not be kept, before anything is stored.{" "}
+      <Claims ids={["C-054", "C-058"]} />
     </>,
   ],
   [
@@ -48,8 +50,8 @@ const STEPS: [string, ReactNode][] = [
   [
     "Read the scripts",
     <>
-      A collection&apos;s scripts from a file wait until you have read them and said you trust them: open a request, its
-      Scripts tab, Review scripts, then Trust these scripts. <Claims ids={["C-051"]} />
+      A collection&apos;s scripts from a file wait until you have read them and said you trust them: in the
+      import&apos;s report, Import and review scripts…, then Trust these scripts. <Claims ids={["C-051"]} />
     </>,
   ],
   [
@@ -137,6 +139,7 @@ export default function MovingFromPostman() {
         <a href="/docs/export/">export</a>, and <a href="/compare/postman/">Wayfarer vs Postman</a> for how the two
         differ.
       </p>
+      <Close />
     </Page>
   );
 }

@@ -7,6 +7,25 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-11-06
+
+The fixes that followed 3.0's design review: every finding left open at the
+release is fixed.
+
+- **The request says what it holds.** Its tabs show how many rows will be
+  sent ("Headers 2") and mark what is set; held scripts say so on their tab.
+- **Fewer steps.** The first save is one press; a pasted cURL command
+  imports with one button; Add a test opens the request's Scripts; Back up
+  sits beside Reset all data.
+- **A failed send leads with what went wrong**, and draws no empty tabs.
+- **Text areas grow with their text** and draw no resize grip.
+- **Ready for later versions:** a tab whose database a later version of
+  Wayfarer has opened says so and asks for a reload, instead of saying the
+  data was reset.
+
+Your data carries over: 3.0.1 opens the same database as 3.0.0, under the
+same name and version.
+
 ### Changed
 
 - Text areas (bulk headers, a pasted cURL command, a WebSocket message, an AI draft's description) grow with their

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The editors end at their last line.** The body, response and script
+  editors drew an empty overview ruler down their right edge, and the body
+  and response editors scrolled a page past the last line, so a six-line
+  response showed a scrollbar as tall as the pane. Neither is drawn now
+  (U-186).
 - **The Headers tab no longer warns of hidden headers when none were
   hidden.** A response from another origin that sends
   `Access-Control-Expose-Headers: *` lets the page read every header, but

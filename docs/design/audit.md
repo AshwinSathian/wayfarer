@@ -2315,6 +2315,7 @@ tick at the editor's top right), `baseline/design-chromium/response-record-1440-
 `src/app/components/script-editor/script-editor.ts:163`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #614 (D6-a): every editor's shared options (`editorText`) turn off the overview ruler and the scrolling past the last line.
 
 **U-187. A method is drawn four ways, and the method menu marks none.**
 Severity 4. H4, H1. SD.

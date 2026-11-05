@@ -109,6 +109,46 @@ test.describe("the environment editor keeps what was typed", () => {
   });
 });
 
+// U-183: at 390 px Chromium and WebKit scrolled only as far as the focused passphrase's edge, and left Confirm and
+// Create vault under the window's bottom. The form is brought into view whole.
+test("at 390 px the vault's form in a row is in the window whole when it opens", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/");
+  const dialog = await openEnvironments(page);
+  for (const name of ["Staging", "Local"]) {
+    await dialog.getByRole("button", { name: "New environment" }).first().click();
+    await page.locator("#new-env-name-input").fill(name);
+    await page.locator("#new-env-name-input").press("Enter");
+  }
+  const names = dialog.getByPlaceholder("Name", { exact: true });
+  for (const [index, [key, value]] of [
+    ["baseUrl", "http://127.0.0.1:4300"],
+    ["petId", "42"],
+    ["apiVersion", "v2"],
+    ["region", "eu-west-1"],
+  ].entries()) {
+    await dialog.getByRole("button", { name: "Add variable" }).click();
+    await expect(names).toHaveCount(index + 1);
+    await expect(names.nth(index)).toBeFocused();
+    await names.nth(index).fill(key);
+    await dialog.getByPlaceholder("Value", { exact: true }).nth(index).fill(value);
+  }
+  await dialog
+    .getByRole("button", { name: /^Mark .* as secret$/ })
+    .nth(1)
+    .click();
+  await expect(dialog.getByLabel("Passphrase", { exact: true })).toBeFocused();
+  const form = dialog.getByRole("group", { name: /^Choose a passphrase for the vault/ });
+  for (const control of [
+    form.getByLabel("Passphrase", { exact: true }),
+    form.getByLabel("Confirm passphrase", { exact: true }),
+    form.getByRole("button", { name: "Cancel" }),
+    form.getByRole("button", { name: "Create vault" }),
+  ]) {
+    await expect(control).toBeInViewport({ ratio: 1 });
+  }
+});
+
 // U-135, U-136 and C-003: with no vault, the row makes it, and what is stored is the reference, never the value.
 test("marking a variable secret with no vault makes the vault in the row and stores no plain value", async ({
   page,

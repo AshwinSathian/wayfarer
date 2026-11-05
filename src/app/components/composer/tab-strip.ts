@@ -17,7 +17,7 @@ import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
 import { Icon } from "../../shared/icon/icon";
-import { TabState, type HolderTarget } from "../../state/tab-state";
+import { TabState, unsavedName, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { Confirm } from "../../ui/confirm";
 import { UiTabList } from "../../ui/tabs";
@@ -80,14 +80,7 @@ export class TabStrip {
     if (tab.environments) return "Environments";
     if (tab.holder) return this.holderName(tab.holder);
     if (tab.run) return tab.run.target.name;
-    return (
-      tab.bound()?.name ??
-      (tab
-        .draft()
-        .url.trim()
-        .replace(/^https?:\/\//, "") ||
-        "New request")
-    );
+    return tab.bound()?.name ?? unsavedName(tab.draft().url);
   }
 
   /** A collection's or a folder's name, for its settings tab. */
@@ -148,10 +141,12 @@ export class TabStrip {
   protected menuFor(tab: TabState, event: MouseEvent): void {
     const button = event.currentTarget as HTMLElement;
     this.menuItems.set([
-      ...(tab.document ? [] : [{ label: "Rename", icon: "edit" as const, command: () => this.rename(tab, button) }]),
+      ...(tab.document
+        ? []
+        : [{ label: "Rename", icon: "edit" as const, keys: "F2", command: () => this.rename(tab, button) }]),
       { label: "Duplicate tab", icon: "content_copy", command: () => this.duplicate(tab) },
       { separator: true },
-      { label: "Close tab", icon: "close", command: () => void this.close(tab) },
+      { label: "Close tab", icon: "close", keys: "Delete", command: () => void this.close(tab) },
     ]);
     this.menu().openAt(event, () => button.focus());
   }

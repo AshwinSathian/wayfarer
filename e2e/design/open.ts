@@ -456,6 +456,13 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await create.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
     await button(create, "Create vault").click();
     await expect(page.getByText("Secret stored")).toBeVisible();
+    // Whether the browser has promised to keep the data is Chromium's own choice, and with it whether the backup
+    // banner comes, a moment after the load: from run to run it came or not, and moved the page under the dialog.
+    // Answered here as promised, no banner comes; this screen is the dialog's.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator.storage, "persisted", { value: () => Promise.resolve(true) });
+      Object.defineProperty(navigator.storage, "persist", { value: () => Promise.resolve(true) });
+    });
     await page.reload();
     await expect(address(page)).toBeVisible();
     // The status bar's item from 768 px; on a phone, the toolbar's lock.

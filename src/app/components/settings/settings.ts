@@ -281,9 +281,10 @@ export class Settings {
     return Math.min(100, Math.max(1, (estimate.usage / estimate.quota) * 100));
   }
 
-  async exportBackup(): Promise<void> {
+  /** The Danger zone's backup keeps the history too: the reset beside it deletes that as well (U-185). */
+  async exportBackup(history = this.backupHistory()): Promise<void> {
     this.backupErrors.set([]);
-    this.downloadJson(await this.backup.exportJson({ history: this.backupHistory() }), "wayfarer-workspace.json");
+    this.downloadJson(await this.backup.exportJson({ history }), "wayfarer-workspace.json");
   }
 
   /** Replaces everything stored here with the file's workspace, after the user confirms. */

@@ -585,6 +585,15 @@ pre,
   flex: 1 1 0;
   min-height: 300px;
 }
+/* So does an HTML preview (U-174): it was 300 px with the pane empty under it. */
+.response-fill .response-body-pane app-html-preview {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 300px;
+}
+.response-fill .response-body-pane .html-preview {
+  height: auto;
+}
 /* The headers take the pane's height and no more (L-15): a long list scrolls inside it, a short one ends at its
    last row. They stopped at 288 px with the pane free under them. */
 .response-fill .response-headers-pane:not([inert]),

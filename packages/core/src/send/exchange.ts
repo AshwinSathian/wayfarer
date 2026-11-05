@@ -799,11 +799,13 @@ function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
       redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
       route: envelope.route,
       contentType: header("content-type"),
-      // Outside a page nothing is withheld: no browser stands between.
+      // Outside a page nothing is withheld: no browser stands between. A wildcard exposes every header
+      // but Set-Cookie to a request without credentials, which every direct send is (U-173).
       headersLimited:
         page !== undefined &&
         envelope.route === "direct" &&
-        URL.parse(envelope.finalUrl, page)?.origin !== URL.parse(page)?.origin,
+        URL.parse(envelope.finalUrl, page)?.origin !== URL.parse(page)?.origin &&
+        !(header("access-control-expose-headers") ?? "").split(",").some((name) => name.trim() === "*"),
       ...(envelope.stream && { stream: envelope.stream }),
       ...(envelope.redirects && { redirects: envelope.redirects }),
       ...(envelope.tlsInsecure && { tlsInsecure: true as const }),

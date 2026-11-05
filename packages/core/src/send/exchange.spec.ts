@@ -591,6 +591,37 @@ describe("exchange", () => {
     expect(result.history.error).toBe("No response: this browser is offline.");
   });
 
+  describe("whether the browser may have hidden headers (U-173)", () => {
+    const send = (exposed?: string) => {
+      page = "https://wayfarer.example/app/";
+      const answer = envelope(200, "OK", {});
+      transport.setResponse({
+        ...answer,
+        finalUrl: "https://api.test/",
+        headers:
+          exposed === undefined ? answer.headers : [...answer.headers, ["Access-Control-Expose-Headers", exposed]],
+      });
+      return service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
+    };
+
+    it("a direct answer from another origin may have had headers hidden", async () => {
+      expect((await send()).response.headersLimited).toBe(true);
+      expect((await send("X-Request-Id")).response.headersLimited).toBe(true);
+    });
+
+    it("not when the server exposes every header: a request without credentials reads them all", async () => {
+      expect((await send("*")).response.headersLimited).toBe(false);
+      expect((await send("X-Request-Id, * ")).response.headersLimited).toBe(false);
+    });
+  });
+
   it("without a page (the CLI), a network error gives the runtime's reason and says nothing of a browser", async () => {
     transport.setResponse(new TransportError("network", "fetch failed (ECONNREFUSED)"));
 

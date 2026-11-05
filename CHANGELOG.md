@@ -826,6 +826,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The deployment guide says what a rollback takes back.** The site and
+  the app are one deploy, so `wrangler rollback` returns both to the
+  version chosen; the guide now says so, and how to check each after it:
+  `/version.json` for the site, and for the app the reload its update
+  banner asks for (W4).
+
 - **The comparison pages carry the benchmark.** Each page, Wayfarer vs
   Postman, Bruno, Yaak, Hoppscotch and Insomnia, now opens with a table at
   a glance (where it runs, account, where collections are kept, secrets,

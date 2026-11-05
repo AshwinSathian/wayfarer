@@ -2340,6 +2340,7 @@ Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 `src/app/components/composer/scripts-panel.html:20`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #612 (D6-a): the Scripts tab's three headings (Pre-request script, Post-response script, Tests) carry no icon; `scripts-panel.spec.ts` holds it.
 
 **U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;

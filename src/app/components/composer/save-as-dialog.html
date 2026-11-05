@@ -6,24 +6,37 @@
   width="420px"
 >
   <div class="flex flex-col gap-4">
-    @if (!requestSave.saveAsCollectionOptions().length) {
-    <p class="type-callout text-label-secondary">
-      A request is saved into a collection, and there is none yet. Make one with New collection in the sidebar.
-    </p>
-    } @else {
     <div class="flex flex-col gap-1.5">
       <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
       <input
+        #nameField
         class="font-sans w-full"
         uiInput
         cdkFocusInitial
         id="save-as-name"
         type="text"
-        [ngModel]="requestSave.saveAsName()"
-        (ngModelChange)="requestSave.saveAsName.set($event)"
+        [value]="requestSave.saveAsName()"
+        (input)="requestSave.saveAsName.set($any($event.target).value)"
         placeholder="Request name"
       />
     </div>
+    @if (!requestSave.saveAsCollectionOptions().length) {
+    <div class="flex flex-col gap-1.5">
+      <label for="save-as-new-collection" class="type-footnote text-label-secondary">New collection</label>
+      <input
+        class="font-sans w-full"
+        uiInput
+        id="save-as-new-collection"
+        type="text"
+        aria-describedby="save-as-new-collection-note"
+        [value]="requestSave.saveAsNewCollection()"
+        (input)="requestSave.saveAsNewCollection.set($any($event.target).value)"
+      />
+      <p id="save-as-new-collection-note" class="type-footnote text-label-secondary">
+        There is no collection yet: this one is made with the request.
+      </p>
+    </div>
+    } @else {
     <div class="flex flex-col gap-1.5">
       <span id="save-as-collection-label" class="type-footnote text-label-secondary">Collection</span>
       <ui-select

@@ -37,6 +37,7 @@ import { Confirm } from "../../ui/confirm";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { readImportText, serializeEnvironmentExport } from "@wayfarer/core";
 import { ImportPipeline } from "../../services/import-pipeline";
+import { DOCS } from "../../shared/docs";
 
 interface KeyboardShortcut {
   keys: string;
@@ -184,6 +185,7 @@ export class Settings {
 
   /** Where to read more. Each opens in a tab of its own: GitHub, or a file served with the app. */
   protected readonly links: { label: string; about: string; href: string }[] = [
+    { label: "Documentation", about: "How each part of Wayfarer works, on this site.", href: DOCS.index },
     {
       label: "Changelog",
       about: "What changed in each version, and what was wrong before.",

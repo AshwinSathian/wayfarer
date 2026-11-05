@@ -149,9 +149,9 @@
 
     <!-- Above the tabs, whichever is open: inside Tests, a response that opened on Body never showed it (U-158). -->
     @if (scriptsSkipped()) {
-    <p class="scripts-skipped type-callout text-status-warning mx-4 mt-2 flex items-center gap-1.5">
+    <p class="scripts-skipped type-callout text-status-warning mx-4 mt-2 flex flex-wrap items-center gap-1.5">
       <app-icon name="warning" class="icon-xs shrink-0" />This request's scripts did not run: they are not reviewed yet.
-      Open the Scripts tab to review them.
+      <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Open Scripts</button>
     </p>
     }
     <!-- ── Response tabs ──────────────────────────────────── -->
@@ -549,9 +549,9 @@
                 @if (ai.offers().tests && responseStatusCode() !== undefined) { @defer {
                 <app-ai-tests />
                 } } @if (!testResults().length) {
-                <p class="flex items-start gap-2 type-callout text-label-secondary py-3">
-                  <app-icon name="rule" class="icon-xs text-label-tertiary mt-0.5 shrink-0" />This request has no tests.
-                  Add one in the Scripts tab: an assertion, or pm.test in a script.
+                <p class="flex flex-wrap items-center gap-2 type-callout text-label-secondary py-3">
+                  <app-icon name="rule" class="icon-xs text-label-tertiary shrink-0" />This request has no tests.
+                  <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Add a test</button>
                 </p>
                 } @else {
                 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->

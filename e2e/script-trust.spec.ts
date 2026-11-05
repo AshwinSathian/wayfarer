@@ -215,11 +215,42 @@ test("a send whose scripts are held says so above the response's tabs, on Body t
   await expect(page.locator(".scripts-skipped")).toBeVisible();
 });
 
+// U-202: the held line said "Open the Scripts tab", and the reader went to find it. It is a button that opens the
+// tab, with focus on it, on a desktop and, where the request and the response are tabs of their own, on a phone.
+for (const { width, height } of [
+  { width: 1280, height: 720 },
+  { width: 390, height: 844 },
+]) {
+  test(`at ${width} px the held line's Open Scripts opens the request's Scripts, with focus on it`, async ({
+    page,
+  }) => {
+    await captureTarget(page);
+    await page.goto("/app/");
+    await expect(page.locator("input.address-url")).toBeVisible();
+    // Imported and opened beside the tree; on a phone the tree is a drawer.
+    await importFile(page, 'pm.test("the file\'s script ran", () => {});');
+    await page.setViewportSize({ width, height });
+    await send(page);
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await page.locator(".scripts-skipped").getByRole("button", { name: "Open Scripts" }).click();
+    const scripts =
+      width < 768
+        ? page.locator("app-composer button.section-header", { hasText: "Scripts" })
+        : page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
+    await expect(scripts).toBeFocused();
+    await expect(scripts).toHaveAttribute(width < 768 ? "aria-expanded" : "aria-selected", "true");
+    await expect(page.locator(".scripts-held")).toBeVisible();
+  });
+}
+
 test("the review shows a script's characters as they are: no ligature joins => or !== (U-180)", async ({ page }) => {
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await importFile(page, 'pm.test("arrows", () => pm.expect(1 !== 2 && 3 >= 2).to.be.true);');
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
   await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review.locator(".script-review-code").last()).toContainText("() =>");

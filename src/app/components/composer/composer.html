@@ -224,6 +224,7 @@
     [exportContext]="store.responseExportContext()"
     [testResults]="store.lastTestResults()"
     [scriptsSkipped]="store.scriptsSkipped()"
+    (openScripts)="openScripts()"
     [scriptLogs]="store.lastScriptLogs()"
     [timings]="store.lastTimings()"
     [responseBinary]="store.responseBinary()"

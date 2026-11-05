@@ -1,9 +1,19 @@
 // Tests for lib/blog.ts (W2.5 of PLAN-design.md). Run: npm run test:scripts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parse } from "./lib/blog.ts";
+import { parse, postHtml } from "./lib/blog.ts";
 
 const head = "---\ntitle: T\ndate: 2026-10-19\ndescription: D\n---\nBody\n";
+
+test("a post's claims and screen comments become claim chips and a screen's before and after", () => {
+  const post = parse("2026-11-05-a.md", `${head}Sentence. <!-- claims C-001 C-002 -->\n\n<!-- screen tree -->\n`);
+  const html = postHtml(post, (id) => `text of ${id}`);
+  assert.match(html, /Sentence\. <span class="claims[^"]*" data-claims="C-001 C-002">/);
+  assert.match(html, /aria-label="Claim C-002: text of C-002"/);
+  assert.match(html, /src="\/whats-new\/tree-1440-light\.jpg" width="1080" height="675" loading="lazy"/);
+  assert.doesNotMatch(html, /<!--/);
+  assert.throws(() => postHtml(parse("2026-11-05-a.md", `${head}<!-- screen nope -->\n`), String), /no screen nope/);
+});
 
 test("a post's slug is its file name after the date", () => {
   assert.equal(parse("2026-10-19-the-claims-ledger.md", head).slug, "the-claims-ledger");

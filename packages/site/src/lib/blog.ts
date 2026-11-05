@@ -3,6 +3,8 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { renderMarkdown } from "../markdown.mjs";
+import { SCREENS, screenHtml } from "../whats-new.mjs";
+import sizes from "../whats-new-images.mjs";
 
 const DIR = "content/blog";
 
@@ -49,8 +51,30 @@ export function posts(): Post[] {
     .sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
 }
 
-export function postHtml(post: Post): string {
-  return renderMarkdown(post.body, `packages/site/${DIR}/${post.file}`);
+const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+/** Claim chips as `Claims` draws them, for a post's `<!-- claims C-001 C-002 -->`. */
+function claimsHtml(ids: string[], claimText: (id: string) => string): string {
+  const chips = ids.map(
+    (id) =>
+      `<a href="/docs/claims/#${id}" aria-label="${escape(`Claim ${id}: ${claimText(id)}`)}" class="inline-flex min-h-6 items-center rounded-xs border border-line-strong px-1 font-code type-site-caption text-ink-muted no-underline hover:border-action hover:text-action">${id}</a>`,
+  );
+  return `<span class="claims ml-1 inline-flex flex-wrap gap-1 align-[0.1em]" data-claims="${ids.join(" ")}">${chips.join("")}</span>`;
+}
+
+/**
+ * A post's HTML. Two comments are filled in: `<!-- claims C-001 -->` with the claims a sentence names, and
+ * `<!-- screen <id> -->` with that screen's before and after from "What changed in 3.0" (src/whats-new.mjs).
+ * `claimText` is the ledger's (lib/content.ts), which throws for an ID it has not got.
+ */
+export function postHtml(post: Post, claimText: (id: string) => string): string {
+  return renderMarkdown(post.body, `packages/site/${DIR}/${post.file}`)
+    .replace(/<!-- claims ((?:C-\d{3} ?)+) -->/g, (_, ids: string) => claimsHtml(ids.trim().split(" "), claimText))
+    .replace(/<!-- screen ([a-z0-9-]+) -->/g, (_, id: string) => {
+      const screen = SCREENS.find((s) => s.id === id);
+      if (!screen) throw new Error(`${post.file}: no screen ${id} in whats-new.mjs`);
+      return `<div>${screenHtml(screen, sizes)}</div>`;
+    });
 }
 
 /** A date as the posts show it: 19 October 2026. */

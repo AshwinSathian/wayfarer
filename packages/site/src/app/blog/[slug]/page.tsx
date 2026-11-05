@@ -5,6 +5,7 @@ import { JsonLd } from "../../../components/JsonLd";
 import { pageMeta } from "../../../lib/meta";
 import { postGraph } from "../../../lib/structured-data";
 import { ogImagePath } from "../../../og-path.mjs";
+import { claimText } from "../../../lib/content";
 
 export const dynamicParams = false;
 
@@ -45,7 +46,7 @@ export default async function BlogPost({ params }: Props) {
         </p>
         <h1 className="mt-3 max-w-3xl type-site-title-1 font-bold sm:type-site-display">{post.title}</h1>
         <p className="mt-5 max-w-2xl type-site-lede text-ink-muted">{post.description}</p>
-        <article className="prose mt-10" dangerouslySetInnerHTML={{ __html: postHtml(post) }} />
+        <article className="prose mt-10" dangerouslySetInnerHTML={{ __html: postHtml(post, claimText) }} />
       </main>
       <Footer />
     </>

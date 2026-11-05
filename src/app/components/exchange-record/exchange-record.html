@@ -1,5 +1,4 @@
-<ul class="exchange-record-lines">
-  @for (line of lines(); track line.field) {
+<ng-template #sentence let-line>
   <li class="record-{{ line.field }}">
     @for (part of line.parts; track $index) { @if (wire(part); as value) {
     <span class="font-mono text-label-primary">{{ value }}</span>
@@ -7,12 +6,21 @@
     <span>{{ words(part) }}</span>
     } }
   </li>
-  }
+</ng-template>
+<!-- A failure leads, with the one thing to do under it (U-175); then what the send did. -->
+@if (failure(); as line) {
+<ul class="exchange-record-lines">
+  <ng-container *ngTemplateOutlet="sentence; context: { $implicit: line }" />
 </ul>
 @if (offer() === 'bridge') {
-<button uiButton="outlined" class="btn-secondary btn-sm mt-3" type="button" (click)="sendThroughBridge.emit()"
+<button uiButton="outlined" class="btn-secondary btn-sm my-3" type="button" (click)="sendThroughBridge.emit()"
   >Send through the Local Bridge</button
 >
 } @else if (offer() === 'setup') {
-<app-bridge-setup class="mt-3" (sendAgain)="sendThroughBridge.emit()" />
-}
+<app-bridge-setup class="my-3" (sendAgain)="sendThroughBridge.emit()" />
+} }
+<ul class="exchange-record-lines">
+  @for (line of facts(); track line.field) {
+  <ng-container *ngTemplateOutlet="sentence; context: { $implicit: line }" />
+  }
+</ul>

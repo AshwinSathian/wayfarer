@@ -5,6 +5,7 @@ import { UiCheckbox } from "../../../ui/checkbox";
 import { UiInput } from "../../../ui/input";
 import type { Row } from "@wayfarer/core";
 import { Icon } from "../../../shared/icon/icon";
+import { rename } from "../../../state/tab-state";
 
 /** Name and value rows, each with a switch for whether it is sent: headers, the fields of a form body, and (without the switch) variables. */
 @Component({
@@ -37,8 +38,7 @@ export class RowsEditor {
 
   /** A row is sent once it has a name: the blank row is unchecked until then (L-17). */
   protected rename(item: Row, key: string): void {
-    if (!item.key && key) item.enabled = true;
-    item.key = key;
+    rename(item, key);
     this.itemChange.emit();
   }
 

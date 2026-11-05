@@ -10,6 +10,8 @@ describe("shortcuts", () => {
     expect(keysOf(SHORTCUTS.newTab, true)).toBe("⌥T");
     expect(keysOf(SHORTCUTS.newTab, false)).toBe("Alt+T");
     expect(keysOf({ key: "Enter" }, true)).toBe("Enter");
+    expect(keysOf({ key: "F10", shift: true }, true)).toBe("⇧F10");
+    expect(keysOf({ key: "F10", shift: true }, false)).toBe("Shift+F10");
     expect(ariaKeysOf(SHORTCUTS.save, true)).toBe("Meta+S");
     expect(ariaKeysOf(SHORTCUTS.save, false)).toBe("Control+S");
   });

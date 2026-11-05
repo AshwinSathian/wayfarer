@@ -238,10 +238,10 @@ test("collection context menu: arrow keys reach every action and Escape closes i
     "New folder",
     "New request",
     "Collection settings…",
-    "Rename",
+    "Rename F2",
     "Duplicate",
     "Export…",
-    "Delete",
+    "Delete Delete",
   ]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
@@ -597,7 +597,10 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
 
   // Shift+F10 opens the row's menu; Escape closes it and focus returns to the row.
   await page.keyboard.press("Shift+F10");
-  await expect(page.getByRole("menuitem")).toHaveText(["Rename", "Duplicate", "Delete"]);
+  // Each key the tree takes is written beside its item (U-178).
+  await expect(page.getByRole("menuitem")).toHaveText(["Rename F2", "Duplicate", "Delete Delete"]);
+  await expect(page.getByRole("menuitem", { name: "Rename" })).toHaveAttribute("aria-keyshortcuts", "F2");
+  await expect(page.getByRole("menuitem", { name: "Delete" })).toHaveAttribute("aria-keyshortcuts", "Delete");
   await expect(page.getByRole("menuitem").first()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);

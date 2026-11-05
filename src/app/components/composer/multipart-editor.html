@@ -12,8 +12,8 @@
       class="font-mono min-w-0 flex-1 basis-32"
       uiInput
       placeholder="Name"
-      [(ngModel)]="part.key"
-      (ngModelChange)="partChange.emit()"
+      [ngModel]="part.key"
+      (ngModelChange)="rename(part, $event)"
       [attr.aria-label]="'Part name, ' + (index + 1) + ' of ' + parts().length"
     />
     <ui-select

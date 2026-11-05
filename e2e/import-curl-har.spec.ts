@@ -106,13 +106,27 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   // The tree is empty, so the sidebar has no Import menu yet (L-16): the response pane offers the paste.
   await page.locator(".response-pane").getByRole("button", { name: "Paste a cURL command" }).click();
   const dialog = page.getByRole("dialog", { name: /^Import/ });
+  // U-179: the box is the app's field, its placeholder the app's tertiary label in each engine, not the browser's grey.
+  const box = dialog.getByLabel("A cURL command");
+  const [placeholder, tertiary] = await box.evaluate((field) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--label-tertiary)";
+    field.parentElement?.append(probe);
+    const colours = [getComputedStyle(field, "::placeholder").color, getComputedStyle(probe).color];
+    probe.remove();
+    return colours;
+  });
+  expect(placeholder).toBe(tertiary);
+  // U-201: one button. Import reads the command and opens the report, as a file's pick does.
+  await expect(dialog.getByRole("button", { name: "Read the command" })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "Import", exact: true })).toBeDisabled();
   // In the form Chrome writes for cmd.
   await dialog
     .getByLabel("A cURL command")
     .fill(
       `curl "https://api.example.test/users?page=2^&per_page=50" ^\r\n  -H "accept: application/json" ^\r\n  -b "session=abc123" ^\r\n  --data-raw "^{^\\^"name^\\^":^\\^"Ada^\\^"^}" ^\r\n  -H "content-type: application/json"`,
     );
-  await dialog.getByRole("button", { name: "Read the command" }).click();
+  await dialog.getByRole("button", { name: "Import", exact: true }).click();
 
   await expect(dialog.locator(".import-report")).toContainText("cURL command");
   await expect(dialog.locator(".import-report")).toContainText("will add 1 collection and 1 request.");
@@ -139,7 +153,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   // A command that cannot be read is refused in the dialog, and nothing more is stored.
   await importMenu(page, "cURL command…");
   await dialog.getByLabel("A cURL command").fill("curl -H 'A: 1'");
-  await dialog.getByRole("button", { name: "Read the command" }).click();
+  await dialog.getByRole("button", { name: "Import", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("The cURL command has no address.");
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   expect((await dumpIdb(page))["requests"]).toHaveLength(1);

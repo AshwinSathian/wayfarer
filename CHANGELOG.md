@@ -1012,6 +1012,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   is a history entry with scripts of its own: before, it showed and
   cleared the entry's, and the collection stayed unreviewed.
 
+- **The design audit lists what the final design pass changed.** Each
+  item of its four reviews names the pull request that made it, or the
+  session that has it next, and seven findings the pass made are added,
+  three of them fixed.
+
 - **The design captures show the app as session D5-e left it.** The
   Chromium baseline of every screen is taken again after the final
   design pass.

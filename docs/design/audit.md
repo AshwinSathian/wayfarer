@@ -31,7 +31,9 @@ U-155 in D1.8's captures in three engines. The fifth pass (D5-b,
 2026-11-04) walked five personas ([`personas.md`](personas.md)), retook
 the screens in three engines and repeated both hig-reviews
 ([`hig-review-2026-11-04.md`](hig-review-2026-11-04.md)): U-156 to U-199,
-under "Fifth pass" below.
+under "Fifth pass" below. The sixth pass, the final design pass (D5-e,
+2026-11-04), lists what four reviews proposed and where each landed, and
+adds U-200 to U-206, under "Sixth pass" below.
 
 ## Summary
 
@@ -2426,6 +2428,7 @@ back to this request." wraps so that the second line starts with "—".
 Evidence: `baseline/design-chromium/response-json-390-light.png`, `response-json-360-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in D5-e by #585 (C49): the editing line has no dash, so nothing breaks before one.
 
 ### Every screen of D0.1, in three engines
 
@@ -2489,6 +2492,123 @@ header and not repeated unless they change a layout.
 Open findings from before this pass that the screens still show: U-154
 (`composer-params`, 390 px) and U-077 (every screen; closed only by D5.1's
 logo-off and competitor-swap tests, which this pass does not run).
+
+## Sixth pass: the final design pass (D5-e), 2026-11-04
+
+Session D5-e of the plan (row 1.68), on `main` from `3f055f2`, at the
+maintainer's request for a pass that "goes beyond the basics". Four
+reviews ran with the design, UI and writing skills: a HIG review of the app
+(loupe: ten changes, L-1 to L-20), a review of its visual craft and words
+(design-taste-frontend with ux-copy: V1 to V22 and C1 to C68), one of the
+site's landing (cro and copywriting: a top 15), and one of the site's
+search and comparison pages (seo-audit, ai-seo, schema and competitors: a
+top 15). The reports were working notes and are not committed; each item
+is listed here by its ID with what became of it. The findings the pass
+itself made are U-200 to U-206 below.
+
+| Review | Items | Where |
+|---|---|---|
+| HIG review of the app | L-1 to L-4 (settings in a tab, the environment editor's rows, secrets there) | #577 |
+| | L-5, L-12 (one status, one duration) | #580, #581 |
+| | L-6, L-7 (the response under the request when narrow) | #574 |
+| | L-8 to L-10 (the wire's face at its floor) | #570 |
+| | L-11 (the review at the import's end) | #573 |
+| | L-13 (history names the saved request) | #571 |
+| | L-14, L-15 (the body's height; one search or path field) | #579 |
+| | L-16 to L-18 (the first screen offers each thing once) | #584 |
+| | L-19 (a new environment in use) | #579, #586 |
+| | L-20 (one "Settings"; Network; Collection settings…) | #579 |
+| Visual craft | V1 (sending keeps the response; Stop) | #580 |
+| | V2 (the first screen's empty states) | #584 |
+| | V3 (Environments' two empty states) | #583 |
+| | V4 to V17, V19, V20 | #581 |
+| | V18 (the tree's density, with U-154's targets measured) | #587 |
+| | V21 (the phone's send row and status line) | #589 |
+| | V22 (the divider to the status bar) | #588 |
+| Words | C3, C32, C43 | #580, #581 |
+| | C22, C23 | #584 |
+| | C29 | #583 |
+| | C1, C2, C4 to C21, C25 to C28, C30, C31, C33 to C41, C44 to C47, C49 to C51, C53 to C68, the terms | #585 |
+| | C24, C52 (words done; the buttons they propose are U-202) | #585 |
+| | C42 (already right: the menu's items name what they make) | none |
+| | C48 (one Import for a cURL command) | U-201 |
+| The site's landing | items 1 to 5, 10, 12 to 15 | #576 |
+| | items 8, 9 (the changelog and the roadmap pages) | #572 |
+| | item 6 (the compare pages' table, benchmark and closing link) | W5-c (W5.4) |
+| | item 7 (the docs index grouped: #575; `getting-started.md` and whether `reach.md` is public: not yet) | W5-b (W5.3) |
+| | item 11 (crops of the real app for each block) | W5-b (W5.2, W5.3) |
+| Search and comparison | items 1 to 4, 7, 9 to 12, 14, 15 | #575 |
+| | items 5, 6, 8, 13 (the pages rebuilt with the benchmark, recordings under `media-src 'self'`, AI and the secret off disk on each rival page, a Scalar page) | W5-c (W5.4) |
+| | item 15's Search Console and Bing verification (a DNS record: the maintainer's) | outside the repository |
+| The brand mark | C, the Switchback W, and the name in Bold | #578 |
+
+**U-200. A request body's form starts with a checked empty row.**
+Severity 4. H4. Everyone.
+#584 made the empty row of Params and Headers unchecked until it has a
+name (L-17). The form editor of a body (`x-www-form-urlencoded` and
+multipart) shares neither component and still starts with a checked,
+empty row.
+Evidence: #584's body ("Not done").
+**Status:** Open, D5-e.
+**2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+
+**U-201. A pasted cURL command takes two buttons to import.** Severity 3.
+H8. SD, TP.
+The Import dialog's cURL field has "Read the command" and then Import:
+two presses for one act. A file goes straight to the review on one.
+Evidence: `baseline/design-chromium/import-curl-1440-light.png`; C48 of
+the visual-craft review.
+**Status:** Open, D5-e.
+**2026-11-05:** Given to phase D6 (after 3.0): it changes the import's
+steps (ImportPipeline), not only words; the plan's D6.1 lists it.
+
+**U-202. The Tests tab's empty line and the held-scripts line name a tab,
+not a button.** Severity 4. H7. TP, QA.
+"Add one in the Scripts tab" and "Open the Scripts tab to review them"
+send a reader to another tab by name; C24 and C52 proposed a button there.
+#585 changed the words only.
+Evidence: `baseline/design-chromium/response-tests-1440-light.png`.
+**Status:** Open, D5-e.
+**2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+
+**U-203. Task 4 still counts two select steps that #579 made needless.**
+Severity 4. H7. Everyone.
+Since a new environment is put in use when none is (#579, L-19), task 3
+dropped two steps of the toolbar's select. Task 4 (a secret that never
+touches disk) begins the same way and still counts them, so its number is
+two actions too high.
+Evidence: `e2e/design/tasks.spec.ts` task 4; `docs/design/benchmark.md`.
+**Status:** Open, D5-e.
+**2026-11-05:** Given to W5-c, which puts the benchmark on the comparison
+pages (W5.4) and counts the tasks again.
+
+**U-204. No environment could not be chosen once an environment existed.**
+Severity 3. H3. SD, QA.
+The toolbar's list offered environments only, and a choice of none did
+not last: the next refresh or a reload put the first back in use.
+Evidence: #586's e2e ("No environment, chosen in the toolbar, stays chosen
+after an edit and a reload"), which found the missing option.
+**Status:** Fixed in D5-e by #586 (stored data's meaning, approved by the
+maintainer on 2026-11-05): the list has No environment at the top, and
+the choice lasts.
+
+**U-205. A response tab chosen while a request was on its way was undone.**
+Severity 3. H3. QA.
+Since #580 the last response stays while the next is sent, and its tabs
+can be clicked; the new response reset the tab to Body. C-051's claim test
+failed about half its runs on it.
+**Status:** Fixed in D5-e by #582: a send opens at Body when it is
+pressed, and keeps a tab chosen after.
+
+**U-206. Three PRs left specs red that were not in their lists.**
+Severity 4. H5. Maintainers.
+#581 (a script's heading in the review), #584 (the empty response's paste
+on a phone) and #585 (the words of C-064's question, Import…, an ellipsis
+in label-in-name) changed what specs outside their lists read. A full
+Chromium run found them before `e2e.yml` did.
+**Status:** Fixed in D5-e by #590, #591 and #592. A PR that changes words
+or a first screen across the app runs the full Chromium suite, not only
+its list.
 
 ## Every screen of D0.1, and its findings
 

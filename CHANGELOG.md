@@ -15,6 +15,42 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - A run's report states its counts once. Before, the sentence "4 results in 1 iteration; 1 failed; 4 of 5 tests
   passed." sat over a summary with the same counts; the sentence is now heard by a screen reader as the run ends and
   no longer drawn (U-191).
+- **The editors end at their last line.** The body, response and script
+  editors drew an empty overview ruler down their right edge, and the body
+  and response editors scrolled a page past the last line, so a six-line
+  response showed a scrollbar as tall as the pane. Neither is drawn now
+  (U-186).
+- **The Headers tab no longer warns of hidden headers when none were
+  hidden.** A response from another origin that sends
+  `Access-Control-Expose-Headers: *` lets the page read every header, but
+  the tab still opened with a paragraph saying the server may have sent
+  more. It now shows that paragraph only when the browser may have kept
+  headers back (U-173).
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
+- **The Scripts tab's headings are only words.** "Pre-request script" had a play
+  triangle beside it, which read as a Run button or a closed section, and
+  "Post-response script" and "Tests" had icons of their own; all three are
+  gone. (U-189)
+
+### Changed
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
+- Six development and site tools updated to their latest minor or patch
+  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
+  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
+  the app does changes; `npm audit` still reports 0 vulnerabilities, and
+  the mutation score is 90.17.
 
 ## [3.0.0] - 2026-11-05
 

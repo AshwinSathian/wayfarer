@@ -12,7 +12,6 @@
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
     <textarea
-      #pasted
       uiInput
       cdkFocusInitial
       id="import-paste-text"
@@ -20,20 +19,13 @@
       rows="8"
       spellcheck="false"
       placeholder="curl 'https://api.example.com/v1/items' -H 'Accept: application/json'"
+      [value]="pipeline.pasted()"
+      (input)="pipeline.pasted.set($any($event.target).value)"
     ></textarea>
     <p class="type-footnote text-label-tertiary"
       >Paste a command as a browser's Copy as cURL writes it, for bash or cmd. It is read, not run: no file is opened
       and nothing is sent.</p
     >
-    <div class="flex justify-end">
-      <button
-        uiButton="outlined"
-        class="btn-secondary btn-sm"
-        type="button"
-        (click)="pipeline.stage('the pasted command', pasted.value)"
-        >Read the command</button
-      >
-    </div>
   </div>
   } @else if (pipeline.refused(); as refused) {
   <div class="import-refused space-y-2 type-callout text-status-error">
@@ -182,8 +174,12 @@
       <button
         uiButton="filled"
         cdkFocusInitial
-        [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
-        (click)="pipeline.confirm()"
+        [disabled]="
+          pipeline.pasting()
+            ? !pipeline.pasted().trim()
+            : !pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()
+        "
+        (click)="importClicked()"
         >Import</button
       >
     </div>

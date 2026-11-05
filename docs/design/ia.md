@@ -384,7 +384,6 @@ it is.
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
 | `export-dialog.html: Export file` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
-| `import-dialog.html: Read the command` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |

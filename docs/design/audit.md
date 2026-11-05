@@ -2578,9 +2578,13 @@ dropped two steps of the toolbar's select. Task 4 (a secret that never
 touches disk) begins the same way and still counts them, so its number is
 two actions too high.
 Evidence: `e2e/design/tasks.spec.ts` task 4; `docs/design/benchmark.md`.
-**Status:** Open, D5-e.
+**Status:** Fixed in W5-c (the benchmark counted again).
 **2026-11-05:** Given to W5-c, which puts the benchmark on the comparison
 pages (W5.4) and counts the tasks again.
+**2026-11-05:** Fixed in W5-c: task 4 no longer opens the select, and the
+eight tasks were run again in Docker (`docs/design/benchmark.md`): task 4
+is 18, task 2 is 7 (D5-e's count of 8 had a File… step an empty sidebar
+does not ask for), task 3 is 8.
 
 **U-204. No environment could not be chosen once an environment existed.**
 Severity 3. H3. SD, QA.

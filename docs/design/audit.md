@@ -2297,6 +2297,7 @@ Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`,
 `baseline/design-chromium/settings-danger-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #616 (D6-a): the Danger zone's row has Back up beside Reset all data, Data and storage's backup with the history kept; the confirm keeps its two buttons.
 
 **U-186. Monaco draws an empty overview ruler and scrolls past the last
 line.** Severity 4. H8. All.

@@ -95,6 +95,9 @@ test("a collection variable and a global reach the server, an environment's valu
     "from-environment",
   );
   await expect(chip("winner")).toContainText('Hides the value in collection "Tripwire collection"');
+  // Which scope wins is the doc's to explain (U-166).
+  const doc = chips.getByRole("link", { name: "Where a value comes from" });
+  await expect(doc).toHaveAttribute("href", "../docs/variables/#where-a-value-comes-from");
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 
   const check = (echo: Echo) => {

@@ -7,6 +7,11 @@
   color: var(--label-secondary);
 }
 
+/* With no action between them, the failure and the facts read as one list. */
+.exchange-record-lines + .exchange-record-lines {
+  margin-top: 4px;
+}
+
 /* A host or a header name may be one long word. */
 .exchange-record-lines .font-mono {
   overflow-wrap: anywhere;

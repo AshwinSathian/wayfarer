@@ -172,19 +172,23 @@ describe("ResponseViewer", () => {
       const region = (fixture.nativeElement as HTMLElement).querySelector("#exchange-record");
       expect(region?.getAttribute("aria-label")).toBe("Exchange record");
       const lines = [...(region?.querySelectorAll("li") ?? [])].map((line) => line.textContent);
+      // What was reported leads (U-175).
       expect(lines).toEqual([
+        "What was reported: Failed to fetch",
         "Sent from this page to api.example.com.",
         'Filled from the vault: token, from environment "Local". Each is *** in what is kept.',
         "Masked with *** in what is kept: Authorization.",
         "History kept the request. No response came.",
-        "What was reported: Failed to fetch",
       ]);
       expect([...(region?.querySelectorAll(".font-mono") ?? [])].map((part) => part.textContent)).toEqual([
+        "Failed to fetch",
         "api.example.com",
         "token",
         "Authorization",
-        "Failed to fetch",
       ]);
+      // The action is under what was reported, before what the send did.
+      const action = region?.querySelector("button");
+      expect(action?.previousElementSibling?.querySelector(".record-failure")).not.toBeNull();
       const sent = vi.fn();
       component.sendThroughBridge.subscribe(sent);
       const buttons = region?.querySelectorAll("button") ?? [];
@@ -282,6 +286,20 @@ describe("ResponseViewer", () => {
       fixture.detectChanges();
     };
     const element = () => fixture.nativeElement as HTMLElement;
+
+    // U-175: a send that got no response says why once, and draws no tab of a response that never came.
+    it("with no response, says why once and draws no Body, Headers or Timings; Tests only when a test ran", () => {
+      const why = "The request got no response. Send it through the Local Bridge to see which.";
+      set({ isError: true, responseError: why });
+      const tabs = () => [...element().querySelectorAll("[ngTab]")].map((tab) => tab.textContent?.trim());
+      expect(element().querySelectorAll(".response-failure").length).toBe(1);
+      expect(element().querySelector(".response-failure")?.textContent).toBe(why);
+      expect(element().querySelector(".response-tabs")).toBeNull();
+      set({ testResults: [{ label: "status is 200", passed: false, source: "assertion" }] });
+      expect(tabs()).toEqual(["Tests 1"]);
+      expect(element().querySelector(".test-result-fail")?.textContent).toContain("status is 200");
+      expect(element().textContent?.match(/Send it through the Local Bridge/g)).toHaveLength(1);
+    });
 
     it("lists a header sent twice as two rows", () => {
       set({

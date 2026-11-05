@@ -7,32 +7,36 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Changed
-
-- **The request's tabs say what they hold.** Params and Headers show how
-  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
-  show a dot when they are not at their default. A screen reader hears the
-  dot as words ("Body (set)"). Scripts that have not been reviewed show
-  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
-  the same marks. Before, the tabs were bare words, and a request with a
-  header, a body and a script looked the same as an empty one. (U-170)
-
-- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
-  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
-  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
-- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
-  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
-  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
-  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
-  (U-163, U-177)
-- Six development and site tools updated to their latest minor or patch
-  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
-  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
-  the app does changes; `npm audit` still reports 0 vulnerabilities, and
-  the mutation score is 90.17.
-
 ### Fixed
 
+- The app links to its documentation. Settings › About starts with Documentation, the command palette has a
+  Documentation command, and three places link to the doc that explains them: held scripts ("How scripts are
+  trusted"), the variable chips ("Where a value comes from") and an import's warnings ("What the warnings mean").
+  Each opens the site's page in a new tab. Before, no screen of the app linked to the docs, so someone stuck on a held
+  script, a variable's scope or an import note had nowhere in the app to read more (U-166).
+
+
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
+- **The Scripts tab's headings are only words.** "Pre-request script" had a play
+  triangle beside it, which read as a Run button or a closed section, and
+  "Post-response script" and "Tests" had icons of their own; all three are
+  gone. (U-189)
+
+
+
+- **A request that got no response says why once.** The pane explained
+  the failure under the status line and again in the Body tab, and kept
+  Body, Headers, Timings and Tests open for a response that never came.
+  The exchange record opened with "No vault secret was filled." and
+  "Nothing was masked." ahead of what the browser reported. Now the
+  explanation is drawn once, the record leads with what was reported and
+  the one thing to do, and it names vault secrets or masks only when the
+  send had some. No response tabs are drawn, except Tests when a test
+  ran (U-175).
 - The keys of the collections tree and the request tabs are written down. The tree's menu shows F2 beside Rename and
   Delete beside Delete, a tab's menu shows F2 beside Rename and Delete beside Close tab, and Settings › Shortcuts
   lists F2 (rename), Alt with ↑ or ↓ (⌥ on a Mac; move an item among its siblings) and Shift+F10 (⇧F10 on a Mac;
@@ -86,6 +90,58 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   triangle beside it, which read as a Run button or a closed section, and
   "Post-response script" and "Tests" had icons of their own; all three are
   gone. (U-189)
+
+### Changed
+
+- The website no longer prints claim IDs ("C-001") beside its sentences. The landing, the comparison pages, the
+  roadmap, "What changed in 3.0" and the blog read as plain text; before, nearly every sentence ended in a row of small
+  boxed codes, and the landing had a table of five ledger rows. Each sentence is still held to its row of the claims
+  ledger by the site's tests, and a build that names a claim the ledger has not got still fails. The ledger itself,
+  with each claim's test and the CI run the site passed, is one link in the footer: "How we test what we say".
+- **The request's tabs say what they hold.** Params and Headers show how
+  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
+  show a dot when they are not at their default. A screen reader hears the
+  dot as words ("Body (set)"). Scripts that have not been reviewed show
+  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
+  the same marks. Before, the tabs were bare words, and a request with a
+  header, a body and a script looked the same as an empty one. (U-170)
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
+- Six development and site tools updated to their latest minor or patch
+  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
+  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
+  the app does changes; `npm audit` still reports 0 vulnerabilities, and
+  the mutation score is 90.17.
+
+
+- **The request's tabs say what they hold.** Params and Headers show how
+  many rows will be sent ("Headers 2"). Body, Auth, Scripts and Network
+  show a dot when they are not at their default. A screen reader hears the
+  dot as words ("Body (set)"). Scripts that have not been reviewed show
+  the warning glyph ("Scripts (not reviewed)"). The phone's sections show
+  the same marks. Before, the tabs were bare words, and a request with a
+  header, a body and a script looked the same as an empty one. (U-170)
+
+- A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file
+  opens; the report's Import stores it. Before, the box had a button of its own, "Read the command", and Import
+  stayed grey until it was pressed. Nothing is stored before the report's Import, as before. (U-201)
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
+- Six development and site tools updated to their latest minor or patch
+  release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
+  8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing
+  the app does changes; `npm audit` still reports 0 vulnerabilities, and
+  the mutation score is 90.17.
 
 ## [3.0.0] - 2026-11-05
 

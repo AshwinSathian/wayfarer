@@ -11,6 +11,7 @@ import { ScriptTrust } from "../../services/script-trust";
 import { scriptsOf, type CollectionImportPlanEntry, type ImportedCollection } from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
 import { ScriptReviewDialog } from "../composer/script-review-dialog";
+import { DOCS } from "../../shared/docs";
 
 /**
  * The one import dialog (plan P4.1): what a picked file will add and what
@@ -25,6 +26,7 @@ import { ScriptReviewDialog } from "../composer/script-review-dialog";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportDialog {
+  protected readonly docs = DOCS;
   protected readonly pipeline = inject(ImportPipeline);
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);

@@ -153,7 +153,7 @@ replaced. The response has what `pm.response` has.
   `Referer`, under your request timeout, and it ends when you cancel.
 - **`pm.sendRequest` does not read the vault.** A request that holds a
   `{{$secret.…}}` reference is refused with `WayfarerUnsupportedError` and
-  nothing is sent: the reference must never go out as text (claim C-007).
+  nothing is sent: the reference must never go out as text.
   This is not a wall between a script and your secrets; see "What approving
   a script means" below.
 - A script may make 10 requests in one run; the next is answered with an
@@ -301,7 +301,7 @@ cannot appear inside the engine, because the engine is not the browser.
 `require` loads nothing from anywhere: it evaluates, inside the engine, one
 of five libraries the app was built with.
 
-**How this is tested (claim C-052).** `e2e/sandbox-escape.spec.ts` runs
+**How this is tested.** `e2e/sandbox-escape.spec.ts` runs
 escape attempts from inside a script, in Chromium, Firefox and WebKit, on
 the production build with the production headers:
 
@@ -406,7 +406,7 @@ secret back gives it to the script.
 
 ## When a script sends a request with a secret to another host
 
-One case the app does catch, and asks about (claim C-053). When a request
+One case the app does catch, and asks about. When a request
 is sent, the app works out the host it would go to twice: as you composed
 it with the variables as they were, and as its pre-request script left it,
 with the variables as they are now. If the two differ and the request uses

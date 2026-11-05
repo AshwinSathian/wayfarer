@@ -1,6 +1,7 @@
 // The landing (W2.1, rebuilt in PLAN-design 1.8 and D5-e). Each sentence that says what Wayfarer does names the claim
-// that proves it (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger. A fact about another
-// product names its source and the date it was read.
+// that proves it (docs/claims.md), out of the reader's sight (PLAN-design row 1.74): e2e/site.spec.ts holds every ID
+// named here to the ledger, and the claims page is one link, the footer's. A fact about another product names its
+// source and the date it was read.
 import { pageMeta } from "../lib/meta";
 import { version } from "../../../../package.json";
 import type { ReactNode } from "react";
@@ -10,7 +11,6 @@ import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { RouteDemo } from "../components/RouteDemo";
 import { JsonLd } from "../components/JsonLd";
-import { claims } from "../lib/content";
 import { homeGraph } from "../lib/structured-data";
 
 const DESCRIPTION =
@@ -20,8 +20,6 @@ export const metadata = pageMeta("/", "Wayfarer: the API client that opens in a 
 
 const POSTMAN_PRICING = "https://www.postman.com/pricing/";
 const YAAK_POST = "https://yaak.app/blog/postman-free-plan-one-user";
-/** The ledger's rows shown as evidence: the ones a reader of this page asks about first. */
-const EVIDENCE = ["C-001", "C-003", "C-007", "C-011", "C-052"];
 const LINK = "text-action underline underline-offset-4";
 
 /** A block of the page on its own field: the fields alternate, and space, not a rule, sets them apart. */
@@ -246,8 +244,6 @@ function Recording({ name, title, label, steps }: (typeof RECORDINGS)[number]) {
 }
 
 export default function Home() {
-  const ledger = claims();
-  const evidence = EVIDENCE.map((id) => ledger.find((claim) => claim.id === id)).filter((claim) => claim !== undefined);
   return (
     <>
       <Header />
@@ -283,13 +279,6 @@ export default function Home() {
                   </a>
                 </div>
                 <p className="mt-5 type-site-small text-ink-muted">Free and MIT-licensed. It opens in this tab.</p>
-                <p className="mt-8 max-w-xl type-site-small text-ink-muted">
-                  <a className={LINK} href="/docs/claims/">
-                    {ledger.length} claims
-                  </a>{" "}
-                  on this site, each with the test that proves it. The site goes live only from a commit that passed
-                  them, with the browser tests run in Chromium, Firefox and WebKit.
-                </p>
               </div>
               <RouteDemo />
             </div>
@@ -540,58 +529,7 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section
-          id="evidence"
-          title="Each claim on this page names its test."
-          intro={
-            <p>
-              The small IDs on this page are rows of the claims ledger. Each row names the automated test that proves
-              it, a claim with no test fails the build, and the site goes live only from a commit that passed them. Here
-              are five of the {ledger.length}.
-            </p>
-          }
-        >
-          <div className="mt-10 overflow-hidden rounded-lg border border-line-strong">
-            <table className="w-full border-collapse text-left type-site-small">
-              <caption className="sr-only">Five rows of the claims ledger</caption>
-              <thead className="bg-paper-sunk text-ink">
-                <tr>
-                  <th scope="col" className="px-4 py-3 font-bold">
-                    Claim
-                  </th>
-                  <th scope="col" className="hidden px-4 py-3 font-bold md:table-cell">
-                    Proved by
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {evidence.map((claim) => (
-                  <tr key={claim.id} className="border-t border-line align-top">
-                    <td className="px-4 py-4 text-ink">
-                      <span className="mr-2 font-code type-site-caption font-bold whitespace-nowrap text-action">
-                        {claim.id}
-                      </span>
-                      {claim.text}
-                      <span className="mt-2 block font-code type-site-caption break-all text-ink-muted md:hidden">
-                        {claim.tests.join(", ")}
-                      </span>
-                    </td>
-                    <td className="hidden px-4 py-4 font-code type-site-caption break-all text-ink-muted md:table-cell">
-                      {claim.tests.join(", ")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-6">
-            <a href="/docs/claims/" className={`font-bold ${LINK}`}>
-              Read all {ledger.length} claims, with the CI run this site passed
-            </a>
-          </p>
-        </Section>
-
-        <Section id="questions" sunk title="Questions">
+        <Section id="questions" title="Questions">
           <div className="mt-8 max-w-3xl divide-y divide-line border-y border-line">
             {QUESTIONS.map(([question, answer]) => (
               <details key={question} className="group py-5">

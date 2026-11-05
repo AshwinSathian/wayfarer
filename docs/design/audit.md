@@ -1957,6 +1957,7 @@ Evidence: `src/app/state/tabs-storage.ts:124-126`;
 `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): a line under the download buttons says the report is kept only until its tab closes or the page reloads, and to download it to keep it.
 
 **U-163. The first save cannot make the collection it needs.**
 Severity 3. H7, H3. SD, OC.
@@ -2144,6 +2145,7 @@ Evidence: `baseline/design-chromium/response-headers-1440-light.png`
 `src/app/components/response-viewer/response-viewer.html:343-351`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #610 (D6-a): the note shows only when the browser may have hidden headers, not when the response exposes every header with `Access-Control-Expose-Headers: *`.
 
 **U-174. The HTML preview is 300 px tall, whatever room the pane has.**
 Severity 3. H8. SD, QA.
@@ -2301,6 +2303,7 @@ Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`,
 `baseline/design-chromium/settings-danger-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #616 (D6-a): the Danger zone's row has Back up beside Reset all data, Data and storage's backup with the history kept; the confirm keeps its two buttons.
 
 **U-186. Monaco draws an empty overview ruler and scrolls past the last
 line.** Severity 4. H8. All.
@@ -2315,6 +2318,7 @@ tick at the editor's top right), `baseline/design-chromium/response-record-1440-
 `src/app/components/script-editor/script-editor.ts:163`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #614 (D6-a): every editor's shared options (`editorText`) turn off the overview ruler and the scrolling past the last line.
 
 **U-187. A method is drawn four ways, and the method menu marks none.**
 Severity 4. H4, H1. SD.
@@ -2341,6 +2345,7 @@ Evidence: `baseline/design-chromium/composer-scripts-1440-light.png`;
 `src/app/components/composer/scripts-panel.html:20`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #612 (D6-a): the Scripts tab's three headings (Pre-request script, Post-response script, Tests) carry no icon; `scripts-panel.spec.ts` holds it.
 
 **U-190. "0 failed" is red, with the error icon.** Severity 4. H8. QA.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
@@ -2354,6 +2359,7 @@ Evidence: `baseline/design-chromium/response-tests-1440-light.png`;
 Evidence: `baseline/design-chromium/run-1440-light.png`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #611 (D6-a): the counts sentence is only the run's announcement now (`sr-only` in its status), and the summary under it is the one drawn statement of the counts.
 
 **U-192. The environment editor's tab says "Key / Value" over columns
 headed Name and Value.** Severity 4. H4. TP.
@@ -2555,6 +2561,7 @@ empty row.
 Evidence: #584's body ("Not done").
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #613 (D6-a): a URL-encoded or multipart body starts and adds its row unchecked, and the first name checks it, by the same function as Params' and Headers' rows; `body-panel.spec.ts` holds it.
 
 **U-201. A pasted cURL command takes two buttons to import.** Severity 3.
 H8. SD, TP.

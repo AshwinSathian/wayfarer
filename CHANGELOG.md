@@ -13,6 +13,36 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Cancel and Create vault. Before, at 390 px the page scrolled only as far as the passphrase field's edge, and the
   confirmation field and the buttons stayed under the bottom of the window, so the page looked as if nothing had
   happened (U-183).
+- Settings › Danger zone has a Back up button beside Reset all data. It makes the workspace backup that Data and
+  storage makes, with the history included, since the reset deletes the history too. Before, the row said "back up
+  first" and the backup was in another section, so following the advice meant Cancel, a change of section and a way
+  back (U-185).
+- A collection run's report says, beside its download buttons, that it is kept only until its tab closes or the
+  page reloads. Before, a reload took the report away and nothing had said that downloading it was the only way to
+  keep it (U-162).
+- A run's report states its counts once. Before, the sentence "4 results in 1 iteration; 1 failed; 4 of 5 tests
+  passed." sat over a summary with the same counts; the sentence is now heard by a screen reader as the run ends and
+  no longer drawn (U-191).
+- **The editors end at their last line.** The body, response and script
+  editors drew an empty overview ruler down their right edge, and the body
+  and response editors scrolled a page past the last line, so a six-line
+  response showed a scrollbar as tall as the pane. Neither is drawn now
+  (U-186).
+- **The Headers tab no longer warns of hidden headers when none were
+  hidden.** A response from another origin that sends
+  `Access-Control-Expose-Headers: *` lets the page read every header, but
+  the tab still opened with a paragraph saying the server may have sent
+  more. It now shows that paragraph only when the browser may have kept
+  headers back (U-173).
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
+- **The Scripts tab's headings are only words.** "Pre-request script" had a play
+  triangle beside it, which read as a Run button or a closed section, and
+  "Post-response script" and "Tests" had icons of their own; all three are
+  gone. (U-189)
 
 ### Changed
 

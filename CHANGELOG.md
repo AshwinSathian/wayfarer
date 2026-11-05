@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Wayfarer vs Scalar.** A comparison page for Scalar's API Client, the
+  one other client with a version in the browser, at `/compare/scalar/`:
+  read from Scalar's own pages on 2026-11-05, with its steps for the eight
+  benchmark tasks (in `docs/design/benchmark.md` and its rival appendix),
+  the table at a glance, where Scalar is ahead (a desktop app, team
+  workspaces, OpenAPI files on disk), and that its browser version sends
+  through Scalar's proxy by default. The index compares seven clients.
+
 - **What changed in 3.0, screen by screen.** A new page on the site,
   `/what-changed-in-3-0/`, puts twelve screens of 2.x beside the same
   screens in 3.0, and lists every finding of the design audit that blocked

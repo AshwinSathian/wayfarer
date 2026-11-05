@@ -3,7 +3,7 @@
 The appendix of [`benchmark.md`](../benchmark.md) (D1.4 of
 [`PLAN-design.md`](../../../PLAN-design.md)): for each rival, the steps of
 each task as its own documentation gives them, with quotes and sources,
-read on 2026-11-04. Nothing here was run.
+read on 2026-11-04 (Scalar's on 2026-11-05). Nothing here was run.
 
 Each section was written from the pages fetched on 2026-11-04. Where a research note says an image was "viewed", the tool fetched it to describe it; no copy is kept anywhere in the repository.
 
@@ -1037,3 +1037,124 @@ Evidence:
 - https://developer.konghq.com/insomnia/allowlist.md
 - https://developer.konghq.com/insomnia/environments.md
 
+## Scalar
+
+Version: Scalar API Client 1.1.43, released Oct 23, 2026 (release notes, https://scalar.com/resources/changelog/api-client, read as https://scalar.com/resources/changelog/api-client/index.md, accessed 2026-11-05). Earlier entries on the same page: 1.1.42 (Oct 20), 1.1.41 (Oct 16), 1.1.40 (Oct 12). The 1.0 release is the 1.0.13 entry, dated May 14, 2026, headed "Scalar Client 1.0 — team workspaces, registry sync, conflict resolution, and a rebuilt experience". The same notes are at https://scalar.com/products/api-client/release-notes (accessed 2026-11-05).
+
+Prerequisites: none stated for the browser version. The download page says of it "No installation required" (https://scalar.com/products/api-client/download/index.md, accessed 2026-11-05), and the product page says the client is "free to use in the browser at client.scalar.com" (https://scalar.com/products/api-client, accessed 2026-11-05). No API Client page I read (product page, getting started, download, import, environments, authentication, scripts, testing, keyboard shortcuts, code generation, dynamic variables) names an account or sign-in for sending a request or for keeping a collection. Sign-in appears only with teams: "Team switching from the header menu, with routing that follows the active team after sign-in" (1.0.13), and the Registry says "To access Registry, create an account or sign in" (https://scalar.com/products/registry/getting-started/index.md, accessed 2026-11-05). The desktop app is a separate install for macOS (Universal), Windows, Linux AppImage x64 and Linux Debian x64 (download page). In the browser, requests go through Scalar's proxy by default: "Web client now defaults to proxy.scalar.com while desktop skips the proxy unless you configure one" (1.1.1, May 21, 2026, release notes). Data: "Requests and collections are stored locally, and nothing waits on a cloud sync" (product page); 1.0.13 lists "IndexedDB-backed persistence with a migration path from older localStorage installs" and "Clear separation between personal local workspaces and team-backed workspaces".
+
+### Task 1: first request from nothing (browser version, no account)
+1. Open client.scalar.com. Getting started: "Install the desktop app or open the browser version if you want to try it instantly."
+2. "Enter a URL, choose an HTTP method, and send the request to inspect the response right away."
+3. Send with the button or ⌘ Enter ("⌘ Enter": "Send request", keyboard shortcuts page).
+
+Inputs: 2 (URL, Send) (inferred). The docs do not say that a blank request is open when the client starts, or which method is the default. If a request has to be made first, Add Item (⌘ K) adds at least 1 (inferred). A method other than the default adds 2 (open the picker, pick; inferred).
+Prerequisites: none stated. In the browser the request goes through proxy.scalar.com unless the user configures otherwise (1.1.1), so a target without CORS headers is reachable without an install, but by way of Scalar's server.
+Source: https://scalar.com/products/api-client/getting-started (read as /getting-started/index.md, no page date; accessed 2026-11-05); https://scalar.com/products/api-client/keyboard-shortcuts/index.md (accessed 2026-11-05); https://scalar.com/resources/changelog/api-client/index.md (1.1.1; accessed 2026-11-05).
+Notes: the getting-started page does not mention the proxy, CORS or an account. No page I read says what the proxy logs or keeps; the security page and the privacy policy do not mention it (https://scalar.com/security/index.md, https://scalar.com/legal/privacy-policy/index.md, both accessed 2026-11-05).
+
+### Task 2: import a Postman collection with scripts and run it
+Import:
+1. "To import, click Add Item (⌘ K or Control K) and select Import from OpenAPI/Swagger/Postman/cURL."
+2. File source: "Drag and drop a local file, or browse to select one from your file system."
+3. A confirming Import button is not described.
+
+Run: not documented. No API Client page I read describes running a collection, a runner or "run all".
+
+Inputs: import 4 (inferred in part): Add Item 1, the Import entry 1, the file 2. A confirm step, if there is one, adds 1 (inferred). Run: not documented.
+Prerequisites: none stated.
+Source: https://scalar.com/products/api-client/import/index.md (no page date; accessed 2026-11-05).
+Notes: what happens to pm.* scripts is not documented. The import page says "Import Postman Collection files (v2.0 / v2.1) as a one-off import" and "Requests, folders, and basic authentication settings are converted to an OpenAPI-based collection." It does not mention scripts, tests or variables. Scalar's own scripts use the pm API: "Scripts use the same Postman-compatible `pm` API" (https://scalar.com/products/api-client/scripts/index.md) and "Scripts run in the official Postman Sandbox runtime, so the full `pm` API is available" (https://scalar.com/products/api-client/testing/index.md; both accessed 2026-11-05). Whether an imported Postman script becomes one of these is not stated. The CLI also converts: `scalar document convert`, "Convert a Postman collection to an OpenAPI description" (https://scalar.com/tools/cli/commands/index.md, accessed 2026-11-05).
+
+### Task 3: add an environment and switch to it
+1. "Open your collection settings and find the Environment Variables section."
+2. "Click Add Environment, give it a name, pick a color, and add variables as key-value pairs."
+3. Switch: "Use the environment picker in the request header (the globe icon)."
+4. Use the variable as `{{ variable }}`; requests resolve against the selected environment.
+
+Inputs: 9 (inferred in part): collection settings 1 (inferred; the docs do not say how they open), Add Environment 1, name 1, colour 1, key 1, value 1, then globe 1 and pick 1. A save step is not documented (⌘ S is "Save local workspace (same as the header Save control when it is shown)", keyboard shortcuts page); if needed, add 1.
+Prerequisites: a collection (environments are opened from its settings).
+Source: https://scalar.com/products/api-client/environments/index.md (no page date; accessed 2026-11-05).
+Notes: two kinds. A collection environment "Travels with the document when you export it". A workspace environment is "available to every collection in the current workspace" and, per the page, is not included in exported documents. Scopes: "When the same variable name is set at multiple scopes, local wins over environment, then collection, then global."
+
+### Task 4: use a secret without it touching disk
+Steps: not documented. No API Client page I read describes a secret or sensitive variable type, masking, a vault or encryption.
+Inputs: not documented.
+Prerequisites: none stated.
+Source: https://scalar.com/products/api-client/environments/index.md; https://scalar.com/products/api-client/authentication/index.md; https://scalar.com/products/api-client/dynamic-variables/index.md (all accessed 2026-11-05); https://scalar.com/resources/changelog/api-client/index.md (1.0.13).
+Notes. What the sources say is stored where:
+- Authentication page: "Credentials are persisted in your workspace and are never exported with the OpenAPI document." For OAuth 2.0 it "stores the access token — and refresh token, if returned — for subsequent requests"; Clear is there "to forget the tokens and start over".
+- The same page suggests variables in auth fields: "reference them with {{ variableName }} to avoid hard-coding secrets." The environments page says environments are for "API keys, tokens, and base URLs". Neither says the value is kept anywhere but the workspace.
+- Persistence is "IndexedDB-backed" (1.0.13). So a credential or variable is kept on disk in the browser's (or the desktop app's) IndexedDB (inferred: no page says the workspace is held in memory only or encrypted).
+- Scripts can write values that persist: "pm.environment.set() persists values like bearer tokens so they survive to the next request" (1.1.22, Aug 13, 2026).
+- A "cannot" is not given because no page says so; the docs simply describe no way to keep a value off disk.
+
+### Task 5: find why a request failed
+No API Client page I read describes an error screen or a response view. The release notes are the only source.
+
+#### CORS
+- Shown: "Failed requests remain visible with guidance about possible CORS or network causes" and "instead of disappearing after a toast message" (1.1.36, Sep 30, 2026). The guidance's text is not quoted anywhere I read.
+- Is the cause named? Partly: the guidance names "possible CORS or network causes", together, so it does not tell them apart (as the note reads). In the browser version the default route is proxy.scalar.com (1.1.1), so a target without CORS headers would normally not fail for CORS at all (inferred).
+- Inputs: not documented.
+- Source: https://scalar.com/resources/changelog/api-client/index.md (1.1.36, 1.1.1; accessed 2026-11-05).
+
+#### DNS
+- Shown: not documented separately. Inferred: the same "possible CORS or network causes" guidance, since the note names no other case. Through the proxy, a name that does not resolve fails at Scalar's server, and what the page then shows is not documented.
+- Is the cause named? Not documented.
+- Inputs: not documented.
+- Source: https://scalar.com/resources/changelog/api-client/index.md (1.1.36; accessed 2026-11-05).
+
+#### 401
+- Shown: not documented. Getting started says only "send the request to inspect the response right away". A status code on the response is likely but not described on any page I read (inferred).
+- Is the cause named? Not documented.
+- Inputs: 0 beyond the send to see the response (inferred). Not documented.
+- Source: https://scalar.com/products/api-client/getting-started/index.md (accessed 2026-11-05).
+
+### Task 6: send the same request to a teammate
+No share link for a request is documented on any API Client page I read.
+
+Code snippet (the nearest documented route):
+1. "Pick a language from the picker next to the snippet, copy it, and paste it into your app."
+
+Inputs: 3 (inferred): open the picker 1, pick (for example Shell › Curl) 1, copy 1. Where the snippet is shown is not described.
+Prerequisites: none stated.
+Source: https://scalar.com/products/api-client/code-generation/index.md (no page date; accessed 2026-11-05).
+Notes:
+- "`{{ environment variables }}` and `{{$dynamic-variables}}` are resolved to their current values in the output." The page says nothing about masking credentials, so a token in a variable goes into the snippet as its value (as the sentence reads).
+- Targets include "Shell | Curl, Wget, HTTPie" and "C | Libcurl".
+
+Other routes:
+- Team workspace: 1.0.13 brought "First-class team workspaces", "Live sync with the Scalar Registry so shared API descriptions stay aligned across machines" and "Conflict detection and resolution when local edits and registry changes disagree". It needs sign-in ("routing that follows the active team after sign-in"; Registry: "create an account or sign in"). The steps from the client are not documented, nor which plan a team workspace needs. What syncs is "API descriptions" (OpenAPI documents); whether a request's own values, environments or credentials go with it is not stated (credentials are "never exported with the OpenAPI document", authentication page). Pricing: "Every new team starts with a 7-day trial with Pro limits"; Pro has "5 editor seats" (https://scalar.com/pricing, accessed 2026-11-05).
+- Export: the environments page speaks of exporting the document, but no page I read gives the steps. Not documented.
+- CLI: `scalar document share`, "Publish an OpenAPI or AsyncAPI description to a public sandbox" (https://scalar.com/tools/cli/commands/index.md). That shares a whole description, publicly, not one request.
+
+### Task 7: run a collection with a data file and read the report
+In the app: not documented. No API Client page I read, and no release note, mentions a collection runner, iterations, a data file, CSV or a run report. The testing page describes tests per request ("The test passes if the callback executes without throwing an error") and does not say where results are shown (https://scalar.com/products/api-client/testing/index.md, accessed 2026-11-05).
+
+CLI: not documented. The `scalar` CLI's command list has no command that sends requests or runs tests; its request-related commands are `scalar document mock` ("Run a Mock Server…") and `scalar document void` ("Mirror HTTP requests with a local server") (https://scalar.com/tools/cli/commands/index.md, accessed 2026-11-05).
+
+Inputs: not documented.
+Prerequisites: —.
+Source: as above.
+
+### Task 8: find a request sent last week
+Not documented. No API Client page I read describes request history, and the keyboard shortcuts page lists none for it (https://scalar.com/products/api-client/keyboard-shortcuts/index.md, accessed 2026-11-05). The release notes from 1.0.13 to 1.1.43 do not mention history (https://scalar.com/resources/changelog/api-client/index.md, accessed 2026-11-05). The product page says only that some users do not want "request history in someone else's database" (https://scalar.com/products/api-client, accessed 2026-11-05).
+Inputs: not documented.
+Prerequisites: —.
+Notes: older builds of the npm package `@scalar/api-client` contain an `AddressBarHistory` component (seen in a search result pointing at unpkg, not read, and not documentation). It is not counted.
+
+### Screenshots
+- (a), product page illustration. https://scalar.com/api-client-static.svg on https://scalar.com/products/api-client (alt "Scalar API Client interface"; accessed 2026-11-05). Not viewed; an SVG, so possibly a drawing rather than a capture.
+- (b), team workspaces. https://cdn.scalar.com/scalar-app/changelog/1.0.10/team.png, alt "Team workspaces and Scalar Registry", in the 1.0.13 entry of https://scalar.com/resources/changelog/api-client (accessed 2026-11-05). Not viewed.
+- (b), local workspaces. https://cdn.scalar.com/scalar-app/changelog/1.0.10/local.png, alt "Local workspaces", same entry. Not viewed.
+- Other: https://cdn.scalar.com/scalar-app/changelog/1.0.10/versions.png, alt "Registry from the client", same entry. Not viewed.
+- Not found: a docs image of a response, an error, a run report or history.
+
+### Exchange record
+Not documented. No API Client page I read describes the response view, a view of the request as sent, a timeline or network details. Getting started says only "inspect the response".
+
+Route: in the browser the default is proxy.scalar.com and the desktop app goes direct "unless you configure one" (1.1.1). Nothing documented shows on a response which way it went.
+
+Secrets: no secret type is documented (Task 4), so nothing lists which secrets a send used. Code snippets resolve variables to their values (code generation page).
+
+Evidence: https://scalar.com/products/api-client/getting-started/index.md; https://scalar.com/resources/changelog/api-client/index.md; https://scalar.com/products/api-client/code-generation/index.md (all accessed 2026-11-05).

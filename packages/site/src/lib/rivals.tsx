@@ -219,6 +219,16 @@ const OTHER = (name: string) => (
   </>
 );
 
+// Scalar was read a day after the others, for W5.4 (site-seo-compare.md item 13): the one other API client with a
+// browser version.
+const SCALAR_READ = "2026-11-05";
+const scalar = (title: string, url: string): Source => ({ title, url, read: SCALAR_READ });
+const SCALAR_HOME = scalar("Scalar API Client", "https://scalar.com/products/api-client");
+const SCALAR_CHANGELOG = scalar("Scalar API Client release notes", "https://scalar.com/resources/changelog/api-client");
+const SCALAR_IMPORT = scalar("Scalar docs: Import", "https://scalar.com/products/api-client/import");
+const SCALAR_AUTH = scalar("Scalar docs: Authentication", "https://scalar.com/products/api-client/authentication");
+const SCALAR_SCRIPTS = scalar("Scalar docs: Testing", "https://scalar.com/products/api-client/testing");
+
 export const RIVALS: Rival[] = [
   {
     id: "postman",
@@ -645,6 +655,88 @@ export const RIVALS: Rival[] = [
       </>
     ),
   },
+  {
+    id: "scalar",
+    name: "Scalar",
+    read: SCALAR_READ,
+    url: "https://scalar.com/products/api-client",
+    title: "two API clients in a browser tab",
+    is: "An open-source API client built on OpenAPI, in the browser at client.scalar.com and as a desktop app, with team workspaces in Scalar's Registry.",
+    facts: [
+      { text: "It runs in the browser and on macOS, Windows and Linux.", source: SCALAR_HOME },
+      {
+        text: "In the browser it sends through Scalar's proxy, proxy.scalar.com, by default; the desktop app skips the proxy unless you set one.",
+        source: SCALAR_CHANGELOG,
+      },
+      { text: "Requests and collections are stored locally, and nothing waits on a cloud sync.", source: SCALAR_HOME },
+      {
+        text: "Credentials are persisted in the workspace and never exported with the OpenAPI document; its pages describe no secret type or encryption.",
+        source: SCALAR_AUTH,
+      },
+      {
+        text: "A Postman collection comes across as an OpenAPI-based collection of its requests, folders and basic auth; its pages do not mention scripts.",
+        source: SCALAR_IMPORT,
+      },
+      {
+        text: "Its own scripts run in the Postman Sandbox runtime, with the pm API.",
+        source: SCALAR_SCRIPTS,
+      },
+      {
+        text: "Version 1.0 brought team workspaces, synced with the Scalar Registry, after sign-in.",
+        source: SCALAR_CHANGELOG,
+      },
+      { text: "It is free in the browser, and its source is under the MIT licence.", source: SCALAR_HOME },
+    ],
+    differs: [
+      <>
+        A request goes from your tab to the host you name, through no server of ours, and nothing needs an account.{" "}
+        <Claims ids={["C-001"]} />
+      </>,
+      VAULT_LINE,
+      <>
+        A Postman collection&apos;s scripts come across, and run once you have read them and said you trust them.{" "}
+        <Claims ids={["C-051", "C-058"]} />
+      </>,
+      <>
+        <code>wayfarer-cli</code> runs a collection in CI with the app&apos;s engine. <Claims ids={["C-065"]} />
+      </>,
+      AI_LINE,
+    ],
+    ahead: [
+      { text: "It has a desktop app as well as the browser one, which sends with no proxy.", source: SCALAR_CHANGELOG },
+      {
+        text: "Team workspaces sync with the Scalar Registry, with conflicts between local edits and the Registry resolved in the app.",
+        source: SCALAR_CHANGELOG,
+      },
+      {
+        text: "It is built on OpenAPI, and can watch a document on disk and update the requests when it changes.",
+        source: SCALAR_HOME,
+      },
+    ],
+    glance: {
+      runs: { text: "In the browser, or a desktop app for macOS, Windows and Linux.", source: SCALAR_HOME },
+      collections: { text: "Stored locally; team workspaces sync with the Scalar Registry.", source: SCALAR_HOME },
+      secrets: {
+        text: "Credentials persisted in the workspace; no secret type or encryption described.",
+        source: SCALAR_AUTH,
+      },
+      team: { text: "Team workspaces, after sign-in.", source: SCALAR_CHANGELOG },
+      price: { text: "Free in the browser; MIT source.", source: SCALAR_HOME },
+    },
+    pick: (
+      <>
+        Pick Scalar if your APIs are OpenAPI documents and your team works in its Registry, or you want a desktop app as
+        well. Pick Wayfarer if you want requests to go from your tab straight to your API, secrets stored only as
+        ciphertext, and Postman collections with their scripts. <Claims ids={["C-001", "C-003", "C-058"]} />
+      </>
+    ),
+    moving: (
+      <>
+        A Scalar collection is OpenAPI-based <Cite source={SCALAR_IMPORT} />: Wayfarer imports OpenAPI 3.0 and 3.1 and
+        Swagger 2.0 descriptions, in JSON or YAML, with a report of what could not be kept. <Claims ids={["C-060"]} />
+      </>
+    ),
+  },
 ];
 
 /** Where Wayfarer is behind, for the comparison index (W2.3's AC). Each names what it is measured against. */
@@ -681,11 +773,11 @@ export const BEHIND: { title: string; text: ReactNode; sources: Source[] }[] = [
     text: (
       <>
         A team shares a collection as a file today; sharing without a server is on the <a href="/roadmap/">roadmap</a>.
-        Postman shares on its Team plan, Hoppscotch on Business, and Insomnia through its cloud or Git Sync, which is
-        free for up to 3 users.
+        Postman shares on its Team plan, Hoppscotch on Business, Scalar in team workspaces after sign-in, and Insomnia
+        through its cloud or Git Sync, which is free for up to 3 users.
       </>
     ),
-    sources: [POSTMAN_PLANS, HOPP_PRICING, INSOMNIA_PRICING],
+    sources: [POSTMAN_PLANS, HOPP_PRICING, SCALAR_CHANGELOG, INSOMNIA_PRICING],
   },
   {
     title: "No MCP server",

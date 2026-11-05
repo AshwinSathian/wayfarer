@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **Code and values show the characters they hold.** Text in the
+  monospace face drew JetBrains Mono's ligatures, so the script review
+  showed `=>` as an arrow and joined `!=`, `>=` and `===` into single
+  glyphs, in the one dialog meant to show exactly what will run.
+  Ligatures are now off wherever the monospace face is used, in the app
+  and on the website (U-180).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

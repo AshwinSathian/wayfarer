@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Settings › Danger zone has a Back up button beside Reset all data. It makes the workspace backup that Data and
+  storage makes, with the history included, since the reset deletes the history too. Before, the row said "back up
+  first" and the backup was in another section, so following the advice meant Cancel, a change of section and a way
+  back (U-185).
 - A collection run's report says, beside its download buttons, that it is kept only until its tab closes or the
   page reloads. Before, a reload took the report away and nothing had said that downloading it was the only way to
   keep it (U-162).

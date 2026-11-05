@@ -122,6 +122,7 @@ export class AppShell implements OnInit {
   private readonly idb = inject(IdbCore);
   private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
+  readonly updatedElsewhere = this.idb.closedForUpdate;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
   private readonly paneLayout = inject(PaneLayout);
@@ -188,6 +189,7 @@ export class AppShell implements OnInit {
     backup:
       "It has been more than 14 days since your data was backed up. It lives only in this browser, which can delete it.",
     resetElsewhere: "The data was reset in another tab. Reload this one: what you change here is no longer saved.",
+    updatedElsewhere: "Wayfarer was updated in another tab. Reload this one: what you change here is no longer saved.",
     storage:
       "This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.",
   } as const;
@@ -200,6 +202,10 @@ export class AppShell implements OnInit {
         ? "Your data lives only in this browser, which has not promised to keep it. Back up to keep a copy."
         : this.banners.backup,
   );
+  /** Why this tab closed its database: another tab reset the data, or runs a later Wayfarer. */
+  protected readonly closedWords = computed(() =>
+    this.updatedElsewhere() ? this.banners.updatedElsewhere : this.banners.resetElsewhere,
+  );
   protected readonly bannerStatus = computed(() =>
     [this.swUpdate.updateAvailable() ? this.banners.update : "", this.backup.reminderDue() ? this.backupWords() : ""]
       .filter(Boolean)
@@ -207,7 +213,7 @@ export class AppShell implements OnInit {
   );
   protected readonly bannerAlert = computed(() =>
     [
-      this.dataResetElsewhere() ? this.banners.resetElsewhere : "",
+      this.dataResetElsewhere() ? this.closedWords() : "",
       this.storageUnavailable() ? this.banners.storage : "",
       this.resetErrorText(),
     ]

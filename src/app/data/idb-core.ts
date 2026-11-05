@@ -57,6 +57,14 @@ export class IdbCore {
   readonly closedByOtherTab = signal(false);
 
   /**
+   * True when another tab runs a later Wayfarer, whose database has a later
+   * version: this tab's code cannot open it, so it closes and asks for a
+   * reload. Shipped before any upgrade (TQ9), so the code in a browser
+   * already says so when the first upgrade comes.
+   */
+  readonly closedForUpdate = signal(false);
+
+  /**
    * True when IndexedDB could not be opened (blocked storage, some private
    * windows): history lives in memory for this tab and nothing else can be
    * saved. The app says so in a banner instead of failing save by save.
@@ -121,12 +129,20 @@ export class IdbCore {
     try {
       this.dbPromise = openDB<WayfarerDB>(DB_NAME, DB_VERSION, {
         upgrade: (db) => createStores(db),
-        // Another tab is deleting the database (Reset all data): holding the connection would block it.
-        blocking: () => void this.closeForOtherTab(),
+        // Another tab is deleting the database (Reset all data, no new version) or opening it at a later
+        // version (a later Wayfarer): holding the connection would block either.
+        blocking: (_current, newVersion) => void this.closeForOtherTab(newVersion !== null),
       });
 
       await this.dbPromise;
     } catch (error) {
+      if (error instanceof DOMException && error.name === "VersionError") {
+        // The database is a later Wayfarer's: storage works, this tab's code is old.
+        this.dbPromise = undefined;
+        this.closedForUpdate.set(true);
+        this.closedByOtherTab.set(true);
+        return;
+      }
       this.logError("Failed to open IndexedDB. Falling back to in-memory store.", error);
       this.enableMemoryFallback();
     }
@@ -134,8 +150,12 @@ export class IdbCore {
 
   async getDatabase(): Promise<IDBPDatabase<WayfarerDB> | null> {
     if (this.closedByOtherTab()) {
-      // Reopening would recreate the database the other tab just deleted.
-      throw new Error("Data was reset in another tab; reload this tab.");
+      // Reopening would recreate the database the other tab just deleted, or fail on a later version.
+      throw new Error(
+        this.closedForUpdate()
+          ? "Wayfarer was updated in another tab; reload this tab."
+          : "Data was reset in another tab; reload this tab.",
+      );
     }
     if (this.resetting) {
       // Reopening now would block this tab's own delete.
@@ -302,11 +322,12 @@ export class IdbCore {
     }
   }
 
-  /** Another tab reset all data: drop this tab's connection so it is not in the way, say so, and never reopen. */
-  private async closeForOtherTab(): Promise<void> {
+  /** Another tab reset all data or upgraded the database: drop this tab's connection so it is not in the way, say so, and never reopen. */
+  private async closeForOtherTab(updated = false): Promise<void> {
     if (this.closedByOtherTab() || this.resetting) {
       return;
     }
+    this.closedForUpdate.set(updated);
     this.closedByOtherTab.set(true);
     await this.closeConnection();
   }

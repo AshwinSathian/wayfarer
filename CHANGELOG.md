@@ -12,6 +12,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - Text areas (bulk headers, a pasted cURL command, a WebSocket message, an AI draft's description) grow with their
   text, up to 16 lines, then scroll. Before, they kept their first height, and Chromium and Firefox drew their own
   resize grip in the corner, the one part of a field that still looked like the browser's.
+- A tab of Wayfarer whose database a later version of the app has opened in another tab now says "Wayfarer was
+  updated in another tab" and asks for a reload. Before, it said the data had been reset, and a tab that found the
+  database at a later version at its start said the browser refused storage, then kept what you did in memory only.
+  No version of Wayfarer has changed the database yet: this is in place before the first that will.
 - The website no longer prints claim IDs ("C-001") beside its sentences. The landing, the comparison pages, the
   roadmap, "What changed in 3.0" and the blog read as plain text; before, nearly every sentence ended in a row of small
   boxed codes, and the landing had a table of five ledger rows. Each sentence is still held to its row of the claims

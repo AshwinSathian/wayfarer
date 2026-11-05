@@ -1117,10 +1117,16 @@ code errors.
   2026-10-19). The database is `wayfarer` at `DB_VERSION` 2 (not 1: a versionless
   `indexedDB.open` makes an empty 1), and
   `createStores` (`idb-stores.ts`) makes its stores on a browser's first
-  open. There is no upgrade, no check for another version, and no word in
-  the app about an earlier or a later one. IndexedDB makes stores and
-  indexes only in an upgrade, so a change to them would not reach a browser
-  that has the database: ask the maintainer before making one.
+  open. There is no upgrade yet, and no word in the app about an earlier
+  version. A later one is said: a tab whose code finds the database at a
+  later version (`VersionError`), or whose connection a later version's
+  open closes (`blocking` with a new version), stops using it and asks for
+  a reload (`IdbCore.closedForUpdate`), so the code already in browsers
+  says so when the first upgrade comes. That upgrade is T2.0's
+  (`DB_VERSION` 3, TQ9, decided in PLAN-design row 1.77): it makes only
+  the stores that are missing and moves no data. IndexedDB makes stores
+  and indexes only in an upgrade, so a change to them would not reach a
+  browser that has the database: ask the maintainer before making one.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - A variable's name may hold any character but a brace (F74). A name that

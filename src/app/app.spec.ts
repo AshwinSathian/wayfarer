@@ -26,6 +26,7 @@ class IdbServiceMock {
   readVault = vi.fn().mockReturnValue(Promise.resolve(null));
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));
   readonly closedByOtherTab = signal(false).asReadonly();
+  readonly closedForUpdate = signal(false).asReadonly();
   readonly memoryOnly = signal(false).asReadonly();
 }
 

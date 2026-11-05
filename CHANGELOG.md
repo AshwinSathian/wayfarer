@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Settings › Danger zone has a Back up button beside Reset all data. It makes the workspace backup that Data and
+  storage makes, with the history included, since the reset deletes the history too. Before, the row said "back up
+  first" and the backup was in another section, so following the advice meant Cancel, a change of section and a way
+  back (U-185).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

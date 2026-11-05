@@ -609,14 +609,14 @@ test("the changelog folds each version under an index, and the roadmap is said i
   await page.goto("/changelog/");
   await expect(page.getByText("All notable changes")).toHaveCount(0);
   const index = page.getByRole("navigation", { name: "Versions" });
-  await expect(index.getByRole("link", { name: /^Coming in the next release/ })).toBeVisible();
-  // Only the latest release is open; another opens with a click on its heading.
+  await expect(index.getByRole("link", { name: /^2\.6\.0/ })).toBeVisible();
+  // Only the latest release is open; another opens with a click on its heading. ("Coming in the next release" is
+  // there only while [Unreleased] has entries: not on the day of a release.)
   await expect(page.locator("details.version[open]")).toHaveCount(1);
-  const next = page.locator("details.version").first();
-  await expect(next.getByRole("heading", { name: "Coming in the next release" })).toBeVisible();
-  await expect(next).not.toHaveAttribute("open");
-  await next.locator("summary").click();
-  await expect(next).toHaveAttribute("open");
+  const older = page.locator("details.version").last();
+  await expect(older).not.toHaveAttribute("open");
+  await older.locator("summary").click();
+  await expect(older).toHaveAttribute("open");
   await page.goto("/roadmap/");
   await expect(page.getByRole("heading", { name: /^(Shipped|Coming) in 3\.0$/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Next" })).toBeVisible();

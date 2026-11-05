@@ -7,6 +7,40 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-05
+
+The redesign. Every screen of the app was rebuilt from the findings of a
+design audit, and the app can now call an AI model of your choosing,
+which is off until you add one.
+
+- **Each send says what it did.** The status line under a response ends
+  with where the request went ("Direct to api.example.com"), and opens a
+  record of it: from this page or through the Local Bridge, the host,
+  each vault secret filled in (by name, never its value) and what history
+  kept.
+- **AI with your own provider.** It explains a failed response, drafts a
+  request from a description and writes tests from a response. Nothing
+  goes to a model until you add a provider in Settings › AI, and each
+  call shows its exact bytes and waits for Send to model (C-069, C-071).
+- **Faster to work in.** Environments open in a tab beside your requests;
+  a delete in the sidebar can be undone for 10 seconds; ⌘K (Ctrl+K)
+  finds requests, collections, environments and past requests as well as
+  commands; the response stays on screen while the next request is sent.
+- **Easier to read.** Text follows the browser's text size, nothing is
+  drawn under 12 px, and the text face tells I, l and 1 apart. Green and
+  red mean a status and nothing else.
+- **A new mark and icons, and a site to match.** The website takes the
+  app's colours and type, shows the app at work in three recordings, and
+  compares Wayfarer with six other API clients on eight everyday tasks.
+  "What changed in 3.0" on the site sets each screen of 2.x beside 3.0.
+
+Your data carries over: 3.0 opens the same database 2.6 wrote, under the
+same name and version.
+
+Checked for this release: VoiceOver with Safari on a send, an unlock and
+a banner. Not checked: NVDA on Windows, and the installed app on macOS,
+Windows and iOS.
+
 ### Added
 
 - **Wayfarer vs Scalar.** A comparison page for Scalar's API Client, the

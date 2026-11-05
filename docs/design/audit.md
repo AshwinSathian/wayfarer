@@ -2143,6 +2143,7 @@ Evidence: `baseline/design-chromium/response-headers-1440-light.png`
 `src/app/components/response-viewer/response-viewer.html:343-351`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #610 (D6-a): the note shows only when the browser may have hidden headers, not when the response exposes every header with `Access-Control-Expose-Headers: *`.
 
 **U-174. The HTML preview is 300 px tall, whatever room the pane has.**
 Severity 3. H8. SD, QA.

@@ -306,7 +306,7 @@ it is.
 | `environment-export-dialog.html: Secret variables` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Cancel` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environment-export-dialog.html: Export file` | Export environments dialog (Environments) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
-| `environments-manager.html: Global variables` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
+| `environments-manager.html: Globals` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5); a named button, not "{}" (U-184) | D4-g |
 | `environments-manager.html: Import environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: Export environments` | Environments dialog (toolbar) | Environments tab (toolbar, palette, a variable's chip; D4.5) | D4-g |
 | `environments-manager.html: New environment` | Environments dialog (toolbar) | Environments tab (D4.5); and its empty list's button (D4-c, U-022) | D4-g |

@@ -109,6 +109,25 @@ test.describe("the environment editor keeps what was typed", () => {
   });
 });
 
+// U-184: the list's header was four bare icons, globals a pair of braces. Each control says what it does, and the
+// header fits a 320 px window.
+test("the Environments list's header names its controls, and fits at 320 px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/app/");
+  const dialog = await openEnvironments(page);
+  for (const [name, text] of [
+    ["Globals", "Globals"],
+    ["Import environments", "Import"],
+    ["Export environments", "Export"],
+    ["New environment", "New"],
+  ]) {
+    const control = dialog.getByRole("button", { name, exact: true }).first();
+    await expect(control).toHaveText(text);
+    await expect(control).toBeInViewport({ ratio: 1 });
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
 // U-183: at 390 px Chromium and WebKit scrolled only as far as the focused passphrase's edge, and left Confirm and
 // Create vault under the window's bottom. The form is brought into view whole.
 test("at 390 px the vault's form in a row is in the window whole when it opens", async ({ page }) => {

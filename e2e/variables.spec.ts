@@ -62,7 +62,7 @@ test("a collection variable and a global reach the server, an environment's valu
   );
 
   await openEnvironments(page);
-  await page.getByRole("button", { name: "Global variables" }).click();
+  await page.getByRole("button", { name: "Globals", exact: true }).click();
   await addVariables(page, "Global variables", { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
   await closeEnvironments(page);
 

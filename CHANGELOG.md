@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The Environments list's header names its controls: New beside the title, then Globals, Import and Export. Before,
+  they were four icons with tooltips. The global variables, which a Postman user looks for by name, were a pair of
+  braces, and Import and Export were an up arrow and a down arrow that could be read either way (U-184).
 - The app links to its documentation. Settings › About starts with Documentation, the command palette has a
   Documentation command, and three places link to the doc that explains them: held scripts ("How scripts are
   trusted"), the variable chips ("Where a value comes from") and an import's warnings ("What the warnings mean").

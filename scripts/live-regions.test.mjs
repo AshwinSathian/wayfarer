@@ -25,6 +25,11 @@ const CONTAINERS = new Map([
     "response-viewer.html: @if (answered || !loading())",
     "the response under the status line, made with the response or kept from the last one, before a copy or a filter",
   ],
+  [
+    "response-viewer.html: @if (!noResponse || testResults().length)",
+    "the response's tabs, made when a response or a test result arrives, before a filter (U-175)",
+  ],
+  ["response-viewer.html: @if (!noResponse)", "the body's pane, made with the response, before a filter (U-175)"],
   ["response-viewer.html: @if (canExport)", "the status line's export, made with the response, before a copy"],
   ["vault-actions.html: @if (mode())", "the form of a vault action, made when it is chosen, before it is submitted"],
 ]);

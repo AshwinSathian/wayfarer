@@ -93,6 +93,27 @@ describe("the record's sentences", () => {
     });
   });
 
+  it("with no response, lead with what was reported, and say nothing of a secret or a mask the send had none of (U-175)", () => {
+    const failed = record({
+      status: undefined,
+      kept: { response: false, body: false },
+      failure: { kind: "network", reported: "Failed to fetch", summary: "The request got no response." },
+    });
+    expect(recordLines(failed).map(lineText)).toEqual([
+      "What was reported: Failed to fetch",
+      "Sent from this page to api.example.com.",
+      "History kept the request. No response came.",
+    ]);
+    // What the send did fill or mask is said, after what was reported.
+    expect(
+      recordLines({
+        ...failed,
+        secrets: [{ name: "token" }],
+        masked: { headers: ["Authorization"], responseHeaders: [] },
+      }).map((line) => line.field),
+    ).toEqual(["failure", "route", "secrets", "masked", "kept"]);
+  });
+
   it("say what was reported when no response came, with the wire's words apart", () => {
     const failed = record({
       status: undefined,
@@ -110,7 +131,7 @@ describe("the record's sentences", () => {
       "What was reported: ",
       { wire: "Load failed" },
     ]);
-    expect(lines[0].parts).toEqual(["Sent from this page to ", { wire: "api.example.com" }, "."]);
+    expect(lines[1].parts).toEqual(["Sent from this page to ", { wire: "api.example.com" }, "."]);
     expect(texts({ ...failed, unpaired: true })["route"]).toBe(
       "Sent from this page to api.example.com. No Local Bridge is paired.",
     );

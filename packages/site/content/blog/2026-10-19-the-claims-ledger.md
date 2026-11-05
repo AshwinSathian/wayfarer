@@ -13,9 +13,10 @@ automated tests that prove it. On 19 October 2026 it has 68 rows.
 
 When a document or this site says what Wayfarer does, the sentence names
 its claim: "No account, no cloud, no telemetry" is C-001, and the vault's
-encryption is C-004. The front page shows the IDs beside its sentences, and
-a test checks that each one is a row of the ledger, so a claim that leaves
-the ledger cannot stay on the page.
+encryption is C-004. The front page showed the IDs beside its sentences (since
+5 November 2026 it does not: the tests hold them, and the footer links the
+ledger), and a test checks that each one is a row of the ledger, so a claim
+that leaves the ledger cannot stay on the page.
 
 ## What CI checks
 

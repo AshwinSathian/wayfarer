@@ -2175,6 +2175,7 @@ Evidence: `baseline/design-chromium/response-error-1440-light.png`,
 `packages/core/src/send/record.ts:134`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #631 (D6-a): a send with no response says why once, under the status line; the record leads with what was reported and its action, names a secret or a mask only when there was one, and no Body, Headers or Timings tab is drawn (Tests only when a test ran).
 
 **U-176. The OAuth redirect URI has no Copy, and breaks inside its
 scheme.** Severity 3. H7. SD, TP.

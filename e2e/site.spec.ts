@@ -272,15 +272,32 @@ test("every sentence about Wayfarer on the comparison pages names a claim or cit
   }
 });
 
-// D5-e: a claim's chip leads to its own row of the ledger, and says what the claim is.
-test("a claim's chip links to its row of the ledger and is named by the claim", async ({ page }) => {
-  await page.goto("/compare/postman/");
-  const chip = page.locator("[data-claims] a", { hasText: "C-058" }).first();
-  await expect(chip).toHaveAttribute("href", "/docs/claims/#C-058");
-  await expect(chip).toHaveAccessibleName(/^Claim C-058: Postman Collection v2\.0 and v2\.1 files/);
-  await chip.click();
-  await expect(page).toHaveURL(/\/docs\/claims\/#C-058$/);
-  await expect(page.locator("tr#C-058 td").first()).toHaveText("C-058");
+// Row 1.74 (maintainer, 2026-11-05): the IDs a sentence names are the tests' (data-claims), not the reader's, and the
+// claims page is one link, in the footer, with words a reader would follow.
+test("no page a reader opens shows a claim's ID, and one link of the landing leads to the claims page", async ({
+  page,
+}) => {
+  for (const path of [
+    "/",
+    "/compare/",
+    "/compare/postman/",
+    "/compare/moving-from-postman/",
+    "/roadmap/",
+    "/what-changed-in-3-0/",
+    "/blog/the-3-0-redesign/",
+    "/docs/getting-started/",
+    "/docs/scripts/",
+  ]) {
+    await page.goto(path);
+    expect(await page.locator("body").innerText(), path).not.toMatch(/\bC-\d{3}(?!\d)/);
+  }
+  await page.goto("/");
+  const links = page.locator('a[href^="/docs/claims/"]');
+  await expect(links).toHaveCount(1);
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "How we test what we say" })).toHaveAttribute(
+    "href",
+    "/docs/claims/",
+  );
 });
 
 // D5-e: the design records are working notes, not user docs. They are pages, but search engines are told not to

@@ -5,6 +5,7 @@ import { repositories, type Repositories } from "../../testing/repositories";
 import { CollectionsStore } from "./collections-store";
 import { RequestSave } from "./request-save";
 import { ScriptTrust } from "./script-trust";
+import { Tabs } from "../state/tabs";
 
 // Script trust (P3.8, plan D6) over the real stores: which scripts may run
 // is decided from what is stored, so the test stores it.
@@ -223,6 +224,33 @@ describe("ScriptTrust", () => {
     saved.bind(made.requests[0]);
     trust.openedHere();
     expect(await allowed()).toBe(true);
+  });
+
+  // U-163: with no collection yet, the dialog said to make one in the sidebar and offered a disabled Save.
+  it("with no collection yet, Save makes one and saves the request into it, its script approved as in any made here", async () => {
+    expect(collections.tree()).toEqual([]);
+    saved.bind(null);
+    TestBed.inject(Tabs)
+      .active()
+      .draft.update((draft) => ({ ...draft, url: "https://api.test/" }));
+    saved.openSaveAsDialog();
+    expect(saved.saveAsNewCollection()).toBe("My collection");
+    expect(saved.isSaveAsDisabled).toBe(false);
+
+    await saved.confirmSaveAs(content("mine()"), await trust.check());
+    const [made] = collections.tree();
+    expect(made.collection.name).toBe("My collection");
+    expect(made.requests.map((request) => request.name)).toEqual(["api.test/"]);
+    expect(trustOf(made.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("mine()")] });
+    expect(saved.loadedCollectionRequest()?.collectionId).toBe(made.collection.meta.id);
+    expect(await allowed()).toBe(true);
+  });
+
+  it("a held script saved into a collection the dialog makes stays unapproved there", async () => {
+    saved.bind(null);
+    saved.openSaveAsDialog();
+    await saved.confirmSaveAs(content("stolen()"), false);
+    expect(trustOf(collections.tree()[0].collection.meta.id)).toEqual({ trusted: true });
   });
 
   it("saving an unreviewed script does not approve it, here or in another collection", async () => {

@@ -47,8 +47,13 @@ try {
     await page.locator("input.address-url").fill(ADDRESS);
     await page.getByRole("button", { name: "Send request" }).click();
     await page.locator(".status-badge").filter({ hasText: "200" }).waitFor();
-    // The response fades in (C-050).
-    await page.waitForTimeout(500);
+    // The response is drawn as it arrives (D3.7 took its fade away): wait for its body, the faces, and any transition
+    // that is still under way (the status badge's colour), not for a time.
+    await page.locator("app-response-viewer").getByText("Ada Lovelace").first().waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForFunction(() =>
+      document.getAnimations().every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+    );
     await page.screenshot({ path: `${OUT}${suffix}.jpg`, type: "jpeg", quality: 80 });
     console.log(`site-screenshot: ${OUT}${suffix}.jpg (${viewport.width * scale}x${viewport.height * scale})`);
     await page.close();

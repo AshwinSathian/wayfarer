@@ -65,7 +65,7 @@ sandboxing and the device's disk encryption. In particular:
   cannot be looked for.
 - **Collection exports mask credentials unless you ask for them in that
   export.** <!-- claim:C-014 --> That covers a request's, and the auth and
-  the variables a collection or a folder holds. "Export with credentials" writes them;
+  the variables a collection or a folder holds. "Include credentials", in the Export dialog, writes them;
   a vault secret is never in a file, only its reference.
 - **Vault secrets are sent as their plaintext when the vault is
   unlocked.** A locked vault asks for the passphrase first, and closing
@@ -210,8 +210,8 @@ is not affected by the site's uptime, because the site never holds it: it's
 in your browser's IndexedDB whether or not
 `https://wayfarer.ashwinsathian.com/` is reachable.
 
-That also means the only copy is in that browser. Settings, "Workspace
-backup", writes every collection, request, environment, the global
+That also means the only copy is in that browser. Settings ›
+Data and storage, "Back up", writes every collection, request, environment, the global
 variables and the vault (still encrypted) to one file, and restores from
 one. A restored collection's scripts are untrusted until approved, like any
 imported file. <!-- claim:C-046 --> The page reminds you when the last

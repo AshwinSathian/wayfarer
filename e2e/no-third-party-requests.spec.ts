@@ -30,7 +30,10 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   }
 
   for (const tab of ["Params", "Headers", "Auth", "Scripts"]) {
-    await page.getByRole("tab", { name: tab, exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: new RegExp(`^${tab}( |$)`) })
+      .first()
+      .click();
     await snap();
   }
 }

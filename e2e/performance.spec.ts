@@ -54,7 +54,10 @@ test("loading the app fetches nothing of Monaco: no editor is on the first scree
   await page.waitForLoadState("networkidle");
   expect(monaco).toEqual([]);
   // The Scripts tab makes its editors when first chosen, and Monaco comes with them.
-  await page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true }).click();
+  await page
+    .locator(".composer-pane")
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .click();
   await expect(page.locator("app-scripts-panel .monaco-editor").first()).toBeVisible({ timeout: 15_000 });
   expect(monaco.length).toBeGreaterThan(0);
 });

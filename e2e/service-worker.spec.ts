@@ -68,7 +68,7 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
   await loadControlled(page);
   // The editor's files are not in index.html: the page asks for them when an editor is first shown (P7.2:
   // not at load), here the Scripts tab's. Firefox mounts it some seconds in.
-  const scriptsTab = page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true });
+  const scriptsTab = page.locator(".composer-pane").getByRole("tab", { name: /^Scripts( |$)/ });
   const editor = page.locator("app-scripts-panel .monaco-editor").first();
   await scriptsTab.click();
   await expect(editor).toBeAttached({ timeout: 15_000 });

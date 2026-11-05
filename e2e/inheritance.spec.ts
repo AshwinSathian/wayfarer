@@ -28,7 +28,11 @@ async function sendAndEcho(page: Page): Promise<Echo> {
 }
 
 const header = (echo: Echo, name: string) => echo.headers.find(([key]) => key === name)?.[1];
-const authTab = (page: Page) => page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).first();
+const authTab = (page: Page) =>
+  page
+    .locator("app-composer")
+    .getByRole("tab", { name: /^Auth( |$)/ })
+    .first();
 
 test("@claim:C-019 a collection's bearer auth reaches the server for a request set to inherit, and a folder's replaces it", async ({
   page,
@@ -55,7 +59,7 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   );
 
   const settings = await openHolderSettings(page, "Tripwire folder", "Folder");
-  await settings.getByRole("tab", { name: "Auth", exact: true }).click();
+  await settings.getByRole("tab", { name: /^Auth( |$)/ }).click();
   // A new folder inherits, and says what from.
   await expect(settings.locator(".auth-inherited")).toHaveText(
     'Bearer token is sent, from collection "Tripwire collection".',
@@ -78,7 +82,7 @@ test("a request made in a collection starts with inherit; a collection's setting
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   const settings = await openHolderSettings(page, "Tripwire collection");
-  await settings.getByRole("tab", { name: "Auth", exact: true }).click();
+  await settings.getByRole("tab", { name: /^Auth( |$)/ }).click();
   // A collection has nothing above it to inherit from.
   await settings.getByRole("combobox", { name: "Type" }).click();
   await expect(page.getByRole("option")).toHaveText([
@@ -218,7 +222,10 @@ test.describe("scripts of a collection and a folder", () => {
     await expect(page.locator(".test-result-pass")).toHaveCount(0);
 
     // The review lists the collection's and the folder's scripts with the request's.
-    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await page
+      .getByRole("tab", { name: /^Scripts( |$)/ })
+      .first()
+      .click();
     await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
     const review = page.getByRole("dialog", { name: "Review scripts" });
     await expect(review).toContainText("5 scripts in the collection, 1 folder and 1 request");
@@ -261,7 +268,10 @@ test("the Auth tab names where an inherited token is set and where its value com
     },
   );
   await protectVariable(page, "token", "env-secret-value");
-  await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
+  await page
+    .locator("app-composer")
+    .getByRole("tab", { name: /^Auth( |$)/ })
+    .click();
   const line = page.locator(".auth-inherited");
   await expect(line).toContainText('Bearer token is sent, from collection "Tripwire collection".');
   await expect(line).toContainText("{{token}} comes from the environment Tripwire env, as a vault secret.");
@@ -330,7 +340,7 @@ test.describe("a held script edited in its settings tab", () => {
     await expect(dialog).toHaveCount(0);
 
     const settings = await openHolderSettings(page, "Inherited collection");
-    await settings.getByRole("tab", { name: "Scripts", exact: true }).click();
+    await settings.getByRole("tab", { name: /^Scripts( |$)/ }).click();
     await settings.locator("app-script-editor").first().locator(".monaco-editor").first().click();
     // The pre-request script is one line.
     await page.keyboard.press("End");

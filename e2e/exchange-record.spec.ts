@@ -83,7 +83,10 @@ test("with a vault secret: the record names the variable and its environment, ne
 test("with a masked header: a credential typed by hand is listed as masked", async ({ page }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await page.locator("app-composer").getByRole("tab", { name: "Headers", exact: true }).click();
+  await page
+    .locator("app-composer")
+    .getByRole("tab", { name: /^Headers( |$)/ })
+    .click();
   await page.locator("app-headers-panel").getByPlaceholder("Name", { exact: true }).first().fill("Authorization");
   await page
     .locator("app-headers-panel")

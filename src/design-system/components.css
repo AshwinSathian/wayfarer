@@ -511,6 +511,17 @@ pre,
   font-variant-numeric: tabular-nums;
 }
 
+/* A request tab that holds something not at its default (U-170): a dot in the tab's own colour. A border, not a
+   background: forced colours keep it. Its words are the screen reader's, beside it. */
+.tab-dot {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border: 0.1875rem solid currentColor;
+  border-radius: var(--radius-full);
+  vertical-align: middle;
+}
+
 /* ── A run's summary (P5.2) ──────────────────────────────── */
 .run-count {
   font-size: 0.875rem;

@@ -12,7 +12,7 @@
       ],
       "project": ["src/**/*.ts", "src/design-system/**/*.css", "e2e/**/*.{ts,mjs}", "scripts/**/*.mjs"],
       "ignoreDependencies": ["@angular/language-service", "chai", "crypto-js", "lodash", "moment", "uuid"],
-      "ignoreBinaries": ["wayfarer-cli"]
+      "ignoreBinaries": ["wayfarer-cli", "ffmpeg"]
     },
     "packages/bridge": {
       "entry": ["bin/*.js", "test/*.js"],

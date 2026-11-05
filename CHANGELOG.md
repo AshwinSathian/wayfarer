@@ -808,6 +808,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The landing shows the app at work in three short recordings.** Its
+  picture of the app was one screenshot of the whole window, which a
+  phone shrank until nothing in it could be read. In its place are three
+  clips of five or six seconds: the first request, the record of where a
+  request went and what history kept masked, and a collection run's
+  report. Each is recorded at a phone's width, in the page's theme, and
+  plays only when you press Play; until then it shows its last frame,
+  and its steps are written out beside it. They come from the app's own
+  build with made-up answers, so no recording touched a real server, and
+  `npm run gen:recordings` makes them again. The site's security policy
+  now allows video from its own files (`media-src 'self'`), and nothing
+  else changed in it.
+
 - **On a phone, Send fills its row and the response's status takes two
   lines, not three.** Send was an 88 px button at the left of the row
   under the address, with empty space beside it; it now runs to the

@@ -164,23 +164,84 @@ const QUESTIONS: [string, ReactNode][] = [
   ],
 ];
 
-/** The app as built (scripts/site-screenshot.mjs), in the page's theme: the window, or on a phone the phone's layout. */
-function Shot({ theme }: { theme: "light" | "dark" }) {
-  const name = theme === "light" ? "/app-light" : "/app";
+/**
+ * The landing's recordings of the app as built (scripts/site-record.mjs, `npm run gen:recordings`), at a phone's
+ * width, so that the app's text is its own size on a phone. One per theme, the page's shown: a <picture> per theme
+ * would not follow the toggle. Nothing plays until asked, so the poster, the clip's last frame, is the still a reader
+ * who asked for reduced motion sees; the steps beside it say what it shows without playing it.
+ */
+const RECORDINGS: { name: string; title: string; label: string; steps: ReactNode[] }[] = [
+  {
+    name: "first-request",
+    title: "The first request",
+    label: "Wayfarer sending its first request",
+    steps: [
+      <>Type the address in an empty tab.</>,
+      <>Press Send.</>,
+      <>
+        The response comes back with its status, time and size, sent to the host you typed and nowhere else.{" "}
+        <Claims ids={["C-001"]} />
+      </>,
+    ],
+  },
+  {
+    name: "record",
+    title: "Where it went",
+    label: "Wayfarer's exchange record of a request sent with a token",
+    steps: [
+      <>Open a saved request whose Authorization header holds a token from the environment, and send it.</>,
+      <>Open the line that says where it went: Direct to api.example.com.</>,
+      <>
+        The record says it was sent from this page, and that History keeps Authorization masked.{" "}
+        <Claims ids={["C-008"]} />
+      </>,
+    ],
+  },
+  {
+    name: "run",
+    title: "A run's report",
+    label: "Wayfarer running a collection of three requests",
+    steps: [
+      <>Choose Run… on a collection of three requests.</>,
+      <>Press Run.</>,
+      <>
+        Each request is sent in order and its tests run; the report counts what passed, as <code>wayfarer-cli</code>{" "}
+        would in CI. <Claims ids={["C-065"]} />
+      </>,
+    ],
+  },
+];
+
+function Recording({ name, title, label, steps }: (typeof RECORDINGS)[number]) {
   return (
-    <picture className={`shot-${theme}`}>
-      <source media="(max-width: 47.99em)" srcSet={`${name}-phone.jpg`} width={780} height={1520} />
-      <img
-        className="mt-12 h-auto w-full rounded-lg border border-line-strong md:max-w-none max-md:mx-auto max-md:max-w-xs"
-        src={`${name}.jpg`}
-        srcSet={`${name}-720.jpg 720w, ${name}.jpg 1440w`}
-        sizes="(max-width: 1200px) 100vw, 1152px"
-        width={1440}
-        height={900}
-        loading="lazy"
-        alt="Wayfarer with a GET request to api.example.com/v1/users/42 and its JSON response, status 200"
-      />
-    </picture>
+    <figure className="min-w-0 md:max-lg:grid md:max-lg:grid-cols-2 md:max-lg:items-center md:max-lg:gap-10">
+      {(["dark", "light"] as const).map((theme) => (
+        <video
+          key={theme}
+          className={`shot-${theme} mx-auto h-auto w-full max-w-[390px] rounded-lg border border-line-strong`}
+          poster={`/recordings/${name}-${theme}.avif`}
+          width={390}
+          height={720}
+          controls
+          muted
+          playsInline
+          preload="none"
+          aria-label={label}
+          aria-describedby={`${name}-steps`}
+        >
+          <source src={`/recordings/${name}-${theme}.webm`} type="video/webm" />
+          <source src={`/recordings/${name}-${theme}.mp4`} type="video/mp4" />
+        </video>
+      ))}
+      <figcaption className="mx-auto mt-6 max-w-[390px] md:max-lg:mt-0">
+        <h3 className="type-site-title-2 font-bold text-ink">{title}</h3>
+        <ol id={`${name}-steps`} className="mt-3 list-decimal space-y-2 pl-5 text-ink-muted">
+          {steps.map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
+        </ol>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -455,12 +516,12 @@ export default function Home() {
         <Section
           id="app"
           sunk
-          title="The rest of the app is in the same tab."
+          title="See it work"
           intro={
             <>
               <p>
-                Collections, environments, history, the vault and scripts, kept in your browser.{" "}
-                <Claims ids={["C-002"]} />
+                Recorded from the app as it is built, at a phone&apos;s width. Collections, environments, history, the
+                vault and scripts are kept in your browser. <Claims ids={["C-002"]} />
               </p>
               <p className="mt-4">
                 Version 3.0 redesigned every screen.{" "}
@@ -472,8 +533,11 @@ export default function Home() {
             </>
           }
         >
-          <Shot theme="dark" />
-          <Shot theme="light" />
+          <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-3 lg:gap-10">
+            {RECORDINGS.map((recording) => (
+              <Recording key={recording.name} {...recording} />
+            ))}
+          </div>
         </Section>
 
         <Section

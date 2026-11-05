@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Takes the site's pictures of the app (W2.1 of PLAN-design.md): the app as
+// Takes the site's still of the app (W2.1 of PLAN-design.md): the app as
 // built, in Chromium, with one request sent and its response shown. The
 // server's answer is made up here (`page.route`), since the e2e servers' own
 // addresses are not what a reader should see; the app is the real one.
@@ -22,16 +22,9 @@ const OUT = "packages/site/public/app";
 
 const browser = await chromium.launch();
 try {
-  // The window at 1440 and at half that, and the app as a phone draws it, for the landing on a phone (D5-e): the
-  // whole window squeezed to 358 px could not be read. Each in both themes: the landing shows the page's.
-  const shots = [
-    [{ width: 1440, height: 900 }, 1, ""],
-    [{ width: 1440, height: 900 }, 0.5, "-720"],
-    [{ width: 390, height: 760 }, 2, "-phone"],
-  ].flatMap(([viewport, scale, suffix]) => [
-    [viewport, scale, suffix, "dark"],
-    [viewport, scale, `-light${suffix}`, "light"],
-  ]);
+  // The site's one still of the app: the screenshot its structured data names (structured-data.ts). The landing shows
+  // recordings (scripts/site-record.mjs, W5.2).
+  const shots = [[{ width: 1440, height: 900 }, 1, "", "dark"]];
   for (const [viewport, scale, suffix, theme] of shots) {
     const page = await browser.newPage({ viewport, deviceScaleFactor: scale });
     await page.addInitScript((theme) => localStorage.setItem("wayfarer:theme", theme), theme);

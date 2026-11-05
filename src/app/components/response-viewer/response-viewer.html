@@ -13,7 +13,7 @@
        answer replaces it in the frame it is ready. After that the status line says it is sending, and for how long,
        and the last response under it is dimmed: it is the old one, and the new one is drawn at full strength. -->
   @let sofar = sendingFor(); @let statusCode = responseStatusCode(); @let answered = statusCode !== undefined ||
-  isError();
+  isError(); @let noResponse = isError() && statusCode === undefined;
   <div class="response-main" [class.response-stale]="!!sofar">
     <!-- ── Status bar ─────────────────────────────────────── -->
     @if (loading() && (sofar || !answered)) {
@@ -103,6 +103,10 @@
         }
       </div>
     </div>
+    } @if (noResponse) {
+    <!-- No response (U-051, U-175): the app's words, once, in its own face; nothing in the server's place. What was
+         reported, and the action, are in the exchange record under it (D4.12). -->
+    <p class="response-failure type-callout text-label-primary px-4 pt-3">{{ bodyText() }}</p>
     } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
     <section
@@ -151,13 +155,16 @@
     </p>
     }
     <!-- ── Response tabs ──────────────────────────────────── -->
+    <!-- With no response (U-175) there is no body, no headers and no timings: only Tests, when one ran. -->
+    @if (!noResponse || testResults().length) {
     <div class="response-tabs px-4 pt-1">
       <div ngTabs class="tabs">
-        <div uiTabList [selectedTab]="activeTab()" (selectedTabChange)="activeTab.set($event)">
+        <div uiTabList [selectedTab]="noResponse ? 'tests' : activeTab()" (selectedTabChange)="activeTab.set($event)">
+          @if (!noResponse) {
           <button ngTab type="button" value="body">Body</button>
           <button ngTab type="button" value="headers">Headers</button>
           <button ngTab type="button" value="timings">Timings</button>
-          @if (eventCount()) {
+          } @if (eventCount()) {
           <button ngTab type="button" value="events">Events</button>
           }
           <button ngTab type="button" value="tests">
@@ -174,6 +181,7 @@
         </div>
 
         <div class="tab-panes">
+          @if (!noResponse) {
           <!-- ── Body tab ───────────────────────────────────── -->
           <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
@@ -263,13 +271,7 @@
                     ><app-icon name="download" /> Download</button
                   >
                 </div>
-                } @if (isError() && responseStatusCode() === undefined) {
-                <!-- No response (U-051): the app's words, in its own face; nothing in the server's place. -->
-                <div class="response-failure space-y-3">
-                  <p class="type-callout text-label-primary">{{ bodyText() }}</p>
-                  <!-- What was reported, and the action, are in the exchange record under the status line (D4.12). -->
-                </div>
-                } @else if (!bodyText() && !responseBinary()) {
+                } @if (!bodyText() && !responseBinary()) {
                 <p class="type-callout text-label-secondary">The response has no body.</p>
                 } @else { @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
                 <div class="overflow-auto rounded-lg bg-canvas-panel border border-separator p-4">
@@ -526,6 +528,7 @@
             </ng-template></div
           >
 
+          }
           <!-- ── Tests tab ──────────────────────────────────── -->
           @if (eventCount()) {
           <div ngTabPanel value="events" class="tab-pane" [preserveContent]="true"
@@ -611,7 +614,7 @@
         </div>
       </div>
     </div>
-    }
+    } }
   </div>
   }
 </div>

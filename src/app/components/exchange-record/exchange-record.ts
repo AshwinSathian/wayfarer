@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
 import { recordLines, type ExchangeRecord, type RecordPart } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
@@ -10,7 +11,7 @@ import { BridgeSetup } from "./bridge-setup";
  */
 @Component({
   selector: "app-exchange-record",
-  imports: [BridgeSetup, UiButton],
+  imports: [BridgeSetup, NgTemplateOutlet, UiButton],
   templateUrl: "./exchange-record.html",
   styleUrl: "./exchange-record.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +27,9 @@ export class ExchangeRecordView {
   readonly sendThroughBridge = output<void>();
 
   protected readonly lines = computed(() => recordLines(this.record(), this.keeper()));
+  /** What was reported, when no response came: it leads, with the action under it (U-175). */
+  protected readonly failure = computed(() => this.lines().find((line) => line.field === "failure"));
+  protected readonly facts = computed(() => this.lines().filter((line) => line.field !== "failure"));
   /**
    * The browser gave no response and hides why: the Local Bridge can tell. With one paired it is offered; with
    * none, it is set up here (DQ10).

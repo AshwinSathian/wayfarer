@@ -193,7 +193,8 @@ function withAlpha(hex: string, alpha: number): string {
  * What every editor is set in (U-052, U-038): the app's monospace at its body
  * size, as every value a person types or a server sends is, and brackets in
  * the text's own colour. Monaco cannot read a CSS variable: the page's values
- * are read when an editor is made.
+ * are read when an editor is made. No overview ruler and no room past the
+ * last line (U-186): a six-line body had a scrollbar as tall as its pane.
  */
 export function editorText(): {
   fontFamily: string;
@@ -201,6 +202,10 @@ export function editorText(): {
   lineHeight: number;
   fontLigatures: false;
   bracketPairColorization: { enabled: false };
+  overviewRulerLanes: 0;
+  hideCursorInOverviewRuler: true;
+  overviewRulerBorder: false;
+  scrollBeyondLastLine: false;
 } {
   const style = getComputedStyle(document.documentElement);
   const px = (name: string, fallback: number) => {
@@ -215,6 +220,10 @@ export function editorText(): {
     lineHeight: px("--type-mono-body-line", 20),
     fontLigatures: false,
     bracketPairColorization: { enabled: false },
+    overviewRulerLanes: 0,
+    hideCursorInOverviewRuler: true,
+    overviewRulerBorder: false,
+    scrollBeyondLastLine: false,
   };
 }
 

@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **The editors end at their last line.** The body, response and script
+  editors drew an empty overview ruler down their right edge, and the body
+  and response editors scrolled a page past the last line, so a six-line
+  response showed a scrollbar as tall as the pane. Neither is drawn now
+  (U-186).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

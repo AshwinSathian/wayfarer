@@ -3,6 +3,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { benchmarkOf } from "../benchmark.mjs";
 import { changelogOf } from "../changelog.mjs";
 import { renderMarkdown, titleOf } from "../markdown.mjs";
 import { roadmapOf } from "../roadmap.mjs";
@@ -131,6 +132,24 @@ export function lastChanged(path: string): string | undefined {
 
 export function changelog() {
   return changelogOf(read("CHANGELOG.md"));
+}
+
+export interface Benchmark {
+  tasks: {
+    n: string;
+    name: string;
+    /** Its heading's id on /docs/design/benchmark/. */
+    anchor: string;
+    measured: { id: string; task: string; actions: string; seconds: string; recording: string }[];
+    documented: { rival: string; steps: string; inputs: string; sources: string[]; note: string }[];
+  }[];
+  summary: { n: string; task: string; wayfarer: string; fewest: string; is: string }[];
+  versions: Record<string, string>;
+}
+
+/** The benchmark, docs/design/benchmark.md, as the comparison pages show it (benchmark.mjs reads it). */
+export function benchmark(): Benchmark {
+  return benchmarkOf(read("docs/design/benchmark.md")) as Benchmark;
 }
 
 export function roadmap() {

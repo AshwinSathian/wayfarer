@@ -20,11 +20,26 @@ export interface Fact {
   source: Source;
 }
 
+/** The rows of the table at a glance, on each rival's page and on the index. */
+export const GLANCE_ROWS = [
+  ["runs", "Where it runs"],
+  ["account", "Account"],
+  ["collections", "Where your collections are kept"],
+  ["secrets", "Secrets"],
+  ["git", "Git"],
+  ["team", "Sharing with a team"],
+  ["ai", "AI"],
+  ["price", "Price and licence"],
+] as const;
+export type GlanceRow = (typeof GLANCE_ROWS)[number][0];
+
 export interface Rival {
   id: string;
   name: string;
   /** Its home page, for the page's structured data. */
   url: string;
+  /** When the benchmark read its documentation, as YYYY-MM-DD. */
+  read: string;
   /** The page's title after "Wayfarer vs X: ": the difference in a few words. */
   title: string;
   /** One sentence: what it is. */
@@ -35,6 +50,12 @@ export interface Rival {
   differs: ReactNode[];
   /** Where the rival is ahead of Wayfarer, each with its source. */
   ahead: Fact[];
+  /** The table at a glance: a row the rival's pages do not cover is left out, and shows "Not documented". */
+  glance: Partial<Record<GlanceRow, Fact>>;
+  /** Who should pick the rival, and who Wayfarer: the Wayfarer half names its claims. */
+  pick: ReactNode;
+  /** How a rival's work comes into Wayfarer. */
+  moving: ReactNode;
 }
 
 const READ = "2026-11-04";
@@ -42,7 +63,60 @@ const src = (title: string, url: string): Source => ({ title, url, read: READ })
 
 // Wayfarer's own files, for what is a fact about the project and not a claim about the app.
 const LICENSE = src("Wayfarer's LICENSE (MIT)", "https://github.com/AshwinSathian/wayfarer/blob/main/LICENSE");
+/** The benchmark's comparison, as a source: the site's own page, run again on 2026-11-05. */
+export const BENCHMARK_SOURCE: Source = {
+  title: "Wayfarer benchmark: Wayfarer against the rivals",
+  url: `${SITE}/docs/design/benchmark/#wayfarer-against-the-rivals`,
+  read: "2026-11-05",
+};
 const FIRST_RELEASE = src("Wayfarer changelog: 0.1.0, 2026-07-20", `${SITE}/changelog/#010---2026-07-20`);
+
+/** The benchmark's page, where each of Wayfarer's numbers has its row and each rival's its table. */
+export const BENCHMARK_PAGE = "/docs/design/benchmark/";
+
+/** Wayfarer's column of the table at a glance: each cell names its claims, or the file that says so. */
+export const WAYFARER_GLANCE: Record<GlanceRow, ReactNode> = {
+  runs: (
+    <>
+      A browser tab: nothing to install. <Claims ids={["C-001"]} />
+    </>
+  ),
+  account: (
+    <>
+      None, for all of it. <Claims ids={["C-001"]} />
+    </>
+  ),
+  collections: (
+    <>
+      In your browser, on your device. <Claims ids={["C-002"]} />
+    </>
+  ),
+  secrets: (
+    <>
+      Only ciphertext is stored; the key is in memory and a reload locks it. <Claims ids={["C-003", "C-005"]} />
+    </>
+  ),
+  git: (
+    <>
+      None yet: a collection leaves as a file. <Claims ids={["C-057"]} />
+    </>
+  ),
+  team: (
+    <>
+      None yet: a file; sharing without a server is on the <a href="/roadmap/">roadmap</a>. <Claims ids={["C-057"]} />
+    </>
+  ),
+  ai: (
+    <>
+      Off until you add a provider; each call shown byte for byte before it goes. <Claims ids={["C-069", "C-071"]} />
+    </>
+  ),
+  price: (
+    <>
+      Free, MIT, no seats. <Cite source={LICENSE} />
+    </>
+  ),
+};
 
 const POSTMAN_HOME = src("Postman home page", "https://www.postman.com/");
 const POSTMAN_PRICING = src("Postman pricing", "https://www.postman.com/pricing/");
@@ -62,6 +136,10 @@ const POSTMAN_AGENT = src(
 const POSTMAN_GIT = src(
   "Postman docs: Native Git",
   "https://learning.postman.com/latest-v-12/docs/use/native-git/overview",
+);
+const POSTMAN_VAULT = src(
+  "Postman docs: Manage vault secrets",
+  "https://learning.postman.com/docs/use/postman-vault/manage-vault-secrets.md",
 );
 const POSTMAN_AGENT_MODE = src(
   "Postman docs: Agent Mode",
@@ -97,6 +175,7 @@ const YAAK_SYNC = src(
   "Yaak docs: Local directory and Git sync",
   "https://yaak.app/docs/collaboration/local-directory-git-sync",
 );
+const YAAK_SECRETS = src("Yaak docs: Secrets and encryption", "https://yaak.app/docs/collaboration/secrets-encryption");
 const YAAK_WEB = src("Yaak docs: Yaak Web", "https://yaak.app/docs/getting-started/web-proxy");
 const YAAK_MIGRATION = src("Yaak docs: Migrating from Postman", "https://yaak.app/docs/migration/postman");
 const HOPP_HOME = src("Hoppscotch home page", "https://hoppscotch.com/");
@@ -104,6 +183,10 @@ const HOPP_PRICING = src("Hoppscotch pricing", "https://hoppscotch.com/pricing")
 const HOPP_INTERCEPTOR = src(
   "Hoppscotch docs: Interceptor",
   "https://docs.hoppscotch.io/documentation/features/interceptor",
+);
+const HOPP_REQUEST = src(
+  "Hoppscotch docs: Creating a request",
+  "https://docs.hoppscotch.io/documentation/getting-started/rest/creating-a-request",
 );
 const HOPP_SECURITY = src("Hoppscotch security policy", "https://docs.hoppscotch.io/support/security-policy");
 const HOPP_IMPORTER = src("Hoppscotch docs: Importer", "https://docs.hoppscotch.io/documentation/features/importer");
@@ -116,10 +199,31 @@ const INSOMNIA_ENVIRONMENTS = src("Insomnia docs: Environments", "https://develo
 const INSOMNIA_AI = src("Insomnia docs: AI in Insomnia", "https://developer.konghq.com/insomnia/ai-in-insomnia/");
 const INSOMNIA_REPO = src("Kong/insomnia on GitHub", "https://github.com/Kong/insomnia");
 
+const AI_LINE = (
+  <>
+    AI is off until you add a provider, and each call is shown byte for byte before it is sent.{" "}
+    <Claims ids={["C-069", "C-071"]} />
+  </>
+);
+const VAULT_LINE = (
+  <>
+    A vault secret&apos;s plaintext is never stored: what is kept is ciphertext, and the vault&apos;s key is held in
+    memory only, so a reload locks it. <Claims ids={["C-003", "C-005"]} />
+  </>
+);
+/** For a rival Wayfarer has no importer for: the ways in that there are. */
+const OTHER = (name: string) => (
+  <>
+    There is no importer for {name}&apos;s own files. Wayfarer imports OpenAPI and Swagger descriptions, and a cURL
+    command pasted into the address becomes the request. <Claims ids={["C-060", "C-056"]} />
+  </>
+);
+
 export const RIVALS: Rival[] = [
   {
     id: "postman",
     name: "Postman",
+    read: READ,
     url: "https://www.postman.com/",
     title: "a free API client with no account",
     is: "An API platform with a desktop app and a web app, where a team works in Postman's cloud.",
@@ -167,6 +271,8 @@ export const RIVALS: Rival[] = [
       <>
         A collection goes back out as a Postman v2.1 file, so you are not locked in. <Claims ids={["C-057"]} />
       </>,
+      VAULT_LINE,
+      AI_LINE,
       <>
         Wayfarer is free under the MIT licence, for a team too: there are no seats. <Cite source={LICENSE} />
       </>,
@@ -183,10 +289,48 @@ export const RIVALS: Rival[] = [
       },
       { text: "It says it is trusted by over 50 million developers.", source: POSTMAN_HOME },
     ],
+    glance: {
+      runs: { text: "A desktop app, and a web app.", source: POSTMAN_DOWNLOADS },
+      account: {
+        text: "The web app needs a free account; signed out, the desktop app's lightweight client keeps no collections.",
+        source: POSTMAN_CLIENT,
+      },
+      collections: {
+        text: "In Postman's cloud; Native Git keeps them in a local repository, synced to that cloud.",
+        source: POSTMAN_GIT,
+      },
+      secrets: {
+        text: "Local Vault: on disk, encrypted with AES-256, its key in the system's password manager.",
+        source: POSTMAN_VAULT,
+      },
+      git: { text: "Native Git, after you sign in.", source: POSTMAN_GIT },
+      team: { text: "On the Team plan; the Free plan is one user.", source: POSTMAN_PLANS },
+      ai: { text: "Agent Mode, for users who consent to AI.", source: POSTMAN_AGENT_MODE },
+      price: {
+        text: "Free for one user; Solo $9 and Team $19 a user a month, billed yearly.",
+        source: POSTMAN_PRICING,
+      },
+    },
+    pick: (
+      <>
+        Pick Postman if your team already works in its cloud, needs gRPC or MQTT, or wants its AI agent. Pick Wayfarer
+        if you want the whole client without an account or a seat, in a tab, with your collection&apos;s scripts held
+        until you have read them. <Claims ids={["C-001", "C-051"]} />
+      </>
+    ),
+    moving: (
+      <>
+        Export each collection as Collection v2.1 and import it: its environments and globals come too, with a report of
+        what could not be kept. <Claims ids={["C-058"]} /> The steps are in{" "}
+        <a href="/compare/moving-from-postman/">Moving from Postman</a>, and a collection goes back as a v2.1 file.{" "}
+        <Claims ids={["C-057"]} />
+      </>
+    ),
   },
   {
     id: "bruno",
     name: "Bruno",
+    read: READ,
     url: "https://www.usebruno.com/",
     title: "a browser tab or a Git-native desktop app",
     is: "An open-source desktop API client whose collections are plain-text files, for a Git repository.",
@@ -232,6 +376,7 @@ export const RIVALS: Rival[] = [
         A Postman collection&apos;s scripts come across, and run once you have read them and said you trust them.{" "}
         <Claims ids={["C-051", "C-058"]} />
       </>,
+      AI_LINE,
     ],
     ahead: [
       {
@@ -240,10 +385,38 @@ export const RIVALS: Rival[] = [
       },
       { text: "It says it has 4 million users and an independent SOC 2 Type II audit.", source: BRUNO_HOME },
     ],
+    glance: {
+      runs: { text: "A desktop app for macOS, Windows and Linux.", source: BRUNO_DOWNLOAD },
+      account: { text: "None: “No cloud sync. No account. No login.”", source: BRUNO_HOME },
+      collections: {
+        text: "Plain-text files on disk, OpenCollection YAML by default since v4.0.0.",
+        source: BRUNO_CHANGELOG,
+      },
+      secrets: {
+        text: "On disk, encrypted; held off disk only by a secret manager, on the Ultimate plan.",
+        source: BRUNO_SECRET_MANAGERS,
+      },
+      git: { text: "Init, diffs, pull and clone free; commit and push on Pro or Ultimate.", source: BRUNO_GIT },
+      team: { text: "Through the files, in Git.", source: BRUNO_GIT },
+      ai: { text: "In beta, off by default, with your own key.", source: BRUNO_AI },
+      price: {
+        text: "Open Source free; Pro $6 and Ultimate $11 a user a month, billed yearly.",
+        source: BRUNO_PRICING,
+      },
+    },
+    pick: (
+      <>
+        Pick Bruno if your team reviews requests as files in Git and wants a desktop app. Pick Wayfarer if you want
+        nothing to install, a vault whose key is gone when you reload, and imported scripts held until you have read
+        them. <Claims ids={["C-001", "C-005", "C-051"]} />
+      </>
+    ),
+    moving: <>{OTHER("Bruno")}</>,
   },
   {
     id: "yaak",
     name: "Yaak",
+    read: READ,
     url: "https://yaak.app/",
     title: "no install and no licence for work",
     is: "A local-first desktop API client by Insomnia's creator, with a web version, free for personal use and licensed for work.",
@@ -281,16 +454,45 @@ export const RIVALS: Rival[] = [
         A Postman collection&apos;s scripts come across, and run once you have read them and said you trust them.{" "}
         <Claims ids={["C-051", "C-058"]} />
       </>,
+      VAULT_LINE,
     ],
     ahead: [
       { text: "It sends gRPC requests; Wayfarer does not.", source: YAAK_DOCS },
       { text: "It keeps a workspace as files in a folder and in Git.", source: YAAK_SYNC },
       { text: "An AI agent can drive it, through its CLI or an MCP server plugin.", source: YAAK_HOME },
     ],
+    glance: {
+      runs: { text: "A desktop app; Yaak Web, in a browser, sends through a proxy.", source: YAAK_WEB },
+      account: { text: "None for the desktop app.", source: YAAK_PRIVACY },
+      collections: {
+        text: "On the machine, and synced to a folder of YAML files that can be a Git repository.",
+        source: YAAK_SYNC,
+      },
+      secrets: {
+        text: "Encrypted values in a local database, the key in the system's keychain.",
+        source: YAAK_SECRETS,
+      },
+      git: { text: "A workspace synced to a folder in Git.", source: YAAK_SYNC },
+      team: { text: "Through that folder, in Git.", source: YAAK_SYNC },
+      ai: { text: "None of its own; an agent drives it through its CLI or an MCP server plugin.", source: YAAK_HOME },
+      price: {
+        text: "Free for personal use; at work $79 a year or $399 once for one person, or $149 a user a year.",
+        source: YAAK_PRICING,
+      },
+    },
+    pick: (
+      <>
+        Pick Yaak if you want a fast desktop app with gRPC and files in Git, and a work licence is fine. Pick Wayfarer
+        if you want nothing to install and no licence, with requests sent from your tab through no proxy.{" "}
+        <Claims ids={["C-001"]} />
+      </>
+    ),
+    moving: OTHER("Yaak"),
   },
   {
     id: "hoppscotch",
     name: "Hoppscotch",
+    read: READ,
     url: "https://hoppscotch.com/",
     title: "two browser API clients",
     is: "An open-source API client with a web app, desktop apps and a CLI, which teams can self-host.",
@@ -333,19 +535,44 @@ export const RIVALS: Rival[] = [
       <>
         Before you send, the composer says what the browser will do to the request. <Claims ids={["C-049"]} />
       </>,
-      <>
-        Values in its vault are stored only as ciphertext, under a passphrase. <Claims ids={["C-003", "C-004"]} />
-      </>,
+      VAULT_LINE,
+      AI_LINE,
     ],
     ahead: [
       { text: "It has desktop apps as well as the web one.", source: HOPP_HOME },
       { text: "Teams share workspaces on its Business plan.", source: HOPP_PRICING },
       { text: "An AI agent can drive it through its MCP server.", source: HOPP_RELEASES },
     ],
+    glance: {
+      runs: { text: "A web app, desktop apps, a CLI, and your own server.", source: HOPP_HOME },
+      account: { text: "The docs' first request, in the web app, has no sign-in.", source: HOPP_REQUEST },
+      secrets: {
+        text: "In the client's local store, the browser's local storage on the web, with no encryption of its own described.",
+        source: HOPP_SECURITY,
+      },
+      team: { text: "Team workspaces, on Business.", source: HOPP_PRICING },
+      ai: {
+        text: "An MCP server, and an AI chat and assistant for self-hosted Enterprise.",
+        source: HOPP_RELEASES,
+      },
+      price: {
+        text: "Free; Business $6 and Enterprise $11 a user a month, billed yearly.",
+        source: HOPP_PRICING,
+      },
+    },
+    pick: (
+      <>
+        Pick Hoppscotch if you want a browser client and a desktop app from one project, team workspaces, or your own
+        server. Pick Wayfarer if you want your secrets stored only as ciphertext, and imported scripts held until you
+        have read them. <Claims ids={["C-003", "C-051"]} />
+      </>
+    ),
+    moving: OTHER("Hoppscotch"),
   },
   {
     id: "insomnia",
     name: "Insomnia",
+    read: READ,
     url: "https://insomnia.rest/",
     title: "no account and no cloud",
     is: "Kong's open-source desktop API client, with local, Git and cloud storage.",
@@ -375,22 +602,64 @@ export const RIVALS: Rival[] = [
         Wayfarer keeps collections and environments in your browser, with no account and no cloud.{" "}
         <Claims ids={["C-001", "C-002"]} />
       </>,
-      <>
-        Every value in its vault is stored only as ciphertext, under a passphrase. <Claims ids={["C-003", "C-004"]} />
-      </>,
+      VAULT_LINE,
       <>
         Insomnia exports in format 4 and 5 import, with a report of what could not be kept. <Claims ids={["C-059"]} />
       </>,
+      AI_LINE,
     ],
     ahead: [
       { text: "It keeps projects in Git, free for a team of up to 3.", source: INSOMNIA_PRICING },
       { text: "It syncs projects through a cloud of its own for a team.", source: INSOMNIA_HOME },
     ],
+    glance: {
+      runs: { text: "A desktop app.", source: INSOMNIA_HOME },
+      account: { text: "None for the local-only Scratch Pad.", source: INSOMNIA_HOME },
+      collections: {
+        text: "Locally, in Git, or in its cloud, with optional end-to-end encryption.",
+        source: INSOMNIA_HOME,
+      },
+      secrets: {
+        text: "A Secret variable is encrypted under a vault key you make; other local data is not encrypted on disk.",
+        source: INSOMNIA_ENVIRONMENTS,
+      },
+      git: { text: "Git Sync, free for up to 3 users.", source: INSOMNIA_PRICING },
+      team: { text: "Its cloud, or Git Sync.", source: INSOMNIA_HOME },
+      ai: { text: "Nothing runs until a model is chosen in Preferences.", source: INSOMNIA_AI },
+      price: {
+        text: "Essentials free; Pro $12 and Enterprise $45 a user a month.",
+        source: INSOMNIA_PRICING,
+      },
+    },
+    pick: (
+      <>
+        Pick Insomnia if your team syncs projects through Git or Kong&apos;s cloud and wants a desktop app. Pick
+        Wayfarer if you want no account and no cloud, and every vault value stored only as ciphertext.{" "}
+        <Claims ids={["C-001", "C-003"]} />
+      </>
+    ),
+    moving: (
+      <>
+        Export from Insomnia in format 4 or 5 and import the file, with a report of what could not be kept.{" "}
+        <Claims ids={["C-059"]} />
+      </>
+    ),
   },
 ];
 
 /** Where Wayfarer is behind, for the comparison index (W2.3's AC). Each names what it is measured against. */
 export const BEHIND: { title: string; text: ReactNode; sources: Source[] }[] = [
+  {
+    title: "More actions on two of eight everyday tasks",
+    text: (
+      <>
+        Adding an environment takes 8 actions in Wayfarer and 5 in Insomnia&apos;s documentation, 2 of them inferred;
+        finding last week&apos;s request takes 4, against Hoppscotch&apos;s 2 and some scrolling. A data-file run takes
+        5 in the app, and 2 with Bruno&apos;s or Hoppscotch&apos;s command line.
+      </>
+    ),
+    sources: [BENCHMARK_SOURCE],
+  },
   {
     title: "No gRPC, MQTT or Socket.IO",
     text: <>Postman&apos;s signed-out client sends all three, and Yaak sends gRPC.</>,

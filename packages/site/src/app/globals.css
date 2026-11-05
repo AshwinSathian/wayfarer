@@ -301,3 +301,32 @@
   --pagefind-ui-border-radius: var(--radius-sm);
   --pagefind-ui-font: var(--font-text);
 }
+
+/* The comparison pages' tables (W5.4): they scroll sideways in their own box on a narrow window, never the page. */
+.compare-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.compare-table {
+  border-collapse: collapse;
+  font-size: var(--type-site-small-size);
+  line-height: var(--type-site-small-line);
+  min-width: 40rem;
+}
+.compare-table th,
+.compare-table td {
+  border: 1px solid var(--separator);
+  padding: 0.6em 0.8em;
+  text-align: left;
+  vertical-align: top;
+}
+.compare-table thead th {
+  background: var(--canvas-panel);
+}
+.compare-table tbody th {
+  font-weight: 600;
+  min-width: 10rem;
+}
+.compare-table td p + p {
+  margin-top: 0.4em;
+}

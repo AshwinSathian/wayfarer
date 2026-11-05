@@ -818,6 +818,24 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The comparison pages carry the benchmark.** Each page, Wayfarer vs
+  Postman, Bruno, Yaak, Hoppscotch and Insomnia, now opens with a table at
+  a glance (where it runs, account, where collections are kept, secrets,
+  Git, team sharing, AI, price), then the eight benchmark tasks: Wayfarer's
+  number of actions, each a link to its recording, beside the steps the
+  rival's own documentation gives, with the page and the date it was read.
+  A rival has no seconds, because it was not run. Then where the rival is
+  ahead, how Wayfarer differs (AI off until you add a provider, and a
+  vault secret that is never stored as plaintext, on every page), who
+  should pick which, how to move your work, and a close with Open
+  Wayfarer. The index has the same table for every rival, the eight tasks
+  against the fewest actions any rival documents, and a new "behind" item
+  for the two tasks where Wayfarer takes more. The numbers are read from
+  `docs/design/benchmark.md` when the site is built, so the pages cannot
+  drift from it, and the site serves the ten recordings at `/benchmark/`;
+  before, they were links to GitHub. Moving from Postman names the
+  controls as the app has them now ("Import and review scripts…").
+
 - **The reach plan is no longer a page of the site.** `docs/design/reach.md`
   is the maintainer's working list of where Wayfarer will be posted; it was
   published at `/docs/design/reach/` (hidden from search engines) and linked

@@ -1012,6 +1012,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   is a history entry with scripts of its own: before, it showed and
   cleared the entry's, and the collection stayed unreviewed.
 
+- **The design captures show the app as session D5-e left it.** The
+  Chromium baseline of every screen is taken again after the final
+  design pass.
+
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of
   the fifth pass.

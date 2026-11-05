@@ -160,7 +160,6 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
       minimap: { enabled: false },
       theme: monacoThemeName(this.themeService.theme()),
       lineNumbers: "on",
-      scrollBeyondLastLine: false,
       wordWrap: "on",
       readOnly: this.readOnly(),
       tabSize: 2,

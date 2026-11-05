@@ -107,3 +107,59 @@ describe("ImportDialog: Import and review scripts", () => {
     expect(reviewOpen(host)).toBe(false);
   });
 });
+
+// U-201: a pasted command took "Read the command", then Import. Import reads it and opens the report a file opens;
+// nothing is stored until the report's Import.
+describe("ImportDialog: a pasted cURL command", () => {
+  let idb: Repositories;
+  let collections: CollectionsStore;
+  let pipeline: ImportPipeline;
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      imports: [ImportDialog],
+      providers: [
+        {
+          provide: ImportWorkerClient,
+          useValue: { run: (text: string, options: ImportOptions) => Promise.resolve(importText(text, options)) },
+        },
+      ],
+    });
+    idb = repositories();
+    collections = TestBed.inject(CollectionsStore);
+    pipeline = TestBed.inject(ImportPipeline);
+    await collections.ensureLoaded();
+  });
+
+  afterEach(async () => {
+    await idb.resetDatabase();
+  });
+
+  it("is read by Import, the one button, and goes to the report; the report's Import stores it", async () => {
+    const fixture = TestBed.createComponent(ImportDialog);
+    pipeline.openPaste();
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const buttons = () => [...host.querySelectorAll("button")].map((element) => element.textContent?.trim());
+    const importButton = () =>
+      [...host.querySelectorAll("button")].find((element) => element.textContent?.trim() === "Import");
+    expect(buttons()).not.toContain("Read the command");
+    expect(importButton()?.disabled).toBe(true);
+
+    const field = host.querySelector("textarea") as HTMLTextAreaElement;
+    field.value = "curl 'https://api.test/orders' -H 'Accept: application/json'";
+    field.dispatchEvent(new Event("input"));
+    await fixture.whenStable();
+    expect(importButton()?.disabled).toBe(false);
+
+    importButton()?.click();
+    await vi.waitFor(() => expect(pipeline.imported()?.report.formatName).toContain("cURL"));
+    expect(collections.tree()).toEqual([]);
+
+    await fixture.whenStable();
+    importButton()?.click();
+    await vi.waitFor(() =>
+      expect(collections.tree().map((tree) => tree.collection.name)).toEqual(["Imported from cURL"]),
+    );
+  });
+});

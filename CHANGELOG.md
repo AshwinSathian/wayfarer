@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- The first save of a request is one press. Save to collection opens with the request named as its tab names it,
+  selected, so Save keeps it and a key replaces it; before, the name was empty and Save stayed grey until something
+  was typed. With no collection yet, the dialog names one ("My collection", which you can change) and Save makes it
+  and saves the request into it; before, it said to make a collection in the sidebar and offered a disabled Save.
+  (U-163, U-177)
 - Six development and site tools updated to their latest minor or patch
   release: Stryker 10.1.1, knip 6.43.0, PostCSS 8.5.32, typescript-eslint
   8.72.1, Wrangler 4.154.0 and marked 18.1.2 (the site's Markdown). Nothing

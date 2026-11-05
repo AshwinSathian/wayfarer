@@ -2570,6 +2570,7 @@ send a reader to another tab by name; C24 and C52 proposed a button there.
 Evidence: `baseline/design-chromium/response-tests-1440-light.png`.
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #620 (D6-a): the empty Tests line ends in Add a test and the held line in Open Scripts, each opening the request's Scripts tab (on a phone its section) with focus on it; `response-tests.spec.ts` and `script-trust.spec.ts` hold them.
 
 **U-203. Task 4 still counts two select steps that #579 made needless.**
 Severity 4. H7. Everyone.

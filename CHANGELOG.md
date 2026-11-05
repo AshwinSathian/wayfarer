@@ -1017,6 +1017,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   session that has it next, and seven findings the pass made are added,
   three of them fixed.
 
+- **The design captures show the app as session D5-e left it.** The
+  Chromium baseline of every screen is taken again after the final
+  design pass.
+
 - **The design captures show the app as session D5-c left it.** The
   Chromium baseline of every screen is taken again after the fixes of
   the fifth pass.

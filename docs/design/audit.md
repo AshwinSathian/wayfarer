@@ -2224,6 +2224,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/import-curl-390-light.png`;
 `src/app/components/import/import-dialog.html:14-22`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #581 (D5-e): the box is `uiInput`, so its placeholder is the app's tertiary label in every engine; #621 (D6-a) adds the test. The resize grip is `textarea.ui-input`'s, shared by every text area.
 
 **U-180. The script review draws `=>` as an arrow glyph.** Severity 3. H5,
 H4. PE, TP.
@@ -2561,6 +2562,7 @@ the visual-craft review.
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): it changes the import's
 steps (ImportPipeline), not only words; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #621 (D6-a): the box's "Read the command" is gone; Import reads the command and opens the report a file opens.
 
 **U-202. The Tests tab's empty line and the held-scripts line name a tab,
 not a button.** Severity 4. H7. TP, QA.

@@ -420,6 +420,9 @@ test.describe("limits", () => {
       // Three sends: the pre-request script of the second and of the third each follow a limit.
       for (let run = 0; run < 3; run++) {
         await send(page);
+        // The last response stays while the next is on its way (D5-e): wait for this one's request and its end.
+        await expect.poll(() => hits.length, { timeout: 90_000 }).toBe(run + 1);
+        await expect(page.getByRole("button", { name: "Send request" })).toBeVisible({ timeout: 90_000 });
         await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 90_000 });
         await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
         const stopped = page.locator(".test-result-fail", { hasText: "Post-response script" });

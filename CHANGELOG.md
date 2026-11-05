@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- The Environments list's header names its controls: New beside the title, then Globals, Import and Export. Before,
+  they were four icons with tooltips. The global variables, which a Postman user looks for by name, were a pair of
+  braces, and Import and Export were an up arrow and a down arrow that could be read either way (U-184).
+
 ### Changed
 
 - A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file

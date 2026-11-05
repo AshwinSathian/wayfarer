@@ -21,7 +21,7 @@ test("a response with no tests offers Add a test, which opens the request's Scri
   await viewer.getByRole("tab", { name: /^Tests/ }).click();
   await expect(viewer.getByText("This request has no tests.")).toBeVisible();
   await viewer.getByRole("button", { name: "Add a test" }).click();
-  const scripts = page.locator("app-composer").getByRole("tab", { name: "Scripts", exact: true });
+  const scripts = page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
   await expect(scripts).toBeFocused();
   await expect(scripts).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("app-tests-panel")).toBeVisible();

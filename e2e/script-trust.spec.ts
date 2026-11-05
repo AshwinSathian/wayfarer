@@ -232,7 +232,7 @@ for (const { width, height } of [
     const scripts =
       width < 768
         ? page.locator("app-composer button.section-header", { hasText: "Scripts" })
-        : page.locator("app-composer").getByRole("tab", { name: "Scripts", exact: true });
+        : page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
     await expect(scripts).toBeFocused();
     await expect(scripts).toHaveAttribute(width < 768 ? "aria-expanded" : "aria-selected", "true");
     await expect(page.locator(".scripts-held")).toBeVisible();
@@ -243,7 +243,7 @@ test("the review shows a script's characters as they are: no ligature joins => o
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await importFile(page, 'pm.test("arrows", () => pm.expect(1 !== 2 && 3 >= 2).to.be.true);');
-  await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+  await page.getByRole("tab", { name: /^Scripts( |$)/ }).first().click();
   await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review.locator(".script-review-code").last()).toContainText("() =>");

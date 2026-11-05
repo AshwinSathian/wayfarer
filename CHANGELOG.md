@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- A collection run's report says, beside its download buttons, that it is kept only until its tab closes or the
+  page reloads. Before, a reload took the report away and nothing had said that downloading it was the only way to
+  keep it (U-162).
+- A run's report states its counts once. Before, the sentence "4 results in 1 iteration; 1 failed; 4 of 5 tests
+  passed." sat over a summary with the same counts; the sentence is now heard by a screen reader as the run ends and
+  no longer drawn (U-191).
 - **The editors end at their last line.** The body, response and script
   editors drew an empty overview ruler down their right edge, and the body
   and response editors scrolled a page past the last line, so a six-line

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A form body's first row is not sent until it has a name.** Choosing
+  Form (URL-encoded) or Multipart, or adding a field or a part, gave a row
+  that was already checked while empty; Params and Headers stopped doing
+  that in 3.0. The row is now unchecked, and typing its name checks it, as
+  theirs do. (U-200)
 - **The Scripts tab's headings are only words.** "Pre-request script" had a play
   triangle beside it, which read as a Run button or a closed section, and
   "Post-response script" and "Tests" had icons of their own; all three are

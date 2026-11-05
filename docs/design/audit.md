@@ -2555,6 +2555,7 @@ empty row.
 Evidence: #584's body ("Not done").
 **Status:** Open, D5-e.
 **2026-11-05:** Given to phase D6 (after 3.0): severity 4; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #613 (D6-a): a URL-encoded or multipart body starts and adds its row unchecked, and the first name checks it, by the same function as Params' and Headers' rows; `body-panel.spec.ts` holds it.
 
 **U-201. A pasted cURL command takes two buttons to import.** Severity 3.
 H8. SD, TP.

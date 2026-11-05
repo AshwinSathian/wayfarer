@@ -2095,6 +2095,7 @@ Evidence: `baseline/design-chromium/composer-params-1440-light.png`
 `src/app/components/composer/composer.html:124-129`.
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #626 (D6-a): Params and Headers count the rows sent, Body, Auth, Scripts and Network carry a dot named in words ("Body (set)"), and held scripts the warning glyph ("Scripts (not reviewed)"), on the tabs and the phone's sections; `composer-tab-marks.spec.ts` holds it.
 
 **U-171. Three lines restate the tree and the tab above every saved
 request.** Severity 3. H8. SD, TP.

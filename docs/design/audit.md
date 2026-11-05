@@ -2156,6 +2156,7 @@ Evidence: `baseline/design-{chromium,firefox,webkit}/response-html-1440-dark.png
 `src/app/components/response-viewer/html-preview.ts:20` (`h-[300px]`).
 **Status:** Open, D5-c.
 **2026-11-04:** Given to phase D6 (after 3.0) in D5-c: severity 3 or 4, not a release blocker by row 1.64; the plan's D6.1 lists it.
+**2026-11-05:** Fixed in #624 (D6-a): beside the request the preview takes the pane's height, as a JSON body does, with 300 px as its minimum and its height on a phone.
 
 **U-175. A failed request explains itself twice and keeps four tabs of
 nothing.** Severity 3. H8. OC, SD.

@@ -628,6 +628,43 @@ test.describe("the response's height", () => {
     expect(box && pane && box.y + box.height <= pane.y + pane.height).toBe(true);
   });
 
+  // U-174: the HTML preview was 300 px whatever room the pane had.
+  test("an HTML preview fills the height of its pane, beside the request and under it, and keeps 300 px on a phone", async ({
+    page,
+  }) => {
+    await page.route("https://fills.test/**", (route) =>
+      route.fulfill({
+        status: 200,
+        headers: { "content-type": "text/html", "access-control-allow-origin": "*" },
+        body: "<!doctype html><h1>A page</h1>",
+      }),
+    );
+    const preview = page.locator("app-response-viewer iframe.html-preview");
+    const height = async () => (await preview.boundingBox())?.height ?? 0;
+    const endsInPane = async () => {
+      const pane = await page.locator(".response-pane").boundingBox();
+      const box = await preview.boundingBox();
+      // Its bottom is the pane's, less the body's padding: no empty pane under it.
+      return box && pane ? pane.y + pane.height - (box.y + box.height) : -1;
+    };
+    // Beside the request (1,460 px is wide enough for the panes side by side).
+    await page.setViewportSize({ width: 1460, height: 1000 });
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill("https://fills.test/page");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await expect.poll(height).toBeGreaterThan(500);
+    expect(await endsInPane()).toBeGreaterThanOrEqual(0);
+    expect(await endsInPane()).toBeLessThanOrEqual(32);
+    // Under the request, as Playwright's 1,280 by 720 puts it: the pane is short, and the preview keeps 300 px.
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect.poll(height).toBeGreaterThanOrEqual(300);
+    // On a phone the sections stack and the page scrolls: 300 px.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("tab", { name: "Response", exact: true }).click();
+    await expect.poll(height).toBe(300);
+  });
+
   // U-030 of docs/design/audit.md: the status, the tabs and the body's tools took 310 px before the body.
   test("the body starts within 240 px of the response's top: one status line, one row of tools", async ({ page }) => {
     await page.route("https://fills.test/**", (route) =>

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **An HTML response's preview fills its pane.** The preview was 300 px
+  tall however much room the pane had, so a tall window showed a small
+  white box with empty pane under it. It now takes the pane's height, as
+  a JSON body does, and keeps 300 px where the pane is shorter or the
+  page scrolls on a phone (U-174).
 - Marking a variable secret with no vault on a phone brings the whole passphrase form into the window: both fields,
   Cancel and Create vault. Before, at 390 px the page scrolled only as far as the passphrase field's edge, and the
   confirmation field and the buttons stayed under the bottom of the window, so the page looked as if nothing had

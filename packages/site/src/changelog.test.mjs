@@ -38,10 +38,21 @@ test("one entry a version, without the file's head, Unreleased named for a reade
   for (const { html } of versions) assert.doesNotMatch(html, /<h2|notable changes/);
 });
 
+// D5-d: on the day of a release, [Unreleased] has nothing in it yet; the page then has no "Coming in the next
+// release" with nothing under it.
+test("an empty Unreleased is left out", () => {
+  const versions = changelogOf("# Changelog\n\n## [Unreleased]\n\n## [3.0.0] - 2026-11-05\n\nThe redesign.\n");
+  assert.deepEqual(
+    versions.map((v) => v.title),
+    ["3.0.0"],
+  );
+});
+
 test("the repository's changelog gives every version, newest first", () => {
   const file = readFileSync(new URL("../../../CHANGELOG.md", import.meta.url), "utf8");
   const versions = changelogOf(file);
-  assert.equal(versions.length, file.match(/^## \[/gm)?.length);
+  const empty = /^## \[Unreleased\]\n\n## /m.test(file) ? 1 : 0;
+  assert.equal(versions.length, (file.match(/^## \[/gm)?.length ?? 0) - empty);
   assert.ok(versions.some((v) => v.title === "2.0.0" && v.date === "2026-10-10" && v.summary));
   for (const v of versions) assert.ok(v.id && v.html, v.title);
 });

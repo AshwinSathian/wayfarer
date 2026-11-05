@@ -74,3 +74,27 @@ test("Reset All Data removes the composer's tabs: the page starts again with one
   await expect(page.locator("input.address-url")).toHaveValue("");
   expect((await dumpIdb(page))["tabs"]).toEqual([]);
 });
+
+test("a later Wayfarer's database upgrade in another tab closes this tab's and says it was updated, not reset (TQ9)", async ({
+  page,
+}) => {
+  await page.goto("/app/");
+  await createCollection(page, "Kept");
+
+  // What a later Wayfarer does at its first open: the database at the next version, every record kept.
+  const opened = await page.evaluate(
+    () =>
+      new Promise<boolean>((resolve) => {
+        const open = indexedDB.open("wayfarer", 3);
+        open.onsuccess = () => {
+          open.result.close();
+          resolve(true);
+        };
+        open.onerror = () => resolve(false);
+      }),
+  );
+
+  expect(opened).toBe(true);
+  await expect(page.getByRole("alert").filter({ hasText: "Wayfarer was updated in another tab." })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "reset" })).toHaveCount(0);
+});

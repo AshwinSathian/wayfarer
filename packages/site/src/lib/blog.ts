@@ -51,15 +51,10 @@ export function posts(): Post[] {
     .sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
 }
 
-const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-
-/** Claim chips as `Claims` draws them, for a post's `<!-- claims C-001 C-002 -->`. */
+/** A post's `<!-- claims C-001 C-002 -->` as `Claims` draws it: IDs the tests read and a reader does not see. */
 function claimsHtml(ids: string[], claimText: (id: string) => string): string {
-  const chips = ids.map(
-    (id) =>
-      `<a href="/docs/claims/#${id}" aria-label="${escape(`Claim ${id}: ${claimText(id)}`)}" class="inline-flex min-h-6 items-center rounded-xs border border-line-strong px-1 font-code type-site-caption text-ink-muted no-underline hover:border-action hover:text-action">${id}</a>`,
-  );
-  return `<span class="claims ml-1 inline-flex flex-wrap gap-1 align-[0.1em]" data-claims="${ids.join(" ")}">${chips.join("")}</span>`;
+  ids.forEach(claimText);
+  return `<span hidden data-claims="${ids.join(" ")}"></span>`;
 }
 
 /**

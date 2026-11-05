@@ -150,14 +150,15 @@ export function recordLines(record: ExchangeRecord, keeper: "history" | "run" = 
       : record.kept.quoteLeftOut
         ? `${who} ${request}, and the response's status and headers, not its body.`
         : `${who} ${request} and the response's status and headers, not its body.`;
+  // A failed send leads with what was reported (U-175), and says what it filled or masked only when it did: "No
+  // vault secret was filled" answers a question nobody asked of a request that got no answer.
+  const failure = record.failure;
   return [
+    ...(failure ? [{ field: "failure" as const, parts: ["What was reported: ", { wire: failure.reported }] }] : []),
     { field: "route", parts: route },
-    { field: "secrets", parts: secrets },
-    { field: "masked", parts: maskedLine },
+    ...(failure && !record.secrets.length ? [] : [{ field: "secrets" as const, parts: secrets }]),
+    ...(failure && !parts.length ? [] : [{ field: "masked" as const, parts: maskedLine }]),
     { field: "kept", parts: [kept] },
-    ...(record.failure
-      ? [{ field: "failure" as const, parts: ["What was reported: ", { wire: record.failure.reported }] }]
-      : []),
   ];
 }
 

@@ -116,8 +116,14 @@ code errors.
   (`angular.json`'s assets). A brand file is written from the tokens
   (`npm run gen:tokens`, `npm run gen:brand`), never by hand.
 - A sentence of the site that says what Wayfarer does names its claims
-  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`);
-  `e2e/site.spec.ts` holds every ID named to `docs/claims.md`. The
+  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`;
+  a blog post's `<!-- claims C-NNN -->`), out of sight: it draws a
+  `hidden` span whose `data-claims` the tests read, and the build fails on
+  an ID `docs/claims.md` has not got. `e2e/site.spec.ts` holds every ID
+  named to the ledger, and no page a reader opens shows one (maintainer,
+  2026-11-05, PLAN-design row 1.74). The claims page is one link, the
+  footer's "How we test what we say": no chip, ID or second link to it on
+  the landing or in the header. The
   pictures of the app are `scripts/site-screenshot.mjs`'s: take them again
   when the app they show changes. Lighthouse (mobile) holds the site to
   95, 100 and 100 (`check-lighthouse.mjs --site`).

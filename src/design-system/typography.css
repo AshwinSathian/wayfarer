@@ -45,6 +45,7 @@
 
 .type-mono-body {
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
   font-size: var(--type-mono-body-size);
   line-height: var(--type-mono-body-line);
   font-weight: var(--type-mono-body-weight);

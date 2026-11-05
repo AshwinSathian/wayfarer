@@ -46,6 +46,7 @@ import { EnvironmentsManager } from "../environments/environments-manager";
 import { HolderSettings } from "../collections/holder-settings";
 import { SecretsVault } from "../../services/secrets-vault";
 import { ScriptsPanel } from "./scripts-panel";
+import { TabMark } from "./tab-mark";
 import { TabStrip } from "./tab-strip";
 import { VariableChips } from "./variable-chips";
 
@@ -99,6 +100,7 @@ const BESIDE_MIN: readonly [number, number] = [28, 22];
     RunView,
     SocketView,
     AiDrafted,
+    TabMark,
   ],
   providers: [ComposerView],
   // The request tabs' container: their list is in the strip, the open one's panel here.

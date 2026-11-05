@@ -43,6 +43,7 @@ function shown(text: string): string {
       background: var(--canvas-panel);
       border: 1px solid var(--separator);
       font-family: var(--font-mono);
+      font-variant-ligatures: none;
       font-size: var(--type-mono-body-size);
       line-height: var(--type-mono-body-line);
       white-space: pre;

@@ -9,7 +9,7 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const composer = page.locator(".composer-pane");
-  const tab = (name: string) => composer.getByRole("tab", { name, exact: true });
+  const tab = (name: string) => composer.getByRole("tab", { name: new RegExp(`^${name}( |$)`) });
 
   await tab("Headers").focus();
   await expect(tab("Headers")).toHaveAttribute("aria-selected", "true");
@@ -58,7 +58,7 @@ test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({
 test("headers and body: Bulk edit and the body type are driven from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  await page.getByRole("tab", { name: "Headers", exact: true }).click();
+  await page.getByRole("tab", { name: /^Headers( |$)/ }).click();
   await page.getByLabel("Header name, 1 of 1").fill("Accept");
   await page.getByLabel("Value of Accept").fill("*/*");
 
@@ -79,7 +79,7 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await expect(page.getByRole("checkbox", { name: "Send X-Off" })).not.toBeChecked();
 
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
-  const bodyTab = page.getByRole("tab", { name: "Body", exact: true }).first();
+  const bodyTab = page.getByRole("tab", { name: /^Body( |$)/ }).first();
   await bodyTab.focus();
   const type = page.getByRole("combobox", { name: "Body type", exact: true });
   await type.focus();
@@ -97,7 +97,7 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
-  const header = (name: string) => page.getByRole("button", { name, exact: true });
+  const header = (name: string) => page.getByRole("button", { name: new RegExp(`^${name}( |$)`) });
   // Params is open first (U-017).
   await expect(header("Params")).toHaveAttribute("aria-expanded", "true");
 
@@ -238,10 +238,10 @@ test("collection context menu: arrow keys reach every action and Escape closes i
     "New folder",
     "New request",
     "Collection settings…",
-    "Rename",
+    "Rename F2",
     "Duplicate",
     "Export…",
-    "Delete",
+    "Delete Delete",
   ]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
@@ -597,7 +597,10 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
 
   // Shift+F10 opens the row's menu; Escape closes it and focus returns to the row.
   await page.keyboard.press("Shift+F10");
-  await expect(page.getByRole("menuitem")).toHaveText(["Rename", "Duplicate", "Delete"]);
+  // Each key the tree takes is written beside its item (U-178).
+  await expect(page.getByRole("menuitem")).toHaveText(["Rename F2", "Duplicate", "Delete Delete"]);
+  await expect(page.getByRole("menuitem", { name: "Rename" })).toHaveAttribute("aria-keyshortcuts", "F2");
+  await expect(page.getByRole("menuitem", { name: "Delete" })).toHaveAttribute("aria-keyshortcuts", "Delete");
   await expect(page.getByRole("menuitem").first()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
@@ -642,7 +645,10 @@ test("Send and Save have keys (U-032): Enter in the address, ⌘↵ or Ctrl+Ente
   // From inside Monaco, which would otherwise insert a line: the keys are read before it.
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await address.fill(`${ECHO}/status/201`);
-  await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Body( |$)/ })
+    .first()
+    .click();
   await page.getByRole("combobox", { name: "Body type", exact: true }).focus();
   await page.keyboard.press("ArrowDown");
   const editor = page.locator(".monaco-editor").first();

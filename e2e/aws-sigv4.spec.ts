@@ -84,7 +84,10 @@ test("@claim:C-061 AWS Signature: the signature that arrives is the one computed
   );
 
   // Chosen and typed in the Auth tab, as a user would.
-  await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
+  await page
+    .getByRole("tab", { name: /^Auth( |$)/ })
+    .first()
+    .click();
   await page.locator("#auth-type-select").click();
   await page.getByRole("option", { name: "AWS Signature", exact: true }).click();
   await page.locator("#auth-aws-access-key").fill(ACCESS);

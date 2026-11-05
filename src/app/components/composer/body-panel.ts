@@ -6,6 +6,7 @@ import { isBodyMethod, type BodyMode, type MultipartPart, type RawLanguage } fro
 import { GraphqlSchemas } from "../../services/graphql-schemas";
 import { RequestFiles } from "../../services/request-files";
 import { Icon } from "../../shared/icon/icon";
+import { blankRow } from "../../state/tab-state";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { JsonEditor } from "../json-editor/json-editor";
 import { GraphqlExplorer } from "./graphql-explorer";
@@ -13,6 +14,9 @@ import { MultipartEditor } from "./multipart-editor";
 import { RowsEditor } from "./rows-editor/rows-editor";
 import { UiSelect } from "../../ui/select";
 import { UiFile } from "../../ui/file";
+
+/** A form's blank part: text, and not sent until it has a name, as the blank row is (U-200). */
+const blankPart = (): MultipartPart => ({ kind: "text", ...blankRow() });
 
 /** The request body: none, text in a language, form fields, multipart parts, one file, or a GraphQL query with its variables. */
 @Component({
@@ -99,8 +103,8 @@ export class BodyPanel {
     this.store.setBody({
       mode,
       raw: body.raw ?? { language: "json", text: "" },
-      urlencoded: body.urlencoded?.length ? body.urlencoded : [{ key: "", value: "", enabled: true }],
-      multipart: body.multipart?.length ? body.multipart : [{ kind: "text", key: "", value: "", enabled: true }],
+      urlencoded: body.urlencoded?.length ? body.urlencoded : [blankRow()],
+      multipart: body.multipart?.length ? body.multipart : [blankPart()],
       ...(mode === "graphql" && { graphql: body.graphql ?? { query: "", variables: "" } }),
     });
   }
@@ -110,7 +114,7 @@ export class BodyPanel {
   }
 
   protected addField(): void {
-    this.store.setBody({ urlencoded: [...(this.body().urlencoded ?? []), { key: "", value: "", enabled: true }] });
+    this.store.setBody({ urlencoded: [...(this.body().urlencoded ?? []), blankRow()] });
   }
 
   protected removeField(index: number): void {
@@ -118,7 +122,7 @@ export class BodyPanel {
   }
 
   protected addPart(): void {
-    this.setParts([...this.parts(), { kind: "text", key: "", value: "", enabled: true }]);
+    this.setParts([...this.parts(), blankPart()]);
   }
 
   protected removePart(index: number): void {

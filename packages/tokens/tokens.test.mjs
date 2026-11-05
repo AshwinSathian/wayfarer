@@ -298,6 +298,18 @@ test("no rule sets the mono face at the footnote size", () => {
   assert.deepEqual(found, []);
 });
 
+// U-180: a value shows its characters (U-040). JetBrains Mono joins `=>`, `!=` and `===` into one glyph unless told not
+// to, so every rule that sets the mono face turns its ligatures off; Monaco turns its own off (editorText).
+test("every rule that sets the mono face turns its ligatures off", () => {
+  const found = [];
+  const sheets = [...sources(/\.(css|scss|ts)$/, (file) => file.endsWith(".spec.ts")), ...siteSources(/\.css$/)];
+  for (const [file, text] of sheets)
+    for (const block of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+      if (/font-family:\s*var\(--font-(mono|code)\)/.test(block[2]) && !/font-variant-ligatures:\s*none/.test(block[2]))
+        found.push(`${file}: ${block[1].trim()}`);
+  assert.deepEqual(found, []);
+});
+
 // U-197 (DQ11): hue means a method or a status. The device's own state (the route chosen, the vault open, the
 // environment in use) is not drawn in success's green.
 test("the shell's device state is not drawn in a status colour", () => {

@@ -172,7 +172,7 @@ for (const theme of ["light", "dark"] as const) {
     for (const width of [360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       // On a phone the composer's sections are an accordion: Body is opened again when it is not the open one.
-      if (!(await explorer(page).isVisible())) await page.getByRole("button", { name: "Body", exact: true }).click();
+      if (!(await explorer(page).isVisible())) await page.getByRole("button", { name: /^Body( |$)/ }).click();
       await expect(explorer(page)).toBeVisible();
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), {

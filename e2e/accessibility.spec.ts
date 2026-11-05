@@ -196,7 +196,10 @@ test.describe("Accessibility (primary flows)", () => {
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
       for (const tab of ["Params", "Auth", "Scripts"]) {
-        await page.locator("app-composer").getByRole("tab", { name: tab, exact: true }).click();
+        await page
+          .locator("app-composer")
+          .getByRole("tab", { name: new RegExp(`^${tab}( |$)`) })
+          .click();
         await scan(`composer ${tab}`);
       }
       for (const tab of ["Headers", "Timings", "Tests"]) {
@@ -280,7 +283,10 @@ test.describe("Accessibility (primary flows)", () => {
       await expect(environments).toHaveCount(0);
       await closeEnvironments(page);
 
-      await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
+      await page
+        .locator("app-composer")
+        .getByRole("tab", { name: /^Auth( |$)/ })
+        .click();
       await page.locator("app-composer").getByRole("combobox", { name: "Type" }).click();
       await page.getByRole("option", { name: "Inherit from parent" }).click();
       await expect(page.locator(".auth-inherited")).toBeVisible();

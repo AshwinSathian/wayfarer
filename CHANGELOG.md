@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **An HTML response's preview fills its pane.** The preview was 300 px
+  tall however much room the pane had, so a tall window showed a small
+  white box with empty pane under it. It now takes the pane's height, as
+  a JSON body does, and keeps 300 px where the pane is shorter or the
+  page scrolls on a phone (U-174).
+
 ## [3.0.0] - 2026-11-05
 
 The redesign. Every screen of the app was rebuilt from the findings of a

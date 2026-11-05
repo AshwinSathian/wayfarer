@@ -6,12 +6,12 @@ import { pageMeta } from "../../lib/meta";
 import { BEHIND, BENCHMARK_SOURCE, Cite, RIVALS } from "../../lib/rivals";
 import { compareIndexGraph } from "../../lib/structured-data";
 
-const TITLE = "Postman alternatives compared: Bruno, Yaak, Insomnia, Hoppscotch";
+const TITLE = "Postman alternatives compared: Bruno, Yaak, Insomnia, Hoppscotch, Scalar";
 
 export const metadata = pageMeta(
   "/compare/",
   TITLE,
-  "Wayfarer, an API client in a browser tab, beside Postman, Bruno, Yaak, Hoppscotch and Insomnia: a table at a glance, eight tasks counted, where each is ahead, every fact sourced and dated.",
+  "Wayfarer, an API client in a browser tab, beside Postman, Bruno, Yaak, Hoppscotch, Insomnia and Scalar: a table at a glance, eight tasks counted, where each is ahead, every fact sourced and dated.",
 );
 
 const LINKS = "[&_a]:text-action [&_a]:underline [&_a]:underline-offset-4";
@@ -30,7 +30,7 @@ export default function Compare() {
       title="Postman alternatives, compared"
       lede={
         <p>
-          Six API clients, each described from its own pages, with the date each page was read. Wayfarer runs in a
+          Seven API clients, each described from its own pages, with the date each page was read. Wayfarer runs in a
           browser tab with nothing to install and no account. <Claims ids={["C-001"]} /> Where it is behind is listed
           below, each point against the rivals ahead of it.
         </p>

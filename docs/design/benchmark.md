@@ -89,8 +89,8 @@ What each task ends on, and how it gets there, is
 
 ## The rivals, documented
 
-Read from each rival's own documentation on 2026-11-04; nothing here was
-run. An input is an action, as above. "(inferred)" marks a count where the
+Read from each rival's own documentation on 2026-11-04, Scalar's on
+2026-11-05; nothing here was run. An input is an action, as above. "(inferred)" marks a count where the
 docs say what to do but not every click; "not documented" means no page
 read covers it; "cannot" means a page says the product does not do it.
 Task 5 counts the inputs after the send that it takes to see the evidence:
@@ -107,6 +107,7 @@ copied (row 1.64).
 - **Yaak**: 2026.9.0, 10 Oct 2026; a 2026.9.1 patch has no date (https://yaak.app/changelog/2026.9.0). Desktop app; no account; a work licence. Yaak Web exists and sends through a proxy.
 - **Hoppscotch**: 2026.10.0, 30 Oct 2026 (https://github.com/hoppscotch/hoppscotch/releases; blog post dated 29 Oct). Web app without an account; desktop app; CLI.
 - **Insomnia**: 13.4.0, 29 Oct 2026 (https://github.com/Kong/insomnia/releases; the docs describe 13.x). Desktop app; Scratch Pad without an account.
+- **Scalar**: API Client 1.1.43, 23 Oct 2026 (https://scalar.com/resources/changelog/api-client). Browser version at client.scalar.com, which sends through proxy.scalar.com by default, with no account stated; desktop app for macOS, Windows and Linux. Read on 2026-11-05.
 - **Linear** (screenshots only): docs and changelog as of 2026-11-04; latest changelog entry 22 Oct 2026 (https://linear.app/changelog).
 
 ### Task 1: First request from nothing
@@ -118,6 +119,7 @@ copied (row 1.64).
 | Yaak | Cmd+N, URL, Cmd+Enter | 3 (inferred) | Desktop install | https://yaak.app/docs/request-types/http-requests ; https://yaak.app/docs/getting-started/keyboard-shortcuts | 4 if Cmd+N asks for a type |
 | Bruno | +, URL, Enter, Cmd+Enter | 4 (inferred) | Desktop install | https://docs.usebruno.com/get-started/bruno-basics/create-a-request ; https://docs.usebruno.com/get-started/configure/keybindings | 3 if Enter sends |
 | Insomnia | as documented on the requests page | 6 | Desktop install; "Use the local Scratch Pad" (no account) | https://developer.konghq.com/insomnia/requests/ ; https://developer.konghq.com/insomnia/storage/ | 8 if the collection must be named (inferred) |
+| Scalar | URL, Send | 2 (inferred; a blank request and the default method are not documented) | None stated (browser). Requests go through proxy.scalar.com by default | https://scalar.com/products/api-client/getting-started ; https://scalar.com/resources/changelog/api-client (1.1.1) | CORS is worked around by Scalar's own proxy, not by an install |
 
 ### Task 2: Import a Postman collection with scripts and run it
 
@@ -128,6 +130,7 @@ copied (row 1.64).
 | Hoppscotch | Import, Postman, file (2), consent, Import; right-click, Run Collection, Run | 9 (consent and Run inferred) | None | https://docs.hoppscotch.io/documentation/features/importer ; https://docs.hoppscotch.io/documentation/features/runner | Scripts import as "experimental", after a consent prompt |
 | Yaak | Import 8, Send All 2 | 10 | Desktop | https://yaak.app/docs/migration/postman ; https://yaak.app/docs/advanced/running-multiple-requests | **Task not met**: scripts are not imported, and Send All is not an ordered run |
 | Postman | Import 4, run 7 | 11 | Sign-in and a workspace | https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/ ; https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/ | 9 if Functional and Local are preselected (inferred). No script review documented |
+| Scalar | Add Item (⌘K), Import from …/Postman, file (2); run not documented | 4 for the import (inferred in part); run not documented | None stated | https://scalar.com/products/api-client/import | Postman import converts "Requests, folders, and basic authentication settings"; scripts not mentioned |
 
 ### Task 3: Add an environment and switch to it
 
@@ -138,6 +141,7 @@ copied (row 1.64).
 | Postman | Create, name, variable, save; selector open and pick (inferred) | 7 | Sign-in and a workspace | https://learning.postman.com/docs/sending-requests/variables/managing-environments/ | Values are "local" or "shared" (cloud) |
 | Yaak | Create 6 (inferred), header dropdown, select | 8 (inferred) | Desktop | https://yaak.app/docs/templating/environments-and-variables | Only the switch is written out |
 | Hoppscotch | Icon, new, name, variable, value, save; selector, pick | 8 (save and selector inferred) | None | https://docs.hoppscotch.io/documentation/getting-started/rest/environment-variables | |
+| Scalar | Collection settings, Add Environment, name, colour, key, value; globe, pick | 9 (settings inferred) | A collection | https://scalar.com/products/api-client/environments | Collection environments export with the document; workspace environments do not |
 
 ### Task 4: Use a secret without it touching disk
 
@@ -150,6 +154,7 @@ No rival documents a secret that never touches disk in its free product. Where t
 | Postman | Local Vault: key, add secret, reference it | 8 | Sign-in and a workspace | https://learning.postman.com/docs/use/postman-vault/manage-vault-secrets.md ; https://learning.postman.com/docs/use/postman-vault/postman-vault-key.md | On disk, AES-256; key in the OS password manager; not synced. Shared Vault is in the cloud |
 | Insomnia | Vault key, private sub-environment, secret variable, select | about 12 (inferred) | Desktop | https://developer.konghq.com/insomnia/environments/ | On disk, "locally in encrypted form"; not synced or exported. "Confidential" variables are plaintext |
 | Hoppscotch | — | cannot | — | https://docs.hoppscotch.io/support/security-policy | "Secret" variables are kept in the client's local store (localStorage in the web app): off the server, not off disk |
+| Scalar | — | not documented | None stated | https://scalar.com/products/api-client/authentication ; https://scalar.com/resources/changelog/api-client (1.0.13) | No secret type documented; "Credentials are persisted in your workspace", which is "IndexedDB-backed": on disk (inferred) |
 
 ### Task 5: Find why a request failed (CORS, DNS, 401)
 
@@ -162,6 +167,7 @@ Inputs are counted after the send. No rival's docs say the product names the cau
 | Bruno | Desktop; no CORS page (inferred: does not apply) | Not documented; Timeline has a DNS timing | Status shown; Timeline, Request: 1–2 (inferred) shows auth as resolved | https://docs.usebruno.com/debugging/timeline ; https://docs.usebruno.com/send-requests/res-data-cookies/res-data |
 | Yaak | Does not apply (desktop; Yaak Web proxies) | Not documented; user reports show raw errors ("reqwest::Error … HostUnreachable … No route to host", 26 Aug 2025). Timeline: 1 (inferred) | Status shown; Request or Timeline tab: 1 (inferred) | https://yaak.app/docs/troubleshooting/troubleshooting ; https://yaak.app/changelog/2026.1.0 (19 Jan 2026) ; https://yaakapp.featurebase.app/p/unexpected-hostunreachable-error |
 | Insomnia | Does not apply (desktop; no doc mentions CORS, inferred) | Not documented | Status badge; Console: 1 (inferred) shows headers as sent | https://developer.konghq.com/insomnia/requests.md |
+| Scalar | "Failed requests remain visible with guidance about possible CORS or network causes" (1.1.36): CORS and network not told apart; in the browser the default proxy avoids CORS (inferred). Inputs not documented | Same "possible CORS or network causes" (inferred). Not documented | Not documented | https://scalar.com/resources/changelog/api-client (1.1.36, 1.1.1) |
 
 ### Task 6: Send the same request to a teammate
 
@@ -172,6 +178,7 @@ Inputs are counted after the send. No rival's docs say the product names the cau
 | Hoppscotch | Save menu, Share Request, Link, Create, Copy | 5 | Sign-in | https://docs.hoppscotch.io/documentation/features/widgets.md | Variables not resolved; an app string warns that credentials in the request are readable by anyone with the link |
 | Bruno | Export collection | 5 (inferred) | Desktop | https://docs.usebruno.com/get-started/import-export-data/export-collections | Whole collection, not one request; secret variables left out. Git UI: 14 (Pro or Ultimate for push) |
 | Insomnia | — | not documented | — | https://developer.konghq.com/insomnia/organizations.md ; https://developer.konghq.com/insomnia/run-in-insomnia.md | No single-request share or copy as cURL in current docs. Organisation invite: 5 (account) |
+| Scalar | Code snippet: picker, language, copy | 3 (inferred) | None stated | https://scalar.com/products/api-client/code-generation | No share link documented. Snippets resolve `{{ environment variables }}` to their values; no masking stated. Team workspaces need sign-in (plan not stated) |
 
 ### Task 7: Run a collection with a data file and read the report
 
@@ -182,6 +189,7 @@ Inputs are counted after the send. No rival's docs say the product names the cau
 | Insomnia | App: collection, Run Collection, Upload Data, file (2), Run, Tests or Console | 7 (upload inferred) | Desktop | https://developer.konghq.com/how-to/use-the-collection-runner/ | CLI `inso run collection -d`: 2 (inferred). The docs describe no report; requests appear in Console |
 | Postman | App runner with data file | 11 | Sign-in and a workspace | https://learning.postman.com/docs/collections/running-collections/working-with-data-files/ | Report: summary row, filters, grouped by iteration. Run details last the session; export is desktop only |
 | Yaak | — | cannot | — | https://yaak.app/docs/advanced/running-multiple-requests ; https://yaak.app/feedback/posts/data-runner-yaak-plugin | "Yaak has no collection runner UI"; data runs under consideration |
+| Scalar | — | not documented | — | https://scalar.com/products/api-client/testing ; https://scalar.com/tools/cli/commands | No runner, data file or report in the docs; the CLI has no command that sends requests |
 
 ### Task 8: Find a request sent last week
 
@@ -192,12 +200,13 @@ Inputs are counted after the send. No rival's docs say the product names the cau
 | Postman | History tab, search, entry | 3 (inferred) | None (syncs when signed in) | https://learning.postman.com/latest-v-12/docs/getting-started/basics/navigating-postman | The only rival with a documented history search. No retention or date filter documented. Console keeps 24 hours, so last week's sent headers are gone |
 | Insomnia | — | not documented | — | https://developer.konghq.com/insomnia/requests.md | Screenshots show a per-request response history dropdown (3 inferred if the request is known); no global history |
 | Yaak | — | not documented | — | https://yaak.app/feedback/posts/save-request-data-for-response-history | Per-response history button in screenshots; no docs on opening, search or retention |
+| Scalar | — | not documented | — | https://scalar.com/products/api-client/keyboard-shortcuts ; https://scalar.com/resources/changelog/api-client | No docs page or release note describes history |
 
 ### Summary: fewest documented inputs
 
 | Task | Fewest | Rival |
 |---|---|---|
-| 1 | 2 | Hoppscotch (web, CORS-permitting target) |
+| 1 | 2 | Hoppscotch (web, CORS-permitting target); Scalar (inferred, through its proxy) |
 | 2 | 8 | Insomnia (Bruno and Hoppscotch 9) |
 | 3 | 5 (2 inferred) | Insomnia |
 | 4 | none off disk in a free product | Bruno 3 (inferred) keeps it encrypted on disk; off disk only with Bruno Ultimate's secret managers |
@@ -247,7 +256,7 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 
 | # | Task | Wayfarer | Fewest documented | Wayfarer is |
 |---|---|---|---|---|
-| 1 | First request from nothing | 2 | 2 (Hoppscotch, a target that allows CORS) | Tied, and Wayfarer's count holds for any target the bridge reaches |
+| 1 | First request from nothing | 2 | 2 (Hoppscotch, a target that allows CORS; Scalar, inferred, through its proxy) | Tied, and Wayfarer's count holds for any target the bridge reaches |
 | 2 | Import a Postman collection with scripts and run it | 7 (was 11) | 8 (Insomnia) | Fastest, by 1 (was behind by 3) |
 | 3 | Add an environment and switch to it | 8 (was 11) | 5, 2 of them inferred (Insomnia) | Behind by 3 (was 6) |
 | 4 | Use a secret without it touching disk | 18 (was 20) | None: no free rival keeps a secret off disk | The only one that does it |

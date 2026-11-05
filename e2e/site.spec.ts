@@ -180,7 +180,7 @@ test("each comparison page cites a source with its date for every fact about a r
       path,
     ).toEqual([]);
   }
-  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia"]) {
+  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia", "scalar"]) {
     await page.goto(`/compare/${rival}/`);
     // Each fact and each "ahead" line is an item with its citation.
     for (const list of ["facts", "ahead"]) {
@@ -202,7 +202,7 @@ test("each comparison page sets Wayfarer's recorded numbers beside the rival's d
   request,
 }) => {
   const recordings = new Set<string>();
-  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia"]) {
+  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia", "scalar"]) {
     await page.goto(`/compare/${rival}/`);
     const glance = page.getByRole("region", { name: /at a glance$/ }).locator("tbody tr");
     expect(await glance.count(), rival).toBe(8);
@@ -239,7 +239,7 @@ test("each comparison page sets Wayfarer's recorded numbers beside the rival's d
   await page.goto("/compare/");
   expect(
     await page.getByRole("region", { name: "Wayfarer and its rivals at a glance" }).locator("thead th").count(),
-  ).toBe(7);
+  ).toBe(8);
   expect(
     await page
       .getByRole("region", { name: /^Eight tasks/ })
@@ -253,7 +253,7 @@ test("each comparison page sets Wayfarer's recorded numbers beside the rival's d
 // the steps of Moving from Postman each said something no claim held (the licence, the protocols).
 test("every sentence about Wayfarer on the comparison pages names a claim or cites a source", async ({ page }) => {
   const lists: [string, string][] = [
-    ...["postman", "bruno", "yaak", "hoppscotch", "insomnia"].map((rival): [string, string] => [
+    ...["postman", "bruno", "yaak", "hoppscotch", "insomnia", "scalar"].map((rival): [string, string] => [
       `/compare/${rival}/`,
       "#differs + ul > li",
     ]),

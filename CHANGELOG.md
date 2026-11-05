@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Marking a variable secret with no vault on a phone brings the whole passphrase form into the window: both fields,
+  Cancel and Create vault. Before, at 390 px the page scrolled only as far as the passphrase field's edge, and the
+  confirmation field and the buttons stayed under the bottom of the window, so the page looked as if nothing had
+  happened (U-183).
+
 ### Changed
 
 - A cURL command pasted into the Import dialog is read by its Import button, which opens the same report a file

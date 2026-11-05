@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **OAuth's redirect URI can be copied.** In Auth › OAuth 2.0, the address
+  to register with the identity provider is now a read-only field with a
+  Copy button, which says when it has copied. It used to be plain text with
+  no Copy, and it could break anywhere, even inside "http" on a phone. (U-176)
 - **Code and values show the characters they hold.** Text in the
   monospace face drew JetBrains Mono's ligatures, so the script review
   showed `=>` as an arrow and joined `!=`, `>=` and `===` into single

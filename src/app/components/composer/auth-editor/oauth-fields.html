@@ -1,5 +1,7 @@
 @let current = auth();
 <div class="flex flex-col gap-3">
+  <!-- There from the first render, outside every @if: what the redirect URI's Copy did (U-075). -->
+  <p class="sr-only" role="status">{{ copyStatus.text() }}</p>
   <div class="flex flex-wrap items-center gap-x-3">
     <span class="ds-form-label basis-full" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
     <ui-select
@@ -29,8 +31,6 @@
       >Copy</button
     >
   </div>
-  <!-- There from the first render: what the copy did (U-075). -->
-  <p class="sr-only" role="status">{{ copyStatus.text() }}</p>
   @if (copyStatus.text()) {
   <p class="type-footnote text-label-secondary -mt-2" aria-hidden="true">{{ copyStatus.text() }}</p>
   } } @if (current.grant === 'password') {

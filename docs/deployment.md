@@ -147,6 +147,18 @@ Rollback switches traffic to an earlier uploaded version immediately; it
 doesn't rebuild. It can't undo anything stored in users' browsers. See
 [`runbook.md`](runbook.md) for the service-worker and data caveats.
 
+The site at `/` and the app at `/app/` are one deploy (`dist/deploy`), so
+one rollback takes both back to that version; neither can be rolled back
+alone. To check each after a rollback:
+
+- **The site:** `curl -s https://wayfarer.ashwinsathian.com/version.json`
+  names the version rolled back to, and `/` loads.
+- **The app:** an open tab keeps the version its service worker holds
+  until the app's banner says "A new version of Wayfarer is ready. Reload
+  to use it." and the person reloads; Settings shows the version. A version from before the app moved to
+  `/app/` needs the steps in [`runbook.md`](runbook.md), "After the deploy
+  that moves the app to `/app/` (W1)".
+
 ## Headers & CSP
 
 [`packages/site/public/_headers`](../packages/site/public/_headers), the

@@ -9,6 +9,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The keys of the collections tree and the request tabs are written down. The tree's menu shows F2 beside Rename and
+  Delete beside Delete, a tab's menu shows F2 beside Rename and Delete beside Close tab, and Settings › Shortcuts
+  lists F2 (rename), Alt with ↑ or ↓ (⌥ on a Mac; move an item among its siblings) and Shift+F10 (⇧F10 on a Mac;
+  open the item's menu). Before, all of these worked but none was shown anywhere (U-178).
 - **OAuth's redirect URI can be copied.** In Auth › OAuth 2.0, the address
   to register with the identity provider is now a read-only field with a
   Copy button, which says when it has copied. It used to be plain text with

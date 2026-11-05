@@ -141,10 +141,12 @@ export class TabStrip {
   protected menuFor(tab: TabState, event: MouseEvent): void {
     const button = event.currentTarget as HTMLElement;
     this.menuItems.set([
-      ...(tab.document ? [] : [{ label: "Rename", icon: "edit" as const, command: () => this.rename(tab, button) }]),
+      ...(tab.document
+        ? []
+        : [{ label: "Rename", icon: "edit" as const, keys: "F2", command: () => this.rename(tab, button) }]),
       { label: "Duplicate tab", icon: "content_copy", command: () => this.duplicate(tab) },
       { separator: true },
-      { label: "Close tab", icon: "close", command: () => void this.close(tab) },
+      { label: "Close tab", icon: "close", keys: "Delete", command: () => void this.close(tab) },
     ]);
     this.menu().openAt(event, () => button.focus());
   }

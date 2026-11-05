@@ -27,10 +27,10 @@ export function buildContextItems(
       { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Collection settings…", icon: "settings", command: () => dispatch("settings", node) },
       { separator: true },
-      { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+      { label: "Rename", icon: "edit", keys: "F2", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Export…", icon: "download", command: () => dispatch("export", node) },
-      { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
+      { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
     ];
   }
 
@@ -39,15 +39,15 @@ export function buildContextItems(
       { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
       { label: "New request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Folder settings…", icon: "settings", command: () => dispatch("settings", node) },
-      { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+      { label: "Rename", icon: "edit", keys: "F2", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
-      { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
+      { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
     ];
   }
 
   return [
-    { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+    { label: "Rename", icon: "edit", keys: "F2", command: () => dispatch("rename", node) },
     { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
-    { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
+    { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
   ];
 }

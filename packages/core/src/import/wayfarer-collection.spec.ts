@@ -203,6 +203,34 @@ describe("collection-io", () => {
     ],
   });
 
+  it("names each item by the id it is stored under, whatever its id beside that says", () => {
+    // The stores are keyed by meta.id: a file whose id said "looks-new" showed New while Import replaced the
+    // stored collection with that meta.id, and a request's hid that it moves here.
+    const file = validExport();
+    file.collection.id = "looks-new";
+    file.folders[0].id = "looks-new-folder";
+    file.requests[0].id = "looks-new-request";
+
+    const result = importCollection(file);
+
+    expect(result.plan!.map((entry) => entry.id)).toEqual(["col-1", "f-parent", "f-child", "r-1", "r-2"]);
+    const { collection, folders, requests } = result.payload!;
+    for (const doc of [collection, ...folders, ...requests]) expect(doc.id).toBe(doc.meta.id);
+  });
+
+  it("keeps a child under its folder when a duplicate is imported from a file whose ids differ from meta.id", () => {
+    // A duplicated collection is stored with an id beside meta.id that differs; children name meta.id.
+    const file = validExport();
+    file.folders[1].id = "other";
+    file.requests[0].id = "other-request";
+
+    const { folders, requests } = importCollection(file, { duplicateAsNew: true }).payload!;
+
+    const [parent, child] = folders;
+    expect(child.parentFolderId).toBe(parent.meta.id);
+    expect(requests.find((request) => request.name === "Login")!.folderId).toBe(child.meta.id);
+  });
+
   it("names every problem in a malformed file by its path", () => {
     const broken = {
       $id: "wayfarer/collection",

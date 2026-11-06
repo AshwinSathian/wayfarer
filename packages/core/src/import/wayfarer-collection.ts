@@ -157,7 +157,7 @@ function buildPlan(payload: CollectionExport, duplicate: boolean): CollectionImp
     {
       type: "collection",
       name: payload.collection.name,
-      id: payload.collection.id ?? payload.collection.meta.id,
+      id: payload.collection.meta.id,
       action,
     },
   ];
@@ -166,7 +166,7 @@ function buildPlan(payload: CollectionExport, duplicate: boolean): CollectionImp
     entries.push({
       type: "folder",
       name: folder.name,
-      id: folder.id ?? folder.meta.id,
+      id: folder.meta.id,
       action,
     });
   }
@@ -175,7 +175,7 @@ function buildPlan(payload: CollectionExport, duplicate: boolean): CollectionImp
     entries.push({
       type: "request",
       name: request.name || request.url,
-      id: request.id ?? request.meta.id,
+      id: request.meta.id,
       action,
     });
   }
@@ -324,9 +324,12 @@ function touchMeta(meta: Collection["meta"]): Collection["meta"] {
   return { ...meta, updatedAt: Date.now() };
 }
 
+/**
+ * One identity: an item is stored under `meta.id` (the stores' key) and its children name that, so `id` is made the
+ * same. A file's own `id` beside it named one item in the report while Import replaced another. The app's own
+ * duplicates are stored with the two apart, so a file that has them apart is not refused.
+ */
 function ensureDocId<T extends { meta: { id: string }; id?: string }>(doc: T): T {
-  if (!doc.id) {
-    (doc as T & { id: string }).id = doc.meta.id;
-  }
+  (doc as T & { id: string }).id = doc.meta.id;
   return doc;
 }

@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-11-07
+
+Sharing gets its page in the docs, with seven claims that each have a
+test, and Duplicate of a collection gives each copy one ID.
+
+Your data carries over: 3.2.1 opens the same database as 3.2.0, under the
+same name and version.
+
 ### Added
 
 - [Sharing](docs/sharing.md), a new page of the docs: sharing a collection as a file or a link, the code, the

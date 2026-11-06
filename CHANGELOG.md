@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
+  the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
+  each part, and every place the site said something false, old or vague, such as sharing by link
+  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
+
 ### Changed
 
 - The landing's recordings are taken again from today's app: two of the three showed an older
@@ -14,13 +21,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   opening it, typing its code and reading the report before anything is stored.
 - Each recording now shows its picture of the app with a Play button, in place of the browser's
   control bar and loading circle drawn over it. Without script the browser's controls stay.
-
-### Added
-
-- The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
-  the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
-  each part, and every place the site said something false, old or vague, such as sharing by link
-  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
 
 ### Fixed
 

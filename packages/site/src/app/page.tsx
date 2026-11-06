@@ -14,12 +14,12 @@ import { JsonLd } from "../components/JsonLd";
 import { homeGraph } from "../lib/structured-data";
 
 const DESCRIPTION =
-  "Import Postman collections, run their scripts and keep API keys encrypted, in your browser. No install, no account, no server between you and your API. Free and MIT-licensed.";
+  "Import Postman collections, run their scripts, keep API keys encrypted and share a collection by encrypted link, in your browser. No install, no account, no server of ours between you and your API. Free and MIT-licensed.";
 
 export const metadata = pageMeta("/", "Wayfarer: the API client that opens in a tab", DESCRIPTION);
 
 const POSTMAN_PRICING = "https://www.postman.com/pricing/";
-const YAAK_POST = "https://yaak.app/blog/postman-free-plan-one-user";
+const POSTMAN_PLANS = "https://learning.postman.com/docs/billing/about-plans";
 const LINK = "text-action underline underline-offset-4";
 
 /** A block of the page on its own field: the fields alternate, and space, not a rule, sets them apart. */
@@ -116,9 +116,9 @@ const QUESTIONS: [string, ReactNode][] = [
     "Is it safe to put API keys into a website?",
     <>
       The page runs no script it did not ship: its policy forbids <code>eval</code> and inline script, and only its own
-      script addresses pass. <Claims ids={["C-011", "C-016", "C-012"]} /> A key in the vault is stored only as
-      ciphertext, under a key held in memory. <Claims ids={["C-003", "C-005"]} /> The{" "}
-      <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not.
+      script addresses pass. <Claims ids={["C-011", "C-016"]} /> A key in the vault is stored only as ciphertext, under
+      a key held in memory. <Claims ids={["C-003", "C-005"]} /> The <a href="/docs/threat-model/">threat model</a> says
+      what this protects against and what it does not.
     </>,
   ],
   [
@@ -155,9 +155,11 @@ const QUESTIONS: [string, ReactNode][] = [
   [
     "Can my team share collections?",
     <>
-      Today, as files: export a collection, send it, and the other person sees what it adds before it is stored, with
-      its scripts held until they have read them. <Claims ids={["C-054", "C-051"]} /> Sharing without a server of
-      anyone&apos;s is on the <a href="/roadmap/">roadmap</a>.
+      Yes, as a copy: Share… sends a collection as a file, or as a link whose encrypted content is after the{" "}
+      <code>#</code>, which a browser sends to no server, and holds no vault secret. <Claims ids={["C-084", "C-087"]} />{" "}
+      Your teammate sees what it adds and every host it sends to before anything is stored.{" "}
+      <Claims ids={["C-086", "C-090"]} /> A workspace that stays in step, through Git, is <a href="/roadmap/">next</a>.{" "}
+      See <a href="/docs/sharing/">sharing</a>.
     </>,
   ],
 ];
@@ -375,14 +377,15 @@ export default function Home() {
         >
           <p>
             Postman Free has been one user since March 2026 (
-            <a className={LINK} href={YAAK_POST}>
-              Yaak&apos;s write-up
+            <a className={LINK} href={POSTMAN_PLANS}>
+              Postman&apos;s plans
             </a>
             ), and its Team plan is $19 a user a month, billed yearly (
             <a className={LINK} href={POSTMAN_PRICING}>
               Postman&apos;s pricing
             </a>
-            , read on 19 October 2026). Wayfarer has no plans and no seats.
+            , both read on 7 November 2026). Wayfarer has no plans and no seats, and a collection goes to a teammate as
+            a file or an encrypted link. <Claims ids={["C-084"]} />
           </p>
           <p>
             Insomnia exports, OpenAPI and Swagger, HAR files and pasted cURL commands import too.{" "}
@@ -542,8 +545,9 @@ export default function Home() {
           intro={
             <>
               <p>
-                Recorded from the app as it is built, at a phone&apos;s width. Collections, environments, history, the
-                vault and scripts are kept in your browser. <Claims ids={["C-002"]} />
+                Recorded from the app as it is built, at a phone&apos;s width. Collections, environments and history are
+                kept in your browser, and the vault&apos;s secrets only as ciphertext.{" "}
+                <Claims ids={["C-002", "C-003"]} />
               </p>
               <p className="mt-4">
                 Version 3.0 redesigned every screen.{" "}

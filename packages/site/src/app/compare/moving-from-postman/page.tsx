@@ -127,7 +127,8 @@ export default function MovingFromPostman() {
           <Claims ids={["C-049", "C-064"]} />
         </li>
         <li>
-          Shared workspaces: a team shares a collection as a file today. See{" "}
+          Shared workspaces: a team shares a collection as a copy, by file or by an encrypted link, and the copies do
+          not follow each other&apos;s changes. <Claims ids={["C-084"]} /> See <a href="/docs/sharing/">sharing</a> and{" "}
           <a href="/compare/#behind">where Wayfarer is behind</a>.
         </li>
       </ul>

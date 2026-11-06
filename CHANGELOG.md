@@ -22,6 +22,24 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   each part, and every place the site said something false, old or vague, such as sharing by link
   still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
 
+### Fixed
+
+- The claims page showed no test results on the live site ("This copy of the site was not
+  deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
+  hand left out the file that names the run. The manual deploy now writes it, so each claim's row
+  links the browser-test run that passed on the deployed commit. The claims-ledger post says how
+  those tests run today: in three engines, on `main`, before a release is deployed.
+- The website said in eight places that a team could share a collection only as a file and that
+  sharing without a server was still to come. Sharing by encrypted link shipped in 3.1.0: the
+  landing's questions and table, the comparison pages, Moving from Postman and `llms.txt` now say
+  what it does, and that a workspace kept in step (through Git) is what comes next.
+- The roadmap listed "a whole workspace" as shared and done; only collections are shared. It now
+  shows what shipped since 3.0 in a list of its own, with Git as Next.
+- The landing's table said Wayfarer names the cause of a DNS failure or a 401 before you send. It
+  names what the browser will do before you send, and the real error after.
+- The landing cited Postman's one-user Free plan from a rival's blog; it now cites Postman's own
+  page, read again on 7 November 2026.
+
 ## [3.2.1] - 2026-11-07
 
 Sharing gets its page in the docs, with seven claims that each have a

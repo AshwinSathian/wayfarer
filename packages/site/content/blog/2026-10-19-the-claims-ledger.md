@@ -21,15 +21,16 @@ that leaves the ledger cannot stay on the page.
 ## What CI checks
 
 `npm run check:claims` fails when a claim has no test, or when a test it
-names does not exist. The tests themselves run on every change, in
-Chromium, Firefox and WebKit where they are about the page. A claim test is
+names does not exist. The tests about the page run in Chromium, Firefox
+and WebKit, on `main` before a release is deployed. A claim test is
 never retried: one that passes on a second try has not shown what it
 claims.
 
 ## The column on the claims page
 
-When the site is deployed, the deploy writes down the CI run whose files
-it is publishing, and it publishes only a run in which every job passed.
+When the site is deployed, the deploy writes down the run of those tests
+on the commit it is publishing, and it publishes only a commit whose run
+passed.
 The claims page reads that and adds a "Last CI" column linking to the run.
 Since claim tests are not retried, each row's "Passed" means its tests
 passed in that run, the first time.

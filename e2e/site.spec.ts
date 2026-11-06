@@ -652,9 +652,12 @@ test("the changelog folds each version under an index, and the roadmap is said i
   await expect(older).toHaveAttribute("open");
   await page.goto("/roadmap/");
   await expect(page.getByRole("heading", { name: /^(Shipped|Coming) in 3\.0$/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Next" })).toBeVisible();
-  const later = page.locator("section", { has: page.getByRole("heading", { name: "Later" }) });
-  await expect(later.getByText(/Git repository/)).toBeVisible();
+  // What shipped after 3.0 (sharing by link) is its own list; what is not done yet is Next, then Later.
+  const since = page.locator("section", { has: page.getByRole("heading", { name: "Shipped since 3.0" }) });
+  await expect(since.getByText(/as a link/)).toBeVisible();
+  const next = page.locator("section", { has: page.getByRole("heading", { name: "Next" }) });
+  await expect(next.getByText(/Git repository/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Later" })).toBeVisible();
   await expect(page.locator("main")).not.toContainText(/\b[DWT]\d+\.\d+\b/);
 });
 

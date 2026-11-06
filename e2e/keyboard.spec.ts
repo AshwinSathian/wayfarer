@@ -241,11 +241,14 @@ test("collection context menu: arrow keys reach every action and Escape closes i
     "Rename F2",
     "Duplicate",
     "Export…",
+    "Share…",
     "Delete Delete",
   ]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(page.getByRole("menuitem", { name: "Share…" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
   await expect(page.getByRole("menuitem", { name: "Export…" })).toBeFocused();
   await page.keyboard.press("ArrowUp");

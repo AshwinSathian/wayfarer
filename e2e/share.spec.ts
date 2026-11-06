@@ -257,7 +257,7 @@ test.describe("Paste a link (receive.md, Entry points)", () => {
     const report = receiver.getByRole("dialog", { name: "Import collection" });
     await expect(report).toContainText('"the shared link" will add 1 collection and 1 request.');
     expect(receiver.url()).toBe(at);
-    expect(asked.filter((url) => url.includes("#share=") || url.startsWith("https://elsewhere.example"))).toEqual([]);
+    expect(asked.filter((url) => url.includes("#share=") || new URL(url).hostname === "elsewhere.example")).toEqual([]);
     await report.getByRole("button", { name: "Cancel" }).click();
     await expect(report).toBeHidden();
   }

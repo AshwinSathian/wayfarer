@@ -7,8 +7,9 @@ before you send it: a header the browser will not send and an address it
 will block are said above the request, and the rest is in the request's
 **Network** tab, under **What the browser does to this request**. <!-- claim:C-049 -->
 
-Through the [Local Bridge](../packages/bridge/README.md), the request
-leaves from a Node process on your machine instead, and nothing on this page
+Through the [Local Bridge](../packages/bridge/README.md) (`npx wayfarer-bridge`
+in a terminal, then Settings › Local Bridge and the code it prints), the
+request leaves from a Node process on your machine instead, and nothing on this page
 applies to it, except where the bridge's own row says so.
 
 ## Routes

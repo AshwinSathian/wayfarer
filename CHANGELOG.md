@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- The docs search listed design notes (audits, plans, flows not built) among the docs: a search
+  for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
+  searches the docs and the design records the comparison pages cite.
+- The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
+  say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
+  docs search's Clear button is no longer under 12 px.
+
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against

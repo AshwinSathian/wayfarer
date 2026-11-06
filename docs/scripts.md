@@ -1,4 +1,4 @@
-# Pre/Post-Request Scripts & Assertions
+# Scripts and assertions
 
 Wayfarer lets you attach a pre-request script, a post-response script, and
 a set of visual test assertions to any request. This document describes the

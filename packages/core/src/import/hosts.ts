@@ -51,10 +51,12 @@ function filled(address: string, chain: Ancestor[]): string {
 function hostOf(address: string): string {
   const text = address.trim();
   if (!text) return "";
-  const scheme = /^[a-z][a-z0-9+.-]*:\/\//i;
+  // Each road's own rule: an address that starts `ws:` or `wss:` is opened as written (`SocketClient`, P5.7), and
+  // `WebSocket` reads `ws:host` and `ws:\host` as `ws://host`; any other is sent through `normalizeUrl`, which gives an
+  // address without `http:` or `https:` the `https://` it is sent with.
+  const socket = /^wss?:/i.test(text);
+  const scheme = socket ? /^wss?:[/\\]*/i : /^[a-z][a-z0-9+.-]*:\/\//i;
   const written = text.replace(scheme, "").split(/[/\\?#]/, 1)[0];
   if (written.includes("{{")) return written;
-  // Each road's own rule: a `ws:` or `wss:` address is opened as written (`SocketClient`, P5.7); any other is sent
-  // through `normalizeUrl`, which gives an address without `http:` or `https:` the `https://` it is sent with.
-  return URL.parse(/^wss?:\/\//i.test(text) ? text : normalizeUrl(text))?.host ?? written;
+  return URL.parse(socket ? text : normalizeUrl(text))?.host ?? written;
 }

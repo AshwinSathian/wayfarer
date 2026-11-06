@@ -8,7 +8,26 @@
   <!-- There while the dialog is: a file refused or read after it opened is heard (U-075). -->
   <p class="sr-only" role="alert">{{ refusedText() || pipeline.codeRefused() }}</p>
   <p class="sr-only" role="status">{{ reportText() }}</p>
-  @if (pipeline.pasting()) {
+  @if (pipeline.pasting() === "link") {
+  <!-- A link that came as text (receive.md, "Entry points"): read as an opened link's fragment, never navigated to. -->
+  <div class="import-paste flex flex-col gap-2">
+    <label class="ds-form-label" for="import-paste-text">A link someone sent you</label>
+    <textarea
+      uiInput
+      cdkFocusInitial
+      id="import-paste-text"
+      class="import-paste-text w-full font-mono type-mono-body"
+      rows="4"
+      spellcheck="false"
+      placeholder="https://wayfarer.example/app/#share=…"
+      [value]="pipeline.pasted()"
+      (input)="pipeline.pasted.set($any($event.target).value)"
+    ></textarea>
+    <p class="type-footnote text-label-tertiary"
+      >Paste the link someone sent you. It is read here, not opened: the page goes nowhere and nothing is sent.</p
+    >
+  </div>
+  } @else if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
     <textarea
@@ -89,14 +108,37 @@
         >What the warnings mean</a
       >
     </div>
-    } @for (entry of imported.collections; track entry.payload.collection.meta.id) {
+    } @for (entry of imported.collections; track entry.payload.collection.meta.id) { @let review = reviews().get(entry);
     <div>
+      @if (review?.known; as known) {
+      <!-- receive.md, File step 2: an id this browser has. Import replaces it, as before; the rows below say how. -->
+      <div class="import-known mb-3">
+        <p class="type-subhead text-label-primary"
+          >You have this collection: {{ known }}. Review what this file changes.</p
+        >
+        <p class="type-footnote text-label-secondary mt-0.5">{{ review?.summary }}</p>
+      </div>
+      }
       <p class="ds-section-label mb-1.5">Collection</p>
       <p class="type-title-3 text-label-primary">{{ entry.payload.collection.name }}</p>
       <p class="type-footnote text-label-tertiary mt-0.5">
         {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
       </p>
-      @let hosts = hostsOf(entry); @if (hosts.length) {
+      <!-- What it needs of the receiver, before the hosts (receive.md): secrets, credentials, scripts. -->
+      @for (line of linesOf(entry); track line.kind) {
+      <div class="import-need type-footnote text-label-secondary mt-1.5" [attr.data-need]="line.kind">
+        <p>{{ line.text }}</p>
+        @if (line.names.length) {
+        <ul class="import-names type-mono-body text-label-primary" aria-label="Secrets' names">
+          @for (name of line.names; track $index) {
+          <li>{{ name }}</li>
+          }
+        </ul>
+        } @if (line.after) {
+        <p>{{ line.after }}</p>
+        }
+      </div>
+      } @let hosts = hostsOf(entry); @if (hosts.length) {
       <p class="type-footnote text-label-secondary mt-1.5">Its requests go to:</p>
       <ul class="import-hosts type-mono-body text-label-primary" aria-label="Hosts its requests go to">
         @for (host of hosts; track host) {
@@ -125,14 +167,13 @@
     </div>
     }
     <!-- Every document of a small file; of a large one the counts above say it. -->
-    @if (entry.plan.length <= 200) {
+    @if (review?.rows?.length) {
     <!-- One line each, the name as it will be stored (U-015): a long collection is a list, not a scroll of cards. -->
     <ul class="import-plan max-h-56 overflow-y-auto" aria-label="What is imported">
-      @for (item of entry.plan; track item.id) {
+      @for (row of review?.rows; track row.item.id) { @let item = row.item; @let effect = row.effect;
       <li class="import-plan-row">
         <span class="import-plan-kind type-footnote text-label-tertiary">{{ kindOf(item.type) }}</span>
         <span class="import-plan-name type-callout text-label-primary">{{ item.name }}</span>
-        @let effect = effectOf(entry, item);
         <span
           class="import-plan-action type-footnote"
           [class]="effect === 'Changes' || effect === 'Moves here' ? 'text-status-warning' : 'text-label-secondary'"
@@ -197,7 +238,9 @@
   }
   <div uiDialogFooter>
     <div class="flex flex-wrap justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" (click)="pipeline.close()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" [disabled]="pipeline.storing()" (click)="pipeline.close()"
+        >Cancel</button
+      >
       @if (holdsScripts()) {
       <!-- The review where the scripts are met (D5-e): the import stores them unapproved, then the review opens. -->
       <button
@@ -225,7 +268,7 @@
             : !pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()
         "
         (click)="importClicked()"
-        >Import</button
+        >{{ pipeline.pasting() === "link" ? "Open" : "Import" }}</button
       >
       }
     </div>

@@ -136,6 +136,34 @@ test("a file of no known format is refused with a message that names the formats
   expect(await stored(page)).toBe(before);
 });
 
+test("the report says what a collection needs of its receiver: the secrets it names and the credentials it masked", async ({
+  page,
+}) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const base = collection([request("r-1", "Plain")]);
+  const shared = {
+    ...base,
+    collection: {
+      ...base.collection,
+      variables: [{ key: "api-token", value: "{{$secret.s-sender}}", enabled: true }],
+      auth: { type: "bearer", token: "***" },
+    },
+  };
+  await pick(page, file("shared.json", shared));
+  const report = dialog(page);
+  await expect(report.getByText("Needs 1 secret you do not have:", { exact: true })).toBeVisible();
+  await expect(report.getByRole("list", { name: "Secrets' names" }).getByRole("listitem")).toHaveText(["api-token"]);
+  await expect(
+    report.getByText("A request that uses it is not sent until you give the variable a value.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    report.getByText("1 credential was not shared and is ***. Type yours in Auth.", { exact: true }),
+  ).toBeVisible();
+  await expect(report.getByRole("list", { name: "Hosts its requests go to" })).toBeVisible();
+  await report.getByRole("button", { name: "Cancel", exact: true }).click();
+});
+
 test("one road: a collection file picked with the Environments panel's Import is imported as the collection it is", async ({
   page,
 }) => {
@@ -473,6 +501,42 @@ test("a re-import says which items change, and Undo puts back what it replaced",
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(async () => JSON.stringify(await dumpIdb(page))).toContain("https://api.example.test/r-2");
   expect(JSON.stringify(await dumpIdb(page))).not.toContain("https://api.example.test/changed");
+});
+
+// receive.md, File step 2: a file of a collection this browser has says so first, counts what it changes here and lists
+// the changes before the rest. Import replaces it by id, as before.
+test("a file of a collection this browser has says so, counts what it changes, and lists the changes first", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const shared = file("shop.json", collection([request("r-1", "Kept"), request("r-2", "Edited here")]));
+  await pick(page, shared);
+  await expect(dialog(page).locator(".import-known")).toHaveCount(0);
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+
+  await page.getByRole("tree").getByText("Edited here", { exact: true }).click();
+  await page.locator("input.address-url").fill("https://api.example.test/edited-here");
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByRole("img", { name: "Unsaved changes" })).toHaveCount(0);
+  await expect.poll(async () => JSON.stringify((await dumpIdb(page)).requests)).toContain("edited-here");
+
+  await pick(page, shared);
+  await expect(dialog(page).locator(".import-known")).toContainText(
+    "You have this collection: Imported collection. Review what this file changes.",
+  );
+  await expect(dialog(page).locator(".import-known")).toContainText("1 item changes and 2 are the same.");
+  const rows = dialog(page).getByRole("list", { name: "What is imported" }).getByRole("listitem");
+  await expect(rows.first()).toHaveText(/^Request\s*Edited here\s*Changes$/);
+  await expect(dialog(page).getByRole("status")).toContainText(/^You have this collection: Imported collection\./);
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  // The stored request, not the open tab, which keeps what was typed in it.
+  const storedUrl = async () =>
+    ((await dumpIdb(page)).requests as { name: string; url: string }[]).find((doc) => doc.name === "Edited here")?.url;
+  await expect.poll(storedUrl).toBe("https://api.example.test/r-2");
 });
 
 // The security review of #562: a file's request may carry the id of one another collection holds. The import takes it

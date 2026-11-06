@@ -1,6 +1,13 @@
 import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import type { EnvironmentDoc, ImportOptions, Imported } from "@wayfarer/core";
+import {
+  LINK_NOT_COLLECTION,
+  encodeShareLink,
+  shareFragment,
+  type EnvironmentDoc,
+  type ImportOptions,
+  type Imported,
+} from "@wayfarer/core";
 import { ImportError, importText } from "@wayfarer/core/import";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inCollection, inFolder, requestContent, rowsOf } from "../../testing/request-fixtures";
@@ -9,6 +16,7 @@ import { CollectionsStore } from "./collections-store";
 import { diagnosticEntries } from "./diagnostics";
 import { EnvironmentsStore } from "./environments-store";
 import { ImportPipeline } from "./import-pipeline";
+import { UndoNotice } from "./undo-notice";
 
 const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
 const collectionFile = JSON.stringify({
@@ -245,12 +253,26 @@ describe("ImportPipeline", () => {
     });
   });
 
+  it("a pasted link is read from its first #, whatever the origin, or as a bare fragment; other text is refused", async () => {
+    const fragment = shareFragment(await encodeShareLink('{"$id":"wayfarer/collection"}'), false);
+    for (const pasted of [`  https://elsewhere.example/app/?q=1${fragment}\n`, fragment]) {
+      service.openPaste("link");
+      await service.openPastedLink(pasted);
+      expect([service.pasting(), service.refused(), service.dialogVisible()]).toEqual([null, null, true]);
+      expect(service.link()?.code).toBe(null);
+    }
+    for (const pasted of ["https://elsewhere.example/app/", "share=abc", ""]) {
+      await service.openPastedLink(pasted);
+      expect([service.link(), service.refused()?.message]).toEqual([null, LINK_NOT_COLLECTION]);
+    }
+  });
+
   it("a pasted cURL command takes the same road: the box, then the report, and nothing stored before Confirm", async () => {
     service.openPaste();
-    expect([service.dialogVisible(), service.pasting(), service.imported()]).toEqual([true, true, null]);
+    expect([service.dialogVisible(), service.pasting(), service.imported()]).toEqual([true, "curl", null]);
 
     await service.stage("the pasted command", "curl -k https://api.test/users -H 'Accept: */*'");
-    expect(service.pasting()).toBe(false);
+    expect(service.pasting()).toBe(null);
     expect(service.imported()?.report).toMatchObject({
       formatName: "cURL command",
       counts: { collections: 1, folders: 0, requests: 1, environments: 0 },
@@ -264,6 +286,68 @@ describe("ImportPipeline", () => {
       collection: { name: "Imported from cURL" },
       requests: [{ name: "GET api.test/users", url: "https://api.test/users" }],
     });
+  });
+
+  // receive.md, "Done": a link's Import is said by the collection's name, and the shell is told which row to focus.
+  // A security review of T1 (session T-a close-out): what an Import stores and says is what its report showed, and an
+  // import that was cancelled or overtaken does not come back.
+  describe("an import that was cancelled or overtaken", () => {
+    it("Cancel while a link opens: the report does not come back", async () => {
+      const link = await encodeShareLink(collectionFile);
+      const opening = service.openLink(shareFragment(link, true));
+      service.close();
+      await opening;
+
+      expect(service.dialogVisible()).toBe(false);
+      expect(service.imported()).toBeNull();
+    });
+
+    it("a report staged while the last one is being stored stays open, and the stored one is said by its own name", async () => {
+      const undo = TestBed.inject(UndoNotice);
+      let stored!: () => void;
+      collections.importCollection.mockImplementation(
+        () => new Promise((resolve) => (stored = () => resolve({ meta: meta("col-1"), name: "Billing" }))),
+      );
+      await service.stage("billing.json", collectionFile);
+      const confirming = service.confirm();
+      await vi.waitFor(() => expect(stored).toBeTypeOf("function"));
+      // A link opened meanwhile, from the address bar: its report replaces the dialog's.
+      service.close();
+      await service.stage("other.json", environmentsFile);
+      stored();
+      await confirming;
+
+      expect(undo.current()?.message).toBe("Imported billing.json.");
+      expect(service.dialogVisible()).toBe(true);
+      expect(service.fileName()).toBe("other.json");
+      expect(service.imported()).not.toBeNull();
+      expect(environments.createEnvironment).not.toHaveBeenCalled();
+      expect(environments.updateEnvironment).not.toHaveBeenCalled();
+    });
+  });
+
+  it("a link's Import says Added and the collection's name, and names the collection it added", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    collections.importCollection.mockResolvedValue({ meta: meta("col-1"), name: "Billing" });
+    const link = await encodeShareLink(collectionFile);
+    await service.openLink(shareFragment(link, true));
+    await vi.waitFor(() => expect(service.imported()).not.toBeNull());
+
+    await service.confirm();
+
+    expect(undo.current()?.message).toBe("Added Billing.");
+    expect(service.addedFromLink()).toEqual({ id: "col-1" });
+  });
+
+  it("a file's Import is said by the file's name, and moves no focus", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    collections.importCollection.mockResolvedValue({ meta: meta("col-1"), name: "Billing" });
+    await service.stage("billing.json", collectionFile);
+
+    await service.confirm();
+
+    expect(undo.current()?.message).toBe("Imported billing.json.");
+    expect(service.addedFromLink()).toBeNull();
   });
 
   it("a worker that fails is said as such, and nothing is stored", async () => {

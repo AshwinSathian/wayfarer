@@ -1,11 +1,13 @@
 import fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ImportError } from "../import/import-error";
+import { MAX_IMPORT_BYTES } from "../safe-json";
 import { toBase64Url, fromBase64Url } from "../vault/vault-crypto";
 import {
   LINK_DAMAGED,
   LINK_NOT_COLLECTION,
   LINK_WRONG_CODE,
+  SHARE_LINK_MAX_BYTES,
   encodeShareLink,
   groupedCode,
   isShareFragment,
@@ -116,10 +118,117 @@ describe("share link", () => {
     }
   });
 
-  it("stops reading a link that decompresses past the import limit", async () => {
-    const link = await encodeShareLink(`${collection("x")}${" ".repeat(10 * 1024 * 1024)}`);
-    expect(link.data.length).toBeLessThan(40_000);
-    expect(await refusal(openShareLink(parseShareFragment(shareFragment(link, true))))).toBe(LINK_NOT_COLLECTION);
+  it("opens a link that decompresses to the import limit, and stops reading one a byte past it", async () => {
+    // No link of SHARE_LINK_MAX_BYTES decompresses past the limit (deflate's best is about 1,000 to 1): these are
+    // built past parseShareFragment, to hold openShareLink's own limit.
+    const padded = (bytes: number) => {
+      const head = `{"$id":"wayfarer/collection","collection":{"name":"x","description":"`;
+      return `${head}${"a".repeat(bytes - head.length - 3)}"}}`;
+    };
+    const under = padded(MAX_IMPORT_BYTES);
+    expect(under).toHaveLength(MAX_IMPORT_BYTES);
+    const link = await encodeShareLink(under);
+    expect(await openShareLink({ sealed: fromBase64Url(link.data), code: null }, link.code)).toBe(under);
+
+    const over = await encodeShareLink(padded(MAX_IMPORT_BYTES + 1));
+    expect(await refusal(openShareLink({ sealed: fromBase64Url(over.data), code: null }, over.code))).toBe(
+      LINK_NOT_COLLECTION,
+    );
+
+    // A bomb of 64 MB is read no further than the limit and the stream's buffer, then cancelled.
+    let read = 0;
+    const Original = globalThis.DecompressionStream;
+    vi.stubGlobal(
+      "DecompressionStream",
+      class {
+        private readonly inner = new Original("deflate-raw");
+        readonly writable = this.inner.writable;
+        readonly readable = this.inner.readable.pipeThrough(
+          new TransformStream<Uint8Array, Uint8Array>({
+            transform(chunk, controller) {
+              read += chunk.length;
+              controller.enqueue(chunk);
+            },
+          }),
+        );
+      },
+    );
+    const bomb = await encodeShareLink(" ".repeat(64 * 1024 * 1024));
+    expect(await refusal(openShareLink({ sealed: fromBase64Url(bomb.data), code: null }, bomb.code))).toBe(
+      LINK_NOT_COLLECTION,
+    );
+    expect(read).toBeGreaterThan(MAX_IMPORT_BYTES);
+    expect(read).toBeLessThan(MAX_IMPORT_BYTES + 1024 * 1024);
+  }, 30_000);
+
+  describe("a hostile fragment", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
+    });
+
+    it("throws nothing but an ImportError, for any text", () => {
+      const b64 = fc.string({ unit: fc.constantFrom(..."ABCabc019-_"), maxLength: 80 });
+      const piece = fc.oneof(
+        b64,
+        fc.constantFrom("&", "key=", "&key=", "=", "%41", "%", "%zz", "+", "/", "#share=", "\u0000"),
+        fc.string({ unit: "binary", maxLength: 8 }),
+      );
+      const grammar = fc.array(piece, { maxLength: 12 }).map((parts) => parts.join(""));
+      const anything = fc.oneof(fc.string({ unit: "binary" }), fc.string({ unit: "grapheme" }), grammar);
+      const onlyImportError = (hash: string) => {
+        try {
+          parseShareFragment(hash);
+        } catch (error) {
+          expect(error).toBeInstanceOf(ImportError);
+        }
+      };
+      fc.assert(
+        fc.property(anything, (s) => {
+          onlyImportError(`#share=${s}`);
+          onlyImportError(s);
+        }),
+        { numRuns: 2_000 },
+      );
+    });
+
+    it("is refused before anything is decrypted or decompressed, each in under a second", async () => {
+      const link = await encodeShareLink(collection("Shop API"));
+      const decrypt = vi.spyOn(crypto.subtle, "decrypt");
+      let decompressors = 0;
+      const Original = globalThis.DecompressionStream;
+      vi.stubGlobal(
+        "DecompressionStream",
+        class extends Original {
+          constructor(format: ConstructorParameters<typeof Original>[0]) {
+            super(format);
+            decompressors++;
+          }
+        },
+      );
+      const hostile = {
+        "10 MB of A": `#share=${"A".repeat(MAX_IMPORT_BYTES)}`,
+        "a link one byte over the longest made": `#share=${"A".repeat(SHARE_LINK_MAX_BYTES - 6)}`,
+        "a million &": `#share=${link.data}${"&".repeat(1_000_000)}`,
+        "a %-encoded key": `#share=${link.data}&key=${"%41".repeat(43)}`,
+        "a key of 31 bytes": `#share=${link.data}&key=${toBase64Url(new Uint8Array(31))}`,
+        "a key of 33 bytes": `#share=${link.data}&key=${toBase64Url(new Uint8Array(33))}`,
+        "data of 4n + 1 characters": `#share=${"A".repeat(4 * 100 + 1)}`,
+      };
+      for (const [name, hash] of Object.entries(hostile)) {
+        const start = performance.now();
+        expect(() => parseShareFragment(hash), name).toThrow(ImportError);
+        expect(performance.now() - start, name).toBeLessThan(1_000);
+      }
+      expect(decrypt).not.toHaveBeenCalled();
+      expect(decompressors).toBe(0);
+    });
+
+    it("still reads a link as long as the longest one made", () => {
+      const hash = `#share=${"A".repeat(SHARE_LINK_MAX_BYTES - 8)}`;
+      expect(hash.length).toBeLessThanOrEqual(SHARE_LINK_MAX_BYTES);
+      expect(parseShareFragment(hash).sealed.length).toBeGreaterThan(9_000);
+    });
   });
 
   it("shows a code in fours and reads one typed with spaces", () => {

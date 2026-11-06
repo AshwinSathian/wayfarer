@@ -98,6 +98,9 @@ row below.
 | `palette` | The command palette, open. |
 | `import-review` | The import report of a collection file, with a warning. |
 | `import-curl` | The box for a pasted cURL command. |
+| `share-file` | Share… of a collection, as a file: what goes, and the file's name. |
+| `share-link` | Share… as a link, made: the link and its code (both masked), and the code's note. |
+| `link-code` | Open a shared collection: a link without its code asks for it. |
 | `script-review` | The review of an imported collection's scripts. |
 | `run` | A collection run, finished, with its report. |
 | `environments-empty` | The environments dialog with no environment. |

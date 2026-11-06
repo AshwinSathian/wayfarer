@@ -108,4 +108,21 @@ describe("collectionHosts", () => {
       "{{off}}",
     ]);
   });
+
+  it("reads a socket address without its slashes as the browser's WebSocket does", () => {
+    const sockets = {
+      collection: { ...holder, variables: [row("h", "evil4.example")] },
+      folders: [],
+      requests: ["ws:\\\\evil1.example/x", "wss:/evil2.example", "ws:evil3.example", "ws:{{h}}/x", "ws:{{env}}/y"].map(
+        (url) => ({ url, auth: { type: "none" } }),
+      ),
+    } as unknown as CollectionExport;
+    expect(collectionHosts(sockets)).toEqual([
+      "evil1.example",
+      "evil2.example",
+      "evil3.example",
+      "evil4.example",
+      "{{env}}",
+    ]);
+  });
 });

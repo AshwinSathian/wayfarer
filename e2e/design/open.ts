@@ -410,6 +410,24 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await page.getByRole("button", { name: "Paste a cURL command", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
   },
+  "share-file": async (page) => {
+    await seed(page);
+    await contextMenu(page, "Pet store");
+    await page.getByRole("menuitem", { name: "Share…", exact: true }).click();
+    await expect(button(page.getByRole("dialog", { name: "Share Pet store" }), "Save file")).toBeEnabled();
+  },
+  "share-link": async (page) => {
+    await OPEN["share-file"](page);
+    const dialog = page.getByRole("dialog", { name: "Share Pet store" });
+    await dialog.getByRole("radio", { name: "Link" }).check();
+    await button(dialog, "Make link").click();
+    await expect(dialog.getByRole("textbox", { name: "Code", exact: true })).toBeVisible();
+  },
+  "link-code": async (page) => {
+    // A fragment of a link's shape: the code is asked for before anything is decrypted.
+    await page.goto(`/app/#share=${"B".repeat(86)}`);
+    await expect(page.getByRole("dialog", { name: "Open a shared collection" }).getByLabel("Code")).toBeFocused();
+  },
   "script-review": async (page) => {
     await page.goto("/app/");
     await importFile(page);
@@ -500,8 +518,8 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
 
 // What changes from run to run. The page's clock is fixed, so its times and dates do not. A duration the
 // browser measured still does, and its width moves the text after it: each is written as "12 ms" before
-// the capture, and what the browser has stored "12 kB". An editor's caret is masked. What is left (a
-// server's Date header) is under the threshold.
+// the capture, and what the browser has stored "12 kB"; a server's Date header is the page's fixed clock. An
+// editor's caret is masked, and a link's random address and code.
 /**
  * `settled`, but not waiting on what is not drawn: Firefox does not run a transition inside a closed
  * `<details>` (the GraphQL schema's types), so after a change of theme it never ends.

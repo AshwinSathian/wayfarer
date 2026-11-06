@@ -334,6 +334,37 @@ test.describe("Accessibility (primary flows)", () => {
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
+      // Share… and the code step of a link (T1: share.md and receive.md, Accessibility).
+      await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({
+        name: "swept.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(imported)),
+      });
+      const report = page.getByRole("dialog", { name: "Import collection" });
+      await report.getByRole("button", { name: "Import", exact: true }).click();
+      await expect(report).toHaveCount(0);
+      await page.getByRole("tree").getByText("Swept import", { exact: true }).click({ button: "right" });
+      await page.getByRole("menuitem", { name: "Share…", exact: true }).click();
+      const share = page.getByRole("dialog", { name: "Share Swept import" });
+      await expect(share.getByRole("button", { name: "Save file" })).toBeEnabled();
+      await scan("share, file");
+      await share.getByRole("radio", { name: "Link" }).check();
+      await share.getByRole("button", { name: "Make link" }).click();
+      const address = await share.getByRole("textbox", { name: "Link", exact: true }).inputValue();
+      await scan("share, link made");
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await page.evaluate((hash) => (location.hash = hash), new URL(address).hash);
+      const open = page.getByRole("dialog", { name: "Open a shared collection" });
+      await expect(open.getByRole("textbox", { name: "Code", exact: true })).toBeFocused();
+      await scan("open a shared collection");
+      await open.getByRole("textbox", { name: "Code", exact: true }).fill("A".repeat(43));
+      await open.getByRole("button", { name: "Open", exact: true }).click();
+      await expect(open.getByRole("alert")).toContainText("This code does not open the link.");
+      await scan("open a shared collection, wrong code");
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+
       await page.setViewportSize({ width: 390, height: 844 });
       await scan("phone");
       await button("Show sidebar").click();

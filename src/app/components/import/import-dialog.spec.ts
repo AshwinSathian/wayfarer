@@ -6,6 +6,8 @@ import { repositories, type Repositories } from "../../../testing/repositories";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { ScriptTrust } from "../../services/script-trust";
+import { SecretsVault } from "../../services/secrets-vault";
+import type { SecretDoc } from "../../models/secrets";
 import { ImportWorkerClient } from "../../shared/import/import-worker-client";
 import { ImportDialog } from "./import-dialog";
 
@@ -161,5 +163,100 @@ describe("ImportDialog: a pasted cURL command", () => {
     await vi.waitFor(() =>
       expect(collections.tree().map((tree) => tree.collection.name)).toEqual(["Imported from cURL"]),
     );
+  });
+});
+
+// receive.md, "What every way shows before it stores": the secrets, credentials and scripts a collection needs of the
+// person receiving it, before its hosts. The vault is read for its secrets' names only.
+describe("ImportDialog: what a collection needs of its receiver", () => {
+  let idb: Repositories;
+  let pipeline: ImportPipeline;
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      imports: [ImportDialog],
+      providers: [
+        {
+          provide: ImportWorkerClient,
+          useValue: { run: (text: string, options: ImportOptions) => Promise.resolve(importText(text, options)) },
+        },
+      ],
+    });
+    idb = repositories();
+    pipeline = TestBed.inject(ImportPipeline);
+    await TestBed.inject(CollectionsStore).ensureLoaded();
+  });
+
+  afterEach(async () => {
+    await idb.resetDatabase();
+  });
+
+  const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
+  const file = JSON.stringify({
+    $id: "wayfarer/collection",
+    meta: meta("file"),
+    collection: {
+      id: "col-needs",
+      meta: meta("col-needs"),
+      name: "Shop",
+      order: 0,
+      variables: [
+        { key: "token", value: "{{$secret.s-1}}", enabled: true },
+        { key: "pass", value: "{{$secret.s-2}}", enabled: true },
+      ],
+      auth: { type: "bearer", token: "***" },
+      scripts: { pre: "", post: "" },
+    },
+    folders: [],
+    requests: [
+      {
+        id: "r-1",
+        meta: meta("r-1"),
+        collectionId: "col-needs",
+        name: "Orders",
+        order: 0,
+        method: "GET",
+        url: "https://api.shop.test/orders",
+        params: [],
+        headers: [],
+        body: { mode: "none" },
+        auth: { type: "inherit" },
+        scripts: { pre: "", post: SCRIPT },
+        tests: [],
+        settings: {},
+      },
+    ],
+  });
+
+  it("says each line, in order, before the hosts, with the secrets' names in a monospace list", async () => {
+    const vault = TestBed.inject(SecretsVault);
+    const list = vi.spyOn(vault, "listSecrets").mockResolvedValue([{ name: "pass" } as SecretDoc]);
+    const read = vi.spyOn(vault, "readSecret");
+    const fixture = TestBed.createComponent(ImportDialog);
+    await pipeline.stage("shop.wayfarer.json", file);
+    await vi.waitFor(() => expect(list).toHaveBeenCalled());
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const lines = [...host.querySelectorAll<HTMLElement>(".import-need")];
+    expect(lines.map((line) => line.dataset["need"])).toEqual([
+      "secrets-missing",
+      "secrets-yours",
+      "credentials",
+      "scripts",
+    ]);
+    expect(lines.map((line) => line.innerText.replace(/\s+/g, " ").trim())).toEqual([
+      "Needs 1 secret you do not have: token Requests that use it ask for it when you send them.",
+      "Uses your secret: pass",
+      "1 credential was not shared and is ***. Type yours in Auth.",
+      "1 script came with it. It does not run until you read it and trust it.",
+    ]);
+    expect(lines[0].querySelector("ul.type-mono-body li")?.textContent).toBe("token");
+    // The lines come before the hosts.
+    const hosts = host.querySelector(".import-hosts");
+    expect(lines[3].compareDocumentPosition(hosts as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(host.querySelector('[role="status"]')?.textContent).toContain(
+      "Needs 1 secret you do not have: token. Requests that use it ask for it when you send them.",
+    );
+    expect(read).not.toHaveBeenCalled();
   });
 });

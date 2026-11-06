@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
@@ -8,7 +8,17 @@ import { Icon } from "../../shared/icon/icon";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { CollectionsStore } from "../../services/collections-store";
 import { ScriptTrust } from "../../services/script-trust";
-import { collectionHosts, scriptsOf, type CollectionImportPlanEntry, type ImportedCollection } from "@wayfarer/core";
+import { SecretsVault } from "../../services/secrets-vault";
+import { recordDiagnostic } from "../../services/diagnostics";
+import {
+  collectionHosts,
+  receiverLines,
+  receiverLineText,
+  scriptsOf,
+  type ReceiverLine,
+  type CollectionImportPlanEntry,
+  type ImportedCollection,
+} from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
 import { ScriptReviewDialog } from "../composer/script-review-dialog";
 import { DOCS } from "../../shared/docs";
@@ -30,6 +40,24 @@ export class ImportDialog {
   protected readonly pipeline = inject(ImportPipeline);
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);
+  private readonly vault = inject(SecretsVault);
+  /** This vault's secrets' names, read for each report (names only: they are readable while the vault is locked); `null` when they could not be read. */
+  private readonly vaultNames = signal<string[] | null>([]);
+
+  constructor() {
+    effect(() => {
+      if (this.pipeline.imported()) void this.readVaultNames();
+    });
+  }
+
+  private async readVaultNames(): Promise<void> {
+    try {
+      this.vaultNames.set((await this.vault.listSecrets()).map((secret) => secret.name));
+    } catch (error) {
+      recordDiagnostic(error, "import report: the vault's names");
+      this.vaultNames.set(null);
+    }
+  }
   /** A report names an item in lower case (`collection "Shop"`); it starts a sentence here (C44). */
   protected sentence(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -59,6 +87,11 @@ export class ImportDialog {
   protected hostsOf(entry: ImportedCollection): string[] {
     return collectionHosts(entry.payload);
   }
+  /** What the collection needs of the person receiving it: secrets, credentials, scripts (`receive.md`). */
+  protected linesOf(entry: ImportedCollection): ReceiverLine[] {
+    return receiverLines(entry.payload, this.vaultNames());
+  }
+
   /**
    * Import: with the box for a command open, reads it in the worker and opens the report a file opens (U-201); there,
    * it stores what the report shows. Nothing is stored before the report's Import.
@@ -130,6 +163,8 @@ export class ImportDialog {
     const warnings = imported.report.warnings.length;
     const said = [`"${this.pipeline.fileName()}" will add ${this.counts()}.`];
     if (warnings) said.push(`${warnings} ${warnings === 1 ? "thing" : "things"} to know before you import.`);
+    const [first] = imported.collections.length === 1 ? this.linesOf(imported.collections[0]) : [];
+    if (first) said.push(receiverLineText(first));
     return said.join(" ");
   });
 

@@ -7,6 +7,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **The import report says what a collection needs of you**, for a file
+  and for a shared link: the vault secrets it names that your vault does
+  not have ("Needs 1 secret you do not have: token."), the ones it does
+  ("Uses your secret: token."), how many credentials the sender's share
+  left as `***`, and how many scripts came with it, before the hosts its
+  requests go to. Before, the report showed only the hosts, and a
+  collection whose sends would ask for a secret or carry `***` said
+  nothing of it until you sent. Only your secrets' names are read, never
+  a value.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

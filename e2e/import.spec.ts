@@ -136,6 +136,32 @@ test("a file of no known format is refused with a message that names the formats
   expect(await stored(page)).toBe(before);
 });
 
+test("the report says what a collection needs of its receiver: the secrets it names and the credentials it masked", async ({
+  page,
+}) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const base = collection([request("r-1", "Plain")]);
+  const shared = {
+    ...base,
+    collection: {
+      ...base.collection,
+      variables: [{ key: "api-token", value: "{{$secret.s-sender}}", enabled: true }],
+      auth: { type: "bearer", token: "***" },
+    },
+  };
+  await pick(page, file("shared.json", shared));
+  const report = dialog(page);
+  await expect(report.getByText("Needs 1 secret you do not have:", { exact: true })).toBeVisible();
+  await expect(report.getByRole("list", { name: "Secrets' names" }).getByRole("listitem")).toHaveText(["api-token"]);
+  await expect(report.getByText("Requests that use it ask for it when you send them.", { exact: true })).toBeVisible();
+  await expect(
+    report.getByText("1 credential was not shared and is ***. Type yours in Auth.", { exact: true }),
+  ).toBeVisible();
+  await expect(report.getByRole("list", { name: "Hosts its requests go to" })).toBeVisible();
+  await report.getByRole("button", { name: "Cancel", exact: true }).click();
+});
+
 test("one road: a collection file picked with the Environments panel's Import is imported as the collection it is", async ({
   page,
 }) => {

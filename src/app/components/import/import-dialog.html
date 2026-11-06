@@ -96,7 +96,21 @@
       <p class="type-footnote text-label-tertiary mt-0.5">
         {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
       </p>
-      @let hosts = hostsOf(entry); @if (hosts.length) {
+      <!-- What it needs of the receiver, before the hosts (receive.md): secrets, credentials, scripts. -->
+      @for (line of linesOf(entry); track line.kind) {
+      <div class="import-need type-footnote text-label-secondary mt-1.5" [attr.data-need]="line.kind">
+        <p>{{ line.text }}</p>
+        @if (line.names.length) {
+        <ul class="import-names type-mono-body text-label-primary" aria-label="Secrets' names">
+          @for (name of line.names; track $index) {
+          <li>{{ name }}</li>
+          }
+        </ul>
+        } @if (line.after) {
+        <p>{{ line.after }}</p>
+        }
+      </div>
+      } @let hosts = hostsOf(entry); @if (hosts.length) {
       <p class="type-footnote text-label-secondary mt-1.5">Its requests go to:</p>
       <ul class="import-hosts type-mono-body text-label-primary" aria-label="Hosts its requests go to">
         @for (host of hosts; track host) {

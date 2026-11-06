@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- On a phone, the link and the code in Share… were cut off at the field's edge; they now end in an ellipsis where they
+  do not fit, and Copy still copies them whole. Share… and "Open a shared collection" are now checked at every window
+  width from 320 px for anything wider than the window.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

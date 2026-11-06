@@ -2,3 +2,8 @@
 p {
   margin: 0;
 }
+
+/* share.md, at 390 px: the link and the code are cut with an ellipsis where they do not fit, and copied whole. */
+input[readonly] {
+  text-overflow: ellipsis;
+}

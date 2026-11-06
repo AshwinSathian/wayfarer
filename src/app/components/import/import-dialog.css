@@ -22,8 +22,9 @@
   white-space: nowrap;
 }
 
-/* One host a line, broken anywhere in a long name (receive.md, at 390 px). */
-.import-hosts {
+/* One host (or secret's name) a line, broken anywhere in a long name (receive.md, at 390 px). */
+.import-hosts,
+.import-names {
   list-style: none;
   margin: 0;
   padding: 0;

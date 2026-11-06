@@ -9,6 +9,35 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The import report says what a collection needs of you**, for a file
+  and for a shared link: the vault secrets it refers to that your vault
+  does not have ("Needs 1 secret you do not have: token. A request that
+  uses it is not sent until you give the variable a value."), a secret of
+  the same name in your vault, which the collection does not use, the
+  secrets it uses that are yours, how many credentials the sender's share
+  left as `***`, and how many scripts came with it, all before the hosts
+  its requests go to. Before, the report showed only the hosts, and a
+  collection whose sends would be refused for a missing secret or carry
+  `***` said nothing of it until you sent. Only your secrets' ids and
+  names are read, never a value.
+
+### Fixed
+
+- After Import of a shared link, focus moves to the new collection's row in the sidebar (opening the drawer on a
+  phone), and the status line says "Added {collection}."; before, focus went back to the page and the line said
+  "Imported the shared link.", which did not name what was added.
+- A shared link opened with no network (the app installed, or visited once) now opens. Before, the report said "The
+  file was not imported: reading it stopped with an error." unless something had been imported online before: the
+  service worker kept the importer only once it had been used. It is now kept with the app's other files.
+
+
+- **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link
+  over 12 kB, but opening one read a fragment of up to 10 MB: about 270 ms to decode it, and with
+  the code in it, a decrypt of 7.5 MB before it was refused. A fragment past 12 kB now gets
+  "This link does not hold a Wayfarer collection." before anything is decoded.
+- On a phone, the link and the code in Share… were cut off at the field's edge; they now end in an ellipsis where they
+  do not fit, and Copy still copies them whole. Share… and "Open a shared collection" are now checked at every window
+  width from 320 px for anything wider than the window.
 - **Import › Link…** in the sidebar, and **Open a shared link…** in the
   palette: paste a shared link that came as text (in a document, say)
   and it opens as a clicked one does, with its code and the import

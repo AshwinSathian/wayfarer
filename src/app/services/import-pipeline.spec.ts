@@ -16,6 +16,7 @@ import { CollectionsStore } from "./collections-store";
 import { diagnosticEntries } from "./diagnostics";
 import { EnvironmentsStore } from "./environments-store";
 import { ImportPipeline } from "./import-pipeline";
+import { UndoNotice } from "./undo-notice";
 
 const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
 const collectionFile = JSON.stringify({
@@ -285,6 +286,31 @@ describe("ImportPipeline", () => {
       collection: { name: "Imported from cURL" },
       requests: [{ name: "GET api.test/users", url: "https://api.test/users" }],
     });
+  });
+
+  // receive.md, "Done": a link's Import is said by the collection's name, and the shell is told which row to focus.
+  it("a link's Import says Added and the collection's name, and names the collection it added", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    collections.importCollection.mockResolvedValue({ meta: meta("col-1"), name: "Billing" });
+    const link = await encodeShareLink(collectionFile);
+    await service.openLink(shareFragment(link, true));
+    await vi.waitFor(() => expect(service.imported()).not.toBeNull());
+
+    await service.confirm();
+
+    expect(undo.current()?.message).toBe("Added Billing.");
+    expect(service.addedFromLink()).toEqual({ id: "col-1" });
+  });
+
+  it("a file's Import is said by the file's name, and moves no focus", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    collections.importCollection.mockResolvedValue({ meta: meta("col-1"), name: "Billing" });
+    await service.stage("billing.json", collectionFile);
+
+    await service.confirm();
+
+    expect(undo.current()?.message).toBe("Imported billing.json.");
+    expect(service.addedFromLink()).toBeNull();
   });
 
   it("a worker that fails is said as such, and nothing is stored", async () => {

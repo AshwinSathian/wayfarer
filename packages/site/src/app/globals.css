@@ -302,6 +302,10 @@
   --pagefind-ui-border-radius: var(--radius-sm);
   --pagefind-ui-font: var(--font-text);
 }
+/* Pagefind sets its Clear button at 0.8 of its own size (11.2 px): nothing on the site is under 12 px. */
+#search .pagefind-ui__search-clear {
+  font-size: var(--type-site-caption-size);
+}
 
 /* The comparison pages' tables (W5.4): they scroll sideways in their own box on a narrow window, never the page. */
 .compare-scroll {

@@ -321,10 +321,10 @@ roadmap and the blog are footer-only (by design, D5-e).
 loading arc is drawn over the poster's middle until the clip is asked for.
 Nothing else on the site looks native.
 
-**S-18, polish. The docs list publishes 29 design records.** They are
-pages (`/docs/design/*`), in the sitemap and the search, each marked
-"Design record, not user documentation"; only three are in the docs
-index. A visitor who searches "share" finds `design/teams/share` (a design
+**S-18, polish. The docs search finds 29 design records.** They are
+pages (`/docs/design/*`), each marked "Design record, not user
+documentation" and `noindex`, and out of the sitemap but for the three the
+comparisons cite; Pagefind indexes every one. A visitor who searches "share" finds `design/teams/share` (a design
 for T-c, not built) beside `sharing`.
 
 **S-19, polish. Pagefind's hidden Clear button is 11.2 px.**

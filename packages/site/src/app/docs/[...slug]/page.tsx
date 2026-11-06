@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: Props) {
   );
 }
 
-/** A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article. */
+/** A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article of a doc search engines may list:
+ * a working note (a design record, an operations doc) is not a search result (W6.8). */
 export default async function DocPage({ params }: Props) {
   const doc = await find(params);
   const id = doc.id;
@@ -43,7 +44,7 @@ export default async function DocPage({ params }: Props) {
       )}
       <article
         className={id === "claims" ? "prose claims-ledger" : "prose"}
-        data-pagefind-body
+        {...(indexed(doc) ? { "data-pagefind-body": "" } : {})}
         dangerouslySetInnerHTML={{ __html: docHtml(id) }}
       />
       <p className="mt-12 type-site-small text-ink-muted">

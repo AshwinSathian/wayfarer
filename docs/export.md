@@ -14,6 +14,9 @@ with (its own or inherited), and the `Content-Type` its body implies.
 
 The response's **Export** menu copies the request that was sent, as cURL.
 
+To hand a whole collection to someone, choose **Share…** on it: a file, or
+an encrypted link ([Sharing](sharing.md)).
+
 ## The body, in every mode
 
 <!-- claim:C-020 -->

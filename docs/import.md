@@ -5,6 +5,9 @@
 Moving a whole workspace from Postman? [Moving from Postman](https://wayfarer.ashwinsathian.com/compare/moving-from-postman/)
 has the steps from export to a run in CI.
 
+A collection someone shared as a link opens the same way: open the link,
+or choose **Import › Link…** and paste it ([Sharing](sharing.md)).
+
 Every file reaches the app by one road, whichever Import button you press
 (the Collections panel, Environments, or Settings):
 

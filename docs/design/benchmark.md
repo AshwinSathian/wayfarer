@@ -84,8 +84,10 @@ What each task ends on, and how it gets there, is
   bridge: `getaddrinfo ENOTFOUND no-such-host.invalid`.
 - **5c.** The status line says 401, and the record, opened, says no vault
   secret was filled: the cause, without a guess.
-- **6.** Wayfarer has no sharing yet (phase T): Copy as cURL, which says
-  "Copied as cURL." The teammate sends it with another tool.
+- **6.** Wayfarer had no sharing yet (phase T): Copy as cURL, which says
+  "Copied as cURL." The teammate sends it with another tool. (Since 3.1.0,
+  Share… sends a whole collection as a file or an encrypted link, see
+  [Sharing](../sharing.md); this task was not measured again.)
 
 ## The rivals, documented
 

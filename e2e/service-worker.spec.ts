@@ -5,6 +5,7 @@ import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { seedAndOpen, send } from "./support/app";
+import { collectionFile, shareFragmentOf } from "./support/share-link";
 
 // The deploy: the site at its root and the app, with its worker, under app/ (W1).
 const DIST = "dist/deploy";
@@ -245,4 +246,38 @@ test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker 
     .poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length), { timeout: 30_000 })
     .toBe(0);
   await expect.poll(() => settled(() => caches.keys()), { timeout: 30_000 }).toEqual([]);
+});
+
+// T1.3: a link opened with the app installed and offline still opens. The worker answers a navigation with the shell
+// it stored for /app/, whatever follows `#`; nothing it stores holds the fragment.
+test("a shared link opens offline: the stored shell is served, and nothing the worker stores holds the fragment", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  await loadControlled(page);
+  const { hash } = shareFragmentOf(
+    collectionFile({ collection: "col-off", request: "req-off" }, "Offline share", "https://api.offline.example/x"),
+  );
+  server.kill();
+  await new Promise((resolve) => server.once("exit", resolve));
+  if (browserName !== "webkit") await context.setOffline(true);
+  // A new document, not a change of fragment in the open one: the navigation is the worker's to answer.
+  await page.goto("about:blank");
+  await page.goto(`${base}/app/${hash}`);
+  const report = page.getByRole("dialog", { name: "Import collection" });
+  await expect(report.getByRole("list", { name: "Hosts its requests go to" })).toHaveText("api.offline.example");
+  expect(await page.evaluate(() => location.hash)).toBe("");
+  await report.getByRole("button", { name: "Import", exact: true }).click();
+  await expect(page.getByRole("tree").getByText("Offline share", { exact: true })).toBeVisible();
+
+  const data = hash.slice("#share=".length, "#share=".length + 24);
+  const stored = await page.evaluate(async () => {
+    const urls: string[] = [];
+    for (const name of await caches.keys())
+      for (const request of await (await caches.open(name)).keys()) urls.push(request.url);
+    return urls;
+  });
+  expect(stored.length).toBeGreaterThan(0);
+  expect(stored.filter((url) => url.includes("#") || url.includes(data))).toEqual([]);
 });

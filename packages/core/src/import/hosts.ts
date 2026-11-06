@@ -1,5 +1,6 @@
 import { ancestorsOf, type Ancestor, type CollectionExport } from "../model/collection";
 import { normalizeUrl } from "../send/build";
+import { VariableNestingError, VariableResolver } from "../variables/resolver";
 
 /**
  * The hosts a collection sends to, for the import report (T1.3, `receive.md`): a receiver should know where a
@@ -23,21 +24,23 @@ export function collectionHosts({ collection, folders, requests }: CollectionExp
 }
 
 /**
- * An address with the variables the collection itself gives a value: a `{{baseUrl}}` of the collection would
- * otherwise hide the host it names. The innermost folder's value wins, as the resolver's does; a variable of the
- * receiver's environments is not known here and stays as written.
+ * An address with the variables the collection itself gives a value, through the resolver a send uses: a
+ * `{{baseUrl}}` of the collection would otherwise hide the host it names. A variable of the receiver's environments is
+ * not known here and stays as written; so does an address whose variables nest too deep.
  */
 function filled(address: string, chain: Ancestor[]): string {
-  const values = new Map<string, string>();
-  for (const { variables } of chain) for (const row of variables) if (row.enabled) values.set(row.key, row.value);
-  let text = address;
-  // ponytail: ten rounds of a value that names another; a deeper chain shows its last name as written.
-  for (let round = 0; round < 10 && text.includes("{{"); round += 1) {
-    const next = text.replace(/{{\s*([^{}]*?)\s*}}/g, (whole, name: string) => values.get(name) ?? whole);
-    if (next === text) break;
-    text = next;
+  const [collection, ...folders] = chain;
+  // The outermost folder's rows first: a later row wins, so the nearest folder does (as `WorkspaceStore` stacks them).
+  const resolver = new VariableResolver({
+    collection: collection.variables,
+    folder: folders.flatMap((folder) => folder.variables),
+  });
+  try {
+    return resolver.resolve(address);
+  } catch (error) {
+    if (!(error instanceof VariableNestingError)) throw error;
+    return address;
   }
-  return text;
 }
 
 /**

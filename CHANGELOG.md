@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- [Sharing](docs/sharing.md), a new page of the docs: sharing a collection as a file or a link, the code, the
+  12 kB limit and why, and what opening a link does. Seven new claims back it, each with its test: a link reaches no
+  server (C-084), opening one takes its fragment off the address bar (C-085), nothing is stored before Import
+  (C-086), no vault secret is in a shared file or link (C-087), typed credentials are `***` unless included (C-088),
+  the dialog names where a collection goes before it goes (C-089), and the import report names every host (C-090).
+
 ## [3.2.0] - 2026-11-06
 
 Shared collections, finished: a link that came as text opens from the
@@ -80,23 +88,6 @@ same name and version.
 - On a phone, the link and the code in Share… were cut off at the field's edge; they now end in an ellipsis where they
   do not fit, and Copy still copies them whole. Share… and "Open a shared collection" are now checked at every window
   width from 320 px for anything wider than the window.
-- **Import › Link…** in the sidebar, and **Open a shared link…** in the
-  palette: paste a shared link that came as text (in a document, say)
-  and it opens as a clicked one does, with its code and the import
-  report. A whole address from any site or the `#share=…` part alone
-  both work; the page goes nowhere and nothing is fetched. Before, a
-  link that was not clicked had to be pasted into the address bar.
-- **The import report says when you already have the collection.** A file whose collection is one this browser
-  holds now opens its report with "You have this collection: Shop API. Review what this file changes.", counts
-  what it would change ("1 item changes, 1 is new and 9 are the same", or "Nothing in this file differs from
-  yours."), and lists the items that change before the rest. Before, the report read as for a new collection,
-  and a changed request was somewhere in the list among the unchanged ones. Import still replaces the
-  collection, and Import as duplicate still keeps yours.
-- [Sharing](docs/sharing.md), a new page of the docs: sharing a collection as a file or a link, the code, the
-  12 kB limit and why, and what opening a link does. Seven new claims back it, each with its test: a link reaches no
-  server (C-084), opening one takes its fragment off the address bar (C-085), nothing is stored before Import
-  (C-086), no vault secret is in a shared file or link (C-087), typed credentials are `***` unless included (C-088),
-  the dialog names where a collection goes before it goes (C-089), and the import report names every host (C-090).
 
 ## [3.1.0] - 2026-11-06
 

@@ -10,7 +10,7 @@ import {
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
 import { filesOf, putBack, Removed } from "./removed";
-import { applyVariableChanges, newId, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
 
 /**
  * Collection-level CRUD + import/export. Folder and request CRUD used to
@@ -158,10 +158,14 @@ export class CollectionsRepository {
         return null;
       }
 
+      // One id a copy, as duplicateFolder and duplicateRequest write: `id` is `meta.id`.
+      const fresh = () => {
+        const meta = this.core.createMeta();
+        return { id: meta.id, meta };
+      };
       const duplicate: Collection = {
         ...structuredClone(original),
-        id: newId(),
-        meta: this.core.createMeta(),
+        ...fresh(),
         name: `${original.name} copy`,
         order: await this.core.nextOrder(collectionStore.index("by-order")),
       };
@@ -181,8 +185,7 @@ export class CollectionsRepository {
       const folderClones = sourceFolders.map((folder) => {
         const clone: Folder = {
           ...structuredClone(folder),
-          id: newId(),
-          meta: this.core.createMeta(),
+          ...fresh(),
           collectionId: duplicate.meta.id,
           order: folder.order,
         };
@@ -200,8 +203,7 @@ export class CollectionsRepository {
       for (const request of sourceRequests) {
         const clone: RequestDoc = {
           ...structuredClone(request),
-          id: newId(),
-          meta: this.core.createMeta(),
+          ...fresh(),
           collectionId: duplicate.meta.id,
           order: request.order,
           folderId: request.folderId ? folderIdMap.get(request.folderId) : undefined,

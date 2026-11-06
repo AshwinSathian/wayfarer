@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Duplicate of a collection now gives each copy one ID, as Duplicate of a folder or a request always did. Before, the
+  copied collection, its folders and its requests each kept a second ID beside the one they are stored under, which
+  an export carried into the file; since 3.2.0 an import makes the two one. Copies made before stay as they are and
+  work as before: everything reads the ID they are stored under.
+
 ## [3.2.0] - 2026-11-06
 
 Shared collections, finished: a link that came as text opens from the

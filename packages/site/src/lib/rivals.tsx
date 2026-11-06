@@ -98,12 +98,14 @@ export const WAYFARER_GLANCE: Record<GlanceRow, ReactNode> = {
   ),
   git: (
     <>
-      None yet: a collection leaves as a file. <Claims ids={["C-057"]} />
+      None yet: a collection leaves as a file or a link; Git is <a href="/roadmap/">next</a>.{" "}
+      <Claims ids={["C-057", "C-084"]} />
     </>
   ),
   team: (
     <>
-      None yet: a file; sharing without a server is on the <a href="/roadmap/">roadmap</a>. <Claims ids={["C-057"]} />
+      A copy, as a file or an encrypted link that reaches no server; no workspace in step yet.{" "}
+      <Claims ids={["C-084", "C-086"]} />
     </>
   ),
   ai: (
@@ -747,7 +749,8 @@ export const BEHIND: { title: string; text: ReactNode; sources: Source[] }[] = [
       <>
         Adding an environment takes 8 actions in Wayfarer and 5 in Insomnia&apos;s documentation, 2 of them inferred;
         finding last week&apos;s request takes 4, against Hoppscotch&apos;s 2 and some scrolling. A data-file run takes
-        5 in the app, and 2 with Bruno&apos;s or Hoppscotch&apos;s command line.
+        5 in the app, and 2 with Bruno&apos;s or Hoppscotch&apos;s command line, as with Wayfarer&apos;s own (
+        <a href="/docs/cli/">wayfarer-cli</a> <code>-d</code>).
       </>
     ),
     sources: [BENCHMARK_SOURCE],
@@ -772,8 +775,9 @@ export const BEHIND: { title: string; text: ReactNode; sources: Source[] }[] = [
     title: "No shared workspace for a team",
     text: (
       <>
-        A team shares a collection as a file today; sharing without a server is on the <a href="/roadmap/">roadmap</a>.
-        Postman shares on its Team plan, Hoppscotch on Business, Scalar in team workspaces after sign-in, and Insomnia
+        A team shares a collection as a copy, by file or by an encrypted link that reaches no server, and no copy
+        follows the other&apos;s changes. <Claims ids={["C-084"]} /> Collections in Git are <a href="/roadmap/">next</a>
+        . Postman shares on its Team plan, Hoppscotch on Business, Scalar in team workspaces after sign-in, and Insomnia
         through its cloud or Git Sync, which is free for up to 3 users.
       </>
     ),

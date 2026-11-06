@@ -8,6 +8,7 @@ const COLUMNS = [
       ["The app", "/app/"],
       ["Docs", "/docs/"],
       ["Command line", "/docs/cli/"],
+      ["Sharing", "/docs/sharing/"],
       ["Compare", "/compare/"],
       ["Moving from Postman", "/compare/moving-from-postman/"],
       ["Blog", "/blog/"],

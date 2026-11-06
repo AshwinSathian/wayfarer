@@ -36,7 +36,7 @@ export function DocsFrame({ current, children }: { current?: string; children: R
           </ul>
         </nav>
       </aside>
-      <main className="min-w-0">
+      <main id="main" className="min-w-0">
         <div id="search" className="mb-10" />
         {children}
       </main>

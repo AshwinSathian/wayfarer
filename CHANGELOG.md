@@ -16,6 +16,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- The landing page is rebuilt around the app as it is. The opening line says you can send a
+  collection to a teammate as an encrypted link. The recordings move out of their band at the foot
+  into "A day with Wayfarer": a first request, where it went, a key in the vault, a request the
+  browser stops, a collection shared by link, and the same run in CI. A section quotes rows of
+  the claims ledger with the tests that hold them, and "Also in the app" lists auth, import,
+  export, bodies, AI and offline use, each with its page.
+- The header links Sharing and Trust; the footer links Sharing.
 - The landing's recordings are taken again from today's app: two of the three showed an older
   composer and an older run report. A fourth shows a collection shared by link, and a teammate
   opening it, typing its code and reading the report before anything is stored.
@@ -24,6 +31,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- No page of the site had a way past its header for a keyboard: nine stops came before the
+  content. Every page now starts with Skip to content.
 - The docs search listed design notes (audits, plans, flows not built) among the docs: a search
   for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
   searches the docs and the design records the comparison pages cite.

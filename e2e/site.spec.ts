@@ -509,7 +509,7 @@ test("the landing's recordings play only when asked, each with its poster, its s
     expect(tag).toContain('preload="none"');
     expect(tag).not.toMatch(/\sautoplay|\sloop/i);
     const steps = /aria-describedby="([^"]+)"/.exec(tag)?.[1];
-    expect(html).toMatch(new RegExp(`<ol id="${steps}"`));
+    expect(html).toMatch(new RegExp(`<div id="${steps}"`));
     const files = [
       /poster="([^"]+)"/.exec(tag)?.[1],
       ...[...video.matchAll(/<source src="([^"]+)"/g)].map((m) => m[1]),
@@ -519,12 +519,34 @@ test("the landing's recordings play only when asked, each with its poster, its s
   }
 });
 
+// W6.5: every page's first Tab stop skips the header to its own content.
+test("the first Tab on each kind of page is Skip to content, and it lands in the page's main", async ({
+  page,
+  browserName,
+}) => {
+  // Safari's Tab passes over links unless the reader turned that on; Option+Tab reaches them.
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
+  for (const path of ["/", "/docs/sharing/", "/compare/postman/", "/changelog/", "/roadmap/", "/blog/", "/nope/"]) {
+    await page.goto(path);
+    await page.keyboard.press(tab);
+    const skip = page.getByRole("link", { name: "Skip to content" });
+    await expect(skip, path).toBeFocused();
+    await expect(skip, path).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("main#main"), path).toHaveCount(1);
+    await expect(page, path).toHaveURL(/#main$/);
+  }
+});
+
 // W6.4: with script, a recording shows its poster and the site's Play, not the browser's controls; Play starts it
 // and hands it the controls.
 test("a recording waits behind the site's Play button, then plays with the browser's controls", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "light"));
   await page.goto("/");
-  const figure = page.locator("figure", { has: page.getByRole("heading", { name: "A collection by link" }) });
+  // The day's section holds every step's; the step's own section is the last that holds its heading.
+  const figure = page
+    .locator("section", { has: page.getByRole("heading", { name: "A collection for a teammate" }) })
+    .last();
   const video = figure.locator(".shot-light video");
   await expect(video).not.toHaveAttribute("controls");
   const play = figure.locator(".shot-light").getByRole("button", { name: /^Play/ });

@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
+  the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
+  each part, and every place the site said something false, old or vague, such as sharing by link
+  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
+
 ### Fixed
 
 - The website said in eight places that a team could share a collection only as a file and that

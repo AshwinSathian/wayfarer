@@ -929,7 +929,7 @@ each task names its findings (S-NN).
     version per capability), each finding with its evidence and severity,
     the rivals read on a date, and the landing's and the nav's
     information architecture written before any code.
-- [ ] **W6.2** Make every sentence true (S-01, S-02, S-03, S-05, S-07,
+- [x] **W6.2** Make every sentence true (S-01, S-02, S-03, S-05, S-07,
   S-15, S-22, S-29, S-30, S-31, S-35): sharing as it shipped, in every
   place that says "not yet"; the roadmap's workspace item; C-012 off the
   landing until the zone is hardened; the roadmap framed by what shipped
@@ -940,20 +940,20 @@ each task names its findings (S-NN).
     of the landing, the table and the comparison pages names only rows
     that say as much as its sentence; `e2e/site.spec.ts` green in three
     engines.
-- [ ] **W6.3** The claims page shows its last CI run after a deploy by
+- [x] **W6.3** The claims page shows its last CI run after a deploy by
   hand (S-04, S-23): the manual deploy writes `ci-run.json` from the green
   `e2e.yml` run of the commit it deploys, as `deploy.yml` does; the
   claims-ledger post says how the tests run today.
   - AC: production's `/ci-run.json` is 200 and names the run; the claims
     page has its "Last CI" column there.
-- [ ] **W6.4** The pictures are today's app (S-06, S-17): the recordings
+- [x] **W6.4** The pictures are today's app (S-06, S-17): the recordings
   taken again; a fourth, a collection shared by link and opened by its
   receiver, report and hosts shown; each clip played by a button of the
   site's own, the browser's controls only without script.
   - AC: `npm run gen:recordings` rebuilds all four; a poster differs from
     a fresh take by encoder noise only (under 0.1% of pixels at 2%
     fuzz); Lighthouse holds section 1's numbers.
-- [ ] **W6.5** Rework the landing and the header as the audit's section
+- [x] **W6.5** Rework the landing and the header as the audit's section
   6 says (S-10 to S-14, S-16): the hero's sentence, the day with
   Wayfarer, sharing, the trust section, the index of the rest.
   - AC: copy through `humanizing-writing`, `copywriting` and
@@ -966,17 +966,20 @@ each task names its findings (S-NN).
   the run's reports, each with its test; then their sentences on the
   landing and the comparison pages.
   - AC: the maintainer approves the new rows (public claims).
+  - Built in #672 (C-091 to C-094; the run's reports and the bridge's
+    pairing left for their own look), waiting for the maintainer.
 - [ ] **W6.7** The trust center and the threat model made true (S-24 to
   S-28, S-36): the bridge on npm, the zone as it is, the monitor's skipped
   test, the AI provider as a place data goes.
   - AC: the maintainer approves (security pages).
-- [ ] **W6.8** The docs a visitor reaches (S-18 to S-20, S-32, S-34):
+  - Built in #673, waiting for the maintainer.
+- [x] **W6.8** The docs a visitor reaches (S-18 to S-20, S-32, S-34):
   Share… and Import › Link… in the import and export docs, how to start
   the bridge, the benchmark's task 6, the design records out of the docs
   search, titles in sentence case.
   - AC: `check:links` and `check:site-links` green; a search for
     "share" on the docs finds `sharing` first.
-- [ ] **W6.9** Release a patch and deploy it.
+- [x] **W6.9** Release a patch and deploy it.
   - AC: `e2e.yml` green on `main`; the preview's smoke 17 of 17,
     production's 14 of 17 (C-012's three until the zone is hardened); the
     Worker version in this phase's section 14 row.
@@ -1417,3 +1420,4 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-11-06 | 1.80 | **T1 ticked.** The maintainer approved #644 (2026-11-06): main merged in (Git had put its CHANGELOG entry into the released 3.2.0 section and repeated two bullets; the file is now main's with the one entry under Unreleased), lint, format, knip, test:ci 897, core 1190, test:scripts 317, `check:claims` (90 claims), build, and `share.spec.ts` with `secrets-wire.spec.ts` in the six projects (63 passed), then merged: claims **C-084 to C-090** and `docs/sharing.md` are on `main`, for the next release. On the same go-ahead, **#663**: Duplicate of a collection gives each copy one id (`id` is `meta.id`, as Duplicate of a folder or a request already did), a test that failed first; copies made before keep their second `id` and work as before (every reader keys by `meta.id`; an import makes them one since #658). No migration, no `DB_VERSION` change. |
 | 2026-11-07 | 1.81 | **v3.2.1 in production.** #665 made Unreleased (#644's docs and claims, #663's one id per duplicated copy) 3.2.1; `e2e.yml` run 42275947104 on `main` at `8e7de7f`: success, E2E and design capture in Chromium, Firefox and WebKit. Tagged `v3.2.1` (release.yml 42283687424 green) and deployed from the command line: **Worker version ae9c0f1f** over 3.2.0's 4ee1d3bf, the preview's smoke 17 passed, production serves 3.2.1 and its smoke passed 14 of 17, the three failures C-012's. **C-012, checked 2026-11-07 in three engines:** the Web Analytics beacon is gone; Bot Fight Mode's inline challenge script (1 CSP violation on `/`, 2 on `/app/`) and the `nel` and `report-to` headers remain (runbook "Cloudflare zone" steps 1, 2 and 5, then `ZONE_HARDENED`); the repository has no Actions secrets, so `deploy.yml` cannot deploy. Both the maintainer's. |
 | 2026-11-07 | 1.82 | **Phase W6 added: the website against the app it sells.** Session W6 audited the site (`packages/site`) against v3.2.1 (`docs/design/site-audit-2026-11.md`, 36 findings): link sharing (3.1.0) is "not yet" in eight places, the roadmap marks workspace sharing done (it was left out of T1), the landing names C-012 while production fails it, the claims page shows no CI run in production (every deploy since 3.0.0 by hand), and two of three recordings show an older app. W6.2 to W6.9 fix them; W6.6 (new claims) and W6.7 (the trust center and the threat model) wait for the maintainer. W6.1 ticked. |
+| 2026-11-07 | 1.83 | **Session W6 finished; v3.2.2 in production.** PRs #667 (audit, Phase W6), #668 (W6.2: sharing said as it shipped in eight places, the roadmap's workspace item, C-012 off the landing, the roadmap as Shipped in 3.0, Shipped since 3.0, Next, Later), #669 (W6.3: a deploy by hand writes `ci-run.json`), #670 (W6.4: recordings retaken, a fourth of a link shared and opened, a Play of the site's own), #671 (W6.8: docs search over the docs only, Share… and Import › Link… in the docs), #674 (W6.5: the landing as the audit's section 6 says, Skip to content on every page), #675 (release). `e2e.yml` run 42300099890 on `main` at `5d707ae`: success, E2E and design capture in three engines. Deployed from the CLI: Worker version f24f1237 (over ae9c0f1f); the preview's smoke 17 of 17, production's 14 of 17 (C-012's three); production's `/ci-run.json` is 200 and the claims page has its "Last CI" column again. Lighthouse mobile on the landing 99, 100, 100. Waiting for the maintainer: #672 (W6.6, claims C-091 to C-094) and #673 (W6.7, the trust center and the threat model). Left from the audit: S-09 (the benchmark not run again on 3.2: a measurement session of its own), S-11's claimless items (run reports, bridge pairing: tests to look at first), S-17's Play over the app's bottom-left corner (small; a poster crop would fix it), S-21 (404 has no image, by design), C-012 itself (the zone steps are the maintainer's). |

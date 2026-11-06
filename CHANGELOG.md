@@ -7,6 +7,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- The website said in eight places that a team could share a collection only as a file and that
+  sharing without a server was still to come. Sharing by encrypted link shipped in 3.1.0: the
+  landing's questions and table, the comparison pages, Moving from Postman and `llms.txt` now say
+  what it does, and that a workspace kept in step (through Git) is what comes next.
+- The roadmap listed "a whole workspace" as shared and done; only collections are shared. It now
+  shows what shipped since 3.0 in a list of its own, with Git as Next.
+- The landing's table said Wayfarer names the cause of a DNS failure or a 401 before you send. It
+  names what the browser will do before you send, and the real error after.
+- The landing cited Postman's one-user Free plan from a rival's blog; it now cites Postman's own
+  page, read again on 7 November 2026.
+
 ## [3.2.1] - 2026-11-07
 
 Sharing gets its page in the docs, with seven claims that each have a

@@ -39,7 +39,7 @@ export const ITEMS = [
   },
   {
     tasks: ["D3.3", "D3.5", "D4.11"],
-    text: "Every control works from the keyboard and with a screen reader, and every view holds at 320 px wide.",
+    text: "The core flow works from the keyboard alone, the main views and dialogs have no accessibility violation an automated scan finds, and every view holds at 320 px wide.",
     claims: ["C-038", "C-067"],
   },
   {
@@ -72,7 +72,8 @@ export const ITEMS = [
   },
   {
     tasks: ["T1"],
-    text: "Share a collection or a whole workspace with your team as a file, or as a link whose encrypted contents never reach a server.",
+    text: "Share a collection with your team as a file, or as a link whose encrypted contents never reach a server, and see every host it sends to before you import it.",
+    claims: ["C-084", "C-086", "C-090"],
   },
   {
     tasks: ["T2"],
@@ -98,29 +99,34 @@ export const INTERNAL = new Set([
 ]);
 
 /**
- * The page's three lists. The first is "Shipped in 3.0" once the plan ticks the release (D5.2), else "Coming in
- * 3.0". An item of Next or Later is `done` when the plan ticks all its tasks.
- * @returns {{ title: string, items: { text: string, claims: string[], done: boolean }[] }[]}
+ * The page's lists. The first is "Shipped in 3.0" once the plan ticks the release (D5.2), else "Coming in 3.0". The
+ * work after 3.0 (D6, then Teams) is "Shipped since 3.0" when the plan ticks all of an item's tasks; of what is left,
+ * the first item is "Next" and the rest "Later".
+ * @returns {{ title: string, shipped: boolean, items: { text: string, claims: string[], done: boolean }[] }[]}
  */
 export function roadmapOf(plan) {
   const tasks = new Map(phasesOf(plan).flatMap(({ id, tasks }) => tasks.map((t) => [t.id, { ...t, phase: id }])));
   const released = tasks.get("D5.2")?.done ?? false;
-  const sections = [
-    { title: released ? "Shipped in 3.0" : "Coming in 3.0", items: [] },
-    { title: "Next", items: [] },
-    { title: "Later", items: [] },
-  ];
+  const rebuild = [];
+  const after = [];
   for (const item of ITEMS) {
     const of = item.tasks.map((id) => tasks.get(id)).filter(Boolean);
     if (!of.length) continue;
-    const phase = of[0].phase; // An item's tasks are of one list: the 3.0 rebuild, Next or Later.
-    const section = LATER.has(phase) ? 2 : NEXT.has(phase) ? 1 : 0;
-    sections[section].items.push({
+    const phase = of[0].phase; // An item's tasks are of one list: the 3.0 rebuild, or what comes after it.
+    const later = LATER.has(phase) || NEXT.has(phase);
+    (later ? after : rebuild).push({
       text: item.text,
       claims: item.claims ?? [],
-      done: section > 0 && of.every((t) => t.done),
+      done: later && of.every((t) => t.done),
     });
   }
+  const open = after.filter((i) => !i.done);
+  const sections = [
+    { title: released ? "Shipped in 3.0" : "Coming in 3.0", shipped: released, items: rebuild },
+    { title: "Shipped since 3.0", shipped: true, items: after.filter((i) => i.done) },
+    { title: "Next", shipped: false, items: open.slice(0, 1) },
+    { title: "Later", shipped: false, items: open.slice(1) },
+  ];
   return sections.filter((s) => s.items.length);
 }
 

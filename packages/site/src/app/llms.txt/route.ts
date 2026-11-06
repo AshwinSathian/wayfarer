@@ -12,7 +12,7 @@ export const dynamic = "force-static";
  */
 const DOES: [string, string[]][] = [
   [
-    "No account, no cloud and no telemetry: the only traffic is the request you compose, to the host you name",
+    "No account, no cloud and no telemetry: apart from loading the app, the only traffic is the request you compose, to the host you name, and the sign-in and token requests of an OAuth 2.0 auth you set up",
     ["C-001"],
   ],
   ["Collections, environments and history are kept in the browser's IndexedDB, on your device", ["C-002"]],
@@ -27,6 +27,10 @@ const DOES: [string, string[]][] = [
     ["C-059", "C-060", "C-056"],
   ],
   ["Exports a collection as a Postman v2.1 file, and a request as cURL or code", ["C-057", "C-020", "C-055"]],
+  [
+    "Shares a collection as a file or as an encrypted link whose content is after the #, which reaches no server; the receiver sees every host it sends to before importing",
+    ["C-084", "C-086", "C-090"],
+  ],
   [
     "Runs Postman-style pre-request and test scripts in a QuickJS sandbox; an imported collection's scripts wait until you review them",
     ["C-006", "C-040", "C-051", "C-052"],
@@ -70,7 +74,7 @@ ${DOES.map(line).join("\n")}
 
 - No gRPC, MQTT or Socket.IO requests
 - Collections are not files in a Git repository; they leave the browser as an export or a backup
-- No shared workspace for a team: a team shares a collection as a file. Sharing without a server is designed and not built (${SITE}/roadmap/)
+- No shared workspace for a team: a collection is shared as a copy, by file or by an encrypted link (${SITE}/docs/sharing/); collections in Git are next (${SITE}/roadmap/)
 - No MCP server
 - A browser's limits apply (CORS, headers a page cannot set, TLS it cannot relax) unless the Local Bridge is running
 

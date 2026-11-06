@@ -1,7 +1,7 @@
 // The landing's "What the others ask of you first" (D5-e): five questions a person asks before switching, Wayfarer's
 // answer with its claims, and each rival's from its own documentation, every cell with its source and the date it was
 // read. The rivals' cells are docs/design/benchmark.md's (read on 2026-11-04) and Postman's price is the compare
-// page's (read on 2026-10-19). The last row is where Wayfarer is behind, and says so.
+// page's (read again on 2026-11-07). The last row is where Wayfarer is behind, and says so.
 import type { ReactNode } from "react";
 import { Claims } from "./Claims";
 
@@ -108,7 +108,7 @@ const ROWS: { question: string; wayfarer: ReactNode; rivals: Record<RivalName, C
     question: "Why a request failed (CORS, DNS, a 401)",
     wayfarer: (
       <>
-        Named on screen, before and after you send (<a href={BENCHMARK}>measured</a>).{" "}
+        What the browser will do, named before you send; after, the real error, never a made-up one.{" "}
         <Claims ids={["C-049", "C-010"]} />
       </>
     ),
@@ -132,8 +132,9 @@ const ROWS: { question: string; wayfarer: ReactNode; rivals: Record<RivalName, C
     question: "A workspace your team shares",
     wayfarer: (
       <>
-        <strong>Not yet.</strong> Today a collection goes to a teammate as a file, and its scripts wait for their
-        review. <Claims ids={["C-054", "C-051"]} /> Sharing is on the <a href="/roadmap/">roadmap</a>.
+        <strong>Not yet.</strong> A collection goes as a copy: a file, or an encrypted link that reaches no server, read
+        before it is stored. <Claims ids={["C-084", "C-086"]} /> A workspace in step, through Git, is{" "}
+        <a href="/roadmap/">next</a>.
       </>
     ),
     rivals: {
@@ -141,7 +142,7 @@ const ROWS: { question: string; wayfarer: ReactNode; rivals: Record<RivalName, C
         "The Team plan, $19 a user a month, billed yearly",
         "Postman pricing",
         "https://www.postman.com/pricing/",
-        "2026-10-19",
+        "2026-11-07",
       ),
       Bruno: cell(
         "Through Git; pushing from the app needs Pro or Ultimate",

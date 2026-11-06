@@ -10,7 +10,7 @@ const WEBSITE = `${SITE}/#website`;
 const MAINTAINER = `${SITE}/#maintainer`;
 
 /** The claims the app's entry lists as its features. */
-const FEATURES = ["C-001", "C-002", "C-003", "C-058", "C-065", "C-071"];
+const FEATURES = ["C-001", "C-002", "C-003", "C-058", "C-065", "C-071", "C-084"];
 
 /** The front page's graph: the site, its maintainer, the app and its source. */
 export function homeGraph(version: string, description: string) {

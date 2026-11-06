@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- After Import of a shared link, focus moves to the new collection's row in the sidebar (opening the drawer on a
+  phone), and the status line says "Added {collection}."; before, focus went back to the page and the line said
+  "Imported the shared link.", which did not name what was added.
 - A shared link opened with no network (the app installed, or visited once) now opens. Before, the report said "The
   file was not imported: reading it stopped with an error." unless something had been imported online before: the
   service worker kept the importer only once it had been used. It is now kept with the app's other files.

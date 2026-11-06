@@ -1,4 +1,4 @@
-# Trust Center
+# Trust center
 
 This page exists so a security-conscious developer (or someone running a
 procurement review before their org adopts Wayfarer) can find the facts
@@ -19,7 +19,7 @@ server-side copy of your data to breach, leak, or subpoena.
 ## Data residency
 
 **100% client-side.** Requests, collections, environments, history, and
-secrets are stored only in the browser's IndexedDB, on the device you're
+secrets are stored only in the browser's IndexedDB, on the device you are
 using. <!-- claim:C-002 --> Nothing is uploaded to any server we operate. See
 [`docs/storage.md`](storage.md) for the exact schema. Apart from loading
 the app itself from its static host, the only network traffic Wayfarer's
@@ -81,10 +81,10 @@ sandboxing and the device's disk encryption. In particular:
 
 ## Encryption in transit
 
-Wayfarer has no server of its own, so there's no "our API" to TLS-protect.
+Wayfarer has no server of its own, so there is no "our API" to TLS-protect.
 Outbound traffic is the request you build, sent directly to the host you
 specify. If that host is `https://`, the connection is TLS-protected by the
-browser exactly as it would be for any other web request; Wayfarer doesn't
+browser exactly as it would be for any other web request; Wayfarer does not
 touch, weaken, or intercept that connection. <!-- claim:C-015 --> If you use the optional
 [Local Bridge](../packages/bridge/README.md) to reach a CORS-restrictive or
 intranet-only API, see that component's own security model: the bridge
@@ -101,7 +101,7 @@ response. <!-- claim:C-063 --> See
 Every page is served with a strict Content-Security-Policy, generated from
 [`security/csp.json`](../security/csp.json): scripts only from the app's
 own origin, no `eval`, no inline script. <!-- claim:C-011 -->
-It also requires Trusted Types, so strings can't reach DOM script sinks
+It also requires Trusted Types, so strings cannot reach DOM script sinks
 such as `innerHTML` or a `Worker` URL unless the app's policy approves
 them; its default policy approves only same-origin script URLs. <!-- claim:C-016 -->
 
@@ -171,10 +171,14 @@ error's message is kept without any address, quoted text or anything that
 looks like a key or a token, so the report holds no address, header or body
 of a request you sent. <!-- claim:C-068 -->
 
-The hosting zone currently injects Cloudflare's Web Analytics beacon and a
-bot-detection script into the page. The site's Content-Security-Policy
-blocks both from running <!-- claim:C-011 -->, and they are being switched off at the host
-([#75](https://github.com/AshwinSathian/wayfarer/issues/75)).
+The hosting zone currently injects a bot-detection script (Cloudflare's Bot
+Fight Mode) into the page, and adds the `nel` and `report-to` headers, which
+ask the browser to report network errors to Cloudflare. The site's
+Content-Security-Policy blocks the script from running <!-- claim:C-011 -->; both are
+being switched off at the host
+([#75](https://github.com/AshwinSathian/wayfarer/issues/75)). Until then the
+6-hourly check for a script the app did not ship skips its test on
+production. The Web Analytics beacon the zone used to inject is gone.
 
 ## The website
 
@@ -197,10 +201,10 @@ changes, this section will say what is measured before it is.
 address, user agent, and URL of each visit when your browser loads the app.
 It never receives your collections, environments, history, or secrets,
 because the app never sends them anywhere. <!-- claim:C-001 --> There are no other
-subprocessors. If you self-host the static build, Cloudflare isn't
+subprocessors. If you self-host the static build, Cloudflare is not
 involved at all.
 
-## Third-party audits & certifications
+## Third-party audits and certifications
 
 No third-party audits or certifications exist.
 
@@ -213,7 +217,7 @@ requests you send go straight to the network, so a network failure shows
 the real error, never a synthetic `504` (the pre-v1.1.0 worker did that,
 [#63](https://github.com/AshwinSathian/wayfarer/issues/63)). <!-- claim:C-010 --> <!-- claim:C-015 -->
 Your data
-is not affected by the site's uptime, because the site never holds it: it's
+is not affected by the site's uptime, because the site never holds it: it is
 in your browser's IndexedDB whether or not
 `https://wayfarer.ashwinsathian.com/` is reachable.
 
@@ -243,18 +247,17 @@ These are open, tracked, and scheduled in
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Offline, the app has the parts it has loaded once: the page, the editor, and whatever you used. A part that was never loaded on this device (the script engine before a script ever ran, the importer before a file was ever picked, an editor language's helper before the editor was idle once) is fetched the first time it is needed, and that needs the network. Nothing precaches all of them: together they are 12.9 MB.
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in the status bar and in Settings whether it agreed, and reminds you to back up after 14 days, or every 5 days while it has not; it cannot make the browser promise.
-- The Local Bridge isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)). A request's route is its own, its collection's or the device's: Direct, Local Bridge, or Auto, the default. Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 --> Auto reaches the bridge only once it has a token (paired, or typed in). A server that allows the browser's preflight and then sends its answer without the header the browser needs has received the request, and Auto sends it again through the bridge: the browser does not tell the page which of the two failed. A request a script sends and an OAuth token request are not asked about: such a request the browser may have sent is not sent again. A request may switch certificate verification off for itself (**Do not verify the server's certificate**): the bridge then accepts any certificate for that request, the request and its response carry a red "Certificate not checked" pill, and what answers may not be the server the address names. A request a script sends (`pm.sendRequest`) and an OAuth token request are always verified.
+- The Local Bridge is a program you run on your machine (`npx wayfarer-bridge`, Node 22.12 or later). A request's route is its own, its collection's or the device's: Direct, Local Bridge, or Auto, the default. Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 --> Auto reaches the bridge only once it has a token (paired, or typed in). A server that allows the browser's preflight and then sends its answer without the header the browser needs has received the request, and Auto sends it again through the bridge: the browser does not tell the page which of the two failed. A request a script sends and an OAuth token request are not asked about: such a request the browser may have sent is not sent again. A request may switch certificate verification off for itself (**Do not verify the server's certificate**): the bridge then accepts any certificate for that request, the request and its response carry a red "Certificate not checked" pill, and what answers may not be the server the address names. A request a script sends (`pm.sendRequest`) and an OAuth token request are always verified.
 - Cookies that responses set through the Local Bridge are kept in this browser's storage as text, like a credential typed into a request, and sent to their domain and path with later requests through the bridge. Anything that reads this origin's storage reads them. History and exports hold them masked; a cookie that repeats a vault secret is not stored. The jar has no list of public suffixes: see [`browser-limits.md`](browser-limits.md#cookies).
 - A browser drops some request headers, adds others and hides most response headers of another origin. Wayfarer cannot change that from a page; it says so for each request before you send it <!-- claim:C-049 --> and on the Headers tab, and [`browser-limits.md`](browser-limits.md) lists all of it. The Local Bridge is the way around.
 
 - The Local Bridge's token, which you paste into its settings or which the bridge gives the page for its pairing code (once; three wrong codes lock pairing for a minute), is kept in the vault while the vault is unlocked. With the vault locked, or with no vault, it is in the tab's memory only and you give it again after a reload: it is never written as plain text. A vault file holds it encrypted, like every vault secret.
 - OAuth 2.0 sign-in is tested in Chromium, Firefox and a test build of WebKit, not yet in Safari itself, and a token endpoint that does not allow the app's origin can only be reached through the Local Bridge ([`browser-limits.md`](browser-limits.md#oauth)). The implicit and device grants are not built.
 - In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent without one: the server received the request and no `OPTIONS` ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
-- Data and files from Wayfarer 1.x are not read by version 2: the first open removes them and says so.
 
 All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09).
 
-## Vulnerability disclosure & incident history
+## Vulnerability disclosure and incident history
 
 Reporting process, response-time commitment, and scope: [`SECURITY.md`](../SECURITY.md).
 Automated-scanner discovery file: [`/.well-known/security.txt`](../packages/site/public/.well-known/security.txt).
@@ -282,7 +285,7 @@ each answer are in the sections above.
 | Hosting model | Client-side only: static files from Cloudflare's edge (or your own host, see [Self-hosting](self-hosting.md)); all logic and data run in the user's browser. |
 | Support | Best effort, through GitHub Issues. No support tier with an SLA. |
 | Where is customer data stored? | Only in the user's browser, in IndexedDB. No database, object storage or server-side store exists. |
-| Does data leave the device? | Only the request the user composes, sent to the host the user chose (and an OAuth 2.0 token request and sign-in, to addresses the user typed). |
+| Does data leave the device? | Only the request the user composes, sent to the host the user chose (and an OAuth 2.0 token request and sign-in, to addresses the user typed), and, with an AI provider added, the prompts the user sends to it. |
 | Data residency | Not applicable: wherever the user's device is. |
 | Retention | Until the user deletes it (an item, or Reset all data) or clears the site's storage. |
 | Encryption at rest | Vault secrets: AES-GCM-256 under a data key wrapped by a PBKDF2-SHA-256 key (600,000 iterations) from the passphrase. Everything else: plain text in IndexedDB, under the browser's sandbox and the device's disk encryption. |
@@ -290,7 +293,7 @@ each answer are in the sections above.
 | Key management | The data key is in memory only while unlocked. No escrow, no server-side key, no recovery of a lost passphrase. |
 | Accounts, SSO, MFA | None: there are no accounts. |
 | Backend touching customer data | None. |
-| Third parties receiving data | None. The optional Local Bridge runs on the user's machine, under the user's control. |
+| Third parties receiving data | None, unless the user adds an AI provider: it then receives the prompts the user sends to it, each shown byte for byte first, masked. The optional Local Bridge runs on the user's machine, under the user's control. |
 | Subprocessors | Cloudflare, as the static host; it sees each page load's IP address, user agent and URL, never the user's data. A self-hosted copy has none. |
 | Certifications | No SOC 2, ISO 27001 or third-party penetration test. |
 | GDPR / CCPA | The vendor collects, stores and processes no personal data; users control what they type into their own requests. |
@@ -304,7 +307,7 @@ An absence here means "not yet written down", not "no".
 ## What this page is not
 
 This is not a claim of compliance with any specific framework, and it is not
-a substitute for your own security review. It's the fastest path to the
+a substitute for your own security review. It is the fastest path to the
 facts a review needs, kept in the same repository as the code they describe
-so it can't silently drift out of date the way a separate marketing site
+so it cannot silently drift out of date the way a separate marketing site
 could.

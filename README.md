@@ -157,7 +157,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Browser limits](docs/browser-limits.md): what the browser does to a request, and what the Local Bridge changes
 - [Command line](docs/cli.md): `wayfarer-cli`
 - [Self-hosting](docs/self-hosting.md): the folder, the headers, the OAuth callback
-- [Trust Center](docs/trust-center.md): encryption, data residency, subprocessors, procurement answers, hall of fame
+- [Trust center](docs/trust-center.md): encryption, data residency, subprocessors, procurement answers, hall of fame
 - [Threat model](docs/threat-model.md): each trust boundary, its threats, and the tested claim behind each mitigation
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer

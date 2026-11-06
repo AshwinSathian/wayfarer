@@ -101,6 +101,21 @@ window, which answers on `/app/oauth/callback`.
 | Callback page and app | S | Another page sends the app a sign-in answer, so that you use a token of the attacker's. | The app takes an answer only when it carries the `state` made for that sign-in, and uses PKCE for the code. | C-062 |
 | Callback page and app | E | The callback page runs the app's code, or the app's code runs with the callback's query. | The callback page is a page of its own, with its own script and style under the same Content-Security-Policy. | C-011, C-062 |
 
+## The page and a model provider
+
+AI is off until you add a provider in Settings › AI. Then a model call
+goes to the address you gave, with the key kept in the vault.
+
+| Boundary | STRIDE | Threat | Mitigation | Claims |
+|---|---|---|---|---|
+| Page and model provider | I | A prompt carries a vault secret or a credential to the provider. | A prompt quotes the exchange as history keeps it, masked; a prompt that names a secret's reference is not sent. | C-070, C-077 |
+| Page and model provider | I | Something is sent to a model without your knowing. | Nothing is sent until Send to model, and what goes is shown first, byte for byte; a response body goes only when ticked for that call. | C-071, C-072, C-080 |
+| Page and model provider | T | A model's answer changes your request or runs as a script. | A proposal changes nothing until accepted, Undo puts it back, and tests a model wrote run only where the request's scripts may run. | C-073, C-079 |
+| Page and model provider | I | The provider's key is stored where other code reads it. | The key is kept only as a vault secret, and removing the provider deletes it. | C-074, C-075 |
+
+The provider itself is a third party you chose: what it does with a prompt
+is out of the app's hands, as a target server's is.
+
 ## The page and its host
 
 The app is static files on Cloudflare's network, or on any host you choose
@@ -108,7 +123,7 @@ The app is static files on Cloudflare's network, or on any host you choose
 
 | Boundary | STRIDE | Threat | Mitigation | Claims |
 |---|---|---|---|---|
-| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only, and a monitor loads the production page every 6 hours and fails on any script that is not the app's. | C-012, C-011, C-016 |
+| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only. A monitor loads the production page every 6 hours and fails on any script that is not the app's; until the hosting zone stops injecting its bot-detection script, that test is skipped on production. | C-012, C-011, C-016 |
 | Service worker and page | T | The service worker serves an old or a foreign file as the app. | The service worker caches only the app's own files, and a new version takes over only when the page asks. | C-015 |
 
 ## What this model does not cover
@@ -116,8 +131,9 @@ The app is static files on Cloudflare's network, or on any host you choose
 - **A compromised browser or operating system.** An extension with access
   to the page, or malware that reads memory, sees what the page sees.
 - **A hostile host for the hosted app.** The monitor (C-012) finds a
-  changed page within 6 hours; it does not prevent one. If that matters to
-  you, host the folder yourself.
+  changed page within 6 hours once its test runs on production (it is
+  skipped until the zone is hardened); it does not prevent one. If that
+  matters to you, host the folder yourself.
 - **The servers you send requests to.** What a server does with a request
   you sent it is out of the app's hands.
 - **The browser's history list.** Opening a link leaves its address, fragment and all, in the browser's own history

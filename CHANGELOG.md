@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The trust center said the Local Bridge is not on npm (it is: `npx wayfarer-bridge`), that the
+  host injects a Web Analytics beacon (gone), and nothing of the AI provider a user adds, which
+  then receives the prompts sent to it. It now says each as it is, and that the host still adds a
+  bot-detection script, which the page's policy blocks, and error-reporting headers.
+- The threat model said a monitor checks production every 6 hours for a script the app did not
+  ship; that test is skipped until the host stops injecting its script, and the model now says so.
+  It gains the boundary it lacked, the page and a model provider.
+
+### Fixed
+
 - The docs search listed design notes (audits, plans, flows not built) among the docs: a search
   for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
   searches the docs and the design records the comparison pages cite.

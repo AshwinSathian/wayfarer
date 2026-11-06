@@ -7,15 +7,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Fixed
-
-- The docs search listed design notes (audits, plans, flows not built) among the docs: a search
-  for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
-  searches the docs and the design records the comparison pages cite.
-- The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
-  say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
-  docs search's Clear button is no longer under 12 px.
-
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
@@ -33,6 +24,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The docs search listed design notes (audits, plans, flows not built) among the docs: a search
+  for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
+  searches the docs and the design records the comparison pages cite.
+- The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
+  say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
+  docs search's Clear button is no longer under 12 px.
 - The claims page showed no test results on the live site ("This copy of the site was not
   deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
   hand left out the file that names the run. The manual deploy now writes it, so each claim's row

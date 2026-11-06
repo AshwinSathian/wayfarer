@@ -21,3 +21,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* One host a line, broken anywhere in a long name (receive.md, at 390 px). */
+.import-hosts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+}

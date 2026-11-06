@@ -8,7 +8,7 @@ import { Icon } from "../../shared/icon/icon";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { CollectionsStore } from "../../services/collections-store";
 import { ScriptTrust } from "../../services/script-trust";
-import { scriptsOf, type CollectionImportPlanEntry, type ImportedCollection } from "@wayfarer/core";
+import { collectionHosts, scriptsOf, type CollectionImportPlanEntry, type ImportedCollection } from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
 import { ScriptReviewDialog } from "../composer/script-review-dialog";
 import { DOCS } from "../../shared/docs";
@@ -46,6 +46,19 @@ export class ImportDialog {
     return [collection, ...folders, ...requests].some((holder) => scriptsOf(holder).length);
   });
   protected readonly reviewing = signal(false);
+  /** The code typed for a shared link. */
+  protected readonly code = signal("");
+
+  /** Enter in the code's field opens the link, as Open does. */
+  protected openLink(event: Event): void {
+    event.preventDefault();
+    if (this.code().trim()) void this.pipeline.openWithCode(this.code());
+  }
+
+  /** Every host the collection sends to, shown before anything is stored (T1.3). */
+  protected hostsOf(entry: ImportedCollection): string[] {
+    return collectionHosts(entry.payload);
+  }
   /**
    * Import: with the box for a command open, reads it in the worker and opens the report a file opens (U-201); there,
    * it stores what the report shows. Nothing is stored before the report's Import.
@@ -98,6 +111,7 @@ export class ImportDialog {
   /** Named for what the file holds, once that is known. */
   protected readonly header = computed(() => {
     const imported = this.pipeline.imported();
+    if (this.pipeline.link()) return "Open a shared collection";
     if (imported?.collections.length) return "Import collection";
     if (imported?.environments.length) return "Import environments";
     return "Import";

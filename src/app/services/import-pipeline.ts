@@ -1,5 +1,14 @@
 import { Injectable, inject, signal } from "@angular/core";
-import { readImportText, type EnvironmentDoc, type Imported, type ValidationIssue } from "@wayfarer/core";
+import {
+  ImportError,
+  openShareLink,
+  parseShareFragment,
+  readImportText,
+  type EnvironmentDoc,
+  type Imported,
+  type ShareFragment,
+  type ValidationIssue,
+} from "@wayfarer/core";
 import { ImportRefused, ImportWorkerClient } from "../shared/import/import-worker-client";
 import { CollectionsStore } from "./collections-store";
 import { Diagnostics, recordDiagnostic } from "./diagnostics";
@@ -43,7 +52,59 @@ export class ImportPipeline {
   /** The command in that box. */
   readonly pasted = signal("");
 
+  /** A shared link that waits for its code (T1.3): the dialog asks for it. */
+  readonly link = signal<ShareFragment | null>(null);
+  /** Why the code typed did not open the link. */
+  readonly codeRefused = signal("");
+  readonly opening = signal(false);
+
   private text = "";
+
+  /**
+   * A shared link's fragment (T1.3, `receive.md`): read, and opened at once when the code is in it, else the dialog
+   * asks for the code. What it holds is untrusted: it is a file's text from here on, through the worker and the report.
+   */
+  async openLink(hash: string): Promise<void> {
+    this.close();
+    let fragment: ShareFragment;
+    try {
+      fragment = parseShareFragment(hash);
+    } catch (error) {
+      if (!(error instanceof ImportError)) throw error;
+      this.fileName.set("the shared link");
+      this.refused.set({ message: error.message, issues: [] });
+      this.dialogVisible.set(true);
+      return;
+    }
+    this.link.set(fragment);
+    this.dialogVisible.set(true);
+    if (fragment.code) await this.openWithCode("");
+  }
+
+  /** The code typed (or the link's own) opens the link; its text is then staged as a file's is. */
+  async openWithCode(code: string): Promise<void> {
+    const link = this.link();
+    if (!link) return;
+    this.opening.set(true);
+    this.codeRefused.set("");
+    try {
+      const text = await openShareLink(link, code);
+      this.link.set(null);
+      await this.stage("the shared link", text);
+    } catch (error) {
+      if (!(error instanceof ImportError)) throw error;
+      if (link.code) {
+        // The link's own code failed: the link itself is wrong, and there is no code to type.
+        this.link.set(null);
+        this.fileName.set("the shared link");
+        this.refused.set({ message: error.message, issues: [] });
+      } else {
+        this.codeRefused.set(error.message);
+      }
+    } finally {
+      this.opening.set(false);
+    }
+  }
 
   /** A file was chosen in a file input. The input is cleared, so the same file can be chosen again. */
   async pick(event: Event): Promise<void> {
@@ -124,6 +185,8 @@ export class ImportPipeline {
 
   close(): void {
     this.dialogVisible.set(false);
+    this.link.set(null);
+    this.codeRefused.set("");
     this.pasting.set(false);
     this.pasted.set("");
     this.refused.set(null);

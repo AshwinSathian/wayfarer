@@ -397,6 +397,7 @@ it is.
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Open` | Open a shared collection: the code of a link that does not carry it (T1.3, `teams/receive.md`) | Opening a link | T-a |
 | `import-dialog.html: Import and review scripts…` | — (new in D5-e) | Import report dialog, when the file is one collection with scripts: imports it untrusted, then opens the script review on it | — |
 | `import-dialog.html: What the warnings mean` | — (new in D6-a, U-166) | Import report dialog, under its warnings: the import doc's "What the report warns about", in a new tab | — |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |

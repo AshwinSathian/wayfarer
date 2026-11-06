@@ -66,3 +66,101 @@ test.describe("Share… (T1.2)", () => {
     await expect(dialog.getByRole("textbox", { name: "Code", exact: true })).toHaveCount(0);
   });
 });
+
+/** Makes a link of the seeded collection and gives back its address and its code. */
+async function makeLink(page: Page, codeInLink = false): Promise<{ address: string; code: string }> {
+  const dialog = await share(page);
+  await dialog.getByRole("radio", { name: "Link" }).check();
+  await dialog.getByRole("button", { name: "Make link" }).click();
+  const code = (await dialog.getByRole("textbox", { name: "Code", exact: true }).inputValue()).replace(/ /g, "");
+  const link = dialog.getByRole("textbox", { name: "Link", exact: true });
+  if (codeInLink) {
+    await dialog.getByRole("checkbox", { name: "Put the code in the link" }).check();
+    await expect(link).toHaveValue(/&key=/);
+  }
+  const address = await link.inputValue();
+  return { address, code };
+}
+
+test.describe("Receive a link (T1.3)", () => {
+  test("takes the fragment off the address, asks for the code, reports the hosts, and stores nothing before Import", async ({
+    page,
+    browser,
+  }) => {
+    const { address, code } = await makeLink(page);
+    const receiver = await (await browser.newContext()).newPage();
+    await receiver.goto(address);
+    const dialog = receiver.getByRole("dialog", { name: "Open a shared collection" });
+    await expect(dialog).toBeVisible();
+    expect(await receiver.evaluate(() => location.hash)).toBe("");
+    expect(receiver.url()).not.toContain("#");
+
+    const field = dialog.getByRole("textbox", { name: "Code" });
+    await expect(field).toBeFocused();
+    await field.fill(`${code.slice(0, -2)}AA`);
+    await dialog.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(dialog.locator("#import-link-code-error")).toHaveText(
+      "This code does not open the link. Check it with the person who sent it.",
+    );
+
+    // The code as shown, in fours, opens it.
+    await field.fill(code.replace(/(.{4})/g, "$1 "));
+    await field.press("Enter");
+    const report = receiver.getByRole("dialog", { name: "Import collection" });
+    await expect(report).toContainText('"the shared link" will add 1 collection and 1 request.');
+    await expect(report.getByRole("list", { name: "Hosts its requests go to" })).toHaveText("api.shop.example.com");
+    await report.getByRole("button", { name: "Cancel" }).click();
+    await expect(report).toBeHidden();
+    await expect(receiver.getByRole("tree").getByText("Tripwire collection", { exact: true })).toHaveCount(0);
+
+    // Opened again, Import stores it, its scripts held and its credential masked.
+    await receiver.goto(address);
+    await dialog.getByRole("textbox", { name: "Code" }).fill(code);
+    await dialog.getByRole("button", { name: "Open", exact: true }).click();
+    await report.getByRole("button", { name: "Import", exact: true }).click();
+    await expect(receiver.getByRole("tree").getByText("Tripwire collection", { exact: true })).toBeVisible();
+    const stored = await receiver.evaluate(async () => {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open("wayfarer");
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      const all = (name: string) =>
+        new Promise<unknown[]>((resolve) => {
+          const request = db.transaction(name).objectStore(name).getAll();
+          request.onsuccess = () => resolve(request.result);
+        });
+      const out = { collections: await all("collections"), requests: await all("requests") };
+      db.close();
+      return out;
+    });
+    expect(stored.collections).toEqual([expect.objectContaining({ scriptTrust: { trusted: false } })]);
+    expect(JSON.stringify(stored.requests)).not.toContain(TOKEN);
+    await receiver.context().close();
+  });
+
+  test("a link with its code in it opens at once; a damaged one is refused with its reason", async ({
+    page,
+    browser,
+  }) => {
+    const { address } = await makeLink(page, true);
+    const receiver = await (await browser.newContext()).newPage();
+    await receiver.goto(address);
+    await expect(receiver.getByRole("dialog", { name: "Import collection" })).toContainText(
+      '"the shared link" will add 1 collection and 1 request.',
+    );
+    expect(await receiver.evaluate(() => location.hash)).toBe("");
+
+    // Pasted into the open app's address bar: a navigation inside the page, taken the same way.
+    await receiver.getByRole("dialog", { name: "Import collection" }).getByRole("button", { name: "Cancel" }).click();
+    const damaged = address.replace(
+      /#share=(.{10})(.)/,
+      (_, kept: string, byte: string) => `#share=${kept}${byte === "A" ? "B" : "A"}`,
+    );
+    await receiver.evaluate((hash) => (location.hash = hash), new URL(damaged).hash);
+    const refused = receiver.getByRole("dialog", { name: "Import", exact: true });
+    await expect(refused).toContainText("This link is incomplete");
+    expect(await receiver.evaluate(() => location.hash)).toBe("");
+    await receiver.context().close();
+  });
+});

@@ -3,10 +3,10 @@
   [visible]="pipeline.dialogVisible()"
   (visibleChange)="pipeline.dialogVisible.set($event)"
   width="480px"
-  (hide)="pipeline.close()"
+  (hide)="pipeline.close(); code.set('')"
 >
   <!-- There while the dialog is: a file refused or read after it opened is heard (U-075). -->
-  <p class="sr-only" role="alert">{{ refusedText() }}</p>
+  <p class="sr-only" role="alert">{{ refusedText() || pipeline.codeRefused() }}</p>
   <p class="sr-only" role="status">{{ reportText() }}</p>
   @if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
@@ -27,6 +27,28 @@
       and nothing is sent.</p
     >
   </div>
+  } @else if (pipeline.link()) {
+  <!-- A shared link without its code (T1.3): the code opens it here, and nothing is stored before Import. -->
+  <form class="flex flex-col gap-2" (submit)="openLink($event)">
+    <p class="type-callout text-label-secondary"
+      >Someone sent you a collection in this link. It is encrypted; the code they sent decrypts it here.</p
+    >
+    <label class="ds-form-label" for="import-link-code">Code</label>
+    <input
+      uiInput
+      cdkFocusInitial
+      id="import-link-code"
+      class="w-full font-mono type-mono-body"
+      autocomplete="off"
+      spellcheck="false"
+      [attr.aria-invalid]="pipeline.codeRefused() ? true : null"
+      [attr.aria-describedby]="pipeline.codeRefused() ? 'import-link-code-error' : null"
+      [value]="code()"
+      (input)="code.set($any($event.target).value)"
+    />
+    <!-- Heard through the dialog's alert above; here it is what the field describes itself with. -->
+    <p id="import-link-code-error" class="type-footnote text-status-error-text">{{ pipeline.codeRefused() }}</p>
+  </form>
   } @else if (pipeline.refused(); as refused) {
   <div class="import-refused space-y-2 type-callout text-status-error">
     <p class="font-semibold">"{{ pipeline.fileName() }}" was not imported:</p>
@@ -74,6 +96,14 @@
       <p class="type-footnote text-label-tertiary mt-0.5">
         {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
       </p>
+      @let hosts = hostsOf(entry); @if (hosts.length) {
+      <p class="type-footnote text-label-secondary mt-1.5">Its requests go to:</p>
+      <ul class="import-hosts type-mono-body text-label-primary" aria-label="Hosts its requests go to">
+        @for (host of hosts; track host) {
+        <li>{{ host }}</li>
+        }
+      </ul>
+      }
     </div>
     @if (imported.report.format === 'wayfarer-collection') {
     <!-- A checkbox row with its note under it, not a card holding one checkbox (V12). -->
@@ -177,7 +207,15 @@
         (click)="importAndReview()"
         >Import and review scripts…</button
       >
-      }
+      } @if (pipeline.link()) {
+      <button
+        uiButton="filled"
+        type="button"
+        [disabled]="!code().trim() || pipeline.opening()"
+        (click)="pipeline.openWithCode(code())"
+        >Open</button
+      >
+      } @else {
       <button
         uiButton="filled"
         cdkFocusInitial
@@ -189,6 +227,7 @@
         (click)="importClicked()"
         >Import</button
       >
+      }
     </div>
   </div>
 </ui-dialog>

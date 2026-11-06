@@ -264,3 +264,5 @@ export {
   type ShareFragment,
   type ShareLink,
 } from "./share/link";
+export { ImportError } from "./import/import-error";
+export { collectionHosts } from "./import/hosts";

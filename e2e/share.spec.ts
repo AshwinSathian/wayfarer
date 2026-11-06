@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { dumpIdb, importMenu, openPalette, protectVariable, seedAndOpen } from "./support/app";
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { openShareLink, parseShareFragment } from "../packages/core/src/share/link";
+import { dumpIdb, importMenu, openPalette, protectVariable, seedAndOpen, shareFile, shareLink } from "./support/app";
 import { collectionFile, shareFragmentOf } from "./support/share-link";
 
 const TOKEN = "typed-bearer-7Hq2";
@@ -84,7 +89,7 @@ async function makeLink(page: Page, codeInLink = false): Promise<{ address: stri
 }
 
 test.describe("Receive a link (T1.3)", () => {
-  test("takes the fragment off the address, asks for the code, reports the hosts, and stores nothing before Import", async ({
+  test("@claim:C-085 @claim:C-086 takes the fragment off the address, asks for the code, reports the hosts, and stores nothing before Import", async ({
     page,
     browser,
   }) => {
@@ -113,6 +118,8 @@ test.describe("Receive a link (T1.3)", () => {
     await report.getByRole("button", { name: "Cancel" }).click();
     await expect(report).toBeHidden();
     await expect(receiver.getByRole("tree").getByText("Tripwire collection", { exact: true })).toHaveCount(0);
+    const cancelled = await dumpIdb(receiver);
+    for (const store of ["collections", "folders", "requests", "files"]) expect(cancelled[store], store).toEqual([]);
 
     // Opened again, Import stores it, its scripts held and its credential masked.
     await receiver.goto(address);
@@ -293,4 +300,101 @@ test.describe("Paste a link (receive.md, Entry points)", () => {
     );
     expect(page.url()).toBe(at);
   });
+});
+
+/** What a shared link holds, opened with its code. */
+const opened = (link: { address: string; code: string }) =>
+  openShareLink(parseShareFragment(new URL(link.address).hash), link.code);
+
+test("@claim:C-088 a typed credential is *** in a shared file and in a shared link, and is there only with Include credentials", async ({
+  page,
+}) => {
+  await seedAndOpen(
+    page,
+    {},
+    { method: "GET", url: "https://api.example.com/x", auth: { type: "bearer", token: TOKEN } },
+  );
+  const files = [await shareFile(page, "Tripwire collection"), await shareFile(page, "Tripwire collection", true)];
+  const links = [
+    await opened(await shareLink(page, "Tripwire collection")),
+    await opened(await shareLink(page, "Tripwire collection", true)),
+  ];
+  for (const masked of [files[0], links[0]]) {
+    expect(masked).not.toContain(TOKEN);
+    expect(masked).toContain('"token": "***"');
+  }
+  for (const plain of [files[1], links[1]]) expect(plain).toContain(`"token": "${TOKEN}"`);
+});
+
+test("@claim:C-084 a link reaches no server: opening it asks for the app's own files only, and neither they nor the server's log hold any part of its content or its code", async ({
+  browser,
+}) => {
+  test.slow();
+  // A server of its own, as production serves the app, with its access log.
+  const dir = await mkdtemp(join(tmpdir(), "wayfarer-share-"));
+  const log = join(dir, "access.log");
+  const server = spawn(process.execPath, ["e2e/support/prod-server.mjs", "dist/deploy", "0"], {
+    stdio: ["ignore", "pipe", "inherit"],
+    env: { ...process.env, PROD_SERVER_LOG: log },
+  });
+  try {
+    const base = await new Promise<string>((resolve, reject) => {
+      server.once("exit", (code) => reject(new Error(`prod-server exited with ${code}`)));
+      server.stdout?.on("data", (chunk: Buffer) => {
+        const match = /on (http:\/\/localhost:\d+)/.exec(String(chunk));
+        if (match) resolve(match[1]);
+      });
+    });
+    const marker = "c084-marker-7f3a";
+    const sender = await (await browser.newContext()).newPage();
+    await seedAndOpen(sender, {}, { method: "GET", url: `https://${marker}.example/orders?q=${marker}` }, base);
+    const sent: string[] = [];
+    const record = (request: import("@playwright/test").Request) =>
+      sent.push(
+        `${request.method()} ${request.url()}\n${JSON.stringify(request.headers())}\n${request.postData() ?? ""}`,
+      );
+    sender.on("request", record);
+    const link = await shareLink(sender, "Tripwire collection");
+    const data = new URL(link.address).hash.slice("#share=".length);
+
+    const receiver = await (await browser.newContext()).newPage();
+    receiver.on("request", record);
+    await receiver.goto(link.address);
+    const dialog = receiver.getByRole("dialog", { name: "Open a shared collection" });
+    await dialog.getByRole("textbox", { name: "Code" }).fill(link.code);
+    await dialog.getByRole("button", { name: "Open", exact: true }).click();
+    const report = receiver.getByRole("dialog", { name: "Import collection" });
+    await expect(report.getByRole("list", { name: "Hosts its requests go to" })).toHaveText(`${marker}.example`);
+    await report.getByRole("button", { name: "Import", exact: true }).click();
+    await expect(receiver.getByRole("tree").getByText("Tripwire collection", { exact: true })).toBeVisible();
+    await receiver.reload();
+    await expect(receiver.getByRole("tree").getByText("Tripwire collection", { exact: true })).toBeVisible();
+
+    // Every request of both pages went to the app's own server.
+    expect(sent.length).toBeGreaterThan(0);
+    for (const line of sent) expect(new URL(line.split(" ")[1].split("\n")[0]).origin).toBe(base);
+    // No part of the content (its first, middle and last 24 characters), the code or the marker is in a request or in
+    // the server's log.
+    const parts = [
+      data.slice(0, 24),
+      data.slice(data.length / 2, data.length / 2 + 24),
+      data.slice(-24),
+      link.code,
+      marker,
+    ];
+    const served = await readFile(log, "utf8");
+    expect(served).toContain('"path":"/app/"');
+    for (const part of parts) {
+      expect(
+        sent.filter((line) => line.includes(part)),
+        part,
+      ).toEqual([]);
+      expect(served.includes(part), part).toBe(false);
+    }
+    await sender.context().close();
+    await receiver.context().close();
+  } finally {
+    server.kill();
+    await rm(dir, { recursive: true, force: true });
+  }
 });

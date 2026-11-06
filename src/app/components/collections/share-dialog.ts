@@ -148,6 +148,9 @@ export class ShareDialog {
   }
 
   protected setCredentials(value: boolean): void {
+    // What was made with the other choice is gone at once: Save file and Make link wait for the new one.
+    this.json.set(null);
+    this.link.set(null);
     this.credentials.set(value);
     this.made.set(false);
     this.saved.set("");

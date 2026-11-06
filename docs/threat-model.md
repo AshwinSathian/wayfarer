@@ -58,6 +58,18 @@ checked field by field before anything is stored.
 | Imported file and page | T, E | A collection file brings scripts that run at once. | Imported scripts are unapproved until reviewed. | C-051, C-058 |
 | Exported file and others | I | An export or a HAR carries your credentials to whoever receives it. | Exports, cURL and code mask credentials and vault secrets unless you ask for them in that export. A HAR is built from masked exchanges. | C-014, C-035, C-055, C-020 |
 
+## The page and a shared link
+
+A collection shared as a link (`docs/sharing.md`) is the collection file, compressed and encrypted under a key of its
+own, after the `#` of the app's address. The code is that key. What a link holds is untrusted until you choose Import.
+
+| Boundary | STRIDE | Threat | Mitigation | Claims |
+|---|---|---|---|---|
+| Shared link and the internet | I | The link's content or its code reaches a server: Wayfarer's host, or a chat app's link preview. | Content and code are after `#`, which a browser never sends, and opening a link asks for the app's own files and nothing else. A preview fetcher asks for the address without its fragment. The chat service itself keeps the message's text, link and all: that is why the code is apart from the link, and "Put the code in the link" is off. | C-084 |
+| Shared link and page | I | The link is read off the screen or the address bar after it was opened. | The app takes the fragment off the address bar before it reads anything else. The browser's own history list still holds the address opened (see below). | C-085 |
+| Shared link and page | S, T | A forged or changed link brings requests that send your data elsewhere, or scripts that run. | A changed byte fails AES-GCM's check and the link is refused. T1 has no sender identity: anyone with the app can make a link that looks like a teammate's. What a link holds goes through the import report, which names every host its requests go to, and nothing is stored before Import; its scripts are held until you review them. | C-086, C-090, C-051 |
+| Shared link and others | I | A link or a shared file carries your credentials or a vault secret to whoever receives it. | A vault secret is never written into a shared file or link, and a credential typed into auth is `***` unless you tick Include credentials for that one file or link. | C-087, C-088, C-089 |
+
 ## The page and its storage
 
 Everything is stored in the browser's IndexedDB on your device.
@@ -108,5 +120,11 @@ The app is static files on Cloudflare's network, or on any host you choose
   you, host the folder yourself.
 - **The servers you send requests to.** What a server does with a request
   you sent it is out of the app's hands.
+- **The browser's history list.** Opening a link leaves its address, fragment and all, in the browser's own history
+  (and in a synced history, on your other devices). The app cannot remove it; clear it in the browser.
+- **The code sent beside the link.** The code keeps a link unreadable only while it travels another way. Sent in the
+  same chat as the link, or put in the link, it gives the collection to whoever reads that chat.
+- **Who sent a link.** A link names no sender until T-c1's device keys: check with the person, another way, that
+  they sent it.
 - **Scripts you approved.** An approved pre-request script can change your
   own request, which is then built with its secrets. Review is the control.

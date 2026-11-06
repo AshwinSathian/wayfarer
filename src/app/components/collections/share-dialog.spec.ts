@@ -77,7 +77,7 @@ describe("ShareDialog", () => {
     expect(said).toContain("1 script goes with it. They will not run for the receiver until they read them");
   });
 
-  it("names the file before Save file, and saves the masked collection under that name", async () => {
+  it("@claim:C-089 names the file before Save file, and saves the masked collection under that name", async () => {
     const root = await open(await shop());
     expect(text(root)).toContain("Saves shop-api.wayfarer.json to your downloads.");
     const save = button(root, "Save file")!;
@@ -90,7 +90,7 @@ describe("ShareDialog", () => {
     expect(saved).not.toContain("typed-token-1234");
   });
 
-  it("gives the link's length before Make link is enabled, and the link opens with its code", async () => {
+  it("@claim:C-089 gives the link's length before Make link is enabled, and the link opens with its code", async () => {
     // The link is sealed while Make link waits, disabled, and nothing about its length is said yet.
     const encrypt = crypto.subtle.encrypt.bind(crypto.subtle);
     let release = () => {};

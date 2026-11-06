@@ -33,7 +33,31 @@ export function precacheList(root) {
   const extra = files.filter((f) =>
     /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.(ico|svg)$/.test(f),
   );
-  return ["/", ...new Set([...referenced, ...extra].map((f) => `/${f.replace(/^\//, "")}`))].sort();
+  return [
+    "/",
+    ...new Set([...referenced, ...extra, ...importWorker(root, files)].map((f) => `/${f.replace(/^\//, "")}`)),
+  ].sort();
+}
+
+/**
+ * The import worker and the files it imports (T1.3). A shared link opened offline goes through it, and a visit that
+ * imported nothing never fetched it, so it is precached. It is the one worker that holds the collection format's id;
+ * the build stops if it finds none or several, rather than ship a worker that leaves the importer out.
+ */
+export function importWorker(root, files) {
+  const read = (file) => readFileSync(join(root, file), "utf8");
+  const workers = files.filter(
+    (file) => /^worker-[A-Z0-9]+\.js$/.test(file) && read(file).includes('"wayfarer/collection"'),
+  );
+  if (workers.length !== 1) throw new Error(`build-sw: expected one import worker, found ${workers.length}`);
+  const found = new Set();
+  const walk = (file) => {
+    if (found.has(file) || !files.includes(file)) return;
+    found.add(file);
+    for (const [, imported] of read(file).matchAll(/["']\.\/([\w-]+\.js)["']/g)) walk(imported);
+  };
+  walk(workers[0]);
+  return [...found];
 }
 
 export function compileServiceWorker() {

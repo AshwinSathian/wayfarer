@@ -234,6 +234,31 @@ code errors.
   (`src/testing/fetch-mock.ts`); a core spec passes a `fakeFetch` to the
   transport.
 
+## Sharing (T1)
+
+- A collection is shared as a copy: a file (`exportCollectionJson`'s text) or
+  a link. Sharing stores nothing: no store, no `meta` record.
+- The link's codec is `packages/core/src/share/link.ts`: the file,
+  `deflate-raw`, AES-GCM-256 under a random 32-byte key, as
+  `#share=<base64url(iv ‖ ciphertext)>`, with `&key=<code>` only when the
+  sender ticks it. `parseShareFragment` refuses any other fragment;
+  `openShareLink` refuses a changed byte, more than 10 MB decompressed and
+  anything but a `wayfarer/collection` file. One shape, no version field.
+- `main.ts` calls `takeShareFragment()` first: the fragment leaves the
+  address bar (`history.replaceState`) before anything reads the address.
+  `App` opens it, and a `hashchange` of the open app is taken the same way.
+  Nothing may read `location.hash` or `location.href` before that call.
+- A link's text goes to `ImportPipeline` (`openLink`, `openWithCode`, then
+  `stage`) and from there through the import worker and the report, as a
+  file's does: nothing is written before Import.
+- The report's hosts are `collectionHosts` (`@wayfarer/core`): each
+  request's address and each OAuth 2.0 address, filled in by the
+  `VariableResolver` with the collection's and folders' variables, read by
+  `URL` on the road each takes (`normalizeUrl`, or as written for `ws:`).
+  A new address a collection sends to goes there.
+- A link may be `SHARE_LINK_MAX_BYTES` (12 kB) long: every engine opens 1 MB;
+  chat apps cut it (T1.4, #642).
+
 ## Composer
 
 - The request being composed is one `Draft` (`@wayfarer/core`) in

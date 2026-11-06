@@ -9,29 +9,48 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
-- The groundwork for sharing a collection as a link (T1.1): the collection's file, compressed and encrypted with
-  AES-GCM-256 under a key of its own, written after the `#` of the app's address, which a browser never sends to a
-  server, and a separate code that opens it. A link that is changed, cut short or opened with the wrong code is
-  refused, as is one that holds anything but a Wayfarer collection. Nothing in the app makes or opens a link yet: Share…
-  comes next.
-- **Share…** on a collection's menu and in the palette (T1.2): send a copy of the collection as a file
-  (`shop-api.wayfarer.json`) or as a link. The dialog says what goes (requests, folders, variables, scripts, protected
-  variables shared by name) and where, before anything leaves: the file's name, or the link's length. A credential
-  typed into auth is written as *** unless Include credentials is ticked; a vault secret is never written. The link
-  holds the collection encrypted after its `#`, and its code is shown apart, to be sent another way; "Put the code in
-  the link" is off. A link longer than 12 kB, which chat apps cut, is offered as a file instead.
-- **Open a shared link** (T1.3). Opening a link takes its `#…` part off the address bar before anything else runs,
-  asks for the code when the link does not carry it ("This code does not open the link…" when it is wrong), and shows
-  the import report: what it adds, and now every host its requests go to. Nothing is stored before Import, scripts
-  arrive held until reviewed, and Cancel stores nothing; the link can be opened again. A changed or cut-short link is
-  refused with its reason. A link pasted into the open app's address bar is taken the same way.
-- The import report of any collection names the hosts its requests go to ("Its requests go to:"), so you know where a
-  collection sends before you send from it.
 - [Sharing](docs/sharing.md), a new page of the docs: sharing a collection as a file or a link, the code, the
   12 kB limit and why, and what opening a link does. Seven new claims back it, each with its test: a link reaches no
   server (C-084), opening one takes its fragment off the address bar (C-085), nothing is stored before Import
   (C-086), no vault secret is in a shared file or link (C-087), typed credentials are `***` unless included (C-088),
   the dialog names where a collection goes before it goes (C-089), and the import report names every host (C-090).
+
+## [3.1.0] - 2026-11-06
+
+Share a collection with a teammate: as a file, or as a link that carries
+it encrypted.
+
+- **Share…** on a collection's menu and in the palette. The dialog says
+  what goes and where before anything leaves; credentials stay `***`
+  unless you include them, and a vault secret is never written.
+- **A link holds the collection after its `#`**, which a browser never
+  sends to a server, encrypted under a code that is shown apart, to be
+  sent another way.
+- **Opening a link** asks for its code and shows the import report,
+  which now names every host the collection sends to. Nothing is stored
+  before Import.
+
+Your data carries over: 3.1.0 opens the same database as 3.0.1, under the
+same name and version. A file or a link is a copy; sharing stores nothing.
+
+### Added
+
+- **Share…** on a collection's menu and in the palette (T1.2): send a copy of the collection as a file
+  (`shop-api.wayfarer.json`) or as a link. The dialog says what goes (requests, folders, variables, scripts, protected
+  variables shared by name) and where, before anything leaves: the file's name, or the link's length. A credential
+  typed into auth is written as *** unless Include credentials is ticked; a vault secret is never written.
+- **Share as a link** (T1.1, T1.2): the collection's file, compressed and encrypted with AES-GCM-256 under a key of
+  its own, written after the `#` of the app's address, which a browser never sends to a server. The key is a code
+  shown apart from the link, to be sent another way; "Put the code in the link" is off. A link longer than 12 kB,
+  which chat apps cut, is offered as a file instead.
+- **Open a shared link** (T1.3). Opening a link takes its `#…` part off the address bar before anything else runs,
+  asks for the code when the link does not carry it ("This code does not open the link…" when it is wrong), and shows
+  the import report. Nothing is stored before Import, scripts arrive held until reviewed, and Cancel stores nothing;
+  the link can be opened again. A link that is changed, cut short or holds anything but a Wayfarer collection is
+  refused with its reason. A link pasted into the open app's address bar is taken the same way.
+- The import report of any collection names the hosts it sends to ("Its requests go to:"): each request's address
+  and each OAuth 2.0 sign-in and token address, with the variables the collection gives a value filled in, so you know
+  where a collection sends before you send from it.
 
 ## [3.0.1] - 2026-11-06
 

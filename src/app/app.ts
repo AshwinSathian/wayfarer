@@ -8,6 +8,8 @@ import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
 import { ModelCalls } from "./services/model-calls";
 import { recordDiagnostic } from "./services/diagnostics";
+import { ImportPipeline } from "./services/import-pipeline";
+import { shareFragmentAtStart, takeShareFragment } from "./shared/share/link-at-start";
 
 @Component({
   selector: "app-root",
@@ -15,7 +17,7 @@ import { recordDiagnostic } from "./services/diagnostics";
   templateUrl: "./app.html",
   styleUrl: "./app.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { "(window:resize)": "onWindowResize()" },
+  host: { "(window:resize)": "onWindowResize()", "(window:hashchange)": "onHashChange()" },
 })
 export class App implements OnInit {
   private readonly history = inject(HistoryRepository);
@@ -24,6 +26,7 @@ export class App implements OnInit {
   private readonly tabsStorage = inject(TabsStorage);
   private readonly cookieJar = inject(CookieJar);
   private readonly modelCalls = inject(ModelCalls);
+  private readonly imports = inject(ImportPipeline);
 
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
@@ -62,6 +65,15 @@ export class App implements OnInit {
       }
     });
     this.updateViewportFlags();
+    // A shared link this page was opened with (T1.3): main.ts took it off the address bar.
+    const link = shareFragmentAtStart();
+    if (link) void this.imports.openLink(link);
+  }
+
+  /** A shared link pasted into the address bar of the open app is a navigation in the page: it is taken the same way. */
+  onHashChange(): void {
+    const link = takeShareFragment();
+    if (link) void this.imports.openLink(link);
   }
 
   async refreshPastRequests(): Promise<void> {

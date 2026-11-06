@@ -20,6 +20,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   typed into auth is written as *** unless Include credentials is ticked; a vault secret is never written. The link
   holds the collection encrypted after its `#`, and its code is shown apart, to be sent another way; "Put the code in
   the link" is off. A link longer than 12 kB, which chat apps cut, is offered as a file instead.
+- **Open a shared link** (T1.3). Opening a link takes its `#…` part off the address bar before anything else runs,
+  asks for the code when the link does not carry it ("This code does not open the link…" when it is wrong), and shows
+  the import report: what it adds, and now every host its requests go to. Nothing is stored before Import, scripts
+  arrive held until reviewed, and Cancel stores nothing; the link can be opened again. A changed or cut-short link is
+  refused with its reason. A link pasted into the open app's address bar is taken the same way.
+- The import report of any collection names the hosts its requests go to ("Its requests go to:"), so you know where a
+  collection sends before you send from it.
 
 ## [3.0.1] - 2026-11-06
 

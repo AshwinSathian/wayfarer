@@ -6,7 +6,10 @@ import { App } from "./app/app";
 import { appConfig } from "./app/app.config";
 import { SwUpdate } from "./app/services/sw-update";
 import { listenForCspViolations } from "./app/services/diagnostics";
+import { takeShareFragment } from "./app/shared/share/link-at-start";
 
+// A shared link (T1.3) leaves the address bar before anything else reads the address.
+takeShareFragment();
 installTrustedTypesPolicy();
 listenForCspViolations();
 

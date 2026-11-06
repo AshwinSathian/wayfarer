@@ -289,6 +289,43 @@ describe("ImportPipeline", () => {
   });
 
   // receive.md, "Done": a link's Import is said by the collection's name, and the shell is told which row to focus.
+  // A security review of T1 (session T-a close-out): what an Import stores and says is what its report showed, and an
+  // import that was cancelled or overtaken does not come back.
+  describe("an import that was cancelled or overtaken", () => {
+    it("Cancel while a link opens: the report does not come back", async () => {
+      const link = await encodeShareLink(collectionFile);
+      const opening = service.openLink(shareFragment(link, true));
+      service.close();
+      await opening;
+
+      expect(service.dialogVisible()).toBe(false);
+      expect(service.imported()).toBeNull();
+    });
+
+    it("a report staged while the last one is being stored stays open, and the stored one is said by its own name", async () => {
+      const undo = TestBed.inject(UndoNotice);
+      let stored!: () => void;
+      collections.importCollection.mockImplementation(
+        () => new Promise((resolve) => (stored = () => resolve({ meta: meta("col-1"), name: "Billing" }))),
+      );
+      await service.stage("billing.json", collectionFile);
+      const confirming = service.confirm();
+      await vi.waitFor(() => expect(stored).toBeTypeOf("function"));
+      // A link opened meanwhile, from the address bar: its report replaces the dialog's.
+      service.close();
+      await service.stage("other.json", environmentsFile);
+      stored();
+      await confirming;
+
+      expect(undo.current()?.message).toBe("Imported billing.json.");
+      expect(service.dialogVisible()).toBe(true);
+      expect(service.fileName()).toBe("other.json");
+      expect(service.imported()).not.toBeNull();
+      expect(environments.createEnvironment).not.toHaveBeenCalled();
+      expect(environments.updateEnvironment).not.toHaveBeenCalled();
+    });
+  });
+
   it("a link's Import says Added and the collection's name, and names the collection it added", async () => {
     const undo = TestBed.inject(UndoNotice);
     collections.importCollection.mockResolvedValue({ meta: meta("col-1"), name: "Billing" });

@@ -23,6 +23,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- An import's Cancel is unavailable while it stores, and what it stores and says is what its report showed. Before,
+  Cancel during the store could drop the environments you had confirmed and say "Imported ." with no name; a link
+  opened meanwhile had its report closed by the first import; and a link cancelled while it opened came back.
 - The import report now names each item by the ID it is stored under. A collection file or a shared link could give
   an item a second ID beside that one: the report then said "New" for a collection that Import replaced, with all its
   folders and requests, and hid that a request or folder moved here from another collection. The second ID is now

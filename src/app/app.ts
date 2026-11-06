@@ -72,7 +72,7 @@ export class App implements OnInit {
 
   /** A shared link pasted into the address bar of the open app is a navigation in the page: it is taken the same way. */
   onHashChange(): void {
-    const link = takeShareFragment();
+    const link = takeShareFragment({ keep: false });
     if (link) void this.imports.openLink(link);
   }
 

@@ -65,6 +65,8 @@ export class ImportPipeline {
   readonly addedFromLink = signal<{ id: string } | null>(null);
 
   private text = "";
+  /** Counts each `close`: an open, a read or a store that began before one does not show its result after it. */
+  private opened = 0;
 
   /**
    * A shared link's fragment (T1.3, `receive.md`): read, and opened at once when the code is in it, else the dialog
@@ -100,14 +102,17 @@ export class ImportPipeline {
   async openWithCode(code: string): Promise<void> {
     const link = this.link();
     if (!link) return;
+    const opened = this.opened;
     this.opening.set(true);
     this.codeRefused.set("");
     try {
       const text = await openShareLink(link, code);
+      if (opened !== this.opened) return;
       this.link.set(null);
       await this.stage(SHARED_LINK, text);
     } catch (error) {
       if (!(error instanceof ImportError)) throw error;
+      if (opened !== this.opened) return;
       if (link.code) {
         // The link's own code failed: the link itself is wrong, and there is no code to type.
         this.link.set(null);
@@ -173,6 +178,11 @@ export class ImportPipeline {
       this.close();
       return [];
     }
+    // What the report showed, held: a Cancel or another report while this stores does not change what it stores or says.
+    const opened = this.opened;
+    const name = this.fileName();
+    const duplicateAsNew = this.duplicateAsNew();
+    const entries = this.environmentEntries();
     this.storing.set(true);
     // What the import adds, and what it replaced as it was: its Undo, as a delete in the tree has (U-161).
     const added: string[] = [];
@@ -181,7 +191,7 @@ export class ImportPipeline {
     try {
       for (const { payload } of imported.collections) {
         const stored = await this.collections.importCollection(payload, {
-          duplicateAsNew: this.duplicateAsNew(),
+          duplicateAsNew,
           replaced: (removed) => replaced.push(removed),
         });
         if (stored) {
@@ -189,16 +199,15 @@ export class ImportPipeline {
           names.push(stored.name);
         }
       }
-      await this.storeEnvironments();
+      await this.storeEnvironments(entries);
     } finally {
       this.storing.set(false);
     }
-    const name = this.fileName();
     // A link holds one collection: it is said by its name, as receive.md's "Added {collection}." has it.
     const fromLink = name === SHARED_LINK && added.length === 1;
     // Its environments are merged into the ones here, row by row: an Undo of the collections alone would say more than it does.
-    const environments = this.environmentEntries().length;
-    this.close();
+    const environments = entries.length;
+    if (opened === this.opened) this.close();
     if (added.length && !environments)
       this.undo.offer(fromLink ? `Added ${names[0]}.` : `Imported ${name}.`, async () => {
         for (const id of added) await this.collections.deleteCollection(id);
@@ -209,6 +218,7 @@ export class ImportPipeline {
   }
 
   close(): void {
+    this.opened += 1;
     this.dialogVisible.set(false);
     this.link.set(null);
     this.codeRefused.set("");
@@ -223,15 +233,18 @@ export class ImportPipeline {
   }
 
   private async read(): Promise<void> {
+    const opened = this.opened;
     this.reading.set(true);
     this.refused.set(null);
     // C-035's stall in Firefox (e2e/FLAKES.md): a read still waiting for the worker after 5 s says so.
     const watch = setTimeout(() => recordDiagnostic("the import worker has not answered after 5 s", "import"), 5_000);
     try {
       const imported = await this.worker.run(this.text, { duplicateAsNew: this.duplicateAsNew() });
+      if (opened !== this.opened) return;
       this.imported.set(imported);
       this.environmentEntries.set(this.entriesOf(imported.environments));
     } catch (error) {
+      if (opened !== this.opened) return;
       this.imported.set(null);
       this.environmentEntries.set([]);
       if (error instanceof ImportRefused) {
@@ -246,7 +259,7 @@ export class ImportPipeline {
       }
     } finally {
       clearTimeout(watch);
-      this.reading.set(false);
+      if (opened === this.opened) this.reading.set(false);
     }
   }
 
@@ -259,9 +272,9 @@ export class ImportPipeline {
     });
   }
 
-  private async storeEnvironments(): Promise<void> {
+  private async storeEnvironments(entries: EnvironmentImportEntry[]): Promise<void> {
     const usedNames = new Set(this.environments.environments().map((env) => env.name));
-    for (const entry of this.environmentEntries()) {
+    for (const entry of entries) {
       const { name, description, vars } = entry.doc;
       if (entry.action === "replace" && entry.targetId) {
         await this.environments.updateEnvironment(entry.targetId, { name, description, vars });

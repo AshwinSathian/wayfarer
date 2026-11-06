@@ -19,6 +19,11 @@ async function steady(page: Page): Promise<void> {
       const fixed = text
         .replace(/\d+(\.\d+)?\s?(µs|ms)\b/g, "12 ms")
         .replace(/Sending… \d+\.\d s/, "Sending… 1.2 s")
+        // A server's Date header (response-headers): the time it answered, as the page's clock is fixed.
+        .replace(
+          /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2} GMT\b/g,
+          "Thu, 22 Oct 2026 09:30:00 GMT",
+        )
         // Only what the browser stores ("73.7 kB of 10.7 GB", "73.7 kB used"), not a limit the copy names.
         .replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)(?= used| of )|(?<=of )\d+(\.\d+)?\s?(B|kB|MB|GB)/g, "12 kB");
       if (fixed !== text) node.textContent = fixed;
@@ -28,7 +33,9 @@ async function steady(page: Page): Promise<void> {
       const text = preview.textContent ?? "";
       const fixed = text
         .replace(/("(?:time|blocked|dns|connect|send|wait|receive|ssl)": )-?\d+(\.\d+)?/g, "$112")
-        .replace(/("startedDateTime": ")[^"]*"/g, '$12026-10-22T09:30:00.000Z"');
+        .replace(/("startedDateTime": ")[^"]*"/g, '$12026-10-22T09:30:00.000Z"')
+        // The creator's version changes with every release.
+        .replace(/("name": "Wayfarer",\s*"version": ")[^"]*"/, '$10.0.0"');
       if (fixed !== text) preview.textContent = fixed;
     }
   });
@@ -40,6 +47,8 @@ const masked = (page: Page): Locator[] => [
   page.getByText(/^\s*[0-9a-f]{7,40}\s*$/),
   page.getByText(/^\s*\d+\.\d+\.\d+\s*$/),
   page.locator('[aria-label*=" used of "]'),
+  // A shared link's key and IV are random: its address and its code differ at every capture.
+  page.locator("#share-link, #share-code"),
 ];
 
 for (const { id } of SCREENS_INDEX) {

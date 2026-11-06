@@ -86,8 +86,19 @@ the app under `app/`, and `version.json`, the release they are (the
 synthetic monitor runs that release's tests). `deploy.yml` adds one file
 beside them, `ci-run.json`: the E2E run they passed (where the `@claim` tests
 run), its commit and its date, which the claims page (`/docs/claims/`) shows on each claim's row. A
-deploy by hand has none, and the claims page then says it was not
-deployed from a CI run.
+deploy by hand writes the same file, from the green E2E run of the commit it
+deploys:
+
+```bash
+RUN=$(gh run list --workflow e2e.yml --branch main --commit "$(git rev-parse HEAD)" --status success \
+  --limit 1 --json databaseId --jq '.[0].databaseId')
+test -n "$RUN" || { echo "no green e2e.yml run for HEAD: run it first"; exit 1; }
+gh run view "$RUN" --json databaseId,headSha,createdAt \
+  --jq '{run: .databaseId, commit: .headSha, date: .createdAt}' > dist/deploy/ci-run.json
+cat dist/deploy/ci-run.json
+```
+
+Without it the claims page says it was not deployed from a CI run.
 
 Optional local check, with production's headers applied (Playwright builds
 again and serves the build through `e2e/support/prod-server.mjs` itself):

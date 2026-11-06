@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link
+  over 12 kB, but opening one read a fragment of up to 10 MB: about 270 ms to decode it, and with
+  the code in it, a decrypt of 7.5 MB before it was refused. A fragment past 12 kB now gets
+  "This link does not hold a Wayfarer collection." before anything is decoded.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

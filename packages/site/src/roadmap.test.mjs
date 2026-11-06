@@ -46,7 +46,7 @@ test("every task of the plan is said to a user, or is one a user never sees", ()
   );
 });
 
-test("3.0's items, then Next and Later, by the phase each rests on; 3.0 is shipped once the release is ticked", () => {
+test("3.0's items, then what shipped since, Next and Later, by the phase each rests on; 3.0 is shipped once the release is ticked", () => {
   const plan = [
     "### Phase D4: Flows",
     "- [ ] **D4.3** The composer.",
@@ -64,25 +64,26 @@ test("3.0's items, then Next and Later, by the phase each rests on; 3.0 is shipp
     sections.map((s) => [s.title, s.items.map((i) => [i.text, i.done])]),
     [
       ["Coming in 3.0", [[text("D4.3"), false]]],
-      ["Next", [[text("D6.1"), true]]],
       [
-        "Later",
+        "Shipped since 3.0",
         [
-          [text("T1"), false],
+          [text("D6.1"), true],
           [text("T2"), true],
         ],
       ],
+      ["Next", [[text("T1"), false]]],
     ],
   );
   assert.equal(roadmapOf(plan.replace("[ ] **D5.2**", "[x] **D5.2**"))[0].title, "Shipped in 3.0");
 });
 
-test("the repository's plan gives the three lists, the teams' work in Later", () => {
+test("the repository's plan gives the four lists: sharing shipped since 3.0, Git next", () => {
   const sections = roadmapOf(PLAN);
   assert.deepEqual(
-    sections.map((s) => s.title.replace(/^(Coming|Shipped) /, "")),
-    ["in 3.0", "Next", "Later"],
+    sections.map((s) => s.title),
+    ["Shipped in 3.0", "Shipped since 3.0", "Next", "Later"],
   );
+  assert.ok(sections[1].items.some((i) => /link/.test(i.text)));
   assert.ok(sections[2].items.some((i) => /Git/.test(i.text)));
   // A sentence of the page is for a reader: no plan IDs or finding numbers in it.
   for (const item of ITEMS) assert.doesNotMatch(item.text, /\b([DWT]\d|U-\d)/, item.text);

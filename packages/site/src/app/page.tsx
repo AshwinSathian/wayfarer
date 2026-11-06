@@ -210,28 +210,61 @@ const RECORDINGS: { name: string; title: string; label: string; steps: ReactNode
       </>,
     ],
   },
+  {
+    name: "share",
+    title: "A collection by link",
+    label: "Wayfarer sharing a collection by link, and a teammate opening it",
+    steps: [
+      <>
+        Choose Share… on a collection, then Link, and Make link. The collection is encrypted after the link&apos;s{" "}
+        <code>#</code>, which is sent to no server. <Claims ids={["C-084"]} />
+      </>,
+      <>Send the link, and its code another way.</>,
+      <>
+        Your teammate opens the link and types the code. Before anything is stored, the report shows what it adds and
+        every host its requests go to. <Claims ids={["C-086", "C-090"]} />
+      </>,
+    ],
+  },
 ];
 
 function Recording({ name, title, label, steps }: (typeof RECORDINGS)[number]) {
   return (
     <figure className="min-w-0 md:max-lg:grid md:max-lg:grid-cols-2 md:max-lg:items-center md:max-lg:gap-10">
       {(["dark", "light"] as const).map((theme) => (
-        <video
-          key={theme}
-          className={`shot-${theme} mx-auto h-auto w-full max-w-[390px] rounded-lg border border-line-strong`}
-          poster={`/recordings/${name}-${theme}.avif`}
-          width={390}
-          height={720}
-          controls
-          muted
-          playsInline
-          preload="none"
-          aria-label={label}
-          aria-describedby={`${name}-steps`}
-        >
-          <source src={`/recordings/${name}-${theme}.webm`} type="video/webm" />
-          <source src={`/recordings/${name}-${theme}.mp4`} type="video/mp4" />
-        </video>
+        // site.js takes the browser's controls off until the clip is asked for, and shows the button instead.
+        <div key={theme} className={`shot-${theme} relative mx-auto w-full max-w-[390px]`}>
+          <video
+            className="block h-auto w-full rounded-lg border border-line-strong"
+            poster={`/recordings/${name}-${theme}.avif`}
+            width={390}
+            height={720}
+            controls
+            muted
+            playsInline
+            preload="none"
+            aria-label={label}
+            aria-describedby={`${name}-steps`}
+          >
+            <source src={`/recordings/${name}-${theme}.webm`} type="video/webm" />
+            <source src={`/recordings/${name}-${theme}.mp4`} type="video/mp4" />
+          </video>
+          <button
+            type="button"
+            data-play
+            hidden
+            className="absolute bottom-4 left-4 rounded-full bg-action px-4 py-2 type-site-small font-bold text-on-action hover:opacity-90"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 12 12"
+              className="mr-2 inline-block size-3 fill-current align-[-0.05em]"
+            >
+              <path d="M3 1.5v9l7.5-4.5z" />
+            </svg>
+            Play<span className="sr-only">: {title}</span>
+          </button>
+        </div>
       ))}
       <figcaption className="mx-auto mt-6 max-w-[390px] md:max-lg:mt-0">
         <h3 className="type-site-title-2 font-bold text-ink">{title}</h3>
@@ -526,7 +559,7 @@ export default function Home() {
             </>
           }
         >
-          <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-3 lg:gap-10">
+          <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-4 lg:gap-8">
             {RECORDINGS.map((recording) => (
               <Recording key={recording.name} {...recording} />
             ))}

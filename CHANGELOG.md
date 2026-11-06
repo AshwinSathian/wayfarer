@@ -7,6 +7,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
+  the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
+  each part, and every place the site said something false, old or vague, such as sharing by link
+  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
+
+### Changed
+
+- The landing's recordings are taken again from today's app: two of the three showed an older
+  composer and an older run report. A fourth shows a collection shared by link, and a teammate
+  opening it, typing its code and reading the report before anything is stored.
+- Each recording now shows its picture of the app with a Play button, in place of the browser's
+  control bar and loading circle drawn over it. Without script the browser's controls stay.
+
 ### Fixed
 
 - The docs search listed design notes (audits, plans, flows not built) among the docs: a search
@@ -15,16 +30,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
   say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
   docs search's Clear button is no longer under 12 px.
-
-### Added
-
-- The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
-  the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
-  each part, and every place the site said something false, old or vague, such as sharing by link
-  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
-
-### Fixed
-
 - The claims page showed no test results on the live site ("This copy of the site was not
   deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
   hand left out the file that names the run. The manual deploy now writes it, so each claim's row

@@ -58,6 +58,12 @@ export class ImportPipeline {
   readonly codeRefused = signal("");
   readonly opening = signal(false);
 
+  /**
+   * The collection a link's Import added (receive.md, "Done"): the shell moves focus to its row. One value a link, and
+   * a new object each time, so the same id added twice is noticed twice.
+   */
+  readonly addedFromLink = signal<{ id: string } | null>(null);
+
   private text = "";
 
   /**
@@ -71,7 +77,7 @@ export class ImportPipeline {
       fragment = parseShareFragment(hash);
     } catch (error) {
       if (!(error instanceof ImportError)) throw error;
-      this.fileName.set("the shared link");
+      this.fileName.set(SHARED_LINK);
       this.refused.set({ message: error.message, issues: [] });
       this.dialogVisible.set(true);
       return;
@@ -90,13 +96,13 @@ export class ImportPipeline {
     try {
       const text = await openShareLink(link, code);
       this.link.set(null);
-      await this.stage("the shared link", text);
+      await this.stage(SHARED_LINK, text);
     } catch (error) {
       if (!(error instanceof ImportError)) throw error;
       if (link.code) {
         // The link's own code failed: the link itself is wrong, and there is no code to type.
         this.link.set(null);
-        this.fileName.set("the shared link");
+        this.fileName.set(SHARED_LINK);
         this.refused.set({ message: error.message, issues: [] });
       } else {
         this.codeRefused.set(error.message);
@@ -158,6 +164,7 @@ export class ImportPipeline {
     this.storing.set(true);
     // What the import adds, and what it replaced as it was: its Undo, as a delete in the tree has (U-161).
     const added: string[] = [];
+    const names: string[] = [];
     const replaced: Removed[] = [];
     try {
       for (const { payload } of imported.collections) {
@@ -165,21 +172,27 @@ export class ImportPipeline {
           duplicateAsNew: this.duplicateAsNew(),
           replaced: (removed) => replaced.push(removed),
         });
-        if (stored) added.push(stored.meta.id);
+        if (stored) {
+          added.push(stored.meta.id);
+          names.push(stored.name);
+        }
       }
       await this.storeEnvironments();
     } finally {
       this.storing.set(false);
     }
     const name = this.fileName();
+    // A link holds one collection: it is said by its name, as receive.md's "Added {collection}." has it.
+    const fromLink = name === SHARED_LINK && added.length === 1;
     // Its environments are merged into the ones here, row by row: an Undo of the collections alone would say more than it does.
     const environments = this.environmentEntries().length;
     this.close();
     if (added.length && !environments)
-      this.undo.offer(`Imported ${name}.`, async () => {
+      this.undo.offer(fromLink ? `Added ${names[0]}.` : `Imported ${name}.`, async () => {
         for (const id of added) await this.collections.deleteCollection(id);
         for (const removed of replaced) await this.collections.restore(removed);
       });
+    if (fromLink) this.addedFromLink.set({ id: added[0] });
     return added;
   }
 
@@ -247,6 +260,9 @@ export class ImportPipeline {
     }
   }
 }
+
+/** What the report calls a link's content: it has no file name. */
+const SHARED_LINK = "the shared link";
 
 /** `name`, or `name (2)` and so on when it is taken; the name given is then taken too. */
 function uniqueName(name: string, used: Set<string>): string {

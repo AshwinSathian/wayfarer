@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { openEnvironments, openPalette, openSettings, toolbarOrDrawer } from "./support/app";
+import { randomBytes } from "node:crypto";
+import { openEnvironments, openPalette, openSettings, seedAndOpen, toolbarOrDrawer } from "./support/app";
 import { ECHO } from "./support/echo";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
@@ -81,6 +82,42 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       const send = await page.getByRole("button", { name: "Send request" }).boundingBox();
       expect(send!.x + send!.width).toBeLessThanOrEqual(width);
+    });
+
+    // T-a had never drawn Share… or a link's code step on a phone (share.md and receive.md, "At 390 px").
+    test(`the Share dialog fits a ${width} px window: a file, a link made, a link too long`, async ({ page }) => {
+      // A body of random text does not compress: the link it makes is over the 12 kB limit.
+      const dialog = await openShare(page, width, { method: "POST", url: "https://api.shop.example.com/orders" });
+      await expectInside(page, dialog, width);
+      await dialog.getByRole("radio", { name: "Link" }).check();
+      await dialog.getByRole("button", { name: "Make link" }).click();
+      await expect(dialog.getByRole("textbox", { name: "Code", exact: true })).toBeVisible();
+      await expectInside(page, dialog, width);
+      await dialog.getByRole("button", { name: "Close" }).last().click();
+      await expect(dialog).toHaveCount(0);
+
+      const big = await openShare(page, width, {
+        method: "POST",
+        url: "https://api.shop.example.com/orders",
+        body: { blob: randomBytes(12_000).toString("base64") },
+      });
+      await big.getByRole("radio", { name: "Link" }).check();
+      await expect(big).toContainText("A link can be 12 kB at most");
+      await expectInside(page, big, width);
+    });
+
+    test(`Open a shared collection fits a ${width} px window: the code asked for, a wrong code`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      // A fragment of the right shape: the dialog asks for its code before anything is decrypted.
+      await page.goto(`/app/#share=${Buffer.alloc(64, 7).toString("base64url")}`);
+      const dialog = page.getByRole("dialog", { name: "Open a shared collection" });
+      const code = dialog.getByRole("textbox", { name: "Code", exact: true });
+      await expect(code).toBeFocused();
+      await expectInside(page, dialog, width);
+      await code.fill(Buffer.alloc(32, 1).toString("base64url"));
+      await dialog.getByRole("button", { name: "Open", exact: true }).click();
+      await expect(dialog).toContainText("This code does not open the link.");
+      await expectInside(page, dialog, width);
     });
 
     // Beside the pinned sidebar, from 768 to about 1000 px, the address row had
@@ -789,6 +826,40 @@ test("from 1,024 px the sidebar can stay beside the page, and stays after a relo
   await page.setViewportSize({ width: 1000, height: 900 });
   await expect(page.getByRole("button", { name: "Keep beside the page" })).toHaveCount(0);
 });
+
+/** Seeds a collection at a desktop width, then opens its Share dialog from the tree at `width` (a drawer below 1,200 px). */
+async function openShare(page: Page, width: number, request: Parameters<typeof seedAndOpen>[2]) {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedAndOpen(page, {}, request);
+  await page.setViewportSize({ width, height: 900 });
+  let tree = page.getByRole("complementary", { name: "Collections sidebar" }).getByRole("tree");
+  if (width < 1200) {
+    // Below 1,200 px the sidebar is a drawer (App.updateViewportFlags): wait for the pinned one to go first.
+    await expect(tree).toHaveCount(0);
+    await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
+    tree = page.getByRole("dialog", { name: "Navigation" }).getByRole("tree");
+  }
+  await tree.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Share…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Share Tripwire collection" });
+  await expect(dialog.getByRole("button", { name: "Save file" })).toBeEnabled();
+  return dialog;
+}
+
+/** The dialog is inside the window, and nothing in it runs past the window or scrolls it sideways. */
+async function expectInside(page: Page, dialog: ReturnType<Page["getByRole"]>, width: number) {
+  const out = await dialog.evaluate((box, room) => {
+    const outside = [box, ...box.querySelectorAll("*")]
+      .filter((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && (rect.left < -0.5 || rect.right > room + 0.5);
+      })
+      .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}`);
+    return { outside, sideways: box.scrollWidth > box.clientWidth };
+  }, width);
+  expect(out).toEqual({ outside: [], sideways: false });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+}
 
 // U-097: a phone's toolbar was six controls, five of them icons. Environments and History are rows of the drawer.
 test("on a phone Environments and History are named rows of the drawer, not toolbar icons", async ({ page }) => {

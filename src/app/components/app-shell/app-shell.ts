@@ -1,5 +1,6 @@
 import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
 import { UndoNotice } from "../../services/undo-notice";
+import { ImportPipeline } from "../../services/import-pipeline";
 
 /** Where a key types text, and ⌘Z undoes typing. */
 const typingIn = (target: EventTarget | null) =>
@@ -401,6 +402,7 @@ export class AppShell implements OnInit {
   private readonly collections = inject(CollectionsStore);
   private readonly injector = inject(Injector);
   protected readonly undo = inject(UndoNotice);
+  private readonly importPipeline = inject(ImportPipeline);
 
   /** What the palette finds: commands, requests, collections and folders, environments and past requests (U-011). */
   get paletteItems(): PaletteItem[] {
@@ -456,6 +458,12 @@ export class AppShell implements OnInit {
       }));
     return [...commands, ...requests, ...places, ...environments, ...history];
   }
+
+  /** A link's Import moves focus to the collection it added (receive.md, "Done"); the status region says "Added …". */
+  private readonly linkImported = effect(() => {
+    const added = this.importPipeline.addedFromLink();
+    if (added) untracked(() => this.revealInSidebar(`collection:${added.id}`));
+  });
 
   /** The sidebar is shown (a drawer below 1,200 px), then the row selected in it. */
   private revealInSidebar(key: string): void {

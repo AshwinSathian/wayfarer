@@ -21,6 +21,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   `***` said nothing of it until you sent. Only your secrets' ids and
   names are read, never a value.
 
+### Fixed
+
+- After Import of a shared link, focus moves to the new collection's row in the sidebar (opening the drawer on a
+  phone), and the status line says "Added {collection}."; before, focus went back to the page and the line said
+  "Imported the shared link.", which did not name what was added.
+
+
+- **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link
+  over 12 kB, but opening one read a fragment of up to 10 MB: about 270 ms to decode it, and with
+  the code in it, a decrypt of 7.5 MB before it was refused. A fragment past 12 kB now gets
+  "This link does not hold a Wayfarer collection." before anything is decoded.
+- On a phone, the link and the code in Share… were cut off at the field's edge; they now end in an ellipsis where they
+  do not fit, and Copy still copies them whole. Share… and "Open a shared collection" are now checked at every window
+  width from 320 px for anything wider than the window.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

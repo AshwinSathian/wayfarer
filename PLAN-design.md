@@ -913,6 +913,74 @@ has never heard of it and gets them into the app.
   - AC: every severity 1 and 2 finding of the audit appears with its
     before and after, or with the reason it was accepted.
 
+### Phase W6: The website against the app it sells (1 session; added in row 1.82)
+
+**Goal:** the site sells the app people get today: nothing it says is
+false or stale, what a visitor cares about most is on the landing or one
+click from it, and the landing argues as a marketing page for this
+application. The audit is
+[`docs/design/site-audit-2026-11.md`](docs/design/site-audit-2026-11.md);
+each task names its findings (S-NN).
+
+- [x] **W6.1** Audit the site adversarially against v3.2.1: an inventory
+  of the app from the code and by use, every page at four widths, both
+  themes, with and without script, read as each persona.
+  - AC: `docs/design/site-audit-2026-11.md` with the inventory (claim and
+    version per capability), each finding with its evidence and severity,
+    the rivals read on a date, and the landing's and the nav's
+    information architecture written before any code.
+- [ ] **W6.2** Make every sentence true (S-01, S-02, S-03, S-05, S-07,
+  S-15, S-22, S-29, S-30, S-31, S-35): sharing as it shipped, in every
+  place that says "not yet"; the roadmap's workspace item; C-012 off the
+  landing until the zone is hardened; the roadmap framed by what shipped
+  since 3.0 and what is next; the structured data and `llms.txt` with
+  sharing.
+  - AC: `grep -rn "on the roadmap\|not yet\|designed and not built"
+    packages/site/src` finds no sentence about sharing; every `<Claims>`
+    of the landing, the table and the comparison pages names only rows
+    that say as much as its sentence; `e2e/site.spec.ts` green in three
+    engines.
+- [ ] **W6.3** The claims page shows its last CI run after a deploy by
+  hand (S-04, S-23): the manual deploy writes `ci-run.json` from the green
+  `e2e.yml` run of the commit it deploys, as `deploy.yml` does; the
+  claims-ledger post says how the tests run today.
+  - AC: production's `/ci-run.json` is 200 and names the run; the claims
+    page has its "Last CI" column there.
+- [ ] **W6.4** The pictures are today's app (S-06, S-17): the recordings
+  taken again; a fourth, a collection shared by link and opened by its
+  receiver, report and hosts shown; each clip played by a button of the
+  site's own, the browser's controls only without script.
+  - AC: `npm run gen:recordings` rebuilds all four; a poster differs from
+    a fresh take by encoder noise only (under 0.1% of pixels at 2%
+    fuzz); Lighthouse holds section 1's numbers.
+- [ ] **W6.5** Rework the landing and the header as the audit's section
+  6 says (S-10 to S-14, S-16): the hero's sentence, the day with
+  Wayfarer, sharing, the trust section, the index of the rest.
+  - AC: copy through `humanizing-writing`, `copywriting` and
+    `copy-editing`; every factual sentence names claims that hold it;
+    `loupe` run on the result and its findings fixed or answered;
+    before-and-after captures at 390 and 1440 px in both themes read;
+    Lighthouse mobile 95, 100, 100; `check:site-links` green.
+- [ ] **W6.6** Claims for what the app does and the ledger does not say
+  (S-11, S-33): GraphQL's schema, WebSocket, event streams, request tabs,
+  the run's reports, each with its test; then their sentences on the
+  landing and the comparison pages.
+  - AC: the maintainer approves the new rows (public claims).
+- [ ] **W6.7** The trust center and the threat model made true (S-24 to
+  S-28, S-36): the bridge on npm, the zone as it is, the monitor's skipped
+  test, the AI provider as a place data goes.
+  - AC: the maintainer approves (security pages).
+- [ ] **W6.8** The docs a visitor reaches (S-18 to S-20, S-32, S-34):
+  Share… and Import › Link… in the import and export docs, how to start
+  the bridge, the benchmark's task 6, the design records out of the docs
+  search, titles in sentence case.
+  - AC: `check:links` and `check:site-links` green; a search for
+    "share" on the docs finds `sharing` first.
+- [ ] **W6.9** Release a patch and deploy it.
+  - AC: `e2e.yml` green on `main`; the preview's smoke 17 of 17,
+    production's 14 of 17 (C-012's three until the zone is hardened); the
+    Worker version in this phase's section 14 row.
+
 ### Phase T: Teams (6 sessions, after D5; split in row 1.73)
 
 **Goal:** a team shares its work without a Wayfarer server, in the four
@@ -1348,3 +1416,4 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-11-06 | 1.79 | **Session T-a finished: T1 met its own specs, then hardened; v3.2.0.** **#644** (claims C-084 to C-090, `docs/sharing.md`) had main merged twice (CHANGELOG under the new Unreleased), `share.spec.ts` and `secrets-wire.spec.ts` green in the three claims projects (63 passed), and gained the threat model's "The page and a shared link" (four rows, each with its claims; the history list, a code sent in the link's channel and who sent a link under "does not cover", since no claim backs them) and two points from the review below; it **still waits for the maintainer**, so T1 stays unticked. **Specs met:** 390 and 320 px, Share… (File, Link made, too long) and Open a shared collection (empty, wrong code) at all 14 widths of the layout test; the link and code end in an ellipsis (#650). Accessibility: both dialogs in the axe sweep in both themes; copy, the Code field's focus and a wrong code as alert and description were there; a link's Import now focuses the new collection's row and says "Added {collection}." (#651). Captures `share-file`, `share-link` (link and code masked), `link-code`; `response-headers-820`'s `Date` and the HAR's creator version held still (#654), `import-review` retaken for #653 (#661). Import › Link… and the palette's Open a shared link…, never navigating (#655). The report's receiver lines in core (#653): a send with a secret this vault lacks is refused by C-007's check, not asked for, and a same-name secret is not used, so receive.md's two strings were false and were not written. Known collection, with U-161's effects counted and Changes first (#656). **Hardening:** a fragment over 12 kB refused before decoding (#649: 10 MB took 270 ms and a 7.5 MB decrypt); a link did not open offline, the import worker being lazy, now precached (#652, failed first in three engines); a link over an unsaved tab and an unlocked vault changes nothing before Import and Import keeps the edit (#652, green on main). **Security review** (a subagent briefed on the claims): the report missed a `ws:` host written without `//` (#657, C-090); the plan's id and the stored id could differ, so a replace showed as New (#658; the app's own Duplicate writes them apart, so an import makes them one rather than refusing); `confirm` read its state after its awaits, a cancelled link came back, a pasted link's code outlived its dialog (#659). Not findings, with reasons, in #659's body and the review's list. **Left out**, written under T1 above. **`e2e.yml` run 42248008272 on `main` at `5fbfec2`: success**, E2E and design capture in Chromium, Firefox and WebKit (run 42241081249 on `99ffa6f` before it: E2E green, the Chromium capture failed on `import-review` only, #653's line, retaken in #661). Tagged `v3.2.0` (release.yml 42254026137 green) and deployed from the command line: **Worker version 4ee1d3bf** over 3.1.0's d37e2531, the preview's smoke 17 passed, production serves 3.2.0 and its smoke passed 14 of 17, the three failures C-012's. |
 | 2026-11-06 | 1.80 | **T1 ticked.** The maintainer approved #644 (2026-11-06): main merged in (Git had put its CHANGELOG entry into the released 3.2.0 section and repeated two bullets; the file is now main's with the one entry under Unreleased), lint, format, knip, test:ci 897, core 1190, test:scripts 317, `check:claims` (90 claims), build, and `share.spec.ts` with `secrets-wire.spec.ts` in the six projects (63 passed), then merged: claims **C-084 to C-090** and `docs/sharing.md` are on `main`, for the next release. On the same go-ahead, **#663**: Duplicate of a collection gives each copy one id (`id` is `meta.id`, as Duplicate of a folder or a request already did), a test that failed first; copies made before keep their second `id` and work as before (every reader keys by `meta.id`; an import makes them one since #658). No migration, no `DB_VERSION` change. |
 | 2026-11-07 | 1.81 | **v3.2.1 in production.** #665 made Unreleased (#644's docs and claims, #663's one id per duplicated copy) 3.2.1; `e2e.yml` run 42275947104 on `main` at `8e7de7f`: success, E2E and design capture in Chromium, Firefox and WebKit. Tagged `v3.2.1` (release.yml 42283687424 green) and deployed from the command line: **Worker version ae9c0f1f** over 3.2.0's 4ee1d3bf, the preview's smoke 17 passed, production serves 3.2.1 and its smoke passed 14 of 17, the three failures C-012's. **C-012, checked 2026-11-07 in three engines:** the Web Analytics beacon is gone; Bot Fight Mode's inline challenge script (1 CSP violation on `/`, 2 on `/app/`) and the `nel` and `report-to` headers remain (runbook "Cloudflare zone" steps 1, 2 and 5, then `ZONE_HARDENED`); the repository has no Actions secrets, so `deploy.yml` cannot deploy. Both the maintainer's. |
+| 2026-11-07 | 1.82 | **Phase W6 added: the website against the app it sells.** Session W6 audited the site (`packages/site`) against v3.2.1 (`docs/design/site-audit-2026-11.md`, 36 findings): link sharing (3.1.0) is "not yet" in eight places, the roadmap marks workspace sharing done (it was left out of T1), the landing names C-012 while production fails it, the claims page shows no CI run in production (every deploy since 3.0.0 by hand), and two of three recordings show an older app. W6.2 to W6.9 fix them; W6.6 (new claims) and W6.7 (the trust center and the threat model) wait for the maintainer. W6.1 ticked. |

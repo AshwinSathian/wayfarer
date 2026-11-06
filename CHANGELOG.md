@@ -29,6 +29,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - A shared link opened with no network (the app installed, or visited once) now opens. Before, the report said "The
   file was not imported: reading it stopped with an error." unless something had been imported online before: the
   service worker kept the importer only once it had been used. It is now kept with the app's other files.
+- The import report's "Its requests go to:" now names the host of a WebSocket address written without its "//"
+  (`ws:host`, `wss:/host`, `ws:\host`), which Connect opens as `ws://host`. Before, it listed "ws", "wss" or the
+  address as written instead of the host.
 
 
 - **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link

@@ -204,6 +204,7 @@ export class CollectionsSidebar implements OnInit {
   commands(): PaletteAction[] {
     const actions: PaletteAction[] = [
       { id: "new-collection", label: "New collection", run: () => this.handleCreateCollection() },
+      { id: "open-shared-link", label: "Open a shared link…", run: () => this.importPipeline.openPaste("link") },
       // Each collection's run, where a person looks for it (U-156): it was in the row's context menu only.
       ...this.collectionsService.tree().map(({ collection }) => ({
         id: `run-collection-${collection.meta.id}`,
@@ -381,10 +382,11 @@ export class CollectionsSidebar implements OnInit {
   private readonly tree = viewChild<Tree<NodeData>>("tree");
   private readonly undo = inject(UndoNotice);
 
-  /** The header's Import menu (U-010): a file, or a cURL command pasted. */
+  /** The header's Import menu (U-010): a file, a cURL command pasted, or a shared link pasted (receive.md). */
   protected readonly importItems: UiMenuItem[] = [
     { label: "File…", icon: "upload_file", command: () => this.fileInput()?.nativeElement.click() },
     { label: "cURL command…", icon: "terminal", command: () => this.importPipeline.openPaste() },
+    { label: "Link…", icon: "link", command: () => this.importPipeline.openPaste("link") },
   ];
 
   /** The header's New menu (U-010, U-102): a collection, and a request or a folder where the selected row is. */

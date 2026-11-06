@@ -47,6 +47,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - On a phone, the link and the code in Share… were cut off at the field's edge; they now end in an ellipsis where they
   do not fit, and Copy still copies them whole. Share… and "Open a shared collection" are now checked at every window
   width from 320 px for anything wider than the window.
+- **Import › Link…** in the sidebar, and **Open a shared link…** in the
+  palette: paste a shared link that came as text (in a document, say)
+  and it opens as a clicked one does, with its code and the import
+  report. A whole address from any site or the `#share=…` part alone
+  both work; the page goes nowhere and nothing is fetched. Before, a
+  link that was not clicked had to be pasted into the address bar.
 
 ## [3.1.0] - 2026-11-06
 

@@ -164,6 +164,22 @@ describe("ImportDialog: a pasted cURL command", () => {
       expect(collections.tree().map((tree) => tree.collection.name)).toEqual(["Imported from cURL"]),
     );
   });
+
+  it("for a link, the box is named for one and Open reads it as a link: text that is not one is refused", async () => {
+    const fixture = TestBed.createComponent(ImportDialog);
+    pipeline.openPaste("link");
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector("label[for=import-paste-text]")?.textContent).toBe("A link someone sent you");
+    const open = [...host.querySelectorAll("button")].find((element) => element.textContent?.trim() === "Open");
+    const field = host.querySelector("textarea") as HTMLTextAreaElement;
+    field.value = "https://elsewhere.example/app/";
+    field.dispatchEvent(new Event("input"));
+    await fixture.whenStable();
+    open?.click();
+    await vi.waitFor(() => expect(pipeline.refused()?.message).toBe("This link does not hold a Wayfarer collection."));
+    expect(collections.tree()).toEqual([]);
+  });
 });
 
 // receive.md, "What every way shows before it stores": the secrets, credentials and scripts a collection needs of the

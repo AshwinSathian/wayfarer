@@ -7,8 +7,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-06
+
+Shared collections, finished: a link that came as text opens from the
+Import menu, and the import report says what a collection needs of you
+before you store it.
+
+- **Import › Link…** (and the palette's Open a shared link…) opens a link
+  pasted from a document or a message, without leaving the page.
+- **The report names what is missing**: the vault secrets a collection
+  refers to that you do not have, the credentials its sender left as
+  `***`, its scripts, and when you already have the collection, what the
+  file would change.
+- **Fixes from a security review of sharing**: the report names a
+  socket's host and each item by the ID Import writes, a link longer
+  than any Wayfarer makes is refused at once, an import keeps to what its
+  report showed, and a link opens offline.
+
+Your data carries over: 3.2.0 opens the same database as 3.1.0, under the
+same name and version.
+
 ### Added
 
+- **Import › Link…** in the sidebar, and **Open a shared link…** in the
+  palette: paste a shared link that came as text (in a document, say)
+  and it opens as a clicked one does, with its code and the import
+  report. A whole address from any site or the `#share=…` part alone
+  both work; the page goes nowhere and nothing is fetched. Before, a
+  link that was not clicked had to be pasted into the address bar.
 - **The import report says what a collection needs of you**, for a file
   and for a shared link: the vault secrets it refers to that your vault
   does not have ("Needs 1 secret you do not have: token. A request that
@@ -20,6 +46,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   collection whose sends would be refused for a missing secret or carry
   `***` said nothing of it until you sent. Only your secrets' ids and
   names are read, never a value.
+- **The import report says when you already have the collection.** A file whose collection is one this browser
+  holds now opens its report with "You have this collection: Shop API. Review what this file changes.", counts
+  what it would change ("1 item changes, 1 is new and 9 are the same", or "Nothing in this file differs from
+  yours."), and lists the items that change before the rest. Before, the report read as for a new collection,
+  and a changed request was somewhere in the list among the unchanged ones. Import still replaces the
+  collection, and Import as duplicate still keeps yours.
 
 ### Fixed
 
@@ -41,8 +73,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - The import report's "Its requests go to:" now names the host of a WebSocket address written without its "//"
   (`ws:host`, `wss:/host`, `ws:\host`), which Connect opens as `ws://host`. Before, it listed "ws", "wss" or the
   address as written instead of the host.
-
-
 - **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link
   over 12 kB, but opening one read a fragment of up to 10 MB: about 270 ms to decode it, and with
   the code in it, a decrypt of 7.5 MB before it was refused. A fragment past 12 kB now gets

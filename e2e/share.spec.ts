@@ -163,4 +163,37 @@ test.describe("Receive a link (T1.3)", () => {
     expect(await receiver.evaluate(() => location.hash)).toBe("");
     await receiver.context().close();
   });
+
+  // receive.md, Accessibility and "Done": focus in Code at open, a wrong code an alert and the field's description,
+  // and after Import focus on the new collection's row with "Added {collection}." said politely.
+  for (const width of [1440, 390]) {
+    test(`the code step and Import are heard and keep focus where the person is, at ${width} px`, async ({
+      page,
+      browser,
+    }) => {
+      const { address, code } = await makeLink(page);
+      const receiver = await (await browser.newContext()).newPage();
+      await receiver.setViewportSize({ width, height: 900 });
+      await receiver.goto(address);
+      const dialog = receiver.getByRole("dialog", { name: "Open a shared collection" });
+      const field = dialog.getByRole("textbox", { name: "Code", exact: true });
+      await expect(field).toBeFocused();
+      await field.fill(`${code.slice(0, -2)}AA`);
+      await field.press("Enter");
+      const wrong = "This code does not open the link. Check it with the person who sent it.";
+      await expect(dialog.getByRole("alert")).toHaveText(wrong);
+      await expect(field).toHaveAccessibleDescription(wrong);
+      await expect(field).toBeFocused();
+
+      await field.fill(code);
+      await field.press("Enter");
+      await receiver
+        .getByRole("dialog", { name: "Import collection" })
+        .getByRole("button", { name: "Import", exact: true })
+        .click();
+      await expect(receiver.getByRole("treeitem", { name: /Tripwire collection/ })).toBeFocused();
+      await expect(receiver.getByRole("status").filter({ hasText: "Added Tripwire collection." })).toHaveCount(1);
+      await receiver.context().close();
+    });
+  }
 });

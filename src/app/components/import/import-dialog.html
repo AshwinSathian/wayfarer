@@ -8,7 +8,26 @@
   <!-- There while the dialog is: a file refused or read after it opened is heard (U-075). -->
   <p class="sr-only" role="alert">{{ refusedText() || pipeline.codeRefused() }}</p>
   <p class="sr-only" role="status">{{ reportText() }}</p>
-  @if (pipeline.pasting()) {
+  @if (pipeline.pasting() === "link") {
+  <!-- A link that came as text (receive.md, "Entry points"): read as an opened link's fragment, never navigated to. -->
+  <div class="import-paste flex flex-col gap-2">
+    <label class="ds-form-label" for="import-paste-text">A link someone sent you</label>
+    <textarea
+      uiInput
+      cdkFocusInitial
+      id="import-paste-text"
+      class="import-paste-text w-full font-mono type-mono-body"
+      rows="4"
+      spellcheck="false"
+      placeholder="https://wayfarer.example/app/#share=…"
+      [value]="pipeline.pasted()"
+      (input)="pipeline.pasted.set($any($event.target).value)"
+    ></textarea>
+    <p class="type-footnote text-label-tertiary"
+      >Paste the link someone sent you. It is read here, not opened: the page goes nowhere and nothing is sent.</p
+    >
+  </div>
+  } @else if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
     <textarea
@@ -105,7 +124,21 @@
       <p class="type-footnote text-label-tertiary mt-0.5">
         {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
       </p>
-      @let hosts = hostsOf(entry); @if (hosts.length) {
+      <!-- What it needs of the receiver, before the hosts (receive.md): secrets, credentials, scripts. -->
+      @for (line of linesOf(entry); track line.kind) {
+      <div class="import-need type-footnote text-label-secondary mt-1.5" [attr.data-need]="line.kind">
+        <p>{{ line.text }}</p>
+        @if (line.names.length) {
+        <ul class="import-names type-mono-body text-label-primary" aria-label="Secrets' names">
+          @for (name of line.names; track $index) {
+          <li>{{ name }}</li>
+          }
+        </ul>
+        } @if (line.after) {
+        <p>{{ line.after }}</p>
+        }
+      </div>
+      } @let hosts = hostsOf(entry); @if (hosts.length) {
       <p class="type-footnote text-label-secondary mt-1.5">Its requests go to:</p>
       <ul class="import-hosts type-mono-body text-label-primary" aria-label="Hosts its requests go to">
         @for (host of hosts; track host) {
@@ -233,7 +266,7 @@
             : !pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()
         "
         (click)="importClicked()"
-        >Import</button
+        >{{ pipeline.pasting() === "link" ? "Open" : "Import" }}</button
       >
       }
     </div>

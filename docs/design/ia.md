@@ -363,7 +363,7 @@ it is.
 | `app-shell.html: Keep beside the page / Show as a drawer` | — (new in D4-f): the sidebar's header from 1,024 to 1,200 px, the choice kept (U-070) | Sidebar | D4-f, done |
 | `app-shell.html: Undo` | — (new in D4-f): the line under the page after a delete in the tree, for 10 s, kept while the pointer or focus is on it | Shell, the Undo line (U-080) | D4-f, done |
 | `app-shell.html: Dismiss` | The Undo line | Shell, the Undo line | D4-f, done |
-| `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…" | Sidebar header (U-010), once a collection exists (D5-e, L-16) | D4-f, done |
+| `collections-sidebar.html: Import` | Sidebar header, Import menu: "File…", "cURL command…", "Link…" (a shared link pasted as text, `teams/receive.md`) | Sidebar header (U-010), once a collection exists (D5-e, L-16) | D4-f, done; "Link…" T-a |
 | `collections-sidebar.html: New` | Sidebar header, New menu: "Collection" (C), and in the selected collection or folder "Request" (N) and "Folder", at every width | Sidebar header (U-010, U-102), once a collection exists (D5-e, L-16) | D4-f, done |
 | `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010); and the empty sidebar's button (D4-c, U-022) | D4-f |
 | `collections-sidebar.html: Import…` | — (new in D4-c) | The empty sidebar: imports a file, as Import, "File…" (U-022); the first screen's one Import (D5-e, L-16) | — |
@@ -396,7 +396,7 @@ it is.
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
-| `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Open / Import` | Import report dialog (sidebar, Settings, a pasted cURL command); Open for a pasted link (Import, "Link…"; `teams/receive.md`) | Same dialog | D4-h; Open T-a |
 | `import-dialog.html: Open` | Open a shared collection: the code of a link that does not carry it (T1.3, `teams/receive.md`) | Opening a link | T-a |
 | `import-dialog.html: Import and review scripts…` | — (new in D5-e) | Import report dialog, when the file is one collection with scripts: imports it untrusted, then opens the script review on it | — |
 | `import-dialog.html: What the warnings mean` | — (new in D6-a, U-166) | Import report dialog, under its warnings: the import doc's "What the report warns about", in a new tab | — |
@@ -571,6 +571,7 @@ it is.
 | `palette: open-docs` | — (new in D6-a, U-166) | Palette: the site's docs, in a new tab (also Settings, About, Documentation) | — |
 | `palette: ai-draft` | — | Palette, with a provider and the action on (D4.10) | D4-k |
 | `palette: new-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: open-shared-link` | — (new in T-a): Open a shared link…, the box Import, "Link…" opens (`teams/receive.md`) | Palette (the shell's); also the sidebar's Import, "Link…" | T-a |
 | `palette: new-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: run-folder` | (none: the context menu only, U-156) | Palette, "Run {folder}…" with the folder selected; each collection's run is listed too | D5-c (U-156) |
 | `palette: new-request-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |

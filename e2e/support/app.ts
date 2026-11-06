@@ -313,8 +313,8 @@ export async function dumpIdb(page: Page): Promise<Record<string, unknown[]>> {
   });
 }
 
-/** Chooses an item of the sidebar's Import menu (U-010): "File…" or "cURL command…". */
-export async function importMenu(page: Page, item: "File…" | "cURL command…"): Promise<void> {
+/** Chooses an item of the sidebar's Import menu (U-010): "File…", "cURL command…" or "Link…". */
+export async function importMenu(page: Page, item: "File…" | "cURL command…" | "Link…"): Promise<void> {
   await page.locator("app-collections-sidebar").getByRole("button", { name: "Import", exact: true }).click();
   await page.getByRole("menuitem", { name: item, exact: true }).click();
 }

@@ -67,13 +67,14 @@ export async function encodeShareLink(text: string): Promise<ShareLink> {
 
 /**
  * A link's fragment, read. A fragment from an address is untrusted: anything but `#share=<data>` with an optional
- * `&key=<code>` is refused, as is data too short to hold an IV and a tag, or a code that is not 32 bytes.
+ * `&key=<code>` is refused, as is one longer than any link made (the whole address is at most `SHARE_LINK_MAX_BYTES`,
+ * so its fragment is shorter), data too short to hold an IV and a tag, or a code that is not 32 bytes.
  */
 export function parseShareFragment(hash: string): ShareFragment {
-  if (!isShareFragment(hash)) throw new ImportError(LINK_NOT_COLLECTION);
+  if (!isShareFragment(hash) || hash.length > SHARE_LINK_MAX_BYTES) throw new ImportError(LINK_NOT_COLLECTION);
   const [data, key, ...rest] = hash.slice(PREFIX.length).split("&");
   if (rest.length || (key !== undefined && !key.startsWith(KEY_PARAM))) throw new ImportError(LINK_NOT_COLLECTION);
-  if (data.length > MAX_IMPORT_BYTES || !BASE64URL.test(data)) throw new ImportError(LINK_DAMAGED);
+  if (!BASE64URL.test(data)) throw new ImportError(LINK_DAMAGED);
   const sealed = decoded(data);
   if (!sealed || sealed.length < IV_BYTES + TAG_BYTES + 1) throw new ImportError(LINK_DAMAGED);
   if (key === undefined) return { sealed, code: null };

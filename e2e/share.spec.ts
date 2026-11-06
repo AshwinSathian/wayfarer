@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seedAndOpen } from "./support/app";
+import { dumpIdb, importMenu, openPalette, protectVariable, seedAndOpen } from "./support/app";
+import { collectionFile, shareFragmentOf } from "./support/share-link";
 
 const TOKEN = "typed-bearer-7Hq2";
 
@@ -162,5 +163,134 @@ test.describe("Receive a link (T1.3)", () => {
     await expect(refused).toContainText("This link is incomplete");
     expect(await receiver.evaluate(() => location.hash)).toBe("");
     await receiver.context().close();
+  });
+
+  // receive.md, Accessibility and "Done": focus in Code at open, a wrong code an alert and the field's description,
+  // and after Import focus on the new collection's row with "Added {collection}." said politely.
+  for (const width of [1440, 390]) {
+    test(`the code step and Import are heard and keep focus where the person is, at ${width} px`, async ({
+      page,
+      browser,
+    }) => {
+      const { address, code } = await makeLink(page);
+      const receiver = await (await browser.newContext()).newPage();
+      await receiver.setViewportSize({ width, height: 900 });
+      await receiver.goto(address);
+      const dialog = receiver.getByRole("dialog", { name: "Open a shared collection" });
+      const field = dialog.getByRole("textbox", { name: "Code", exact: true });
+      await expect(field).toBeFocused();
+      await field.fill(`${code.slice(0, -2)}AA`);
+      await field.press("Enter");
+      const wrong = "This code does not open the link. Check it with the person who sent it.";
+      await expect(dialog.getByRole("alert")).toHaveText(wrong);
+      await expect(field).toHaveAccessibleDescription(wrong);
+      await expect(field).toBeFocused();
+
+      await field.fill(code);
+      await field.press("Enter");
+      await receiver
+        .getByRole("dialog", { name: "Import collection" })
+        .getByRole("button", { name: "Import", exact: true })
+        .click();
+      await expect(receiver.getByRole("treeitem", { name: /Tripwire collection/ })).toBeFocused();
+      await expect(receiver.getByRole("status").filter({ hasText: "Added Tripwire collection." })).toHaveCount(1);
+      await receiver.context().close();
+    });
+  }
+});
+
+// README principle 1: a link opened over work in progress changes nothing before Import, and its Import does not
+// overwrite a tab's unsaved edit, also when it replaces the very request that tab holds.
+test("a link opened over an unsaved tab and an unlocked vault changes nothing before Import, and Import keeps the edit", async ({
+  page,
+}) => {
+  await seedAndOpen(page, {}, { method: "GET", url: "https://api.here.example/mine" });
+  await protectVariable(page, "token", "s3cret-value");
+  const address = page.locator("input.address-url");
+  const edited = "https://api.here.example/mine?edited=1";
+  await address.fill(edited);
+  const unsaved = page.getByRole("img", { name: "Unsaved changes" });
+  await expect(unsaved).toHaveCount(1);
+  const storedUrl = async () => {
+    const { requests } = await dumpIdb(page);
+    return (requests as { id: string; url: string }[]).find((request) => request.id === "req-tw")?.url;
+  };
+
+  // The same collection and request, as another person has them.
+  const { hash } = shareFragmentOf(
+    collectionFile(
+      { collection: "col-tw", request: "req-tw" },
+      "Tripwire collection",
+      "https://api.sender.example/theirs",
+    ),
+  );
+  await page.evaluate((fragment) => (location.hash = fragment), hash);
+  const report = page.getByRole("dialog", { name: "Import collection" });
+  await expect(report).toContainText('"the shared link" will add 1 collection and 1 request.');
+  await expect(address).toHaveValue(edited);
+  await expect(unsaved).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
+  expect(await storedUrl()).toBe("https://api.here.example/mine");
+
+  await report.getByRole("button", { name: "Import", exact: true }).click();
+  await expect(report).toHaveCount(0);
+  await expect.poll(storedUrl).toBe("https://api.sender.example/theirs");
+  // The tab keeps what was typed in it, and still says it is not saved.
+  await expect(address).toHaveValue(edited);
+  await expect(unsaved).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
+});
+
+test.describe("Paste a link (receive.md, Entry points)", () => {
+  /** Pastes `text` into the open link box and opens it; the page goes nowhere and asks for nothing. */
+  async function paste(receiver: Page, text: string, code: string): Promise<void> {
+    const at = receiver.url();
+    const asked: string[] = [];
+    receiver.on("request", (request) => asked.push(request.url()));
+    const box = receiver.getByRole("dialog", { name: "Open a shared collection" });
+    const field = box.getByRole("textbox", { name: "A link someone sent you" });
+    await expect(field).toBeFocused();
+    await field.fill(text);
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    await box.getByRole("textbox", { name: "Code" }).fill(code);
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    const report = receiver.getByRole("dialog", { name: "Import collection" });
+    await expect(report).toContainText('"the shared link" will add 1 collection and 1 request.');
+    expect(receiver.url()).toBe(at);
+    expect(asked.filter((url) => url.includes("#share=") || new URL(url).hostname === "elsewhere.example")).toEqual([]);
+    await report.getByRole("button", { name: "Cancel" }).click();
+    await expect(report).toBeHidden();
+  }
+
+  test("Import, Link… reads a whole address of any origin; the palette's Open a shared link… a bare fragment", async ({
+    page,
+    browser,
+  }) => {
+    const { address, code } = await makeLink(page);
+    const fragment = new URL(address).hash;
+
+    const receiver = await (await browser.newContext()).newPage();
+    await seedAndOpen(receiver, {}, { method: "GET", url: "https://api.example.com/" });
+    await importMenu(receiver, "Link…");
+    // Another origin's address, as a document might hold it, with the white space a copy brings.
+    await paste(receiver, `  https://elsewhere.example/app/?from=doc${fragment}\n`, code);
+
+    await (await openPalette(receiver)).fill("open a shared link");
+    await receiver.keyboard.press("Enter");
+    await paste(receiver, fragment, code);
+    await receiver.context().close();
+  });
+
+  test("text that is not a link is refused, and the page stays where it was", async ({ page }) => {
+    await seedAndOpen(page, {}, { method: "GET", url: "https://api.example.com/" });
+    const at = page.url();
+    await importMenu(page, "Link…");
+    const box = page.getByRole("dialog", { name: "Open a shared collection" });
+    await box.getByRole("textbox", { name: "A link someone sent you" }).fill("https://elsewhere.example/app/");
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Import", exact: true })).toContainText(
+      "This link does not hold a Wayfarer collection.",
+    );
+    expect(page.url()).toBe(at);
   });
 });

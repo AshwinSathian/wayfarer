@@ -35,7 +35,7 @@ async function say(
   await expect(logRows(page)).toHaveCount(before + 2);
 }
 
-test("three messages sent to an echo are logged in order, each with its answer, its direction and its size", async ({
+test("@claim:C-091 three messages sent to an echo are logged in order, each with its answer, its direction and its size", async ({
   page,
 }) => {
   await page.addInitScript(() => {

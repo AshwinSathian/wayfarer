@@ -7,14 +7,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Fixed
-
-- The claims page showed no test results on the live site ("This copy of the site was not
-  deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
-  hand left out the file that names the run. The manual deploy now writes it, so each claim's row
-  links the browser-test run that passed on the deployed commit. The claims-ledger post says how
-  those tests run today: in three engines, on `main`, before a release is deployed.
-
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
@@ -24,6 +16,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The claims page showed no test results on the live site ("This copy of the site was not
+  deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
+  hand left out the file that names the run. The manual deploy now writes it, so each claim's row
+  links the browser-test run that passed on the deployed commit. The claims-ledger post says how
+  those tests run today: in three engines, on `main`, before a release is deployed.
 - The website said in eight places that a team could share a collection only as a file and that
   sharing without a server was still to come. Sharing by encrypted link shipped in 3.1.0: the
   landing's questions and table, the comparison pages, Moving from Postman and `llms.txt` now say

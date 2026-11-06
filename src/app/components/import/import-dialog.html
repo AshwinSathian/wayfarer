@@ -238,7 +238,9 @@
   }
   <div uiDialogFooter>
     <div class="flex flex-wrap justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" (click)="pipeline.close()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" [disabled]="pipeline.storing()" (click)="pipeline.close()"
+        >Cancel</button
+      >
       @if (holdsScripts()) {
       <!-- The review where the scripts are met (D5-e): the import stores them unapproved, then the review opens. -->
       <button

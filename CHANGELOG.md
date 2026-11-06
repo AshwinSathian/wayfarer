@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The import report now names each item by the ID it is stored under. A collection file or a shared link could give
+  an item a second ID beside that one: the report then said "New" for a collection that Import replaced, with all its
+  folders and requests, and hid that a request or folder moved here from another collection. The second ID is now
+  made the same as the stored one, so what the report says is what Import does. A copy imported with "Import as
+  duplicate" from such a file also keeps its requests in their folders; before, they could be left pointing at the
+  original's folders.
 - After Import of a shared link, focus moves to the new collection's row in the sidebar (opening the drawer on a
   phone), and the status line says "Added {collection}."; before, focus went back to the page and the line said
   "Imported the shared link.", which did not name what was added.

@@ -19,6 +19,9 @@ Every file reaches the app by one road, whichever Import button you press
 3. **Report.** A dialog shows what the file is, what it will add (how many
    collections, folders, requests and environments), and what of it could
    not be kept. **Nothing is stored yet.** <!-- claim:C-054 -->
+   For a collection it also names every host it sends to: each request's
+   address, and each OAuth 2.0 sign-in and token address, with the
+   variables the collection gives a value filled in. <!-- claim:C-090 -->
 4. **Confirm.** **Import** stores it: each collection in one transaction, all
    of it or none. **Cancel**, Escape or closing the dialog stores nothing.
 

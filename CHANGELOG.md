@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- [Sharing](docs/sharing.md), a new page of the docs: sharing a collection as a file or a link, the code, the
+  12 kB limit and why, and what opening a link does. Seven new claims back it, each with its test: a link reaches no
+  server (C-084), opening one takes its fragment off the address bar (C-085), nothing is stored before Import
+  (C-086), no vault secret is in a shared file or link (C-087), typed credentials are `***` unless included (C-088),
+  the dialog names where a collection goes before it goes (C-089), and the import report names every host (C-090).
+
 ### Fixed
 
 - Duplicate of a collection now gives each copy one ID, as Duplicate of a folder or a request always did. Before, the

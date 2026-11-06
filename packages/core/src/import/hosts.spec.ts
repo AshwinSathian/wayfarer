@@ -15,7 +15,7 @@ function collection(urls: string[], oauth: { authUrl: string; tokenUrl: string }
 }
 
 describe("collectionHosts", () => {
-  it("names every host a collection's requests go to, once each, as the browser reads it", () => {
+  it("@claim:C-090 names every host a collection's requests go to, once each, as the browser reads it", () => {
     expect(
       collectionHosts(
         collection([
@@ -37,7 +37,7 @@ describe("collectionHosts", () => {
     ]);
   });
 
-  it("is not fooled by a backslash or a user's name before an @", () => {
+  it("@claim:C-090 is not fooled by a backslash or a user's name before an @", () => {
     expect(
       collectionHosts(
         collection([
@@ -52,7 +52,7 @@ describe("collectionHosts", () => {
     ).toEqual(["evil.example", "evil2.example", "evil3.example", "ftp", "{{user}}@evil4.example"]);
   });
 
-  it("names where OAuth 2.0 signs in and fetches its token, for the collection, a folder and a request", () => {
+  it("@claim:C-090 names where OAuth 2.0 signs in and fetches its token, for the collection, a folder and a request", () => {
     expect(
       collectionHosts(
         collection(
@@ -73,7 +73,7 @@ describe("collectionHosts", () => {
     ]);
   });
 
-  it("fills in the variables the collection gives a value, the innermost folder's winning", () => {
+  it("@claim:C-090 fills in the variables the collection gives a value, the innermost folder's winning", () => {
     const shared = {
       collection: {
         ...holder,

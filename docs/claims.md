@@ -116,3 +116,10 @@ back gets reworded until one can, or removed.
 | C-081 | Each model call is a History entry with its exchange record, masked as a send is, and opens in History without loading into a tab. | README.md, docs/ai.md | e2e/ai-log.spec.ts, packages/core/src/ai/call.spec.ts |
 | C-082 | With response bodies off in history, a model call whose prompt quoted a response body keeps neither that prompt nor the answer. | README.md, docs/ai.md | e2e/ai-log.spec.ts, packages/core/src/ai/call.spec.ts |
 | C-083 | A HAR export of model calls holds no key and nothing history masked. | README.md, docs/ai.md | e2e/ai-log.spec.ts |
+| C-084 | A collection shared as a link reaches no server: its content and its code are after the `#` of the address, which the browser does not send, and opening the link asks for the app's own files and nothing else. | docs/sharing.md, docs/trust-center.md | e2e/share.spec.ts |
+| C-085 | Opening a shared link takes the part after `#` off the address bar before the app reads anything else. | docs/sharing.md | e2e/share.spec.ts |
+| C-086 | A collection received by link shows the import report and is not stored until Import; cancelled, nothing is stored. | docs/sharing.md | e2e/share.spec.ts |
+| C-087 | A collection shared as a file or a link holds no vault secret's plaintext. | docs/sharing.md, docs/trust-center.md | e2e/secrets-wire.spec.ts |
+| C-088 | In a collection shared as a file or a link, a credential typed into auth is written as `***` unless Include credentials was ticked for that file or link. | docs/sharing.md, docs/trust-center.md | e2e/share.spec.ts |
+| C-089 | Before a collection is shared, the Share dialog names where it goes: the file's name, or the link's length. | docs/sharing.md | src/app/components/collections/share-dialog.spec.ts |
+| C-090 | The import report names every host a collection sends to before anything is stored: each request's address and each OAuth 2.0 sign-in and token address, with the variables the collection gives a value filled in. | docs/sharing.md, docs/import.md | packages/core/src/import/hosts.spec.ts |

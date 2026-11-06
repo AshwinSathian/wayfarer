@@ -99,6 +99,13 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - Each model call is a History entry with its exchange record, masked as a send is, and opens in History without loading into a tab. <!-- claim:C-081 -->
 - With response bodies off in history, a model call whose prompt quoted a response body keeps neither that prompt nor the answer. <!-- claim:C-082 -->
 - A HAR export of model calls holds no key and nothing history masked. <!-- claim:C-083 -->
+- A collection shared as a link reaches no server: its content and its code are after the `#` of the address, which the browser does not send, and opening the link asks for the app's own files and nothing else. <!-- claim:C-084 -->
+- Opening a shared link takes the part after `#` off the address bar before the app reads anything else. <!-- claim:C-085 -->
+- A collection received by link shows the import report and is not stored until Import; cancelled, nothing is stored. <!-- claim:C-086 -->
+- A collection shared as a file or a link holds no vault secret's plaintext. <!-- claim:C-087 -->
+- In a collection shared as a file or a link, a credential typed into auth is written as `***` unless Include credentials was ticked for that file or link. <!-- claim:C-088 -->
+- Before a collection is shared, the Share dialog names where it goes: the file's name, or the link's length. <!-- claim:C-089 -->
+- The import report names every host a collection sends to before anything is stored: each request's address and each OAuth 2.0 sign-in and token address, with the variables the collection gives a value filled in. <!-- claim:C-090 -->
 <!-- features:end -->
 
 Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).
@@ -143,6 +150,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [AI](docs/ai.md): a model you set up writes tests, drafts requests and explains failures, each call shown before it is sent
 - [Import](docs/import.md): every format, and the report before anything is stored
 - [Export](docs/export.md): cURL, code, HAR and Postman files
+- [Sharing](docs/sharing.md): a collection as a file or an encrypted link, and what the receiver sees before anything is stored
 - [Collections schema](docs/collections-schema.md): the collection and environments files
 - [Secrets](docs/secrets.md): the vault, its crypto and its file
 - [Storage](docs/storage.md): what is kept in the browser, and what an update does to it

@@ -1,4 +1,4 @@
-# Collections Schema
+# Collections schema
 
 Collections live in IndexedDB and travel as JSON files. A file is written the same way every time, so two exports of the same collection are the same bytes.
 

@@ -28,7 +28,10 @@ describe("receiverLines", () => {
     expect(receiverLines(collection({ variables: [row("host", "api.example.com")] }), [])).toEqual([]);
   });
 
-  it("names the secrets the vault does not have, and those it has, by name", () => {
+  // A send reads the vault by the reference's id: a secret of the same name is not the one a request is sent with.
+  const secret = (id: string, name: string) => ({ id, name });
+
+  it("says the secrets the vault does not have, those it has of the same name, and those it has, by id", () => {
     const lines = receiverLines(
       collection({
         variables: [
@@ -36,30 +39,49 @@ describe("receiverLines", () => {
           row("key", " {{ $secret.s-2 }} "),
           row("note", "a {{$secret.s-3}}"),
         ],
-        folderVariables: [row(" token ", "{{$secret.s-9}}"), row("pass", "{{$secret.s-4}}")],
+        folderVariables: [
+          row(" token ", "{{$secret.s-9}}"),
+          row("pass", "{{$secret.s-4}}"),
+          row("mine", "{{$secret.m}}"),
+        ],
       }),
-      ["pass", "other"],
+      [secret("other-id", "pass"), secret("m", "renamed here"), secret("x", "other")],
     );
     expect(lines.map(receiverLineText)).toEqual([
-      "Needs 2 secrets you do not have: token, key. Requests that use them ask for them when you send them.",
-      "Uses your secret: pass.",
+      "Needs 2 secrets you do not have: token, key. Requests that use them are not sent until you give the variables values.",
+      "Needs 1 of the sender's secrets: pass. Your vault has a secret of that name, but this collection refers to the sender's. A request that uses it is not sent until you give the variable a value.",
+      "Uses your secret: mine.",
     ]);
     expect(lines[0].names).toEqual(["token", "key"]);
   });
 
-  it("agrees in the singular, and in the plural of the vault's names", () => {
+  it("agrees in the singular and the plural", () => {
     const one = collection({ variables: [row("token", "{{$secret.a}}")] });
     expect(receiverLines(one, []).map(receiverLineText)).toEqual([
-      "Needs 1 secret you do not have: token. Requests that use it ask for it when you send them.",
+      "Needs 1 secret you do not have: token. A request that uses it is not sent until you give the variable a value.",
     ]);
     const two = collection({ variables: [row("a", "{{$secret.a}}"), row("b", "{{$secret.b}}")] });
-    expect(receiverLines(two, ["a", "b"]).map(receiverLineText)).toEqual(["Uses your secrets: a, b."]);
+    expect(receiverLines(two, [secret("a", "a"), secret("b", "b")]).map(receiverLineText)).toEqual([
+      "Uses your secrets: a, b.",
+    ]);
+    expect(receiverLines(two, [secret("1", "a"), secret("2", "b")]).map(receiverLineText)).toEqual([
+      "Needs 2 of the sender's secrets: a, b. Your vault has secrets of those names, but this collection refers to the sender's. Requests that use them are not sent until you give the variables values.",
+    ]);
   });
 
-  it("does not say which the person has when the vault's names could not be read", () => {
+  it("does not say which the person has when the vault could not be read", () => {
     expect(
       receiverLines(collection({ variables: [row("token", "{{$secret.a}}")] }), null).map(receiverLineText),
-    ).toEqual(["Needs 1 secret: token. Requests that use it ask for it when you send them."]);
+    ).toEqual([
+      "Needs 1 secret: token. If your vault does not have it, a request that uses it is not sent until you give the variable a value.",
+    ]);
+    expect(
+      receiverLines(collection({ variables: [row("a", "{{$secret.a}}"), row("b", "{{$secret.b}}")] }), null).map(
+        receiverLineText,
+      ),
+    ).toEqual([
+      "Needs 2 secrets: a, b. If your vault does not have them, requests that use them are not sent until you give the variables values.",
+    ]);
     expect(receiverLines(collection({}), null)).toEqual([]);
   });
 
@@ -67,11 +89,11 @@ describe("receiverLines", () => {
     const name = 'api key "prod" <x> {ü}';
     const lines = receiverLines(
       collection({ variables: [row(name, "{{$secret.a}}"), row("__proto__", "{{$secret.b}}")] }),
-      ["constructor", "__proto__"],
+      [secret("c", "constructor"), secret("d", "__proto__")],
     );
     expect(lines.map((line) => [line.kind, line.names])).toEqual([
       ["secrets-missing", [name]],
-      ["secrets-yours", ["__proto__"]],
+      ["secrets-same-name", ["__proto__"]],
     ]);
   });
 

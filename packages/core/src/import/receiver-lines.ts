@@ -10,42 +10,75 @@ import { scriptsOf } from "../scripting/trust";
  * drawn.
  */
 export interface ReceiverLine {
-  kind: "secrets-missing" | "secrets-unknown" | "secrets-yours" | "credentials" | "scripts";
+  kind: "secrets-missing" | "secrets-same-name" | "secrets-unknown" | "secrets-yours" | "credentials" | "scripts";
   text: string;
   names: string[];
   after: string;
 }
 
+/** A secret of this vault as the report reads it: its id and its name, never its value. */
+export interface VaultSecretName {
+  id: string;
+  name: string;
+}
+
 /**
  * What a collection needs of the person receiving it, before anything is stored: the vault secrets its protected
- * variables name, the credentials its sender's share masked, and the scripts that came with it. In that order; the
+ * variables refer to, the credentials its sender's share masked, and the scripts that came with it. In that order; the
  * hosts follow, from `collectionHosts`.
  *
- * A protected variable (its value one `{{$secret.<id>}}` reference) is matched by its name against `vaultNames`, the
- * names of this vault's secrets: names only, no value is read. `null` is a vault whose names could not be read: the
- * line says what is needed and not which of it the person has.
+ * A protected variable (its value one `{{$secret.<id>}}` reference) is sent with the secret of that id, and with no
+ * other: a send reads the vault by id, and a reference this vault has no secret for is refused by the wire check
+ * (C-007, "This request refers to a vault secret that could not be read…"). So a variable is "yours" only when
+ * `vault` has its id (the person's own collection, back); a secret of the same name is said as that, and does not
+ * make the variable work. `vault` is this vault's secrets' ids and names, readable while it is locked; `null` is a
+ * vault that could not be read: the line says what is needed and not which of it the person has.
  */
 export function receiverLines(
   { collection, folders, requests }: CollectionExport,
-  vaultNames: readonly string[] | null,
+  vault: readonly VaultSecretName[] | null,
 ): ReceiverLine[] {
   const holders = [collection, ...folders];
-  const needed = [
-    ...new Set(
-      holders.flatMap((holder) =>
-        holder.variables.filter((row) => protectedSecretId(row.value)).map((row) => row.key.trim()),
-      ),
-    ),
-  ];
+  const protectedRows = holders.flatMap((holder) =>
+    holder.variables.flatMap((row) => {
+      const id = protectedSecretId(row.value);
+      return id ? [{ id, name: row.key.trim() }] : [];
+    }),
+  );
+  const names = (rows: { name: string }[]) => [...new Set(rows.map((row) => row.name))];
   const lines: ReceiverLine[] = [];
-  if (vaultNames === null) {
-    if (needed.length) lines.push(secretsLine("secrets-unknown", `Needs ${count(needed.length, "secret")}:`, needed));
+  if (vault === null) {
+    const needed = names(protectedRows);
+    if (needed.length) {
+      lines.push(
+        secretsLine(
+          "secrets-unknown",
+          `Needs ${count(needed.length, "secret")}:`,
+          needed,
+          `If your vault does not have ${needed.length === 1 ? "it" : "them"},`,
+        ),
+      );
+    }
   } else {
-    const have = new Set(vaultNames.map((name) => name.trim()));
-    const missing = needed.filter((name) => !have.has(name));
-    const yours = needed.filter((name) => have.has(name));
+    const ids = new Set(vault.map((secret) => secret.id));
+    const vaultNames = new Set(vault.map((secret) => secret.name.trim()));
+    const yours = names(protectedRows.filter((row) => ids.has(row.id)));
+    const others = protectedRows.filter((row) => !ids.has(row.id));
+    const sameName = names(others.filter((row) => vaultNames.has(row.name)));
+    const missing = names(others.filter((row) => !vaultNames.has(row.name)));
     if (missing.length) {
       lines.push(secretsLine("secrets-missing", `Needs ${count(missing.length, "secret")} you do not have:`, missing));
+    }
+    if (sameName.length) {
+      const one = sameName.length === 1;
+      lines.push(
+        secretsLine(
+          "secrets-same-name",
+          one ? "Needs 1 of the sender's secrets:" : `Needs ${sameName.length} of the sender's secrets:`,
+          sameName,
+          `Your vault has ${one ? "a secret" : "secrets"} of ${one ? "that name" : "those names"}, but this collection refers to the sender's.`,
+        ),
+      );
     }
     if (yours.length) {
       lines.push({
@@ -85,14 +118,14 @@ export function receiverLineText(line: ReceiverLine): string {
   return [line.text, line.names.join(", ") + (line.names.length ? "." : ""), line.after].filter(Boolean).join(" ");
 }
 
-function secretsLine(kind: ReceiverLine["kind"], text: string, names: string[]): ReceiverLine {
+function secretsLine(kind: ReceiverLine["kind"], text: string, names: string[], lead = ""): ReceiverLine {
   const one = names.length === 1;
-  return {
-    kind,
-    text,
-    names,
-    after: `Requests that use ${one ? "it" : "them"} ask for ${one ? "it" : "them"} when you send them.`,
-  };
+  // What a send does with a reference this vault has no secret for: the wire check refuses it (C-007).
+  const sent = `${one ? "a request that uses it is" : "requests that use them are"} not sent until you give the ${one ? "variable a value" : "variables values"}.`;
+  const after = lead.endsWith(",")
+    ? `${lead} ${sent}`
+    : [lead, sent.charAt(0).toUpperCase() + sent.slice(1)].filter(Boolean).join(" ");
+  return { kind, text, names, after };
 }
 
 function noun(n: number, word: string): string {

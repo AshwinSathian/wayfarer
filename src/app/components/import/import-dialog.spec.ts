@@ -203,6 +203,7 @@ describe("ImportDialog: what a collection needs of its receiver", () => {
       variables: [
         { key: "token", value: "{{$secret.s-1}}", enabled: true },
         { key: "pass", value: "{{$secret.s-2}}", enabled: true },
+        { key: "own", value: "{{$secret.s-3}}", enabled: true },
       ],
       auth: { type: "bearer", token: "***" },
       scripts: { pre: "", post: "" },
@@ -230,7 +231,9 @@ describe("ImportDialog: what a collection needs of its receiver", () => {
 
   it("says each line, in order, before the hosts, with the secrets' names in a monospace list", async () => {
     const vault = TestBed.inject(SecretsVault);
-    const list = vi.spyOn(vault, "listSecrets").mockResolvedValue([{ name: "pass" } as SecretDoc]);
+    const list = vi
+      .spyOn(vault, "listSecrets")
+      .mockResolvedValue([{ id: "mine", name: "pass" } as SecretDoc, { id: "s-3", name: "renamed" } as SecretDoc]);
     const read = vi.spyOn(vault, "readSecret");
     const fixture = TestBed.createComponent(ImportDialog);
     await pipeline.stage("shop.wayfarer.json", file);
@@ -240,22 +243,24 @@ describe("ImportDialog: what a collection needs of its receiver", () => {
     const lines = [...host.querySelectorAll<HTMLElement>(".import-need")];
     expect(lines.map((line) => line.dataset["need"])).toEqual([
       "secrets-missing",
+      "secrets-same-name",
       "secrets-yours",
       "credentials",
       "scripts",
     ]);
     expect(lines.map((line) => line.innerText.replace(/\s+/g, " ").trim())).toEqual([
-      "Needs 1 secret you do not have: token Requests that use it ask for it when you send them.",
-      "Uses your secret: pass",
+      "Needs 1 secret you do not have: token A request that uses it is not sent until you give the variable a value.",
+      "Needs 1 of the sender's secrets: pass Your vault has a secret of that name, but this collection refers to the sender's. A request that uses it is not sent until you give the variable a value.",
+      "Uses your secret: own",
       "1 credential was not shared and is ***. Type yours in Auth.",
       "1 script came with it. It does not run until you read it and trust it.",
     ]);
     expect(lines[0].querySelector("ul.type-mono-body li")?.textContent).toBe("token");
     // The lines come before the hosts.
     const hosts = host.querySelector(".import-hosts");
-    expect(lines[3].compareDocumentPosition(hosts as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(lines[4].compareDocumentPosition(hosts as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(host.querySelector('[role="status"]')?.textContent).toContain(
-      "Needs 1 secret you do not have: token. Requests that use it ask for it when you send them.",
+      "Needs 1 secret you do not have: token. A request that uses it is not sent until you give the variable a value.",
     );
     expect(read).not.toHaveBeenCalled();
   });

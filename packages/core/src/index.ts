@@ -266,4 +266,4 @@ export {
 } from "./share/link";
 export { ImportError } from "./import/import-error";
 export { collectionHosts } from "./import/hosts";
-export { receiverLines, receiverLineText, type ReceiverLine } from "./import/receiver-lines";
+export { receiverLines, receiverLineText, type ReceiverLine, type VaultSecretName } from "./import/receiver-lines";

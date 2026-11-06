@@ -154,7 +154,9 @@ test("the report says what a collection needs of its receiver: the secrets it na
   const report = dialog(page);
   await expect(report.getByText("Needs 1 secret you do not have:", { exact: true })).toBeVisible();
   await expect(report.getByRole("list", { name: "Secrets' names" }).getByRole("listitem")).toHaveText(["api-token"]);
-  await expect(report.getByText("Requests that use it ask for it when you send them.", { exact: true })).toBeVisible();
+  await expect(
+    report.getByText("A request that uses it is not sent until you give the variable a value.", { exact: true }),
+  ).toBeVisible();
   await expect(
     report.getByText("1 credential was not shared and is ***. Type yours in Auth.", { exact: true }),
   ).toBeVisible();

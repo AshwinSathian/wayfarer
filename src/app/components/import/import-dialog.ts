@@ -16,6 +16,7 @@ import {
   receiverLineText,
   scriptsOf,
   type ReceiverLine,
+  type VaultSecretName,
   type CollectionImportPlanEntry,
   type ImportedCollection,
 } from "@wayfarer/core";
@@ -41,21 +42,21 @@ export class ImportDialog {
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);
   private readonly vault = inject(SecretsVault);
-  /** This vault's secrets' names, read for each report (names only: they are readable while the vault is locked); `null` when they could not be read. */
-  private readonly vaultNames = signal<string[] | null>([]);
+  /** This vault's secrets' ids and names, read for each report (never a value: they are readable while the vault is locked); `null` when they could not be read. */
+  private readonly vaultSecrets = signal<VaultSecretName[] | null>([]);
 
   constructor() {
     effect(() => {
-      if (this.pipeline.imported()) void this.readVaultNames();
+      if (this.pipeline.imported()) void this.readVaultSecrets();
     });
   }
 
-  private async readVaultNames(): Promise<void> {
+  private async readVaultSecrets(): Promise<void> {
     try {
-      this.vaultNames.set((await this.vault.listSecrets()).map((secret) => secret.name));
+      this.vaultSecrets.set((await this.vault.listSecrets()).map(({ id, name }) => ({ id, name })));
     } catch (error) {
-      recordDiagnostic(error, "import report: the vault's names");
-      this.vaultNames.set(null);
+      recordDiagnostic(error, "import report: the vault's secrets");
+      this.vaultSecrets.set(null);
     }
   }
   /** A report names an item in lower case (`collection "Shop"`); it starts a sentence here (C44). */
@@ -89,7 +90,7 @@ export class ImportDialog {
   }
   /** What the collection needs of the person receiving it: secrets, credentials, scripts (`receive.md`). */
   protected linesOf(entry: ImportedCollection): ReceiverLine[] {
-    return receiverLines(entry.payload, this.vaultNames());
+    return receiverLines(entry.payload, this.vaultSecrets());
   }
 
   /**

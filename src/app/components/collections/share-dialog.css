@@ -1,0 +1,4 @@
+/* The browser gives a paragraph 1 em above and below (no preflight): the gaps here are the layout's. */
+p {
+  margin: 0;
+}

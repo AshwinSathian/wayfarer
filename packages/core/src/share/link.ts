@@ -18,6 +18,11 @@ const IV_BYTES = 12;
 const TAG_BYTES = 16;
 export const SHARE_CODE_BYTES = 32;
 const BASE64URL = /^[\w-]+$/;
+/**
+ * The longest address a link may be, in bytes (T1.4). Every engine opens one of 1 MB; chat apps are the limit: a
+ * Microsoft Teams message holds about 28 KB of HTML, in which a link is written twice (its address and its text).
+ */
+export const SHARE_LINK_MAX_BYTES = 12 * 1024;
 
 export const LINK_WRONG_CODE = "This code does not open the link. Check it with the person who sent it.";
 export const LINK_DAMAGED =

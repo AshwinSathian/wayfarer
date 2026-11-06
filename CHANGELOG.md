@@ -14,6 +14,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   server, and a separate code that opens it. A link that is changed, cut short or opened with the wrong code is
   refused, as is one that holds anything but a Wayfarer collection. Nothing in the app makes or opens a link yet: Share…
   comes next.
+- **Share…** on a collection's menu and in the palette (T1.2): send a copy of the collection as a file
+  (`shop-api.wayfarer.json`) or as a link. The dialog says what goes (requests, folders, variables, scripts, protected
+  variables shared by name) and where, before anything leaves: the file's name, or the link's length. A credential
+  typed into auth is written as *** unless Include credentials is ticked; a vault secret is never written. The link
+  holds the collection encrypted after its `#`, and its code is shown apart, to be sent another way; "Put the code in
+  the link" is off. A link longer than 12 kB, which chat apps cut, is offered as a file instead.
 
 ## [3.0.1] - 2026-11-06
 

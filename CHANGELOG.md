@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- The groundwork for sharing a collection as a link (T1.1): the collection's file, compressed and encrypted with
+  AES-GCM-256 under a key of its own, written after the `#` of the app's address, which a browser never sends to a
+  server, and a separate code that opens it. A link that is changed, cut short or opened with the wrong code is
+  refused, as is one that holds anything but a Wayfarer collection. Nothing in the app makes or opens a link yet: Share…
+  comes next.
+
 ## [3.0.1] - 2026-11-06
 
 The fixes that followed 3.0's design review: every finding left open at the

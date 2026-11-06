@@ -11,7 +11,9 @@ export class ImportError extends Error {
   constructor(
     message: string,
     readonly issues: ValidationIssue[] = [],
+    /** What failed underneath, when the refusal is read from a thrown error (a failed decryption). */
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, { cause });
   }
 }

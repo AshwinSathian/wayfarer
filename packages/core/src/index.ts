@@ -250,3 +250,16 @@ export {
   WORKSPACE_FORMAT,
   validateWorkspaceFile,
 } from "./import/workspace";
+export {
+  LINK_DAMAGED,
+  LINK_NOT_COLLECTION,
+  LINK_WRONG_CODE,
+  encodeShareLink,
+  groupedCode,
+  isShareFragment,
+  openShareLink,
+  parseShareFragment,
+  shareFragment,
+  type ShareFragment,
+  type ShareLink,
+} from "./share/link";

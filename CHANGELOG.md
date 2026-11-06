@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **The import report says when you already have the collection.** A file whose collection is one this browser
+  holds now opens its report with "You have this collection: Shop API. Review what this file changes.", counts
+  what it would change ("1 item changes, 1 is new and 9 are the same", or "Nothing in this file differs from
+  yours."), and lists the items that change before the rest. Before, the report read as for a new collection,
+  and a changed request was somewhere in the list among the unchanged ones. Import still replaces the
+  collection, and Import as duplicate still keeps yours.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

@@ -475,6 +475,42 @@ test("a re-import says which items change, and Undo puts back what it replaced",
   expect(JSON.stringify(await dumpIdb(page))).not.toContain("https://api.example.test/changed");
 });
 
+// receive.md, File step 2: a file of a collection this browser has says so first, counts what it changes here and lists
+// the changes before the rest. Import replaces it by id, as before.
+test("a file of a collection this browser has says so, counts what it changes, and lists the changes first", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const shared = file("shop.json", collection([request("r-1", "Kept"), request("r-2", "Edited here")]));
+  await pick(page, shared);
+  await expect(dialog(page).locator(".import-known")).toHaveCount(0);
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+
+  await page.getByRole("tree").getByText("Edited here", { exact: true }).click();
+  await page.locator("input.address-url").fill("https://api.example.test/edited-here");
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByRole("img", { name: "Unsaved changes" })).toHaveCount(0);
+  await expect.poll(async () => JSON.stringify((await dumpIdb(page)).requests)).toContain("edited-here");
+
+  await pick(page, shared);
+  await expect(dialog(page).locator(".import-known")).toContainText(
+    "You have this collection: Imported collection. Review what this file changes.",
+  );
+  await expect(dialog(page).locator(".import-known")).toContainText("1 item changes and 2 are the same.");
+  const rows = dialog(page).getByRole("list", { name: "What is imported" }).getByRole("listitem");
+  await expect(rows.first()).toHaveText(/^Request\s*Edited here\s*Changes$/);
+  await expect(dialog(page).getByRole("status")).toContainText(/^You have this collection: Imported collection\./);
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  // The stored request, not the open tab, which keeps what was typed in it.
+  const storedUrl = async () =>
+    ((await dumpIdb(page)).requests as { name: string; url: string }[]).find((doc) => doc.name === "Edited here")?.url;
+  await expect.poll(storedUrl).toBe("https://api.example.test/r-2");
+});
+
 // The security review of #562: a file's request may carry the id of one another collection holds. The import takes it
 // from there: the review says so, and Undo puts it back where it was.
 test("an item whose id another collection holds says it moves here, and Undo puts it back", async ({ page }) => {

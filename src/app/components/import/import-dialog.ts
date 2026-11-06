@@ -88,10 +88,7 @@ export class ImportDialog {
    * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds
    * what the file holds, Changes when it differs. "Replaces" said all three alike.
    */
-  protected effectOf(
-    entry: ImportedCollection,
-    item: CollectionImportPlanEntry,
-  ): "New" | "Same" | "Changes" | "Moves here" {
+  protected effectOf(entry: ImportedCollection, item: CollectionImportPlanEntry): Effect {
     if (item.action === "create") return "New";
     // By id in every collection: a file may name one another collection holds, and the import takes it from there.
     const trees = this.collections.tree();
@@ -107,6 +104,25 @@ export class ImportDialog {
     if ("collectionId" in stored && stored.collectionId !== entry.payload.collection.meta.id) return "Moves here";
     return shape(stored) === shape(incoming) ? "Same" : "Changes";
   }
+
+  /**
+   * Per collection of the file: the stored collection's name when this browser has its id (receive.md, File step 2),
+   * the plan's rows with their effect, what changes first, and the effects counted. Compared two ways with what is
+   * stored: the base copy a three-way compare needs comes with T2.0's stores (PLAN-design row 1.73).
+   */
+  protected readonly reviews = computed(() => {
+    const trees = this.collections.tree();
+    return new Map(
+      (this.pipeline.imported()?.collections ?? []).map((entry) => {
+        const id = entry.payload.collection.meta.id;
+        const rows = entry.plan
+          .map((item) => ({ item, effect: this.effectOf(entry, item) }))
+          .sort((a, b) => EFFECTS.indexOf(a.effect) - EFFECTS.indexOf(b.effect));
+        const known = trees.find((tree) => tree.collection.meta.id === id)?.collection.name;
+        return [entry, { known, rows, summary: summaryOf(rows.map((row) => row.effect)) }] as const;
+      }),
+    );
+  });
 
   /** Named for what the file holds, once that is known. */
   protected readonly header = computed(() => {
@@ -128,7 +144,10 @@ export class ImportDialog {
     const imported = this.pipeline.imported();
     if (!imported) return "";
     const warnings = imported.report.warnings.length;
-    const said = [`"${this.pipeline.fileName()}" will add ${this.counts()}.`];
+    const known = [...this.reviews().values()].flatMap(({ known }) =>
+      known ? [`You have this collection: ${known}. Review what this file changes.`] : [],
+    );
+    const said = [...known, `"${this.pipeline.fileName()}" will add ${this.counts()}.`];
     if (warnings) said.push(`${warnings} ${warnings === 1 ? "thing" : "things"} to know before you import.`);
     return said.join(" ");
   });
@@ -153,6 +172,30 @@ export class ImportDialog {
       .map(([kind, count]) => `${count} ${kind}${count === 1 ? "" : "s"}`);
     return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "nothing");
   });
+}
+
+type Effect = "New" | "Same" | "Changes" | "Moves here";
+/** The order of the plan's rows: what changes what is stored comes first. */
+const EFFECTS: Effect[] = ["Changes", "Moves here", "New", "Same"];
+
+/** "2 items change, 1 is new and 9 are the same", or that nothing differs. */
+function summaryOf(effects: Effect[]): string {
+  const said = (
+    [
+      ["Changes", "changes", "change"],
+      ["Moves here", "moves here from another collection", "move here from another collection"],
+      ["New", "is new", "are new"],
+      ["Same", "is the same", "are the same"],
+    ] as const
+  )
+    .map(([effect, one, many]) => [effects.filter((each) => each === effect).length, one, many] as const)
+    .filter(([count]) => count > 0)
+    .map(
+      ([count, one, many], index) =>
+        `${count} ${index ? "" : count === 1 ? "item " : "items "}${count === 1 ? one : many}`,
+    );
+  if (effects.every((effect) => effect === "Same")) return "Nothing in this file differs from yours.";
+  return `${said.length > 1 ? `${said.slice(0, -1).join(", ")} and ${said.at(-1)}` : said[0]}.`;
 }
 
 /** A stored or imported item as text, without what the store keeps of its own (ids, times, script approvals). */

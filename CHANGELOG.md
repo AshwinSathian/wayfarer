@@ -7,12 +7,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.2.2] - 2026-11-07
+
+The website, read against the app it sells and made to match it: sharing
+by encrypted link is said where a visitor looks, the landing follows a
+day with the app, its recordings are today's, and the claims page shows
+the test run behind the deployed commit. The app itself is unchanged.
+
+Your data carries over: 3.2.2 opens the same database as 3.2.1, under the
+same name and version.
+
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
   the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
   each part, and every place the site said something false, old or vague, such as sharing by link
-  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
+  still called "not yet" after it shipped in 3.1.0. The fixes are below.
 
 ### Changed
 

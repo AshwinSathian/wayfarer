@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- The landing's recordings are taken again from today's app: two of the three showed an older
+  composer and an older run report. A fourth shows a collection shared by link, and a teammate
+  opening it, typing its code and reading the report before anything is stored.
+- Each recording now shows its picture of the app with a Play button, in place of the browser's
+  control bar and loading circle drawn over it. Without script the browser's controls stay.
+
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against

@@ -501,7 +501,7 @@ test("/docs/ has the docs' policy, with script from the site's own files, and / 
 test("the landing's recordings play only when asked, each with its poster, its steps and its files", () => {
   const html = readFileSync(`${DEPLOY}/index.html`, "utf8");
   const videos = html.match(/<video\b[^>]*>[\s\S]*?<\/video>/gi) ?? [];
-  expect(videos).toHaveLength(6);
+  expect(videos).toHaveLength(8);
   for (const video of videos) {
     const tag = video.slice(0, video.indexOf(">") + 1);
     for (const attribute of ["controls", "muted", "playsinline"])
@@ -517,6 +517,22 @@ test("the landing's recordings play only when asked, each with its poster, its s
     expect(files).toHaveLength(3);
     for (const file of files) expect(existsSync(`${DEPLOY}${file}`), file).toBe(true);
   }
+});
+
+// W6.4: with script, a recording shows its poster and the site's Play, not the browser's controls; Play starts it
+// and hands it the controls.
+test("a recording waits behind the site's Play button, then plays with the browser's controls", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "light"));
+  await page.goto("/");
+  const figure = page.locator("figure", { has: page.getByRole("heading", { name: "A collection by link" }) });
+  const video = figure.locator(".shot-light video");
+  await expect(video).not.toHaveAttribute("controls");
+  const play = figure.locator(".shot-light").getByRole("button", { name: /^Play/ });
+  await expect(play).toBeVisible();
+  await play.click();
+  await expect(play).toBeHidden();
+  await expect(video).toHaveJSProperty("controls", true);
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused || v.ended)).toBe(true);
 });
 
 // PLAN-design 1.8: the site is built with React and sends none of it (packages/site/strip-scripts.mjs), and its

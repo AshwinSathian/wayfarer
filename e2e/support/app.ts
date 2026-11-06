@@ -368,3 +368,46 @@ export async function toolbarOrDrawer(page: Page, name: "Environments" | "Histor
   await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();
   await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name, exact: true }).click();
 }
+
+/** Opens a collection's Share… dialog (T1.2) from its menu. */
+export async function openShare(page: Page, collection: string): Promise<Locator> {
+  await page.getByRole("tree").getByText(collection, { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Share…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: `Share ${collection}` });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
+
+/** A collection shared as a file (T1.2): the file's text. */
+export async function shareFile(page: Page, collection: string, credentials = false): Promise<string> {
+  const dialog = await openShare(page, collection);
+  if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    dialog.getByRole("button", { name: "Save file" }).click(),
+  ]);
+  const chunks: Buffer[] = [];
+  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
+  await dialog.getByRole("button", { name: "Close", exact: true }).last().click();
+  await expect(dialog).toBeHidden();
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/** A collection shared as a link (T1.2): the link's address and its code, as the dialog shows them. */
+export async function shareLink(
+  page: Page,
+  collection: string,
+  credentials = false,
+): Promise<{ address: string; code: string }> {
+  const dialog = await openShare(page, collection);
+  // Credentials first: ticking it makes the link again, and the length then said is the new link's.
+  if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
+  await dialog.getByRole("radio", { name: "Link" }).check();
+  await expect(dialog).toContainText(/The link is \d+ kB\./);
+  await dialog.getByRole("button", { name: "Make link" }).click();
+  const address = await dialog.getByRole("textbox", { name: "Link", exact: true }).inputValue();
+  const code = (await dialog.getByRole("textbox", { name: "Code", exact: true }).inputValue()).replace(/ /g, "");
+  await dialog.getByRole("button", { name: "Close", exact: true }).last().click();
+  await expect(dialog).toBeHidden();
+  return { address, code };
+}

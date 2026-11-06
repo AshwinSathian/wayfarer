@@ -7,7 +7,10 @@ import {
   seedAndOpen,
   send,
   exportCollectionFile,
+  shareFile,
+  shareLink,
 } from "./support/app";
+import { openShareLink, parseShareFragment } from "../packages/core/src/share/link";
 import { ECHO } from "./support/echo";
 
 // P2.5 with P2.8 and P2.9 (plan D21): a vault secret reaches the wire, and
@@ -122,7 +125,7 @@ test("the scanner finds a secret in each encoding it claims to look for", () => 
   expect(found("nothing to see, aGVsbG8gd29ybGQ=", SECRET)).toEqual([]);
 });
 
-test("@claim:C-007 a protected variable reaches the server as its plaintext, and a scan of everything stored, exported and copied finds it nowhere", async ({
+test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its plaintext, and a scan of everything stored, exported, shared and copied finds it nowhere", async ({
   page,
 }) => {
   // The longest claim test: one send with two scripts, nine copies and two downloads. On a slow WebKit runner it passed 30 s (#228).
@@ -213,6 +216,11 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   const postman = [await postmanText(page, false), await postmanText(page, true)];
   // P4.6 (c): the HAR dialog's file and what it showed, for the response (with credentials too) and for history.
   const har = [await harText(page, "response"), await harText(page, "response", true), await harText(page, "history")];
+  // T1: the collection shared as a file and as a link, with credentials: the file, the link and its code as shown,
+  // and what the link holds once opened.
+  const sharedFile = await shareFile(page, "Tripwire collection", true);
+  const link = await shareLink(page, "Tripwire collection", true);
+  const linkHolds = await openShareLink(parseShareFragment(new URL(link.address).hash), link.code);
 
   // What the script wrote, as the page shows it: its console, its test row and its own error.
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
@@ -257,6 +265,9 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "HAR file of the response": har[0],
     "HAR file of the response with credentials": har[1],
     "HAR file of history": har[2],
+    "shared file with credentials": sharedFile,
+    "shared link with credentials, and its code": `${link.address}\n${link.code}`,
+    "what the shared link holds": linkHolds,
     "what the script wrote on the page": scriptOutput,
   };
   // All nine stores were read, the composer's tabs among them (P5.1), and the exports are the real thing.
@@ -280,6 +291,8 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(copied[7]).toContain("requests.request(");
   expect(copied[8]).toMatch(/^http /);
   expect(files[0]).toContain('"$id": "wayfarer/collection"');
+  expect(sharedFile).toContain('"$id": "wayfarer/collection"');
+  expect(linkHolds).toContain('"$id": "wayfarer/collection"');
   expect(postman[0]).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
   expect(postman[1]).toContain('"key": "username"');
   for (const file of har) expect(file).toContain('"version": "1.2"');

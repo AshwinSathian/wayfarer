@@ -134,7 +134,7 @@
     </div>
     }
     <!-- Every document of a small file; of a large one the counts above say it. -->
-    @if (entry.plan.length <= 200) {
+    @if (review?.rows?.length) {
     <!-- One line each, the name as it will be stored (U-015): a long collection is a list, not a scroll of cards. -->
     <ul class="import-plan max-h-56 overflow-y-auto" aria-label="What is imported">
       @for (row of review?.rows; track row.item.id) { @let item = row.item; @let effect = row.effect;

@@ -275,6 +275,23 @@ describe("ImportDialog: a collection this browser has", () => {
     expect(known).toContain("Nothing in this file differs from yours.");
   });
 
+  // Past 200 items the plan is not listed row by row, and is not sorted; the counts still say what changes.
+  it("counts the effects of a collection of more than 200 items, without listing them", async () => {
+    const ids = Array.from({ length: 201 }, (_, index) => `r${index}`);
+    await pipeline.stage("shop.json", file(ids.map((id) => request(id))));
+    await pipeline.confirm();
+    await vi.waitFor(() => expect(collections.tree()[0]?.requests).toHaveLength(201));
+
+    const { host, known, rows } = await reported(
+      file(ids.map((id) => request(id, id === "r7" ? "https://api.test/changed" : undefined))),
+    );
+    expect(known).toBe(
+      "You have this collection: Shop API. Review what this file changes. 1 item changes and 201 are the same.",
+    );
+    expect(rows).toEqual([]);
+    expect(host.textContent).toContain("An item here with the same ID is replaced.");
+  });
+
   it("is not said for Import as duplicate", async () => {
     const text = file([request("a")]);
     await pipeline.stage("shop.json", text);

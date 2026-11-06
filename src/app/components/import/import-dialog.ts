@@ -85,41 +85,34 @@ export class ImportDialog {
   }
 
   /**
-   * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds
-   * what the file holds, Changes when it differs. "Replaces" said all three alike.
-   */
-  protected effectOf(entry: ImportedCollection, item: CollectionImportPlanEntry): Effect {
-    if (item.action === "create") return "New";
-    // By id in every collection: a file may name one another collection holds, and the import takes it from there.
-    const trees = this.collections.tree();
-    const pick = <T extends { meta: { id: string } }>(list: T[] | undefined) =>
-      list?.find((doc) => doc.meta.id === item.id);
-    const [stored, incoming] =
-      item.type === "collection"
-        ? [trees.find((tree) => tree.collection.meta.id === item.id)?.collection, entry.payload.collection]
-        : item.type === "folder"
-          ? [pick(trees.flatMap((tree) => tree.folders)), pick(entry.payload.folders)]
-          : [pick(trees.flatMap((tree) => tree.requests)), pick(entry.payload.requests)];
-    if (!stored) return "New";
-    if ("collectionId" in stored && stored.collectionId !== entry.payload.collection.meta.id) return "Moves here";
-    return shape(stored) === shape(incoming) ? "Same" : "Changes";
-  }
-
-  /**
    * Per collection of the file: the stored collection's name when this browser has its id (receive.md, File step 2),
-   * the plan's rows with their effect, what changes first, and the effects counted. Compared two ways with what is
-   * stored: the base copy a three-way compare needs comes with T2.0's stores (PLAN-design row 1.73).
+   * each item's effect, counted, and for a list of at most `PLAN_ROWS` the rows with what changes first. Compared two
+   * ways with what is stored: the base copy a three-way compare needs comes with T2.0's stores (PLAN-design row 1.73).
+   * The stored items are looked up by id in maps made once here: a file may be 10 MB.
    */
   protected readonly reviews = computed(() => {
     const trees = this.collections.tree();
+    // By id in every collection: a file may name one another collection holds, and the import takes it from there.
+    const stored = lookup(
+      trees.map((tree) => tree.collection),
+      trees.flatMap((tree) => tree.folders),
+      trees.flatMap((tree) => tree.requests),
+    );
     return new Map(
       (this.pipeline.imported()?.collections ?? []).map((entry) => {
-        const id = entry.payload.collection.meta.id;
-        const rows = entry.plan
-          .map((item) => ({ item, effect: this.effectOf(entry, item) }))
-          .sort((a, b) => EFFECTS.indexOf(a.effect) - EFFECTS.indexOf(b.effect));
-        const known = trees.find((tree) => tree.collection.meta.id === id)?.collection.name;
-        return [entry, { known, rows, summary: summaryOf(rows.map((row) => row.effect)) }] as const;
+        const { collection, folders, requests } = entry.payload;
+        const incoming = lookup([collection], folders, requests);
+        const effects = entry.plan.map((item) =>
+          effectOf(item, stored[item.type].get(item.id), incoming[item.type].get(item.id), collection.meta.id),
+        );
+        const rows =
+          entry.plan.length > PLAN_ROWS
+            ? []
+            : entry.plan
+                .map((item, index) => ({ item, effect: effects[index] }))
+                .sort((a, b) => EFFECTS.indexOf(a.effect) - EFFECTS.indexOf(b.effect));
+        const known = trees.find((tree) => tree.collection.meta.id === collection.meta.id)?.collection.name;
+        return [entry, { known, rows, summary: summaryOf(effects) }] as const;
       }),
     );
   });
@@ -175,6 +168,27 @@ export class ImportDialog {
 }
 
 type Effect = "New" | "Same" | "Changes" | "Moves here";
+/** The plan is listed row by row up to this many items; past it the counts say it. */
+const PLAN_ROWS = 200;
+
+interface Stored {
+  meta: { id: string };
+}
+/** The items of each kind by id. */
+function lookup(collections: Stored[], folders: Stored[], requests: Stored[]) {
+  const byId = (docs: Stored[]) => new Map<string, Stored>(docs.map((doc) => [doc.meta.id, doc]));
+  return { collection: byId(collections), folder: byId(folders), request: byId(requests) };
+}
+
+/**
+ * What an item does to what is stored (U-160, U-161): New when nothing has its id, Same when the stored copy holds
+ * what the file holds, Changes when it differs, Moves here when another collection holds it. "Replaces" said all alike.
+ */
+function effectOf(item: CollectionImportPlanEntry, stored?: Stored, incoming?: Stored, collectionId?: string): Effect {
+  if (item.action === "create" || !stored) return "New";
+  if ("collectionId" in stored && stored.collectionId !== collectionId) return "Moves here";
+  return shape(stored) === shape(incoming) ? "Same" : "Changes";
+}
 /** The order of the plan's rows: what changes what is stored comes first. */
 const EFFECTS: Effect[] = ["Changes", "Moves here", "New", "Same"];
 

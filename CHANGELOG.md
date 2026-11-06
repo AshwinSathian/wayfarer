@@ -23,12 +23,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The import report now names each item by the ID it is stored under. A collection file or a shared link could give
+  an item a second ID beside that one: the report then said "New" for a collection that Import replaced, with all its
+  folders and requests, and hid that a request or folder moved here from another collection. The second ID is now
+  made the same as the stored one, so what the report says is what Import does. A copy imported with "Import as
+  duplicate" from such a file also keeps its requests in their folders; before, they could be left pointing at the
+  original's folders.
 - After Import of a shared link, focus moves to the new collection's row in the sidebar (opening the drawer on a
   phone), and the status line says "Added {collection}."; before, focus went back to the page and the line said
   "Imported the shared link.", which did not name what was added.
 - A shared link opened with no network (the app installed, or visited once) now opens. Before, the report said "The
   file was not imported: reading it stopped with an error." unless something had been imported online before: the
   service worker kept the importer only once it had been used. It is now kept with the app's other files.
+- The import report's "Its requests go to:" now names the host of a WebSocket address written without its "//"
+  (`ws:host`, `wss:/host`, `ws:\host`), which Connect opens as `ws://host`. Before, it listed "ws", "wss" or the
+  address as written instead of the host.
 
 
 - **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link

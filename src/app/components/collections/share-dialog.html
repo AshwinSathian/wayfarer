@@ -1,0 +1,147 @@
+<ui-dialog
+  [header]="'Share ' + (collection()?.name ?? '')"
+  [visible]="collection() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  width="520px"
+>
+  <p class="sr-only" role="status">{{ copyStatus.text() || saved() }}</p>
+  <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1.5">
+      <span id="share-send-as-label" class="ds-form-label">Send as</span>
+      <ui-segmented
+        aria-labelledby="share-send-as-label"
+        [options]="ways"
+        [value]="sendAs()"
+        (valueChange)="sendAs.set($event)"
+      />
+      <p class="type-footnote text-label-secondary"> Send a copy. They see what it adds before anything is stored. </p>
+    </div>
+
+    @if (summary(); as summary) {
+    <div class="share-what flex flex-col gap-1.5 type-callout text-label-primary">
+      <p class="ds-form-label">What goes</p>
+      <p
+        >@if (summary.empty) {No requests: the {{ sendAs() === "file" ? "file" : "link" }} holds the collection's name,
+        variables and settings only.} @else { {{ summary.text }} }</p
+      >
+      <p class="type-footnote text-label-secondary"
+        >Not your history, your environments or the vault. A vault secret is never written.</p
+      >
+      @if (summary.protectedNames.length) {
+      <p class="type-footnote text-label-secondary">
+        {{ plural(summary.protectedNames.length, "protected variable") }} {{ summary.protectedNames.length === 1 ? "is"
+        : "are" }} shared as {{ summary.protectedNames.length === 1 ? "its name" : "their names" }}:
+        <span class="font-mono">{{ list(summary.protectedNames) }}</span>. Each person adds their own value.
+      </p>
+      } @if (summary.scripts) {
+      <p class="type-footnote text-label-secondary">
+        {{ summary.scripts === 1 ? "1 script goes" : summary.scripts + " scripts go" }} with it. They will not run for
+        the receiver until they read them and trust them.
+      </p>
+      }
+    </div>
+    }
+
+    <div class="flex flex-col gap-1">
+      <label class="ui-checkbox-label">
+        <input
+          type="checkbox"
+          uiCheckbox
+          aria-describedby="share-credentials-note"
+          [ngModel]="credentials()"
+          (ngModelChange)="setCredentials($event)"
+        />Include credentials</label
+      >
+      <p id="share-credentials-note" class="type-footnote text-label-secondary">
+        @if (masked()) { {{ plural(masked(), "credential") }} typed into auth {{ masked() === 1 ? "is" : "are" }}
+        written as *** unless this is ticked. } Only in this {{ sendAs() === "file" ? "file" : "link" }}. A vault secret
+        is never written.
+      </p>
+    </div>
+
+    @if (sendAs() === "file") {
+    <p class="share-destination type-callout text-label-primary"
+      >Saves <span class="font-mono">{{ fileName() }}</span> to your downloads.</p
+    >
+    @if (saved()) {
+    <p class="type-footnote text-label-secondary" aria-hidden="true">{{ saved() }}</p>
+    } } @else {
+    <div class="flex flex-col gap-3">
+      <p class="share-destination type-callout text-label-primary">
+        @if (!address()) {Making the link…} @else if (tooLong()) {This collection makes a link of {{ kilobytes() }} kB.
+        A link can be {{ maxKilobytes }} kB at most: chat apps cut longer ones. Save it as a file instead.} @else {The
+        link is {{ kilobytes() }} kB. The collection is inside it, encrypted. The part after # is never sent to a
+        server, also not to Wayfarer's.}
+      </p>
+      @if (made() && !tooLong()) {
+      <div class="flex flex-col gap-1.5">
+        <label class="ds-form-label" for="share-link">Link</label>
+        <div class="flex flex-wrap gap-2">
+          <input
+            uiInput
+            readonly
+            id="share-link"
+            class="font-mono type-mono-body min-w-0 flex-1 basis-60"
+            [value]="address()"
+          />
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="copy('link')"
+            ><app-icon name="content_copy" /> Copy link</button
+          >
+        </div>
+      </div>
+      <label class="ui-checkbox-label">
+        <input
+          type="checkbox"
+          uiCheckbox
+          aria-describedby="share-code-in-link-note"
+          [ngModel]="codeInLink()"
+          (ngModelChange)="codeInLink.set($event)"
+        />Put the code in the link</label
+      >
+      <p id="share-code-in-link-note" class="type-footnote text-label-secondary -mt-2"
+        >Anyone who sees the link can then read the collection.</p
+      >
+      @if (!codeInLink()) {
+      <div class="flex flex-col gap-1.5">
+        <label class="ds-form-label" for="share-code">Code</label>
+        <div class="flex flex-wrap gap-2">
+          <input
+            uiInput
+            readonly
+            id="share-code"
+            aria-describedby="share-code-note"
+            class="font-mono type-mono-body min-w-0 flex-1 basis-60"
+            [value]="code()"
+          />
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="copy('code')"
+            ><app-icon name="content_copy" /> Copy code</button
+          >
+        </div>
+        <p id="share-code-note" class="type-footnote text-label-secondary"
+          >Send the code another way than the link: say it, or send it in a different app. Without it the link cannot be
+          read.</p
+        >
+      </div>
+      } @if (copyStatus.text()) {
+      <p class="type-footnote text-label-secondary" aria-hidden="true">{{ copyStatus.text() }}</p>
+      } }
+    </div>
+    }
+  </div>
+  <div uiDialogFooter>
+    <div class="flex flex-wrap justify-end gap-2">
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()"
+        >{{ saved() || made() ? "Close" : "Cancel" }}</button
+      >
+      @if (sendAs() === "file" || tooLong()) {
+      <button uiButton="filled" type="button" [disabled]="json() === null" (click)="saveFile()"
+        ><app-icon name="download" /> Save file</button
+      >
+      } @else if (!made()) {
+      <button uiButton="filled" type="button" [disabled]="!address()" (click)="made.set(true)"
+        ><app-icon name="upload" /> Make link</button
+      >
+      }
+    </div>
+  </div>
+</ui-dialog>

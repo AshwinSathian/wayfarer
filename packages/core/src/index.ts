@@ -254,6 +254,7 @@ export {
   LINK_DAMAGED,
   LINK_NOT_COLLECTION,
   LINK_WRONG_CODE,
+  SHARE_LINK_MAX_BYTES,
   encodeShareLink,
   groupedCode,
   isShareFragment,

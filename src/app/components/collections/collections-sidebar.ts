@@ -40,6 +40,7 @@ import { CollectionNodeAction, buildContextItems } from "../../shared/collection
 import { Icon } from "../../shared/icon/icon";
 import type { HolderTarget } from "../../state/tab-state";
 import { ExportDialog } from "./export-dialog";
+import { ShareDialog } from "./share-dialog";
 import { Tabs } from "../../state/tabs";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
@@ -58,7 +59,20 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [UiButton, UiInput, Icon, FormsModule, Tree, UiMenu, MenuTrigger, Dialog, UiTooltip, UiSelect, ExportDialog],
+  imports: [
+    UiButton,
+    UiInput,
+    Icon,
+    FormsModule,
+    Tree,
+    UiMenu,
+    MenuTrigger,
+    Dialog,
+    UiTooltip,
+    UiSelect,
+    ExportDialog,
+    ShareDialog,
+  ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -120,6 +134,8 @@ export class CollectionsSidebar implements OnInit {
   readonly openSettings = output<HolderTarget>();
   /** The collection whose Export… dialog is open (U-016). */
   readonly exportOf = signal<{ id: string; name: string } | null>(null);
+  /** The collection the Share dialog is open for (T1.2). */
+  readonly shareOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -229,6 +245,11 @@ export class CollectionsSidebar implements OnInit {
           run: () => this.exportCollection(node),
         },
         {
+          id: "share-collection",
+          label: `Share ${data.ref.name}…`,
+          run: () => this.shareOf.set({ id: data.ref.meta.id, name: data.ref.name }),
+        },
+        {
           id: "delete-collection",
           label: `Delete ${data.ref.name}`,
           run: () => this.handleAction("delete", node),
@@ -304,6 +325,11 @@ export class CollectionsSidebar implements OnInit {
   private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {
     if (action === "export") {
       this.exportCollection(node);
+      return;
+    }
+    if (action === "share") {
+      const data = node.data as NodeData;
+      if (data.type === "collection") this.shareOf.set({ id: data.ref.meta.id, name: data.ref.name });
       return;
     }
     if (action === "run") {

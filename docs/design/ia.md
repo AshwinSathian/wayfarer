@@ -384,6 +384,14 @@ it is.
 | `export-dialog.html: Include credentials` | Export… dialog, unticked at each opening (U-016) | Sidebar, the one Export… dialog | D4-f, done |
 | `export-dialog.html: Cancel` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
 | `export-dialog.html: Export file` | Export… dialog | Sidebar, the one Export… dialog (U-016) | D4-f, done |
+| `share-dialog.html: Send as` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Include credentials` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Copy link` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Put the code in the link` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Copy code` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Close / Cancel` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Save file` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
+| `share-dialog.html: Make link` | Share… dialog: File or Link (T1.2, `teams/share.md`) | Sidebar, a collection's Share… | T-a |
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
@@ -399,6 +407,7 @@ it is.
 | `menu collection-context-menu.ts: Rename` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Duplicate` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: Export…` | Collection's menu | Sidebar, context menu, one dialog with the format and the credentials (U-016) | D4-f, done |
+| `menu collection-context-menu.ts: Share…` | Collection's menu | Sidebar, context menu, the Share dialog (T1.2) | T-a |
 | `menu collection-context-menu.ts: Delete` | Context menu of a tree row; Delete on a row | Sidebar, context menu: deletes at once and offers Undo (U-080, U-056) | D4-f, done |
 
 ### Tab strip
@@ -566,6 +575,7 @@ it is.
 | `palette: new-request-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: duplicate-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: export-collection` | Palette, the collection selected in the tree | Palette, "Export…" (U-016) | D4-f |
+| `palette: share-collection` | Palette, the collection selected in the tree | Palette, "Share…" (T1.2) | T-a |
 | `palette: delete-collection` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: new-request-folder` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: settings-collection` | (none: the context menu only) | Palette, "Settings of {collection}…" with the collection selected: its settings tab (D5-e) | D5-e |

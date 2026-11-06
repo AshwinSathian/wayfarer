@@ -163,6 +163,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
 - [Design audit, 2026](docs/design/audit.md): what is wrong with the interface, finding by finding, with screenshots and what became of each
+- [Site audit, November 2026](docs/design/site-audit-2026-11.md): the website read against the app it sells, v3.2.1: what the app does, claim by claim, and every place the site said less or other
 - [hig-review, 2026-10-23](docs/design/hig-review-2026-10-23.md): the audit's third pass, against Apple's Human Interface Guidelines and WCAG 2.2, and where each finding went in the plan
 - [hig-review, 2026-10-26](docs/design/hig-review-2026-10-26.md): the audit's fourth pass, a red-team review with research of rival API clients, three proposed reworks, a theming sketch and a measured look at the typefaces
 - [hig-review, 2026-11-04](docs/design/hig-review-2026-11-04.md): the audit's fifth pass, both hig-reviews repeated on the release candidate, with the logo-off and competitor-swap tests

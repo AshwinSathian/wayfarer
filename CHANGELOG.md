@@ -13,7 +13,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   file was not imported: reading it stopped with an error." unless something had been imported online before: the
   service worker kept the importer only once it had been used. It is now kept with the app's other files.
 
-### Fixed
 
 - **A shared link longer than any Wayfarer makes is refused at once.** Wayfarer never makes a link
   over 12 kB, but opening one read a fragment of up to 10 MB: about 270 ms to decode it, and with

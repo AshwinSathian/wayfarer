@@ -124,6 +124,10 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     }
     // The original is untouched.
     expect(await requests.listRequests(collection.meta.id)).toHaveLength(afterFolderCopy.length);
+    // One id each, as every other write has: a copy stored with an `id` beside its `meta.id` exported as a file whose
+    // report named it by the one and stored it by the other (security review, T-a).
+    for (const copy of [requestCopy, folderCopy, collectionCopy, ...copiedFolders, ...copiedRequests])
+      expect(copy?.id).toBe(copy?.meta.id);
 
     expect(await requests.duplicateRequest("missing")).toBeNull();
     expect(await folders.duplicateFolder("missing")).toBeNull();

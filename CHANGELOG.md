@@ -15,6 +15,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   (C-086), no vault secret is in a shared file or link (C-087), typed credentials are `***` unless included (C-088),
   the dialog names where a collection goes before it goes (C-089), and the import report names every host (C-090).
 
+### Fixed
+
+- Duplicate of a collection now gives each copy one ID, as Duplicate of a folder or a request always did. Before, the
+  copied collection, its folders and its requests each kept a second ID beside the one they are stored under, which
+  an export carried into the file; since 3.2.0 an import makes the two one. Copies made before stay as they are and
+  work as before: everything reads the ID they are stored under.
+
 ## [3.2.0] - 2026-11-06
 
 Shared collections, finished: a link that came as text opens from the

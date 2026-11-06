@@ -8,7 +8,26 @@
   <!-- There while the dialog is: a file refused or read after it opened is heard (U-075). -->
   <p class="sr-only" role="alert">{{ refusedText() || pipeline.codeRefused() }}</p>
   <p class="sr-only" role="status">{{ reportText() }}</p>
-  @if (pipeline.pasting()) {
+  @if (pipeline.pasting() === "link") {
+  <!-- A link that came as text (receive.md, "Entry points"): read as an opened link's fragment, never navigated to. -->
+  <div class="import-paste flex flex-col gap-2">
+    <label class="ds-form-label" for="import-paste-text">A link someone sent you</label>
+    <textarea
+      uiInput
+      cdkFocusInitial
+      id="import-paste-text"
+      class="import-paste-text w-full font-mono type-mono-body"
+      rows="4"
+      spellcheck="false"
+      placeholder="https://wayfarer.example/app/#share=…"
+      [value]="pipeline.pasted()"
+      (input)="pipeline.pasted.set($any($event.target).value)"
+    ></textarea>
+    <p class="type-footnote text-label-tertiary"
+      >Paste the link someone sent you. It is read here, not opened: the page goes nowhere and nothing is sent.</p
+    >
+  </div>
+  } @else if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
     <textarea
@@ -225,7 +244,7 @@
             : !pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()
         "
         (click)="importClicked()"
-        >Import</button
+        >{{ pipeline.pasting() === "link" ? "Open" : "Import" }}</button
       >
       }
     </div>

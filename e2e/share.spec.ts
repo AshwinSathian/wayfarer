@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seedAndOpen } from "./support/app";
+import { importMenu, openPalette, seedAndOpen } from "./support/app";
 
 const TOKEN = "typed-bearer-7Hq2";
 
@@ -162,5 +162,59 @@ test.describe("Receive a link (T1.3)", () => {
     await expect(refused).toContainText("This link is incomplete");
     expect(await receiver.evaluate(() => location.hash)).toBe("");
     await receiver.context().close();
+  });
+});
+
+test.describe("Paste a link (receive.md, Entry points)", () => {
+  /** Pastes `text` into the open link box and opens it; the page goes nowhere and asks for nothing. */
+  async function paste(receiver: Page, text: string, code: string): Promise<void> {
+    const at = receiver.url();
+    const asked: string[] = [];
+    receiver.on("request", (request) => asked.push(request.url()));
+    const box = receiver.getByRole("dialog", { name: "Open a shared collection" });
+    const field = box.getByRole("textbox", { name: "A link someone sent you" });
+    await expect(field).toBeFocused();
+    await field.fill(text);
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    await box.getByRole("textbox", { name: "Code" }).fill(code);
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    const report = receiver.getByRole("dialog", { name: "Import collection" });
+    await expect(report).toContainText('"the shared link" will add 1 collection and 1 request.');
+    expect(receiver.url()).toBe(at);
+    expect(asked.filter((url) => url.includes("#share=") || url.startsWith("https://elsewhere.example"))).toEqual([]);
+    await report.getByRole("button", { name: "Cancel" }).click();
+    await expect(report).toBeHidden();
+  }
+
+  test("Import, Link… reads a whole address of any origin; the palette's Open a shared link… a bare fragment", async ({
+    page,
+    browser,
+  }) => {
+    const { address, code } = await makeLink(page);
+    const fragment = new URL(address).hash;
+
+    const receiver = await (await browser.newContext()).newPage();
+    await seedAndOpen(receiver, {}, { method: "GET", url: "https://api.example.com/" });
+    await importMenu(receiver, "Link…");
+    // Another origin's address, as a document might hold it, with the white space a copy brings.
+    await paste(receiver, `  https://elsewhere.example/app/?from=doc${fragment}\n`, code);
+
+    await (await openPalette(receiver)).fill("open a shared link");
+    await receiver.keyboard.press("Enter");
+    await paste(receiver, fragment, code);
+    await receiver.context().close();
+  });
+
+  test("text that is not a link is refused, and the page stays where it was", async ({ page }) => {
+    await seedAndOpen(page, {}, { method: "GET", url: "https://api.example.com/" });
+    const at = page.url();
+    await importMenu(page, "Link…");
+    const box = page.getByRole("dialog", { name: "Open a shared collection" });
+    await box.getByRole("textbox", { name: "A link someone sent you" }).fill("https://elsewhere.example/app/");
+    await box.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Import", exact: true })).toContainText(
+      "This link does not hold a Wayfarer collection.",
+    );
+    expect(page.url()).toBe(at);
   });
 });

@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **Import › Link…** in the sidebar, and **Open a shared link…** in the
+  palette: paste a shared link that came as text (in a document, say)
+  and it opens as a clicked one does, with its code and the import
+  report. A whole address from any site or the `#share=…` part alone
+  both work; the page goes nowhere and nothing is fetched. Before, a
+  link that was not clicked had to be pasted into the address bar.
+
 ## [3.1.0] - 2026-11-06
 
 Share a collection with a teammate: as a file, or as a link that carries

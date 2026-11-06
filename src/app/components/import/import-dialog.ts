@@ -60,15 +60,14 @@ export class ImportDialog {
     return collectionHosts(entry.payload);
   }
   /**
-   * Import: with the box for a command open, reads it in the worker and opens the report a file opens (U-201); there,
-   * it stores what the report shows. Nothing is stored before the report's Import.
+   * Import: with the box for a command open, reads it in the worker and opens the report a file opens (U-201); with
+   * the box for a link, Open reads the link; at the report, it stores what the report shows. Nothing is stored before the report's Import.
    */
   protected async importClicked(): Promise<void> {
-    if (!this.pipeline.pasting()) {
-      await this.pipeline.confirm();
-      return;
-    }
-    await this.pipeline.stage("the pasted command", this.pipeline.pasted());
+    const pasting = this.pipeline.pasting();
+    if (!pasting) await this.pipeline.confirm();
+    else if (pasting === "link") await this.pipeline.openPastedLink(this.pipeline.pasted());
+    else await this.pipeline.stage("the pasted command", this.pipeline.pasted());
   }
 
   protected async importAndReview(): Promise<void> {
@@ -111,7 +110,7 @@ export class ImportDialog {
   /** Named for what the file holds, once that is known. */
   protected readonly header = computed(() => {
     const imported = this.pipeline.imported();
-    if (this.pipeline.link()) return "Open a shared collection";
+    if (this.pipeline.link() || this.pipeline.pasting() === "link") return "Open a shared collection";
     if (imported?.collections.length) return "Import collection";
     if (imported?.environments.length) return "Import environments";
     return "Import";

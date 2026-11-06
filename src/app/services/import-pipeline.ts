@@ -47,9 +47,9 @@ export class ImportPipeline {
   readonly duplicateAsNew = signal(false);
   readonly environmentEntries = signal<EnvironmentImportEntry[]>([]);
   readonly storing = signal(false);
-  /** The dialog is open for a cURL command to be pasted into it: no file was picked. */
-  readonly pasting = signal(false);
-  /** The command in that box. */
+  /** The dialog is open for a cURL command or a shared link to be pasted into it: no file was picked. */
+  readonly pasting = signal<"curl" | "link" | null>(null);
+  /** The text in that box. */
   readonly pasted = signal("");
 
   /** A shared link that waits for its code (T1.3): the dialog asks for it. */
@@ -79,6 +79,15 @@ export class ImportPipeline {
     this.link.set(fragment);
     this.dialogVisible.set(true);
     if (fragment.code) await this.openWithCode("");
+  }
+
+  /**
+   * A link pasted as text (receive.md, "Entry points"): a whole address of any origin, from its first `#`, or the
+   * fragment alone. It is only read, as an opened link's fragment is: the page goes nowhere and nothing is fetched.
+   */
+  openPastedLink(text: string): Promise<void> {
+    const pasted = text.trim();
+    return this.openLink(pasted.slice(Math.max(pasted.indexOf("#"), 0)));
   }
 
   /** The code typed (or the link's own) opens the link; its text is then staged as a file's is. */
@@ -114,16 +123,19 @@ export class ImportPipeline {
     if (file) await this.stage(file.name, await readImportText(file));
   }
 
-  /** Opens the dialog with a box for a cURL command. Its Import reads it with `stage`, like a file. */
-  openPaste(): void {
+  /**
+   * Opens the dialog with a box for a cURL command (its Import reads it with `stage`, like a file), or for a shared
+   * link that came as text (its Open reads it with `openPastedLink`).
+   */
+  openPaste(kind: "curl" | "link" = "curl"): void {
     this.close();
-    this.pasting.set(true);
+    this.pasting.set(kind);
     this.dialogVisible.set(true);
   }
 
   /** Maps and checks a file's text, and opens the report. */
   async stage(fileName: string, text: string): Promise<void> {
-    this.pasting.set(false);
+    this.pasting.set(null);
     this.text = text;
     this.fileName.set(fileName);
     this.duplicateAsNew.set(false);
@@ -187,7 +199,7 @@ export class ImportPipeline {
     this.dialogVisible.set(false);
     this.link.set(null);
     this.codeRefused.set("");
-    this.pasting.set(false);
+    this.pasting.set(null);
     this.pasted.set("");
     this.refused.set(null);
     this.imported.set(null);

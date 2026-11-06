@@ -1,6 +1,13 @@
 import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import type { EnvironmentDoc, ImportOptions, Imported } from "@wayfarer/core";
+import {
+  LINK_NOT_COLLECTION,
+  encodeShareLink,
+  shareFragment,
+  type EnvironmentDoc,
+  type ImportOptions,
+  type Imported,
+} from "@wayfarer/core";
 import { ImportError, importText } from "@wayfarer/core/import";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inCollection, inFolder, requestContent, rowsOf } from "../../testing/request-fixtures";
@@ -245,12 +252,26 @@ describe("ImportPipeline", () => {
     });
   });
 
+  it("a pasted link is read from its first #, whatever the origin, or as a bare fragment; other text is refused", async () => {
+    const fragment = shareFragment(await encodeShareLink('{"$id":"wayfarer/collection"}'), false);
+    for (const pasted of [`  https://elsewhere.example/app/?q=1${fragment}\n`, fragment]) {
+      service.openPaste("link");
+      await service.openPastedLink(pasted);
+      expect([service.pasting(), service.refused(), service.dialogVisible()]).toEqual([null, null, true]);
+      expect(service.link()?.code).toBe(null);
+    }
+    for (const pasted of ["https://elsewhere.example/app/", "share=abc", ""]) {
+      await service.openPastedLink(pasted);
+      expect([service.link(), service.refused()?.message]).toEqual([null, LINK_NOT_COLLECTION]);
+    }
+  });
+
   it("a pasted cURL command takes the same road: the box, then the report, and nothing stored before Confirm", async () => {
     service.openPaste();
-    expect([service.dialogVisible(), service.pasting(), service.imported()]).toEqual([true, true, null]);
+    expect([service.dialogVisible(), service.pasting(), service.imported()]).toEqual([true, "curl", null]);
 
     await service.stage("the pasted command", "curl -k https://api.test/users -H 'Accept: */*'");
-    expect(service.pasting()).toBe(false);
+    expect(service.pasting()).toBe(null);
     expect(service.imported()?.report).toMatchObject({
       formatName: "cURL command",
       counts: { collections: 1, folders: 0, requests: 1, environments: 0 },

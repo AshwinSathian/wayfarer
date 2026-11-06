@@ -450,8 +450,8 @@ describe("CollectionsSidebar", () => {
   });
 
   describe("palette commands", () => {
-    it("always offers New collection", () => {
-      expect(component.commands().map((a) => a.label)).toEqual(["New collection"]);
+    it("always offers New collection and Open a shared link…", () => {
+      expect(component.commands().map((a) => a.label)).toEqual(["New collection", "Open a shared link…"]);
     });
 
     it("adds what can be done to the selected collection", () => {

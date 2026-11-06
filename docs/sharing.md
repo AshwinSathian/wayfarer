@@ -22,7 +22,8 @@ collection selected. The dialog says what goes before anything leaves:
   one file or link. <!-- claim:C-088 -->
   Only auth fields are masked: a password in an address
   (`https://user:pass@…`), a key in a query parameter, or a token in a
-  plain variable or a header goes as you typed it. Keep those in the vault.
+  plain variable or in a header not named as one (`Authorization` is) goes
+  as you typed it. Keep those in the vault.
 - **Scripts** go with the collection, and do not run for the receiver
   until they have read them and trusted them.
 - **Request settings** go too, the certificate check and the route among

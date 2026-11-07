@@ -22,7 +22,9 @@ const tabs = (page: Page): Locator => strip(page).getByRole("tab");
 const address = (page: Page): Locator => page.locator("input.address-url");
 const unsaved = (tab: Locator): Locator => tab.getByRole("img", { name: "Unsaved changes" });
 
-test("a new tab is an empty request, and each tab keeps its own request and response", async ({ page }) => {
+test("@claim:C-094 a new tab is an empty request, and each tab keeps its own request and response", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await expect(tabs(page)).toHaveCount(1);
   await address(page).fill(`${ECHO}/content/json?keys=1`);
@@ -285,7 +287,7 @@ test("the side of the strip with tabs out of view fades, and only that side", as
 
 // ── What is stored (the `tabs` store) ──────────────────────────────────────
 
-test("five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({
+test("@claim:C-094 five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({
   page,
 }) => {
   await page.goto("/app/");

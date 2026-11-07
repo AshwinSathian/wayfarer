@@ -23,6 +23,9 @@ A request is saved into a collection. Make one with **New collection** in the si
 beside the address (⌘S or Ctrl+S). **Save to collection** asks for the request's name, the collection, and a folder if
 you want one. Saved, the request is in the sidebar, and a click loads it into a tab. <!-- claim:C-024 -->
 
+Each tab holds its own request and response; + opens another (Alt+T). The tabs, with their unsaved edits, are there
+after a reload. <!-- claim:C-094 -->
+
 Postman, Insomnia and OpenAPI files come in through Import in the sidebar, which shows what the file holds before
 anything is stored. <!-- claim:C-054 --> [Import](import.md) has the details.
 

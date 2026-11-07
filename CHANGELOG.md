@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- Four more claims in the ledger, each held by a test in three browsers: a WebSocket logs each
+  message in order with its direction and size (C-091); an event stream is shown event by event,
+  and Reconnect goes on from the last id (C-092); a GraphQL body fetches the server's schema and
+  marks a field it does not have (C-093); request tabs keep their own request and response, and
+  come back after a reload with their unsaved edits (C-094).
+
 ## [3.2.2] - 2026-11-07
 
 The website, read against the app it sells and made to match it: sharing

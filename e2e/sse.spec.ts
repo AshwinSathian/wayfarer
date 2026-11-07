@@ -41,7 +41,7 @@ test("the five events of a stream are listed with their id, event, data and time
   await expect(viewer(page)).toContainText("event: tick");
 });
 
-test("an open stream shows its events as they come, is stopped with Stop, and Reconnect goes on from the last id", async ({
+test("@claim:C-092 an open stream shows its events as they come, is stopped with Stop, and Reconnect goes on from the last id", async ({
   page,
 }) => {
   await page.goto("/app/");

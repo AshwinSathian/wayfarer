@@ -106,6 +106,10 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - In a collection shared as a file or a link, a credential typed into auth is written as `***` unless Include credentials was ticked for that file or link. <!-- claim:C-088 -->
 - Before a collection is shared, the Share dialog names where it goes: the file's name, or the link's length. <!-- claim:C-089 -->
 - The import report names every host a collection sends to before anything is stored: each request's address and each OAuth 2.0 sign-in and token address, with the variables the collection gives a value filled in. <!-- claim:C-090 -->
+- An address that starts with `ws://` or `wss://` opens a WebSocket: each message sent and each received is logged in order, with its direction and its size. <!-- claim:C-091 -->
+- A response of type `text/event-stream` is shown event by event as it arrives, each with its id, name and data; Stop ends it, and Reconnect sends `Last-Event-ID`, the last id the stream gave. <!-- claim:C-092 -->
+- A GraphQL body can fetch the server's schema by introspection; with it, a field the schema does not have is marked in the query's editor. <!-- claim:C-093 -->
+- The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. <!-- claim:C-094 -->
 <!-- features:end -->
 
 Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).

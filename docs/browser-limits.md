@@ -241,7 +241,7 @@ app can show depends on the route.
 A response whose `Content-Type` is `text/event-stream` is read as it
 arrives. There is nothing to switch on: send the request, and the response
 panel lists each event with its id, its name (`message` when it has none),
-its data and the time since the response began. The stream is read with
+its data and the time since the response began. <!-- claim:C-092 --> The stream is read with
 `fetch`, not with the browser's `EventSource`, so the request keeps its
 method, its headers, its auth and its body.
 
@@ -269,6 +269,8 @@ method, its headers, its auth and its body.
 An address that starts with `ws://` or `wss://`, as written or through a
 variable, is a WebSocket's: the Send button is **Connect**, and the tab
 shows the connection in place of a request's panels and its response.
+Each message sent and received is logged in order, with its direction and
+its size. <!-- claim:C-091 -->
 
 - **No headers, no auth.** A browser makes the handshake itself and lets a
   page add nothing to it but subprotocols: no `Authorization`, no cookie of

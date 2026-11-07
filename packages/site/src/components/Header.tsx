@@ -5,6 +5,8 @@ import { ThemeToggle } from "./ThemeToggle";
 const LINKS = [
   ["Docs", "/docs/"],
   ["Compare", "/compare/"],
+  ["Sharing", "/docs/sharing/"],
+  ["Trust", "/docs/trust-center/"],
   ["Changelog", "/changelog/"],
   ["GitHub", REPO],
 ] as const;
@@ -16,7 +18,14 @@ const LINKS = [
  */
 export function Header() {
   return (
-    <header className="border-b border-line bg-paper">
+    <header className="relative border-b border-line bg-paper">
+      {/* The first stop of every page: past the header's links to the page's own content. */}
+      <a
+        href="#main"
+        className="sr-only rounded-sm bg-action px-3 py-2 type-site-small font-bold text-on-action focus:not-sr-only focus:absolute focus:top-3 focus:left-4 focus:z-20"
+      >
+        Skip to content
+      </a>
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
         {/* min-w-0: the row may squeeze the name, as it did when the mark was an <img> (#534). */}
         <a href="/" className="flex min-w-0 items-center gap-2 type-site-lede font-bold text-ink">

@@ -37,7 +37,7 @@ export default async function BlogPost({ params }: Props) {
     <>
       <Header />
       <JsonLd data={postGraph(post, ogImagePath(`/blog/${post.slug}/`))} />
-      <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <p className="type-site-small text-ink-muted">
           <a className="underline underline-offset-4 hover:text-action" href="/blog/">
             Blog

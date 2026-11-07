@@ -39,7 +39,7 @@ With a schema:
 
 - **The query is checked as you type.** A field the schema does not have,
   an argument of the wrong type and the like are underlined in the editor
-  and listed under it with their line.
+  and listed under it with their line. <!-- claim:C-093 -->
 - **The editor completes** fields, arguments and types at the cursor.
 - **The schema is listed** under the editors: the query, mutation and
   subscription types first, then the others by name, each with its fields,

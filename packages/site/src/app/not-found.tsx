@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
         <h1 className="type-site-title-1 font-bold text-ink sm:type-site-display">There is no page at this address.</h1>
         <p className="mt-4 max-w-xl type-site-lede text-ink-muted">
           It may have moved when the site did. The docs are listed on{" "}

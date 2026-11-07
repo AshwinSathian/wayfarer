@@ -75,7 +75,7 @@ test("Fetch schema fills the schema explorer, and the query's result is shown", 
   expect(await reported()).toEqual([]);
 });
 
-test("a field the schema does not have is marked in the editor and named under it, once the schema is there", async ({
+test("@claim:C-093 a field the schema does not have is marked in the editor and named under it, once the schema is there", async ({
   page,
 }) => {
   const reported = await violations(page);

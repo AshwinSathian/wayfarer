@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // The landing's recordings of the app (W5.2 of PLAN-design.md): the app as built, at a phone's width so that its
 // text reads on a phone, driven by Playwright in Chromium. Three clips, each in both themes: the first request, the
-// exchange record saying where it went, and a collection run's report. Every answer is made up here (`page.route`)
+// exchange record saying where it went, a collection run's report, and a collection shared by link. Every answer is made up here (`page.route`)
 // and every other address is refused, so a recording never reaches the network; the app is the real one.
+//
+// The fourth clip, a collection shared by link, has two browsers: the sender's, then a teammate's with nothing stored,
+// which opens the link, types its code and reads the report before anything is stored.
 //
 // Each clip is the page's screenshots, taken one after another while it plays, put together by ffmpeg as WebM (VP9)
 // and MP4 (H.264), with its last frame as the poster (AVIF): the still a reader sees before Play, and all a reader
@@ -21,7 +24,13 @@ import { chromium } from "@playwright/test";
 import { startServer } from "../e2e/support/prod-server.mjs";
 
 const PORT = Number(process.env.PORT ?? 4570);
-const BASE = `http://localhost:${PORT}`;
+/**
+ * The app is served here, but the browser knows it by the site's own name, so that the shared link in a clip reads
+ * as a reader's would: Chromium maps the name to the local server and treats it as a secure origin (WebCrypto and
+ * the service worker need one).
+ */
+const HOST = "wayfarer.ashwinsathian.com";
+const BASE = `http://${HOST}`;
 const OUT = "packages/site/public/recordings";
 /** A phone's window: shown at this size on the landing, the app's 13 px text stays 13 px. */
 const VIEWPORT = { width: 390, height: 720 };
@@ -166,6 +175,14 @@ async function openInTree(page, name, button = "left") {
 
 const pause = (page, ms) => page.waitForTimeout(ms);
 
+/** A browser with nothing stored, as a teammate's is, at the clip's size and theme, its network canned. */
+async function freshPage(browser, theme) {
+  const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: SCALE, colorScheme: theme });
+  await context.addInitScript((theme) => localStorage.setItem("wayfarer:theme", theme), theme);
+  await cannedNetwork(context);
+  return context.newPage();
+}
+
 const CLIPS = {
   /** Type an address, send, read the answer. */
   async "first-request"(page) {
@@ -202,6 +219,42 @@ const CLIPS = {
     await view.getByRole("status").filter({ hasText: "The run is complete." }).waitFor({ timeout: 30_000 });
     await pause(page, 3500);
   },
+  /** Share the collection as a link; a teammate opens it, types the code and reads the report before Import. */
+  async share(page, { browser, theme, show }) {
+    await openInTree(page, "Users", "right");
+    await page.getByRole("menuitem", { name: "Share…", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Share Users" });
+    await dialog.waitFor();
+    await pause(page, 900);
+    await dialog.getByRole("radio", { name: "Link" }).check();
+    await pause(page, 900);
+    await dialog.getByRole("button", { name: "Make link" }).click();
+    const code = dialog.getByRole("textbox", { name: "Code", exact: true });
+    await code.waitFor();
+    await code.scrollIntoViewIfNeeded();
+    await pause(page, 2200);
+    const address = await dialog.getByRole("textbox", { name: "Link", exact: true }).inputValue();
+    const typed = await code.inputValue();
+    const receiver = await freshPage(browser, theme);
+    try {
+      await receiver.goto(address);
+      const open = receiver.getByRole("dialog", { name: "Open a shared collection" });
+      await open.waitFor();
+      show(receiver);
+      await pause(receiver, 900);
+      await open.getByRole("textbox", { name: "Code", exact: true }).pressSequentially(typed, { delay: 25 });
+      await pause(receiver, 500);
+      await open.getByRole("button", { name: "Open", exact: true }).click();
+      const report = receiver.getByRole("dialog", { name: "Import collection" });
+      await report.getByRole("list", { name: "Hosts its requests go to" }).waitFor();
+      await report.getByRole("list", { name: "Hosts its requests go to" }).scrollIntoViewIfNeeded();
+      await pause(receiver, 3500);
+      return receiver;
+    } catch (error) {
+      await receiver.context().close();
+      throw error;
+    }
+  },
 };
 
 /** Records `clip` in `theme`: the page's frames while it plays, and its last frame as the poster. */
@@ -220,11 +273,13 @@ async function record(browser, name, theme) {
     // frames at the window's CSS size, half of what a phone's screen shows.
     const list = [];
     let playing = true;
+    // The page being filmed: a clip may move to a second browser's (`show`), and its last page gives the poster.
+    let shown = page;
     const capture = (async () => {
-      while (playing) list.push({ data: await page.screenshot({ type: "png" }), time: Date.now() / 1000 });
+      while (playing) list.push({ data: await shown.screenshot({ type: "png" }), time: Date.now() / 1000 });
     })();
     const start = Date.now() / 1000;
-    await CLIPS[name](page);
+    const last = (await CLIPS[name](page, { browser, theme, show: (other) => (shown = other) })) ?? page;
     playing = false;
     await capture;
     const end = Date.now() / 1000;
@@ -265,7 +320,8 @@ async function record(browser, name, theme) {
     // The poster as AVIF: a browser fetches every poster with the page, hidden or not, and six JPEG posters
     // (450 kB) held the landing's text back on Lighthouse's phone, from 1.4 to 3.8 s (performance 100 to 89).
     const still = join(frames, "poster.png");
-    await page.screenshot({ path: still });
+    await last.screenshot({ path: still });
+    if (last !== page) await last.context().close();
     // SVT-AV1 writes its banner to stderr whatever the log level: kept, and shown only if ffmpeg fails.
     execFileSync(
       "ffmpeg",
@@ -283,7 +339,13 @@ async function record(browser, name, theme) {
 }
 
 const server = startServer("dist/deploy", PORT);
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  channel: "chromium",
+  args: [
+    `--host-resolver-rules=MAP ${HOST}:80 127.0.0.1:${PORT}`,
+    `--unsafely-treat-insecure-origin-as-secure=${BASE}`,
+  ],
+});
 try {
   for (const name of Object.keys(CLIPS)) for (const theme of ["dark", "light"]) await record(browser, name, theme);
 } finally {

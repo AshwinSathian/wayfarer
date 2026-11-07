@@ -15,6 +15,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   marks a field it does not have (C-093); request tabs keep their own request and response, and
   come back after a reload with their unsaved edits (C-094).
 
+### Fixed
+
+- The trust center said the Local Bridge is not on npm (it is: `npx wayfarer-bridge`), that the
+  host injects a Web Analytics beacon (gone), and nothing of the AI provider a user adds, which
+  then receives the prompts sent to it. It now says each as it is, and that the host still adds a
+  bot-detection script, which the page's policy blocks, and error-reporting headers.
+- The threat model said a monitor checks production every 6 hours for a script the app did not
+  ship; that test is skipped until the host stops injecting its script, and the model now says so.
+  It gains the boundary it lacked, the page and a model provider.
+
 ## [3.2.2] - 2026-11-07
 
 The website, read against the app it sells and made to match it: sharing

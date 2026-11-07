@@ -82,7 +82,7 @@ names and values are theirs, and the command is run on your machine.
 
 <!-- claim:C-055 -->
 
-As everywhere something leaves the app ([Trust Center](trust-center.md)):
+As everywhere something leaves the app ([Trust center](trust-center.md)):
 a credential (the auth's token, password or key, and any credential
 header) is copied as `***` unless you choose "with credentials", which only
 the cURL items offer. A vault secret is never read for a copy from the

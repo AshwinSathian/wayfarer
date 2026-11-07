@@ -1,6 +1,6 @@
 # Claims ledger
 
-Every factual statement that Wayfarer's README and Trust Center make about
+Every factual statement that Wayfarer's README and trust center make about
 what the app does is a **claim**, with a stable ID: privacy, security, data
 handling and network behaviour, and every feature the README lists. Each
 claim is:

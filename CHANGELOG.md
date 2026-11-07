@@ -15,24 +15,48 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   marks a field it does not have (C-093); request tabs keep their own request and response, and
   come back after a reload with their unsaved edits (C-094).
 
-### Fixed
+## [3.2.2] - 2026-11-07
 
-- The docs search listed design notes (audits, plans, flows not built) among the docs: a search
-  for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
-  searches the docs and the design records the comparison pages cite.
-- The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
-  say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
-  docs search's Clear button is no longer under 12 px.
+The website, read against the app it sells and made to match it: sharing
+by encrypted link is said where a visitor looks, the landing follows a
+day with the app, its recordings are today's, and the claims page shows
+the test run behind the deployed commit. The app itself is unchanged.
+
+Your data carries over: 3.2.2 opens the same database as 3.2.1, under the
+same name and version.
 
 ### Added
 
 - The site audit of November 2026 (`/docs/design/site-audit-2026-11/`): the website read against
   the app as it is in 3.2.1, page by page. It lists what the app does with the claim that backs
   each part, and every place the site said something false, old or vague, such as sharing by link
-  still called "not yet" after it shipped in 3.1.0. The fixes follow in the next releases.
+  still called "not yet" after it shipped in 3.1.0. The fixes are below.
+
+### Changed
+
+- The landing page is rebuilt around the app as it is. The opening line says you can send a
+  collection to a teammate as an encrypted link. The recordings move out of their band at the foot
+  into "A day with Wayfarer": a first request, where it went, a key in the vault, a request the
+  browser stops, a collection shared by link, and the same run in CI. A section quotes rows of
+  the claims ledger with the tests that hold them, and "Also in the app" lists auth, import,
+  export, bodies, AI and offline use, each with its page.
+- The header links Sharing and Trust; the footer links Sharing.
+- The landing's recordings are taken again from today's app: two of the three showed an older
+  composer and an older run report. A fourth shows a collection shared by link, and a teammate
+  opening it, typing its code and reading the report before anything is stored.
+- Each recording now shows its picture of the app with a Play button, in place of the browser's
+  control bar and loading circle drawn over it. Without script the browser's controls stay.
 
 ### Fixed
 
+- No page of the site had a way past its header for a keyboard: nine stops came before the
+  content. Every page now starts with Skip to content.
+- The docs search listed design notes (audits, plans, flows not built) among the docs: a search
+  for "share" found the design of a flow that does not exist yet beside the Sharing page. It now
+  searches the docs and the design records the comparison pages cite.
+- The Import and Export docs did not mention Import › Link… or Share…, and Browser limits did not
+  say how to start the Local Bridge. Three doc titles are in sentence case, as the rest are. The
+  docs search's Clear button is no longer under 12 px.
 - The claims page showed no test results on the live site ("This copy of the site was not
   deployed from a CI run"), since every release since 3.0.0 was deployed by hand and a deploy by
   hand left out the file that names the run. The manual deploy now writes it, so each claim's row

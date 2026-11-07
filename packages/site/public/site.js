@@ -59,3 +59,17 @@ if (demo) {
   replay.addEventListener("click", play);
   play();
 }
+
+// The recordings: the browser's own controls drew their bar and a loading arc over the app's picture. With script,
+// each clip shows its poster and a Play button; once asked for, it plays with the browser's controls to pause and seek.
+for (const button of document.querySelectorAll("[data-play]")) {
+  const video = button.parentElement.querySelector("video");
+  video.controls = false;
+  button.hidden = false;
+  button.addEventListener("click", () => {
+    button.hidden = true;
+    video.controls = true;
+    void video.play();
+    video.focus();
+  });
+}

@@ -21,7 +21,7 @@ export default function Changelog() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <h1 className="type-site-title-1 font-bold sm:type-site-display">Changelog</h1>
         <p className="mt-4 max-w-2xl type-site-lede text-ink-muted">
           What changed in each release, newest first. The same notes are{" "}

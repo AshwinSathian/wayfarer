@@ -7,7 +7,7 @@ export function Page({ title, lede, children }: { title: string; lede: ReactNode
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <h1 className="max-w-4xl type-site-title-1 font-bold text-ink sm:type-site-display">{title}</h1>
         <div className="mt-5 max-w-2xl type-site-lede text-ink-muted [&_a]:text-action [&_a]:underline [&_a]:underline-offset-4">
           {lede}

@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.2.3] - 2026-11-07
+
+Four more claims in the ledger, for WebSocket, event streams, GraphQL's
+schema and request tabs, and the trust center and the threat model as
+production is today. The app itself is unchanged.
+
+Your data carries over: 3.2.3 opens the same database as 3.2.2, under the
+same name and version.
+
 ### Added
 
 - Four more claims in the ledger, each held by a test in three browsers: a WebSocket logs each

@@ -961,18 +961,18 @@ each task names its findings (S-NN).
     `loupe` run on the result and its findings fixed or answered;
     before-and-after captures at 390 and 1440 px in both themes read;
     Lighthouse mobile 95, 100, 100; `check:site-links` green.
-- [ ] **W6.6** Claims for what the app does and the ledger does not say
+- [x] **W6.6** Claims for what the app does and the ledger does not say
   (S-11, S-33): GraphQL's schema, WebSocket, event streams, request tabs,
   the run's reports, each with its test; then their sentences on the
   landing and the comparison pages.
   - AC: the maintainer approves the new rows (public claims).
   - Built in #672 (C-091 to C-094; the run's reports and the bridge's
-    pairing left for their own look), waiting for the maintainer.
-- [ ] **W6.7** The trust center and the threat model made true (S-24 to
+    pairing left for their own look), merged on the maintainer's go-ahead (row 1.84).
+- [x] **W6.7** The trust center and the threat model made true (S-24 to
   S-28, S-36): the bridge on npm, the zone as it is, the monitor's skipped
   test, the AI provider as a place data goes.
   - AC: the maintainer approves (security pages).
-  - Built in #673, waiting for the maintainer.
+  - Built in #673, merged on the maintainer's go-ahead (row 1.84).
 - [x] **W6.8** The docs a visitor reaches (S-18 to S-20, S-32, S-34):
   Share… and Import › Link… in the import and export docs, how to start
   the bridge, the benchmark's task 6, the design records out of the docs
@@ -1421,3 +1421,4 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-11-07 | 1.81 | **v3.2.1 in production.** #665 made Unreleased (#644's docs and claims, #663's one id per duplicated copy) 3.2.1; `e2e.yml` run 42275947104 on `main` at `8e7de7f`: success, E2E and design capture in Chromium, Firefox and WebKit. Tagged `v3.2.1` (release.yml 42283687424 green) and deployed from the command line: **Worker version ae9c0f1f** over 3.2.0's 4ee1d3bf, the preview's smoke 17 passed, production serves 3.2.1 and its smoke passed 14 of 17, the three failures C-012's. **C-012, checked 2026-11-07 in three engines:** the Web Analytics beacon is gone; Bot Fight Mode's inline challenge script (1 CSP violation on `/`, 2 on `/app/`) and the `nel` and `report-to` headers remain (runbook "Cloudflare zone" steps 1, 2 and 5, then `ZONE_HARDENED`); the repository has no Actions secrets, so `deploy.yml` cannot deploy. Both the maintainer's. |
 | 2026-11-07 | 1.82 | **Phase W6 added: the website against the app it sells.** Session W6 audited the site (`packages/site`) against v3.2.1 (`docs/design/site-audit-2026-11.md`, 36 findings): link sharing (3.1.0) is "not yet" in eight places, the roadmap marks workspace sharing done (it was left out of T1), the landing names C-012 while production fails it, the claims page shows no CI run in production (every deploy since 3.0.0 by hand), and two of three recordings show an older app. W6.2 to W6.9 fix them; W6.6 (new claims) and W6.7 (the trust center and the threat model) wait for the maintainer. W6.1 ticked. |
 | 2026-11-07 | 1.83 | **Session W6 finished; v3.2.2 in production.** PRs #667 (audit, Phase W6), #668 (W6.2: sharing said as it shipped in eight places, the roadmap's workspace item, C-012 off the landing, the roadmap as Shipped in 3.0, Shipped since 3.0, Next, Later), #669 (W6.3: a deploy by hand writes `ci-run.json`), #670 (W6.4: recordings retaken, a fourth of a link shared and opened, a Play of the site's own), #671 (W6.8: docs search over the docs only, Share… and Import › Link… in the docs), #674 (W6.5: the landing as the audit's section 6 says, Skip to content on every page), #675 (release). `e2e.yml` run 42300099890 on `main` at `5d707ae`: success, E2E and design capture in three engines. Deployed from the CLI: Worker version f24f1237 (over ae9c0f1f); the preview's smoke 17 of 17, production's 14 of 17 (C-012's three); production's `/ci-run.json` is 200 and the claims page has its "Last CI" column again. Lighthouse mobile on the landing 99, 100, 100. Waiting for the maintainer: #672 (W6.6, claims C-091 to C-094) and #673 (W6.7, the trust center and the threat model). Left from the audit: S-09 (the benchmark not run again on 3.2: a measurement session of its own), S-11's claimless items (run reports, bridge pairing: tests to look at first), S-17's Play over the app's bottom-left corner (small; a poster crop would fix it), S-21 (404 has no image, by design), C-012 itself (the zone steps are the maintainer's). |
+| 2026-11-07 | 1.84 | **W6.6 and W6.7 merged; v3.2.3 in production.** The maintainer asked to merge the open PRs (2026-11-07): #672 (claims C-091 to C-094) and #673 (the trust center and the threat model), each with `main` merged in, then #680 (release v3.2.3). The Dependabot PRs #677 to #679 were left (a major version among them) for their own look. `e2e.yml` run 42343493751 on `main` at `f46eafa`: success, E2E and design capture in three engines. Deployed from the CLI: Worker version f1e47e5f (over f24f1237); the preview's smoke 17 of 17, production's 14 of 17 (C-012's three); `/ci-run.json` names run 42343493751. Phase W6 is done but for the leftovers of row 1.83. |

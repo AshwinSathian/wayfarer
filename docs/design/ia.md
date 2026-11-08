@@ -440,6 +440,7 @@ it is.
 | Action | Today | Place | Session |
 |---|---|---|---|
 | `composer.html: Paste a cURL command` | — (new in D4-c) | The empty response of an empty tab: opens Import's box for a cURL command (U-022), which fills this tab (D5-e, L-16) | — |
+| `composer.html: Try an example` | — (new for the launch, 2026-11-09) | The empty response of an empty tab: puts a public API's address (JSONPlaceholder, which answers any origin) in this tab and focuses it; nothing is sent until Send | — |
 | `address-row.html: Common methods` | Address row, the method | Composer, address row | — |
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |
 | `address-row.html: Save / Save to collection…` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |

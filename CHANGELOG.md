@@ -31,6 +31,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **Try an example, on the first screen.** Beside Paste a cURL command, it puts a public API's address (JSONPlaceholder, which answers any origin) in the tab, ready to send. It sends nothing itself. Before, a first visit had to bring an address of its own, and one that refused other origins ended in a CORS error.
 
+### Fixed
+
+- **On a phone, a request that got no response no longer asks you to start the Local Bridge in a terminal.** It says the bridge runs on a computer and that an API which allows requests from any page still answers from the phone. Before, it showed `npx wayfarer-bridge`, a Copy button and a pairing code, none of which a phone can use.
+
 ## [3.2.3] - 2026-11-07
 
 Four more claims in the ledger, for WebSocket, event streams, GraphQL's

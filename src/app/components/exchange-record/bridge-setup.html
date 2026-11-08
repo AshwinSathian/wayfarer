@@ -1,3 +1,10 @@
+@if (handheld) {
+<!-- A phone or a tablet has no terminal to start the bridge in: say where it runs, and what works from here. -->
+<p class="text-label-secondary"
+  >The Local Bridge runs on a computer: open Wayfarer on one to send this request through it. From this device, an API
+  that allows requests from any page still answers.</p
+>
+} @else {
 <p class="text-label-secondary"
   >The Local Bridge sends a request from this computer, where CORS does not apply, and says why one failed. Start it in
   a terminal (it needs Node.js 22.21 or later), then type the code it prints.</p
@@ -39,6 +46,6 @@
     @if (pairing()) { <ui-spinner /> } Pair
   </button>
 </div>
-}
+} }
 <!-- There from the first render: what a copy or a pairing did (U-075). -->
 <p class="bridge-setup-said mt-2 text-label-secondary" role="status">{{ said() }}</p>

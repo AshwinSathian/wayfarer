@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (command line)
+
+- **`wayfarer-cli` 2.1.0 on npm.** The command line's changes since 2.0.2 reach `npx wayfarer-cli`: `--reporter html` writes `wayfarer-run.html`, the run as the app's run view shows it; the summary says what the app's run view says ("The run is complete.", an error many requests share written once); and the engine is the app's of 3.2, scripts and variables included. Before, the README documented `--reporter html` while npm had 2.0.2, which refused it.
+
 ## [3.2.3] - 2026-11-07
 
 Four more claims in the ledger, for WebSocket, event streams, GraphQL's

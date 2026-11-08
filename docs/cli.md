@@ -43,7 +43,7 @@ wayfarer-cli run <file> [options]
 | `-d`, `--data <file>` | A data file, CSV or JSON: one iteration per row, as in the app. |
 | `-n`, `--iterations <n>` | How many iterations. Default: one per row of the data file, or 1. |
 | `--collection <name>` | Which collection of a file that holds several. |
-| `--reporter <list>` | `cli`, `json`, `junit`, comma-separated; default `cli`. `json` writes `wayfarer-run.json` and `junit` writes `wayfarer-run.junit.xml`: the files the app's run view saves. |
+| `--reporter <list>` | `cli`, `json`, `junit`, `html`, comma-separated; default `cli`. `json` writes `wayfarer-run.json` and `junit` writes `wayfarer-run.junit.xml`, the files the app's run view saves; `html` writes `wayfarer-run.html`, one page to read in a browser. |
 | `--out <dir>` | Where the reports are written, made if it does not exist. Default: the current directory. |
 | `--bail` | Stop at the first failure. |
 | `--timeout <ms>` | Give up on a request after this long. Default: no limit. |

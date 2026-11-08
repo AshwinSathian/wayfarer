@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **Timings no longer shows a "Content" phase that is the time since the page loaded.** For a response from another origin without `Timing-Allow-Origin` (most public APIs), the browser withholds every phase time as 0, and the Content phase was read as the response's end minus 0: 1.9 s for a 750 ms request on a fresh page, 593 s ten minutes later. Such a response now shows no phase, as C-023 says, and that claim's test checks Content as well.
+
 ## [3.2.3] - 2026-11-07
 
 Four more claims in the ledger, for WebSocket, event streams, GraphQL's

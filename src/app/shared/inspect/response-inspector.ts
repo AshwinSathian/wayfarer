@@ -215,7 +215,9 @@ export class ResponseInspector {
   }
 
   private delta(start: number, end: number): number {
-    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+    // A phase time of 0 is one the browser withheld (a cross-origin entry without Timing-Allow-Origin), not the
+    // page's first moment: `responseEnd - 0` was the time since the page loaded.
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end <= 0) {
       return 0;
     }
     const value = end - start;

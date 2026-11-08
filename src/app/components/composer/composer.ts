@@ -70,6 +70,9 @@ const BESIDE_MIN: readonly [number, number] = [28, 22];
  * and the response beside or below them. The request itself is the draft in
  * `WorkspaceStore`; `ComposerView` holds which panel is open.
  */
+
+/** A public API that allows any origin, for a first request (JSONPlaceholder). */
+const EXAMPLE_URL = "https://jsonplaceholder.typicode.com/todos/1";
 @Component({
   selector: "app-composer",
   imports: [
@@ -233,6 +236,12 @@ export class Composer {
 
   focusUrl(): void {
     this.addressRow()?.focusUrl();
+  }
+
+  /** First run: an address that answers any origin, put in this tab for the user to send. Nothing is sent for them. */
+  tryExample(): void {
+    this.store.setUrl(EXAMPLE_URL);
+    this.focusUrl();
   }
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

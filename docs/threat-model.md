@@ -123,7 +123,7 @@ The app is static files on Cloudflare's network, or on any host you choose
 
 | Boundary | STRIDE | Threat | Mitigation | Claims |
 |---|---|---|---|---|
-| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only. A monitor loads the production page every 6 hours and fails on any script that is not the app's; until the hosting zone stops injecting its bot-detection script, that test is skipped on production. | C-012, C-011, C-016 |
+| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only. A monitor loads the production page every 6 hours and fails on any script that runs and is not the app's. The hosting zone injects a bot-detection script today; the policy blocks it, and the stricter test (nothing blocked at all) is skipped on production until the zone stops. | C-012, C-011, C-016 |
 | Service worker and page | T | The service worker serves an old or a foreign file as the app. | The service worker caches only the app's own files, and a new version takes over only when the page asks. | C-015 |
 
 ## What this model does not cover
@@ -131,8 +131,8 @@ The app is static files on Cloudflare's network, or on any host you choose
 - **A compromised browser or operating system.** An extension with access
   to the page, or malware that reads memory, sees what the page sees.
 - **A hostile host for the hosted app.** The monitor (C-012) finds a
-  changed page within 6 hours once its test runs on production (it is
-  skipped until the zone is hardened); it does not prevent one. If that
+  script that is not the app's within 6 hours; it does not prevent one,
+  and it does not see a changed file of the app's own. If that
   matters to you, host the folder yourself.
 - **The servers you send requests to.** What a server does with a request
   you sent it is out of the app's hands.

@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Claim C-012 says what holds on the hosted app today: no script but the app's runs, and the Content-Security-Policy blocks any other, also the bot-detection script the host injects. Before, it said the page loaded with no CSP violation at all, which has not been true since that script appeared; its check was skipped on production, so nothing checked the claim. The check that runs every 6 hours is now the claim's own (`only-own-scripts`), and the stricter one stays for when the zone stops injecting.
+
 ## [3.2.3] - 2026-11-07
 
 Four more claims in the ledger, for WebSocket, event streams, GraphQL's

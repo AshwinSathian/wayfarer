@@ -12,7 +12,7 @@ npx wayfarer-bridge
 ```
 
 ```
-  wayfarer-bridge v3.0.0 — listening on http://127.0.0.1:7717
+  wayfarer-bridge v3.0.1 — listening on http://127.0.0.1:7717
 
   Pairing code: 674M-KU4D
   (enter it in Wayfarer's Local Bridge settings and press Pair; it works once)

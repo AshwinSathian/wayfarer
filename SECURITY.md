@@ -31,6 +31,12 @@ procurement questions.
 Automated scanners can discover this policy via
 [`/.well-known/security.txt`](packages/site/public/.well-known/security.txt).
 
+## Supported versions
+
+The latest release of the app (the hosted copy and the latest `v*` tag), of
+`wayfarer-cli` and of `wayfarer-bridge` gets fixes. There is one version of
+Wayfarer: an older one is fixed by updating.
+
 ## Reporting a Vulnerability
 
 **Please do not open a public GitHub issue for security reports.**

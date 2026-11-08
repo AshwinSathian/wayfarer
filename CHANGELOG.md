@@ -31,6 +31,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **Try an example, on the first screen.** Beside Paste a cURL command, it puts a public API's address (JSONPlaceholder, which answers any origin) in the tab, ready to send. It sends nothing itself. Before, a first visit had to bring an address of its own, and one that refused other origins ended in a CORS error.
 
+### Fixed
+
+- **On a phone, a request that got no response no longer asks you to start the Local Bridge in a terminal.** It says the bridge runs on a computer and that an API which allows requests from any page still answers from the phone. Before, it showed `npx wayfarer-bridge`, a Copy button and a pairing code, none of which a phone can use.
+
 - Claim C-012 says what holds on the hosted app today: no script but the app's runs, and the Content-Security-Policy blocks any other, also the bot-detection script the host injects. Before, it said the page loaded with no CSP violation at all, which has not been true since that script appeared; its check was skipped on production, so nothing checked the claim. The check that runs every 6 hours is now the claim's own (`only-own-scripts`), and the stricter one stays for when the zone stops injecting.
 
 ## [3.2.3] - 2026-11-07

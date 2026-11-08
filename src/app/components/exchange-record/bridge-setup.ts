@@ -27,6 +27,8 @@ export class BridgeSetup {
   readonly sendAgain = output<void>();
 
   protected readonly command = BRIDGE_COMMAND;
+  /** A touch screen with no pointer that hovers: a phone or a tablet, where no terminal starts the bridge. */
+  protected readonly handheld = matchMedia("(hover: none) and (pointer: coarse)").matches;
   protected readonly code = signal("");
   protected readonly pairing = signal(false);
   /** What the last copy or pairing did, said by the region below. */

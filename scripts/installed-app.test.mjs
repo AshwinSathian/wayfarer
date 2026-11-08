@@ -17,6 +17,15 @@ test("index.html: en-GB, the whole screen, and theme-color from each theme's can
   assert.match(html, new RegExp(`name="theme-color" content="${light}" media="\\(prefers-color-scheme: light\\)"`));
 });
 
+test("index.html: a link to the app makes the landing's card, and Chromium is told it is an app", () => {
+  const html = read("src/index.html");
+  for (const property of ["og:title", "og:description", "og:url", "og:image"])
+    assert.match(html, new RegExp(`property="${property}"\\s+content="[^"]+"`), property);
+  assert.match(html, /property="og:image" content="https:\/\/[^"]+\.png"/);
+  assert.match(html, /name="twitter:card" content="summary_large_image"/);
+  assert.match(html, /name="mobile-web-app-capable" content="yes"/);
+});
+
 test("theme.js sets theme-color to the canvas of the theme it draws", () => {
   const script = read("public/theme.js");
   assert.ok(script.includes(`dark ? "${dark}" : "${light}"`), "theme.js's colours are not the canvas tokens");

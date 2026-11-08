@@ -10,21 +10,17 @@
   No account, no install, no server of ours: your requests, collections and secrets stay in your browser.
 </p>
 
-<p align="center">
-  <a href="https://wayfarer.ashwinsathian.com/app/"><strong>Open Wayfarer</strong></a> ·
-  <a href="docs/getting-started.md">Getting started</a> ·
-  <a href="https://wayfarer.ashwinsathian.com/compare/">Compared with others</a> ·
-  <a href="docs/claims.md">Tested claims</a> ·
-  <a href="CHANGELOG.md">Changelog</a>
-</p>
+<div align="center">
 
-<p align="center">
-  <a href="https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/AshwinSathian/wayfarer/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/AshwinSathian/wayfarer?label=release"></a>
-  <a href="https://www.npmjs.com/package/wayfarer-cli"><img alt="wayfarer-cli on npm" src="https://img.shields.io/npm/v/wayfarer-cli?label=wayfarer-cli"></a>
-  <a href="https://www.npmjs.com/package/wayfarer-bridge"><img alt="wayfarer-bridge on npm" src="https://img.shields.io/npm/v/wayfarer-bridge?label=wayfarer-bridge"></a>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-</p>
+[Open Wayfarer](https://wayfarer.ashwinsathian.com/app/) · [Getting started](docs/getting-started.md) · [Compared with others](https://wayfarer.ashwinsathian.com/compare/) · [Tested claims](docs/claims.md) · [Changelog](CHANGELOG.md)
+
+[![CI](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/AshwinSathian/wayfarer?label=release)](https://github.com/AshwinSathian/wayfarer/releases/latest)
+[![wayfarer-cli on npm](https://img.shields.io/npm/v/wayfarer-cli?label=wayfarer-cli)](https://www.npmjs.com/package/wayfarer-cli)
+[![wayfarer-bridge on npm](https://img.shields.io/npm/v/wayfarer-bridge?label=wayfarer-bridge)](https://www.npmjs.com/package/wayfarer-bridge)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/app-dark.jpg">

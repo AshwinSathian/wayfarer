@@ -35,5 +35,16 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2"
-  }
+  },
+  "keywords": [
+    "api",
+    "api-client",
+    "api-testing",
+    "postman",
+    "newman",
+    "collection-runner",
+    "cli",
+    "ci",
+    "wayfarer"
+  ]
 }

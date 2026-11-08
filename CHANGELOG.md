@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
+- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
+- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
+- `SECURITY.md` says which versions get fixes: the latest release of each.
+- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
+
 - Claim C-012 says what holds on the hosted app today: no script but the app's runs, and the Content-Security-Policy blocks any other, also the bot-detection script the host injects. Before, it said the page loaded with no CSP violation at all, which has not been true since that script appeared; its check was skipped on production, so nothing checked the claim. The check that runs every 6 hours is now the claim's own (`only-own-scripts`), and the stricter one stays for when the zone stops injecting.
 
 ## [3.2.3] - 2026-11-07

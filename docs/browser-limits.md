@@ -55,8 +55,7 @@ belong to the connection the bridge itself makes, which it sets:
 `Connection`, `Content-Length`, `Keep-Alive`, `Proxy-Authenticate`,
 `Proxy-Authorization`, `TE`, `Trailer`, `Transfer-Encoding` and `Upgrade`.
 The composer names those when the request's route is the bridge. A `Host` header of your own
-is sent as written (Local Bridge 2.1.0; an older bridge is not sent the
-request, and the app says to update it). Two rows with one name are
+is sent as written. Two rows with one name are
 sent as two headers. When the request names no `Accept-Encoding`, the
 bridge asks for `gzip, deflate, br`, as a browser does, and decodes what
 comes; the composer does not list that one.
@@ -196,9 +195,8 @@ client does. Settings, **Cookies** lists it.
   what such a host set.
 - **Scripts** are not given the jar: `pm.cookies` stays unsupported. A
   script reads a response's `Set-Cookie` headers like its other headers.
-- **Needs the Local Bridge of this version of the app** (2.0.0, protocol
-  2), as every request through the bridge does: with an older one a request
-  fails and says so.
+- **Needs a Local Bridge as recent as the app**, as every request through
+  the bridge does: with an older one a request fails and says so.
 - The jar is not in a workspace backup. Reset all data removes it.
 
 ## Redirects

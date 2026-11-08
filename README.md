@@ -1,19 +1,79 @@
-# Wayfarer
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/tokens/brand/wordmark-dark.svg">
+    <img src="packages/tokens/brand/wordmark.svg" alt="Wayfarer" height="44">
+  </picture>
+</p>
+
+<p align="center">
+  <strong>The API client that opens in a tab.</strong><br>
+  No account, no install, no server of ours: your requests, collections and secrets stay in your browser.
+</p>
+
+<div align="center">
+
+[Open Wayfarer](https://wayfarer.ashwinsathian.com/app/) · [Getting started](docs/getting-started.md) · [Compared with others](https://wayfarer.ashwinsathian.com/compare/) · [Tested claims](docs/claims.md) · [Changelog](CHANGELOG.md)
 
 [![CI](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/AshwinSathian/wayfarer?label=release)](https://github.com/AshwinSathian/wayfarer/releases/latest)
+[![wayfarer-cli on npm](https://img.shields.io/npm/v/wayfarer-cli?label=wayfarer-cli)](https://www.npmjs.com/package/wayfarer-cli)
+[![wayfarer-bridge on npm](https://img.shields.io/npm/v/wayfarer-bridge?label=wayfarer-bridge)](https://www.npmjs.com/package/wayfarer-bridge)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**An API client that runs in your browser and keeps your work on your device.**
+</div>
 
-Wayfarer has no account, no server of its own and no telemetry. Your requests, collections, environments and history live in your browser's IndexedDB. The values you put in the secrets vault are encrypted, and everything else is stored as plain text. Export or back up whenever you want.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/app-dark.jpg">
+  <img src="docs/images/app-light.jpg" alt="Wayfarer: a Postman collection imported into the sidebar, a POST request with its body, and the JSON response with status 201 Created">
+</picture>
 
-**Use it:** https://wayfarer.ashwinsathian.com/ (a release is a tag; the deployed copy may be older), or [host it yourself](docs/self-hosting.md). New to it: [Getting started](docs/getting-started.md). What changed: [CHANGELOG](CHANGELOG.md).
+## Why Wayfarer
 
----
+- **It opens in a tab.** Nothing to install and no account to make. After one visit it loads offline, and it installs as an app.
+- **Nothing leaves but your request.** No telemetry and no server of ours: the only traffic is the request you send, to the host you chose.
+- **Your Postman work comes with you.** Import Postman, Insomnia, OpenAPI, HAR or a cURL command. Postman scripts run in a QuickJS sandbox and give the test results Newman gives.
+- **Secrets stay secret.** The vault encrypts each value (PBKDF2-SHA-256 at 600,000 iterations, AES-GCM-256), and history, exports and shared files hold none of them.
+- **Share without a server.** Send a collection as an encrypted link: the content and its key sit after the `#`, which the browser never sends.
+- **More than REST.** GraphQL with the server's schema, WebSockets, event streams, collection runs with data files, and tabs that survive a reload.
+- **Command line and CI.** `npx wayfarer-cli run collection.json` runs a collection with the app's engine and gives its results.
+- **When the browser says no,** `npx wayfarer-bridge` sends the request from your machine, past CORS, forbidden headers and mixed content.
+- **Every claim is tested.** Each line under [All tested claims](#all-tested-claims) has a test in CI, run in Chromium, Firefox and WebKit where it is about the page.
 
-## What it does
+## Start
 
-Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim has a test that runs in CI, in Chromium, Firefox and WebKit where it is about the page. The list is generated from that ledger (`npm run gen:readme`), so it cannot say more than the tests prove.
+- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/app/). It installs as an app and loads offline after the first visit. The hosted copy is the latest release; `main` may be ahead of it.
+- **From source:** Node 24 (`.nvmrc`), then:
+
+  ```bash
+  git clone https://github.com/AshwinSathian/wayfarer.git && cd wayfarer
+  npm ci
+  npm start          # http://localhost:4200
+  npm run build      # the production build, as CI makes it
+  ```
+
+- **Self-hosted:** a static folder and a set of headers: [Self-hosting](docs/self-hosting.md).
+- **Command line:** `npx wayfarer-cli run collection.json` runs a collection with the app's engine and results: [CLI](docs/cli.md).
+- **Local Bridge:** `npx wayfarer-bridge`, then pair from Settings → Local Bridge: [Local Bridge](packages/bridge/README.md).
+
+## What the browser can't do
+
+A page sends requests through the browser, and the browser decides what goes out. Before you send, the composer shows what it will do to the request. In short:
+
+- **CORS.** A response from another origin reaches the page only if the server allows it. A request that is not "simple" is first asked about with a preflight.
+- **Headers it will not send.** `Cookie`, `Host`, `Origin`, `Connection` and the other forbidden names are dropped. A page cannot read the browser's own cookies either.
+- **Mixed content.** An `http://` address is blocked from an `https://` page.
+- **Hidden response headers.** From another origin, only the CORS-safelisted headers and those the server exposes can be read.
+- **Timings.** Phase timings exist only when the server sends `Timing-Allow-Origin`.
+- **Redirects** are followed without being shown. **TLS** cannot be relaxed, and no proxy can be set.
+
+The optional [Local Bridge](packages/bridge/README.md) sends a request from a process on your machine, where none of this applies. Choose it per request, per collection or for the device, or leave the route on **Auto**. [Browser limits](docs/browser-limits.md) covers each case and what the bridge changes.
+
+## All tested claims
+
+Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated from that ledger (`npm run gen:readme`), so it cannot say more than the tests prove.
+
+<details>
+<summary>94 claims, each with its test</summary>
 
 <!-- features:start -->
 - No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose, and, when its auth is OAuth 2.0, the token request and the sign-in window, sent to the two addresses the user gave for them. <!-- claim:C-001 -->
@@ -112,36 +172,9 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. <!-- claim:C-094 -->
 <!-- features:end -->
 
-Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).
+</details>
 
-## What the browser can't do
-
-A page sends requests through the browser, and the browser decides what goes out. Before you send, the composer shows what it will do to the request. In short:
-
-- **CORS.** A response from another origin reaches the page only if the server allows it. A request that is not "simple" is first asked about with a preflight.
-- **Headers it will not send.** `Cookie`, `Host`, `Origin`, `Connection` and the other forbidden names are dropped. A page cannot read the browser's own cookies either.
-- **Mixed content.** An `http://` address is blocked from an `https://` page.
-- **Hidden response headers.** From another origin, only the CORS-safelisted headers and those the server exposes can be read.
-- **Timings.** Phase timings exist only when the server sends `Timing-Allow-Origin`.
-- **Redirects** are followed without being shown. **TLS** cannot be relaxed, and no proxy can be set.
-
-The optional [Local Bridge](packages/bridge/README.md) sends a request from a process on your machine, where none of this applies. Choose it per request, per collection or for the device, or leave the route on **Auto**. [Browser limits](docs/browser-limits.md) covers each case and what the bridge changes.
-
-## Start
-
-- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/app/). It installs as an app and loads offline after the first visit.
-- **From source:** Node 24 (`.nvmrc`), then:
-
-  ```bash
-  git clone https://github.com/AshwinSathian/wayfarer.git && cd wayfarer
-  npm ci
-  npm start          # http://localhost:4200
-  npm run build      # the production build, as CI makes it
-  ```
-
-- **Self-hosted:** a static folder and a set of headers: [Self-hosting](docs/self-hosting.md).
-- **Command line:** `npx wayfarer-cli run collection.json` runs a collection with the app's engine and results: [CLI](docs/cli.md).
-- **Local Bridge:** `npx wayfarer-bridge`, then pair from Settings → Local Bridge: [Local Bridge](packages/bridge/README.md).
+Also in the app, documented but not ledger claims: collection runs with data files and JSON, JUnit and HAR reports (and an HTML report from the command line), and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).
 
 ## Docs
 
@@ -165,6 +198,14 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Threat model](docs/threat-model.md): each trust boundary, its threats, and the tested claim behind each mitigation
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
+
+### Design records
+
+How the interface was designed, audited and measured.
+
+<details>
+<summary>Research, audits, benchmarks and design decisions</summary>
+
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
 - [Design audit, 2026](docs/design/audit.md): what is wrong with the interface, finding by finding, with screenshots and what became of each
 - [Site audit, November 2026](docs/design/site-audit-2026-11.md): the website read against the app it sells, v3.2.1: what the app does, claim by claim, and every place the site said less or other
@@ -191,6 +232,8 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [AI log](docs/design/ai/log.md): model calls as history entries, filtered, opened and exported as HAR
 - [Team flows](docs/design/teams/README.md): sharing a collection by file and link, a folder in Git, peer to peer and a team server, designed and not built, with the principles each way keeps and the open questions
   - [Share](docs/design/teams/share.md), [Receive](docs/design/teams/receive.md), [See who changed what](docs/design/teams/history.md), [Resolve a conflict](docs/design/teams/conflict.md) and [Review before taking a change](docs/design/teams/review.md): one spec per flow, each with a clickable prototype
+
+</details>
 
 ## Security
 

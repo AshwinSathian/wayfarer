@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
+- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
+- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
+- `SECURITY.md` says which versions get fixes: the latest release of each.
+- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
+
 ### Fixed
 
 - **On a phone, a request that got no response no longer asks you to start the Local Bridge in a terminal.** It says the bridge runs on a computer and that an API which allows requests from any page still answers from the phone. Before, it showed `npx wayfarer-bridge`, a Copy button and a pairing code, none of which a phone can use.

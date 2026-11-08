@@ -7,13 +7,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Changed
+## [3.2.4] - 2026-11-09
 
-- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
-- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
-- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
-- `SECURITY.md` says which versions get fixes: the latest release of each.
-- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
+A first request for someone who has never opened Wayfarer, and fixes found walking the app as
+one: the Timings tab's Content phase, a phone told to start a terminal, and a link to the app
+with no card. The command line 2.1.0 is on npm.
+
+Your data carries over: 3.2.4 opens the same database as 3.2.3, under the same name and version.
+
+### Added
+
+- **Try an example, on the first screen.** Beside Paste a cURL command, it puts a public API's address (JSONPlaceholder, which answers any origin) in the tab, ready to send. It sends nothing itself. Before, a first visit had to bring an address of its own, and one that refused other origins ended in a CORS error.
 
 ### Added (command line)
 
@@ -22,18 +26,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Fixed
 
 - **Timings no longer shows a "Content" phase that is the time since the page loaded.** For a response from another origin without `Timing-Allow-Origin` (most public APIs), the browser withholds every phase time as 0, and the Content phase was read as the response's end minus 0: 1.9 s for a 750 ms request on a fresh page, 593 s ten minutes later. Such a response now shows no phase, as C-023 says, and that claim's test checks Content as well.
-
-### Fixed
-
 - **A link to the app makes a card in a chat or a feed.** `/app/` had a title and nothing else, so a link to it showed bare; it now carries the landing's title, description and picture. Chromium no longer warns that `apple-mobile-web-app-capable` is deprecated.
-
-### Added
-
-- **Try an example, on the first screen.** Beside Paste a cURL command, it puts a public API's address (JSONPlaceholder, which answers any origin) in the tab, ready to send. It sends nothing itself. Before, a first visit had to bring an address of its own, and one that refused other origins ended in a CORS error.
-
-### Fixed
-
 - **On a phone, a request that got no response no longer asks you to start the Local Bridge in a terminal.** It says the bridge runs on a computer and that an API which allows requests from any page still answers from the phone. Before, it showed `npx wayfarer-bridge`, a Copy button and a pairing code, none of which a phone can use.
+
+### Changed
+
+- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
+- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
+- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
+- `SECURITY.md` says which versions get fixes: the latest release of each.
+- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
 
 ## [3.2.3] - 2026-11-07
 

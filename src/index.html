@@ -8,12 +8,25 @@
     <!-- The canvas (--canvas-app) of each theme; theme.js and Theme set both to the theme drawn (D4.13, U-088). -->
     <meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
       content="Open Wayfarer, an API client that runs in your browser. No install and no account; your requests and collections stay on this device."
     />
+    <!-- The card a link to the app makes in a chat or a feed: the landing's (packages/site/social-images.mjs). A
+         crawler needs absolute addresses; a self-hosted copy may point these at its own host. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wayfarer" />
+    <meta property="og:title" content="Wayfarer: the API client that opens in a tab" />
+    <meta
+      property="og:description"
+      content="An API client that runs in your browser. No install and no account; your requests and collections stay on this device."
+    />
+    <meta property="og:url" content="https://wayfarer.ashwinsathian.com/app/" />
+    <meta property="og:image" content="https://wayfarer.ashwinsathian.com/og/index.png" />
+    <meta name="twitter:card" content="summary_large_image" />
     <!--
       Content-Security-Policy, generated from security/csp.json by
       `npm run gen:csp` (do not edit by hand; `npm run check:csp` fails CI on

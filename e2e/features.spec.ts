@@ -150,7 +150,7 @@ test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow
   await timingsTab.click();
   const timings = page.getByRole("tabpanel", { name: "Timings" });
   await expect(timings.getByText("CORS-limited timings")).toBeVisible();
-  for (const phase of ["DNS", "Connect", "TLS", "TTFB"]) {
+  for (const phase of ["DNS", "Connect", "TLS", "TTFB", "Content"]) {
     await expect(timings.getByText(phase, { exact: true })).toHaveCount(0);
   }
 });

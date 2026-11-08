@@ -13,8 +13,10 @@
 ## Test plan
 
 - [ ] `npm run build` succeeds
-- [ ] `npm run test` passes locally
-- [ ] `npm run lint` passes locally
+- [ ] `npm run test:ci` passes locally
+- [ ] `npm run lint` and `npm run format:check` pass locally
+- [ ] The e2e specs this change touches pass locally (in all three engines for CSS, layout, a template, a transport or the service worker)
+- [ ] An entry under `## [Unreleased]` in `CHANGELOG.md`
 - [ ] Manually verified the change in the browser (describe steps below)
 - [ ] Added/updated tests covering this change
 

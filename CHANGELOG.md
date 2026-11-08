@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
+- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
+- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
+- `SECURITY.md` says which versions get fixes: the latest release of each.
+- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
+
 ### Fixed
 
 - **Timings no longer shows a "Content" phase that is the time since the page loaded.** For a response from another origin without `Timing-Allow-Origin` (most public APIs), the browser withholds every phase time as 0, and the Content phase was read as the response's end minus 0: 1.9 s for a 750 ms request on a fresh page, 593 s ten minutes later. Such a response now shows no phase, as C-023 says, and that claim's test checks Content as well.

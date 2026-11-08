@@ -35,24 +35,28 @@ test.describe("the first run's example", () => {
   test.use({ serviceWorkers: "block" });
 
   test("Try an example puts an address in the tab and sends nothing until Send", async ({ page }) => {
+    // The example is a public API; the test answers it here, as e2e reaches nothing outside this machine (P1.2).
     const asked: string[] = [];
-    await page.route("https://jsonplaceholder.typicode.com/**", (route) => {
-      asked.push(route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        headers: { "access-control-allow-origin": "*" },
-        body: '{"userId":1,"id":1,"title":"delectus aut autem","completed":false}',
-      });
-    });
+    await page.route(
+      (url) => url.protocol === "https:",
+      (route) => {
+        asked.push(route.request().url());
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          headers: { "access-control-allow-origin": "*" },
+          body: '{"userId":1,"id":1,"title":"an example","completed":false}',
+        });
+      },
+    );
     await page.goto("/app/");
     await page.locator(".response-pane").getByRole("button", { name: "Try an example" }).click();
     const address = page.locator("input.address-url");
-    await expect(address).toHaveValue("https://jsonplaceholder.typicode.com/todos/1");
+    await expect(address).toHaveValue(/^https:\/\/[^/{}]+\/todos\/1$/);
     await expect(address).toBeFocused();
     expect(asked).toEqual([]);
     await send(page);
     await expect(page.locator(".status-badge")).toHaveText("200");
-    expect(asked).toEqual(["https://jsonplaceholder.typicode.com/todos/1"]);
+    expect(asked).toEqual([await address.inputValue()]);
   });
 });

@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A link to the app makes a card in a chat or a feed.** `/app/` had a title and nothing else, so a link to it showed bare; it now carries the landing's title, description and picture. Chromium no longer warns that `apple-mobile-web-app-capable` is deprecated.
+
 ## [3.2.3] - 2026-11-07
 
 Four more claims in the ledger, for WebSocket, event streams, GraphQL's

@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- The README opens with the logo, a picture of the app and a short "Why Wayfarer"; the 94 tested claims and the design records fold under it. Before, the first screen was the claims list, with no picture.
+- The command line's docs list its HTML report (`--reporter html`) beside JSON and JUnit.
+- The Local Bridge's docs no longer name bridge 2.x versions; the bridge is 3.x.
+- `SECURITY.md` says which versions get fixes: the latest release of each.
+- `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
+
 ### Added
 
 - **Try an example, on the first screen.** Beside Paste a cURL command, it puts a public API's address (JSONPlaceholder, which answers any origin) in the tab, ready to send. It sends nothing itself. Before, a first visit had to bring an address of its own, and one that refused other origins ended in a CORS error.

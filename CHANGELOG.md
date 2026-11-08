@@ -15,6 +15,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - `SECURITY.md` says which versions get fixes: the latest release of each.
 - `wayfarer-cli` and `wayfarer-bridge` carry npm keywords and ship the licence file.
 
+### Added (command line)
+
+- **`wayfarer-cli` 2.1.0 on npm.** The command line's changes since 2.0.2 reach `npx wayfarer-cli`: `--reporter html` writes `wayfarer-run.html`, the run as the app's run view shows it; the summary says what the app's run view says ("The run is complete.", an error many requests share written once); and the engine is the app's of 3.2, scripts and variables included. Before, the README documented `--reporter html` while npm had 2.0.2, which refused it.
+
+### Fixed
+
+- **Timings no longer shows a "Content" phase that is the time since the page loaded.** For a response from another origin without `Timing-Allow-Origin` (most public APIs), the browser withholds every phase time as 0, and the Content phase was read as the response's end minus 0: 1.9 s for a 750 ms request on a fresh page, 593 s ten minutes later. Such a response now shows no phase, as C-023 says, and that claim's test checks Content as well.
+
 ### Fixed
 
 - **A link to the app makes a card in a chat or a feed.** `/app/` had a title and nothing else, so a link to it showed bare; it now carries the landing's title, description and picture. Chromium no longer warns that `apple-mobile-web-app-capable` is deprecated.

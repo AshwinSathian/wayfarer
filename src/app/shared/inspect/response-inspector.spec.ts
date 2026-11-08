@@ -115,6 +115,41 @@ describe("ResponseInspector", () => {
     expect(inspection?.limitedByCors).toBe(false);
   });
 
+  it("gives no phase of a cross-origin entry without Timing-Allow-Origin, whose phase times are 0", () => {
+    // Resource Timing zeroes every phase time of such an entry but keeps startTime and responseEnd: the content
+    // phase was responseEnd - 0, the time since the page loaded (593 s, ten minutes after a load).
+    const url = "https://example.com/no-tao";
+    entries.push({
+      name: url,
+      entryType: "resource",
+      startTime: 600_000,
+      fetchStart: 600_000,
+      redirectStart: 0,
+      redirectEnd: 0,
+      domainLookupStart: 0,
+      domainLookupEnd: 0,
+      connectStart: 0,
+      secureConnectionStart: 0,
+      connectEnd: 0,
+      requestStart: 0,
+      responseStart: 0,
+      responseEnd: 600_800,
+      duration: 800,
+      initiatorType: "fetch",
+      transferSize: 0,
+      encodedBodySize: 0,
+      decodedBodySize: 0,
+      toJSON: () => ({}),
+    } as PerformanceResourceTiming);
+
+    nowValue = 599_990;
+    service.markRequest("req-tao", url);
+    nowValue = 600_810;
+    const inspection = service.markResponse("req-tao", url);
+    expect(inspection?.phases).toBeUndefined();
+    expect(inspection?.limitedByCors).toBe(true);
+  });
+
   it("ignores a stale/mismatched resource timing entry instead of reporting a wrong breakdown", () => {
     const url = "https://example.com/repeat";
     // A much older entry for the same URL — e.g. a prior request to the same

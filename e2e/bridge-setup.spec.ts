@@ -86,3 +86,19 @@ test("with a bridge paired, a failed send offers to send through it and says not
   await expect(record.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
   await expect(record.locator(".bridge-command")).toHaveCount(0);
 });
+
+test.describe("on a phone", () => {
+  // A touch screen whose pointer does not hover: (hover: none) and (pointer: coarse). Firefox has no isMobile.
+  test.skip(({ browserName }) => browserName === "firefox", "Firefox does not emulate a mobile device");
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("a failed send says the bridge runs on a computer, and offers no command or pairing code", async ({ page }) => {
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill(`${ECHO}/cors/none?id=${randomUUID()}`);
+    await send(page);
+    const record = page.getByRole("region", { name: "Exchange record" });
+    await expect(record).toContainText("The Local Bridge runs on a computer: open Wayfarer on one");
+    await expect(record.locator(".bridge-command")).toHaveCount(0);
+    await expect(record.getByLabel("Pairing code", { exact: true })).toHaveCount(0);
+  });
+});

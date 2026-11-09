@@ -11,6 +11,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 
+- **History holds less.** The list keeps only what it shows of each entry (the method, the address, the status, the time); an entry's bodies are read when you open or export it. Before, every send read the whole history again, bodies included, into every open Wayfarer tab. A row's details card is no longer kept in the page while it is hidden.
+- **The service worker downloads less on install.** It no longer stores 760 kB of stylesheets the builder writes and nothing loads.
+- **Typing in one tab no longer writes out every other tab again.** A tab that did not change is not serialised at each key; with a 3 MB body open in another tab that was about 10 ms a key.
+- **A JSON path is read against the body parsed once**, not parsed again at each key typed.
+- **Sizes read the same everywhere**: Settings › Storage and the AI preview write them as the response viewer does ("3.60 MB").
+
+### Fixed
+
+- **An editor that could not load says so.** In a tab left open across a new version, or offline, a Body or Scripts editor stayed on "Loading editor…" for good; it now says the editor could not load and to reload. A failed load is tried again by the next editor, and a tab that comes back into view looks for a new version, so "Update available" shows.
+- **On a connection that is up but answers nothing**, the app's stored copy opens after 3 seconds instead of waiting until the browser gives up.
+- **History could miss the request you had just sent** when another tab wrote at the same moment: a refresh asked for while one was reading was dropped.
+- **A large response that the formatter could not finish in time** is shown as it came, and the stuck formatter is replaced. Before, the same work ran again on the page and froze it.
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

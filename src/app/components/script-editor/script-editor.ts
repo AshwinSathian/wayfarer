@@ -10,6 +10,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
 } from "@angular/core";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
@@ -24,6 +25,7 @@ import {
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
+import { recordDiagnostic } from "../../services/diagnostics";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
 const noop = () => {};
@@ -41,7 +43,15 @@ const noop = () => {};
          editor permanently stuck on the placeholder below. -->
     <div [style.height.px]="height() ?? 200">
       @defer (on viewport; on timer(400ms)) {
-        <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
+        @if (loadFailed()) {
+          <div
+            class="flex h-full w-full items-center justify-center rounded-sm bg-canvas-elevated p-4 text-center type-callout text-label-secondary"
+          >
+            The editor could not load. Reload the page to get the latest version of Wayfarer.
+          </div>
+        } @else {
+          <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
+        }
       } @placeholder {
         <div
           class="flex h-full w-full items-center justify-center rounded-sm bg-canvas-elevated type-callout text-label-tertiary"
@@ -66,6 +76,7 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
   readonly valueChange = output<string>();
 
   readonly editorHost = viewChild<ElementRef<HTMLDivElement>>("editorHost");
+  protected readonly loadFailed = signal(false);
 
   private editorInstance: MonacoTypes.editor.IStandaloneCodeEditor | null = null;
   private model: MonacoTypes.editor.ITextModel | null = null;
@@ -91,7 +102,11 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
     effect(() => {
       const host = this.editorHost();
       if (host) {
-        void this.initializeEditor();
+        // A chunk the server no longer has (a deploy since this tab opened), or no network: said, not an empty box.
+        this.initializeEditor().catch((error: unknown) => {
+          recordDiagnostic(error, "monaco: the editor did not load");
+          this.loadFailed.set(true);
+        });
       }
     });
   }

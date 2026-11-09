@@ -2,6 +2,32 @@ import { Injectable, inject } from "@angular/core";
 import { PastRequest } from "@wayfarer/core";
 import { HistoryRecord, IdbCore } from "./idb-core";
 
+/**
+ * What History lists of an entry, and the palette and the count read: no template, no headers, no bodies, no record
+ * but its host. Kept for the whole session in every tab, so it is small; a row that is opened or exported reads its
+ * entry by id (`get`).
+ */
+export type HistorySummary = Pick<PastRequest, "id" | "createdAt" | "durationMs" | "error" | "model" | "sentFrom"> & {
+  sent: Pick<PastRequest["sent"], "method" | "url">;
+  response?: Pick<NonNullable<PastRequest["response"]>, "status">;
+  record?: { host: string };
+};
+
+function summaryOf(entry: PastRequest): HistorySummary {
+  const { id, createdAt, durationMs, error, model, sentFrom, sent, response, record } = entry;
+  return {
+    id,
+    createdAt,
+    durationMs,
+    error,
+    model,
+    sentFrom,
+    sent: { method: sent.method, url: sent.url },
+    ...(response && { response: { status: response.status } }),
+    ...(record && { record: { host: record.host } }),
+  };
+}
+
 @Injectable({ providedIn: "root" })
 export class HistoryRepository {
   private readonly core = inject(IdbCore);
@@ -64,31 +90,31 @@ export class HistoryRepository {
     }
   }
 
-  /** The newest entries first. */
-  async getLatest(limit = Number.POSITIVE_INFINITY): Promise<PastRequest[]> {
+  /** The newest entries first, as History lists them. */
+  async getLatest(limit = Number.POSITIVE_INFINITY): Promise<HistorySummary[]> {
     try {
       if (this.core.useMemoryFallback) {
-        return this.memoryStore.slice(0, limit);
+        return this.memoryStore.slice(0, limit).map(summaryOf);
       }
 
       const db = await this.core.getDatabase();
       if (!db) {
-        return this.memoryStore.slice(0, limit);
+        return this.memoryStore.slice(0, limit).map(summaryOf);
       }
 
       const tx = db.transaction("history", "readonly");
       const index = tx.store.index("by-createdAt");
-      const results: PastRequest[] = [];
+      const results: HistorySummary[] = [];
       let cursor = await index.openCursor(null, "prev");
       while (cursor && results.length < limit) {
-        results.push(cursor.value);
+        results.push(summaryOf(cursor.value));
         cursor = await cursor.continue();
       }
       await tx.done;
       return results;
     } catch (error) {
       this.core.logError("getLatest operation failed.", error);
-      return this.memoryStore.slice(0, limit);
+      return this.memoryStore.slice(0, limit).map(summaryOf);
     }
   }
 

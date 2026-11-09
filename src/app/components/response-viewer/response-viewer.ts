@@ -53,7 +53,6 @@ import { ResponseExportContext, buildExportEntry } from "../../shared/inspect/re
 import {
   TIMING_PHASE_ORDER,
   TIMING_SUMMARY_TOOLTIPS,
-  TimingBar,
   WATERFALL_TOOLTIP,
   formatBytes,
   getFallbackBars,
@@ -320,10 +319,12 @@ export class ResponseViewer {
     const text = this.searchQuery().trim();
     return /^[$.[]|\[(\d+|\*)\]/.test(text) ? text.replace(/^\$/, "") : "";
   });
+  /** The JSON body, parsed once per response: a path typed key by key reads it again, not the text. */
+  private readonly parsedBody = computed(() => (this.view() === "json" ? parseJson(this.bodyText()) : null));
   /** What the path finds, formatted; "" when it finds nothing; null when there is no path. */
   readonly filteredJson = computed(() => {
     const path = this.jsonFilter();
-    const parsed = path ? parseJson(this.bodyText()) : null;
+    const parsed = path ? this.parsedBody() : null;
     if (!parsed?.ok) {
       return null;
     }
@@ -579,12 +580,12 @@ export class ResponseViewer {
       }
       this.assignFormatted(kind, source, formatted);
     } catch (error) {
-      this.diagnostics.record(error, "response viewer: worker formatting failed, formatting inline");
+      // Not JSON after all, or too much for the worker in time: shown as it came, not parsed on the main thread.
+      this.diagnostics.record(error, "response viewer: worker formatting failed, shown as received");
       if (!this.isCurrentToken(token, kind)) {
         return;
       }
-      const fallback = this.prettyPrintInline(source);
-      this.assignFormatted(kind, source, fallback);
+      this.assignFormatted(kind, source, source);
     }
   }
 
@@ -670,14 +671,14 @@ export class ResponseViewer {
     this.searchToken++;
   }
 
-  get inspectionValue(): ResponseInspection | null {
-    return this.inspection()?.() ?? null;
-  }
+  protected readonly inspectionValue = computed((): ResponseInspection | null => this.inspection()?.() ?? null);
+  readonly timingBars = computed(() => getTimingBars(this.inspectionValue()));
+  readonly fallbackBars = computed(() => getFallbackBars(this.inspectionValue()));
 
   private buildExportEntry() {
     return buildExportEntry({
       context: this.exportContext(),
-      inspection: this.inspectionValue,
+      inspection: this.inspectionValue(),
       statusCode: this.responseStatusCode(),
       statusText: this.responseStatusText(),
       responseHeaders: this.responseHeaders(),
@@ -687,21 +688,6 @@ export class ResponseViewer {
     });
   }
 
-  getTimingBars(): TimingBar[] {
-    return getTimingBars(this.inspectionValue);
-  }
-
-  getFallbackBars(): TimingBar[] {
-    return getFallbackBars(this.inspectionValue);
-  }
-
-  hasGranularTimings(): boolean {
-    return this.getTimingBars().length > 0;
-  }
-
   protected readonly formatDuration = formatDuration;
-
-  formatBytes(value: number | undefined): string {
-    return formatBytes(value);
-  }
+  protected readonly formatBytes = formatBytes;
 }

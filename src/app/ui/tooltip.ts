@@ -104,7 +104,6 @@ export class UiTooltip {
     // After the render, so the host's own aria-label binding is there to compare with.
     afterRenderEffect(() => {
       const content = this.uiTooltip();
-      if (!tip.isConnected) document.body.append(tip);
       if (!content) this.hide();
       tip.classList.toggle("ui-tooltip-card", content instanceof TemplateRef);
       if (content instanceof TemplateRef) return;
@@ -193,7 +192,12 @@ export class UiTooltip {
     }
   }
 
+  /**
+   * The popover is in the page while it describes its host, and from `show()`: a card or text that repeats the host's
+   * name is not until then, so a list of 500 rows does not keep 1,000 of them in the body.
+   */
   private describe(on: boolean): void {
+    if (on && !this.popover.isConnected) document.body.append(this.popover);
     if (on) this.host.setAttribute("aria-describedby", this.popover.id);
     else this.host.removeAttribute("aria-describedby");
   }

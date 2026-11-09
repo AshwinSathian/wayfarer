@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, effect, inject, signal, untracked } from "@angular/core";
 import { AppShell } from "./components/app-shell/app-shell";
-import { HistoryRepository } from "./data/history-repository";
+import { HistoryRepository, type HistorySummary } from "./data/history-repository";
 import { IdbCore } from "./data/idb-core";
-import { PastRequest } from "@wayfarer/core";
 import { RequestSettings } from "./services/request-settings";
 import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
@@ -28,8 +27,10 @@ export class App implements OnInit {
   private readonly modelCalls = inject(ModelCalls);
   private readonly imports = inject(ImportPipeline);
 
-  readonly pastRequests = signal<PastRequest[]>([]);
+  readonly pastRequests = signal<HistorySummary[]>([]);
   readonly historyLoading = signal(false);
+  /** A refresh was asked for while one was reading: it reads again, or the entry just written is missing. */
+  private historyStale = false;
   readonly drawerVisible = signal(false);
   /** Below 768 px: the composer's sections stack (one open at a time). */
   readonly isMobile = signal(false);
@@ -78,12 +79,16 @@ export class App implements OnInit {
 
   async refreshPastRequests(): Promise<void> {
     if (this.historyLoading()) {
+      this.historyStale = true;
       return;
     }
 
     this.historyLoading.set(true);
     try {
-      this.pastRequests.set(await this.history.getLatest(this.requestSettings.historyCap()));
+      do {
+        this.historyStale = false;
+        this.pastRequests.set(await this.history.getLatest(this.requestSettings.historyCap()));
+      } while (this.historyStale);
     } finally {
       this.historyLoading.set(false);
     }

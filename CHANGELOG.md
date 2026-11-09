@@ -11,6 +11,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 
+### Fixed
+
+- **A reference to a deleted vault secret is refused in every encoding.** Written with spaces (`{{ $secret.id }}`) in a query API key or an OAuth client secret sent in the header, or in an address that also held a stray `%`, the reference went out encoded. Now the send is stopped, as it is for every other form.
+- **Get token does not open the sign-in window with a vault secret's reference in it.** A client ID, scope or authorization address that named a secret the vault no longer has went to the identity provider in the window's address. Now the sign-in is refused and says why.
+- **Copy as HAR keeps every response header.** A repeated header (each `Set-Cookie` through the Local Bridge) was cut to its last value, and one named `__proto__` was left out.
+- **A variable whose value has a secret's reference inside other text stays a field.** `Bearer {{$secret.id}}` was shown as "Secret stored" and could no longer be edited. An export in plain text now also fills in every secret a value names, not only the first.
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

@@ -1,6 +1,8 @@
 import { newId } from "../id";
 import type { AuthConfig } from "../model/request";
 import type { ResolvedRequest } from "../transport/transport";
+import { toBase64Url } from "../vault/vault-crypto";
+import { basicCredentials } from "./request-auth";
 
 export type OAuth2Auth = Extract<AuthConfig, { type: "oauth2" }>;
 
@@ -35,17 +37,11 @@ export function oauthTokenKey(auth: OAuth2Auth): string {
   ]);
 }
 
-const base64url = (bytes: Uint8Array): string =>
-  btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
 /** A PKCE pair (RFC 7636, S256): 244 random bits as the verifier, and its SHA-256 as the challenge. */
 export async function pkcePair(): Promise<{ verifier: string; challenge: string }> {
   const verifier = `${newId()}${newId()}`;
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
-  return { verifier, challenge: base64url(new Uint8Array(digest)) };
+  return { verifier, challenge: toBase64Url(new Uint8Array(digest)) };
 }
 
 /** The address the popup opens: the identity provider's, with what the code grant asks for. */
@@ -99,8 +95,8 @@ export function tokenRequest(auth: OAuth2Auth, exchange: OAuthExchange): Resolve
   ];
   if (auth.clientAuth === "header" && auth.clientSecret) {
     // RFC 6749, 2.3.1: each is form-encoded before the two are joined.
-    const pair = `${new URLSearchParams({ k: auth.clientId }).toString().slice(2)}:${new URLSearchParams({ k: auth.clientSecret }).toString().slice(2)}`;
-    headers.push(["Authorization", `Basic ${btoa(String.fromCharCode(...new TextEncoder().encode(pair)))}`]);
+    const formEncoded = (text: string) => new URLSearchParams({ k: text }).toString().slice(2);
+    headers.push(["Authorization", basicCredentials(formEncoded(auth.clientId), formEncoded(auth.clientSecret))]);
   } else {
     if (auth.clientId) form.push(["client_id", auth.clientId]);
     if (auth.clientSecret) form.push(["client_secret", auth.clientSecret]);

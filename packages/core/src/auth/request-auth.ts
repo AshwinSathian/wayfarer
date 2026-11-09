@@ -12,15 +12,17 @@ export function buildAuthHeaders(auth: AuthConfig): Record<string, string> {
     return { Authorization: `Bearer ${auth.token}` };
   }
   if (auth.type === "basic" && auth.username) {
-    // UTF-8 bytes (RFC 7617): btoa alone throws on anything outside Latin-1.
-    const bytes = new TextEncoder().encode(`${auth.username}:${auth.password}`);
-    const encoded = btoa(String.fromCharCode(...bytes));
-    return { Authorization: `Basic ${encoded}` };
+    return { Authorization: basicCredentials(auth.username, auth.password) };
   }
   if (auth.type === "apikey" && auth.key && auth.in === "header") {
     return Object.fromEntries([[auth.key, auth.value]]);
   }
   return {};
+}
+
+/** An `Authorization: Basic` value, of the pair's UTF-8 bytes (RFC 7617): btoa alone throws on anything outside Latin-1. */
+export function basicCredentials(user: string, password: string): string {
+  return `Basic ${btoa(String.fromCharCode(...new TextEncoder().encode(`${user}:${password}`)))}`;
 }
 
 export function buildAuthQueryParam(auth: AuthConfig): { key: string; value: string } | null {

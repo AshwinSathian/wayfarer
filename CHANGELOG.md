@@ -9,18 +9,78 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
+- **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
+- **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
+- **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
+- **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
+- **A request with an OAuth 2.0 token is asked about when its pre-request script moves it to another host,** as one with a vault secret is. Before, the token went to the new host with no question, though it was masked from the script and kept to its host on a redirect.
+- **An address that is not one is refused by the command line too.** An empty or malformed address (`not a url`) is refused after the pre-request scripts, with nothing sent, in the app and in the CLI alike. Before, the CLI handed it to the network and reported a network failure.
+- **History holds less.** The list keeps only what it shows of each entry (the method, the address, the status, the time); an entry's bodies are read when you open or export it. Before, every send read the whole history again, bodies included, into every open Wayfarer tab. A row's details card is no longer kept in the page while it is hidden.
+- **The service worker downloads less on install.** It no longer stores 760 kB of stylesheets the builder writes and nothing loads.
+- **Typing in one tab no longer writes out every other tab again.** A tab that did not change is not serialised at each key; with a 3 MB body open in another tab that was about 10 ms a key.
+- **A JSON path is read against the body parsed once**, not parsed again at each key typed.
+- **Sizes read the same everywhere**: Settings › Storage and the AI preview write them as the response viewer does ("3.60 MB").
+- **The roadmap is one page, at /roadmap/.** It was also a doc at /docs/roadmap/, with the same text, and both were in the sitemap.
 - **The deploy needs browser tests that passed in all three engines.** Before, any green E2E run of the commit let it ship, also one run in Chromium alone, and the claims page then named that run as the one the claims passed in. The deployment guide now describes how production really ships (by hand, from CI's tested files) and the gate its steps check.
 - **The claims check no longer counts a skipped test.** A claim whose only test was `.skip`, `.fixme` or `.todo` passed the check, and the README listed it as tested.
 - **The production monitor fails when the site has no `/version.json`.** Before, it guessed v2.6.0 or v2.5.0 and ran that old release's tests against today's site.
 - **The release tarball's sitemap has each page's last-changed day again.** It was built from a shallow clone, which has no dates, and the release now fails if they are missing.
 - CI now fails on any `npm audit` advisory, and the Lighthouse job stops after a minute when its server does not answer, where it waited until the six-hour job limit.
 - `@wayfarer/core` exports only what the app and the CLI use, and knip reports an export of it that nothing imports.
-- **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
-- **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
-- **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
-- **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
-- **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+
+### Fixed
+
+- **Auto no longer sends a request again after its response broke off.** With the route Auto and a bridge paired, a response whose body broke after its headers (a dropped connection, an event stream the server cut) counted as no answer, and a GET, or a POST that needed a preflight, went out again through the bridge without a question: the server got it twice. Such a failure now stands, and the request is sent once.
+- **A reference to a deleted vault secret is refused in every encoding.** Written with spaces (`{{ $secret.id }}`) in a query API key or an OAuth client secret sent in the header, or in an address that also held a stray `%`, the reference went out encoded. Now the send is stopped, as it is for every other form.
+- **Get token does not open the sign-in window with a vault secret's reference in it.** A client ID, scope or authorization address that named a secret the vault no longer has went to the identity provider in the window's address. Now the sign-in is refused and says why.
+- **Copy as HAR keeps every response header.** A repeated header (each `Set-Cookie` through the Local Bridge) was cut to its last value, and one named `__proto__` was left out.
+- **A variable whose value has a secret's reference inside other text stays a field.** `Bearer {{$secret.id}}` was shown as "Secret stored" and could no longer be edited. An export in plain text now also fills in every secret a value names, not only the first.
+- **Stop during a pre-request script stops the send there.** Before, the later scripts still ran and stored what they set, and the vault's unlock or the "different host" question could open for a request you had stopped.
+- **A script reads a response's body as the server sent it.** `pm.response.text()`, `responseBody` and a `pm.sendRequest` answer gave JSON parsed and written out again: a number past 2^53 came back rounded, and spacing and escapes changed.
+- **`pm.sendRequest` follows a redirect through the Local Bridge,** as it does from the page and in Postman. Before, the script got the 3xx.
+- **A request's time is the attempt that answered.** Through the Local Bridge after a failed send from the page, the time you took to answer "Send through the Local Bridge?" or to unlock the vault was counted, in the response, in history, in `pm.response.responseTime` and in a response-time test.
+- **A script that throws `null`, a number or a boolean says so.** `throw null` was reported as the 64 MB memory limit, and `throw 404` as "Script failed."
+- **Through the Local Bridge, a request with no timeout waits up to 10 minutes.** Before, the bridge's own default cut it off after 30 s, and a timeout over 10 minutes made every bridged request fail with a 400 before anything was sent. Settings now says the bridge waits 10 minutes at most.
+- **A very long request timeout is that long.** A timeout over about 24.8 days (2^31 − 1 ms) made every request time out at once, in the app and on the command line.
+- **The Local Bridge answers a request body over 25 MB with "request body too large".** Before, it reset the connection, and the app reported the bridge as unreachable.
+- **The Local Bridge sends every value of a header written twice in different cases** (`X-A` and `x-a`, from a script's `pm.sendRequest`). Before, only the last value went out; sent directly, both did.
+- **`wayfarer-cli` reads an environments file with several environments**, such as the app's Export environments: name one with the new `--environment-name`. Before, such a file could not be used, and the error named `--environment`, which takes the file.
+- **`wayfarer-cli` says that `--timeout` is at most 300000 ms**, Node's own limit on waiting for a response, and refuses a longer one. Before, the help said "no limit", and Node gave up after 5 minutes anyway.
+- **`wayfarer-cli` exits 1 when a report cannot be written after the run**, with one line naming `--out`. Before, it printed a stack trace and exited 2, "nothing was run", although every request had been sent.
+- **Storage keeps working after the browser drops its connection.** When the browser closed its connection to the database (Safari, after a tab long in the background, site data cleared while the app was open), every save after that failed until a reload, and nothing said so. The app now opens the database again.
+- **An import that cannot store everything says so.** When a write failed part way (storage full), the report stayed open as if nothing had happened, and the collections already stored had no Undo. It now says how many were stored and offers the Undo of those.
+- **An import's Undo is all or nothing.** It deleted the imported collections and put back the ones they replaced one step at a time, so a failure in between could leave neither; and an Undo that failed went away without a word. It is now one step, and an Undo that fails stays to be tried again.
+- **The collections list no longer mixes up two collections when another tab writes at the same moment.** A re-read could put one collection's requests under the next one, or bring back a collection another tab had just deleted.
+- **A cookie stored through the Local Bridge is no longer lost when another tab writes cookies at the same moment.**
+- **Pasting a cURL command with `--json`** gives a POST with that body and the JSON type. Before, the JSON was read as the address and the body was lost. The values of `--url-query`, `--proxy-header`, `--socks5` and a few other options are no longer read as the address either.
+- **A cURL command whose `-d` data is not form pairs** (`-d '{"a":1}'` with no type) is imported as the text it was. Before, it became form fields, and the app sent it encoded again.
+- **Copy as cURL** adds `--globoff` when the address holds `[` `]` or `{` `}`: curl read `filter[name]=x` as a range and refused the command, or sent several requests for `{a,b}`. A header with an empty value is written `-H 'Name;'`: `Name: ` told curl to leave the header out.
+- **Python code** joins the values of headers that share a name. Before, the dict kept only the last.
+- **A HAR file** gives `send`, `wait`, `receive` and the time as 0 when they are not known, as HAR 1.2 requires. Before they were -1, which strict readers refuse.
+- **An import of a YAML file whose alias contains itself, or of a file nested very deeply,** is refused with the import report's message. Before, the import stopped with an error.
+- **Large collections**: the sidebar, a run, an export and an import read each folder's contents in one pass. A collection of thousands of folders, or an Insomnia export of tens of thousands of requests, took seconds.
+- **Opening a saved request while a send or a WebSocket is under way opens it in a tab of its own.** Before, it replaced the busy tab, and the answer then showed, and was kept in history, under the request opened after it.
+- **A pasted cURL command goes into the tab it was pasted in.** If another tab was opened while the command was being read, that tab's request was replaced instead.
+- **Send anyway and Send through the Local Bridge add the request to History at once**, and Send anyway shows the response on a phone. Before, History showed the send only after the next one or a reload.
+- **Get token uses the variables of the tab it was asked in**, also when another tab is opened while the vault is read.
+- **A collection run sends TRACE or CONNECT through the Local Bridge when that request's route is the bridge.** Before, the run looked at the open tab's route and refused it.
+- **Duplicate tab on the Environments tab or a settings tab goes to that tab**, and the tab menu no longer offers it there. Before, it made a second one.
+- **A tab whose scripts wait for a review keeps its name when another browser tab writes.** Before, each write elsewhere read it back again as "This tab, as it was stored".
+- **An editor that could not load says so.** In a tab left open across a new version, or offline, a Body or Scripts editor stayed on "Loading editor…" for good; it now says the editor could not load and to reload. A failed load is tried again by the next editor, and a tab that comes back into view looks for a new version, so "Update available" shows.
+- **On a connection that is up but answers nothing**, the app's stored copy opens after 3 seconds instead of waiting until the browser gives up.
+- **History could miss the request you had just sent** when another tab wrote at the same moment: a refresh asked for while one was reading was dropped.
+- **A large response that the formatter could not finish in time** is shown as it came, and the stuck formatter is replaced. Before, the same work ran again on the page and froze it.
+- **The collections tree shows the row the keys are on.** Arrowing through the tree drew nothing on the focused row, so you could not tell which request Enter, F2 or Delete would act on. The row now takes the hover fill (in forced colours, a dashed bar at its start).
+- **A key a menu does not use reaches the browser.** With a menu open, F5, a zoom or Find did nothing: the menu prevented every key but Tab.
+- **A file field is named for what it chooses.** Its button said only "Choose a file…", the same in every row of a form; the field is now a group named by its label ("File for avatar").
+- **Two tests of one name are two rows.** A script that ran `pm.test` under one name more than once gave the results list duplicate keys, and the developer console a warning (NG0955).
+- **The front page no longer fetches the other theme's recording posters.** Only the shown theme's four posters are fetched, and the other theme's once you switch to it; before, all eight were.
+- **The site's stylesheets and fonts are kept by your browser.** A return visit asked the server again for each of them before drawing the page.
+- **The site's menu on a phone closes on Escape and on a tap outside it.** It stayed open over the page until Menu was pressed again.
+- **The site's header marks one link as where you are.** On the Trust center page both Docs and Trust said they were the current page, and on any doc Docs did.
+- **The claims page says when it could not load the last CI run.** A failed request was reported as a site that had not been deployed from CI.
 
 ## [3.3.1] - 2026-11-09
 

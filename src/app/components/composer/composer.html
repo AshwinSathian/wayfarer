@@ -62,7 +62,9 @@
       <app-icon name="error" class="icon-xs" />
       <p aria-hidden="true">{{ store.endpointError() }}</p>
       @if (store.unresolvedBlocked().length) {
-      <button uiButton class="btn-sm" type="button" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
+      <button uiButton class="btn-sm" type="button" (click)="sendRequest({ allowUnresolved: true })"
+        >Send anyway</button
+      >
       }
     </div>
     } @if (store.pasteNotes().length) {
@@ -217,7 +219,7 @@
     [responseStatusCode]="store.responseStatusCode()"
     [responseStatusText]="store.responseStatusText()"
     [isError]="store.responseIsError()"
-    (sendThroughBridge)="sendThroughBridge()"
+    (sendThroughBridge)="sendRequest({ route: 'bridge' })"
     [inspection]="store.responseInspection"
     [responseContentLength]="store.responseContentLength()"
     [exportContext]="store.responseExportContext()"

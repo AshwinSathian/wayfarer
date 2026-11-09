@@ -252,8 +252,8 @@ describe("ResponseViewer", () => {
   it("returns empty timing bars when inspection is missing", () => {
     fixture.componentRef.setInput("inspection", signal<ResponseInspection | null>(null));
 
-    expect(component.hasGranularTimings()).toBe(false);
-    expect(component.getFallbackBars()).toEqual([]);
+    expect(component.timingBars()).toEqual([]);
+    expect(component.fallbackBars()).toEqual([]);
   });
 
   it("builds timing bars from inspection phases", () => {
@@ -273,11 +273,11 @@ describe("ResponseViewer", () => {
 
     fixture.componentRef.setInput("inspection", signal(inspection));
 
-    const bars = component.getTimingBars();
+    const bars = component.timingBars();
     expect(bars.length).toBe(3);
     expect(bars[0].label).toBe("DNS");
     expect(bars[1].label).toBe("TCP");
-    expect(component.hasGranularTimings()).toBe(true);
+    expect(component.timingBars().length).toBeGreaterThan(0);
   });
 
   describe("views (P2.13)", () => {
@@ -299,6 +299,28 @@ describe("ResponseViewer", () => {
       expect(tabs()).toEqual(["Tests 1"]);
       expect(element().querySelector(".test-result-fail")?.textContent).toContain("status is 200");
       expect(element().textContent?.match(/Send it through the Local Bridge/g)).toHaveLength(1);
+    });
+
+    it("draws a test that ran twice under one name as two rows, each its own (NG0955)", () => {
+      const warn = vi.spyOn(console, "warn");
+      set({
+        isError: true,
+        responseError: "The request got no response.",
+        testResults: [
+          { label: "has id", passed: true, source: "script" },
+          { label: "has id", passed: false, source: "script" },
+        ],
+      });
+      // Angular checks the keys when it draws a list again: the next send's results.
+      set({
+        testResults: [
+          { label: "has id", passed: false, source: "script" },
+          { label: "has id", passed: true, source: "script" },
+        ],
+      });
+      expect(element().querySelectorAll(".test-result").length).toBe(2);
+      expect(warn.mock.calls.flat().join(" ")).not.toContain("NG0955");
+      warn.mockRestore();
     });
 
     it("lists a header sent twice as two rows", () => {
@@ -385,6 +407,24 @@ describe("ResponseViewer", () => {
       expect(tools().textContent).not.toContain("Filtering by path");
       expect(search).toHaveBeenCalledWith(expect.any(String), "items");
       expect(tools().querySelector("[aria-label='Next search match']")).not.toBeNull();
+    });
+
+    it("parses the body once for a path, not again at each key typed", async () => {
+      const body = '{"a":{"b":[1,2]}}';
+      set({
+        responseStatusCode: 200,
+        responseBodyIsJson: true,
+        responseData: body,
+        responseContentType: "application/json",
+      });
+      const parse = vi.spyOn(JSON, "parse");
+      for (const text of ["$.a", "$.a.", "$.a.b"]) {
+        await component.onSearchQueryChange(text);
+        component.filteredJson();
+      }
+      expect(component.filteredJson()).toBe(JSON.stringify([1, 2], null, 4));
+      expect(parse.mock.calls.filter(([text]) => text === body)).toHaveLength(1);
+      parse.mockRestore();
     });
 
     it("revokes an image's blob: URL when the response changes and when the viewer goes", () => {

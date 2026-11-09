@@ -49,6 +49,13 @@ function refused(text: string): ImportError {
 }
 
 describe("importText: one road from a file's text to the app's model", () => {
+  it("refuses with an ImportError, and nothing else, a YAML alias inside itself and a value nested too deeply", () => {
+    expect(() => importText("item: &a\n  - name: x\n    request:\n      url: *a\n")).toThrow(ImportError);
+    expect(() => importText("openapi: 3.0.0\npaths: {}\nx: &e\n  y: *e\n")).toThrow(ImportError);
+    const deep = `{"item":[{"name":${"[".repeat(20_000)}${"]".repeat(20_000)},"request":{"url":"http://a"}}]}`;
+    expect(() => importText(deep)).toThrow(ImportError);
+  });
+
   // U-133: every request of shop.postman_collection.json uses {{base}}, which nothing imported gives a value.
   it("says once per collection which variables its requests use and nothing in the file sets", () => {
     const item = (name: string, raw: string, exec: string[] = []) => ({

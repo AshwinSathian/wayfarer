@@ -23,7 +23,7 @@ import { SecretDoc } from "../../models/secrets";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { VaultActions } from "./vault-actions";
-import { extractSecretId } from "../../shared/secrets/secret-reference";
+import { secretIdsIn } from "../../shared/secrets/secret-reference";
 import { VariableFocus } from "../../services/variable-focus";
 import { VariableToken } from "../../services/variable-focus";
 import { Icon } from "../../shared/icon/icon";
@@ -77,17 +77,15 @@ export class SecretsManager {
     const usagesBySecretId = new Map<string, SecretUsage[]>();
     for (const env of environments) {
       for (const { key, value } of env.vars) {
-        const secretId = extractSecretId(value);
-        if (!secretId) {
-          continue;
+        for (const secretId of secretIdsIn(value)) {
+          const list = usagesBySecretId.get(secretId) ?? [];
+          list.push({
+            environmentId: env.meta.id,
+            environmentName: env.name,
+            variableKey: key,
+          });
+          usagesBySecretId.set(secretId, list);
         }
-        const list = usagesBySecretId.get(secretId) ?? [];
-        list.push({
-          environmentId: env.meta.id,
-          environmentName: env.name,
-          variableKey: key,
-        });
-        usagesBySecretId.set(secretId, list);
       }
     }
     return this.docs()

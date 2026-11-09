@@ -4,7 +4,8 @@
  * app's text is its own size. One per theme, the page's shown: a <picture> per theme would not follow the toggle.
  * Nothing plays until asked, so the poster, the clip's last frame, is the still a reader who asked for reduced motion
  * sees; the text beside it (`described`) says what it shows. site.js takes the browser's controls off until the clip is
- * asked for, and shows the Play button instead.
+ * asked for, and shows the Play button instead. The poster is `data-poster`, which site.js gives the shown theme's
+ * video alone: a `poster` is fetched also on a video that is not drawn.
  */
 interface Props {
   name: string;
@@ -21,7 +22,7 @@ const { name, label, title, described } = Astro.props;
       <div class={`shot-${theme} relative`}>
         <video
           class="plate block h-auto w-full"
-          poster={`/recordings/${name}-${theme}.avif`}
+          data-poster={`/recordings/${name}-${theme}.avif`}
           width="390"
           height="720"
           controls

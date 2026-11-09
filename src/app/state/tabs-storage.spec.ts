@@ -91,6 +91,35 @@ describe("TabsStorage", () => {
     });
   });
 
+  it("a key typed in one tab does not write out another tab's large body again", async () => {
+    await storage.start();
+    const big = "x".repeat(100_000);
+    const first = tabs.active();
+    first.draft.update((draft) => ({
+      ...draft,
+      url: "https://big.test",
+      body: { mode: "raw", raw: { language: "text", text: big } },
+    }));
+    tabs.open();
+    const second = tabs.active();
+    await storage.flush();
+    TestBed.tick();
+
+    const stringify = vi.spyOn(JSON, "stringify");
+    try {
+      for (const url of ["https://a.test", "https://ab.test", "https://abc.test"]) {
+        second.draft.update((draft) => ({ ...draft, url }));
+        TestBed.tick();
+      }
+      const ofFirst = stringify.mock.calls.filter(([value]) => (value as { id?: string } | null)?.id === first.id);
+      expect(ofFirst).toHaveLength(0);
+    } finally {
+      stringify.mockRestore();
+    }
+    await storage.flush();
+    expect(repository.records.get(second.id)?.draft.url).toBe("https://abc.test");
+  });
+
   it("stores the digest of each script that may run, and none of a script that waits for a review", async () => {
     await storage.start();
     store.patch({ url: "https://one.test", scripts: { pre: "typed()", post: "" } });
@@ -335,6 +364,20 @@ describe("TabsStorage", () => {
     repository.records.delete("new");
     await storage.changedElsewhere();
     expect(tabs.tabs().map((tab) => tab.id)).toEqual([id]);
+  });
+
+  it("a write of another browser tab leaves a tab whose scripts wait for a review as it was, when its record did not change", async () => {
+    await storage.start();
+    store.patch({ url: "https://one.test", scripts: { pre: "x()", post: "" } });
+    const tab = tabs.active();
+    tab.heldScripts.set({ pre: "x()", post: "", name: "From history" });
+    await storage.flush();
+    const draft = tab.draft();
+
+    repository.records.set("other", record("other", { order: 1 }));
+    await storage.changedElsewhere();
+    expect(tab.heldScripts()?.name).toBe("From history");
+    expect(tab.draft()).toBe(draft);
   });
 });
 

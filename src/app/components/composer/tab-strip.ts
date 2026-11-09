@@ -85,7 +85,7 @@ export class TabStrip {
 
   /** A collection's or a folder's name, for its settings tab. */
   private holderName({ collectionId, folderId }: HolderTarget): string {
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === collectionId);
+    const tree = this.collections.getCollectionTree(collectionId);
     return (
       (folderId ? tree?.folders.find((folder) => folder.meta.id === folderId)?.name : tree?.collection.name) ??
       "Settings"
@@ -102,8 +102,10 @@ export class TabStrip {
     this.opened.emit();
   }
 
+  /** A second tab of a request or a run. The Environments tab and a settings tab are one each: that one is opened. */
   duplicate(tab: TabState = this.tabs.active()): void {
-    this.tabs.open(tab.copy());
+    if (tab.environments || tab.holder) this.tabs.activate(tab.id);
+    else this.tabs.open(tab.copy());
   }
 
   /** Closes a tab, the open one unless named. One with changes not saved, or with something on its way, asks first. */
@@ -144,7 +146,9 @@ export class TabStrip {
       ...(tab.document
         ? []
         : [{ label: "Rename", icon: "edit" as const, keys: "F2", command: () => this.rename(tab, button) }]),
-      { label: "Duplicate tab", icon: "content_copy", command: () => this.duplicate(tab) },
+      ...(tab.environments || tab.holder
+        ? []
+        : [{ label: "Duplicate tab", icon: "content_copy" as const, command: () => this.duplicate(tab) }]),
       { separator: true },
       { label: "Close tab", icon: "close", keys: "Delete", command: () => void this.close(tab) },
     ]);

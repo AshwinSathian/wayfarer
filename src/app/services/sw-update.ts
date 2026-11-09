@@ -46,6 +46,12 @@ export class SwUpdate {
     if (registration.installing) track(registration.installing);
     registration.addEventListener("updatefound", () => registration.installing && track(registration.installing));
     container.addEventListener("controllerchange", () => this.reloading && location.reload());
+    // The browser looks for a new worker on a navigation, and this app makes none: a tab left open across a deploy
+    // would ask for chunks the server no longer has. It asks each time the page comes back into view.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") return;
+      registration.update().catch((error: unknown) => this.diagnostics.record(error, "service worker: update check"));
+    });
     // A first visit loads its first files before the worker controls the page. It is told their names once it
     // does, and keeps the ones it would have kept, so the next visit has them offline (F84). Every later load
     // goes through the worker.

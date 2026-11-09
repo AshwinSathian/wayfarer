@@ -76,6 +76,28 @@ describe("App", () => {
     await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(2));
   });
 
+  it("reads history again when a refresh is asked for while one is reading, so the newest entry is listed", async () => {
+    fixture = TestBed.createComponent(App);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(component.historyLoading()).toBe(false));
+
+    let answer: (entries: PastRequest[]) => void = () => undefined;
+    idbService.getLatest.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+    const entry: PastRequest = { id: 7, ...historyEntry({ url: "https://example.com/new", createdAt: 7 }) };
+    idbService.getLatest.mockReturnValueOnce(Promise.resolve([entry]));
+
+    const first = component.refreshPastRequests();
+    // This tab's own send finishes while another tab's write is being read.
+    await component.refreshPastRequests();
+    answer([]);
+    await first;
+
+    expect(idbService.getLatest).toHaveBeenCalledTimes(3);
+    expect(component.pastRequests()).toEqual([entry]);
+  });
+
   it("loads history on init", async () => {
     setWidth(1400);
     const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: "https://example.com/api", createdAt: 1 }) }];

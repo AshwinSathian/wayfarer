@@ -197,6 +197,19 @@ describe("ui-tree", () => {
     fixture.destroy();
   });
 
+  it("fills the row the keys are on, which is not the selected one: there is no focus ring", async () => {
+    const { fixture, row, press } = await setup();
+    row("src").focus();
+    await press("ArrowDown");
+    expect(document.activeElement).toBe(row("app"));
+    expect(row("app").matches(":focus-visible")).toBe(true);
+    expect(row("app").classList).not.toContain("ui-tree-row--selected");
+    await new Promise((resolve) => setTimeout(resolve, 200)); // the fill's transition
+    const fill = (name: string) => getComputedStyle(row(name)).backgroundColor;
+    expect(fill("app")).not.toBe(fill("lib"));
+    fixture.destroy();
+  });
+
   it("moves on from a row focused from code, not from the row focused before it", async () => {
     const { fixture, row, press } = await setup();
     row("src").focus();

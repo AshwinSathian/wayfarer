@@ -47,6 +47,8 @@ Options:
   -e, --environment <file>  The variables: a Wayfarer environments file or a
                             Postman environment. A workspace backup brings
                             its active environment unless one is given.
+      --environment-name <name>
+                            Which environment of a file that holds several.
   -d, --data <file>         A data file, CSV or JSON: one iteration per row.
   -n, --iterations <n>      How many iterations (default: one per row of the
                             data file, or 1).
@@ -57,8 +59,9 @@ Options:
                             in --out.
       --out <dir>           Where the reports are written (default: here).
       --bail                Stop at the first failure.
-      --timeout <ms>        Give up on a request after this long (default: no
-                            limit).
+      --timeout <ms>        Give up on a request after this long, at most
+                            300000 (default 300000: Node's fetch waits no
+                            longer for a response).
       --insecure            Do not verify servers' TLS certificates.
       --allow-scripts       Run the file's scripts. A file's scripts are not
                             reviewed, so a collection that has any is not run
@@ -69,8 +72,12 @@ Options:
   -v, --version
   -h, --help
 
-Exit codes: 0 every request answered and every test passed; 1 a test failed
-or a request got no response; 2 nothing was run (see the message).`;
+Exit codes: 0 every request answered and every test passed; 1 a test failed,
+a request got no response, or a report could not be written; 2 nothing was
+run (see the message).`;
+
+/** How long Node's fetch (undici) waits for a response's headers, and between two pieces of its body. */
+const NODE_FETCH_TIMEOUT_MS = 300_000;
 
 /** A reason not to run, said on stderr: exit code 2. */
 class Refusal extends Error {}
@@ -85,7 +92,13 @@ async function readText(file: string, what: string): Promise<string> {
   }
 }
 
-function pick<T extends { name: string }>(list: T[], name: string | undefined, what: string, file: string): T {
+function pick<T extends { name: string }>(
+  list: T[],
+  name: string | undefined,
+  what: string,
+  flag: string,
+  file: string,
+): T {
   if (name !== undefined) {
     const found = list.find((entry) => entry.name === name);
     if (!found)
@@ -96,7 +109,7 @@ function pick<T extends { name: string }>(list: T[], name: string | undefined, w
   }
   if (list.length > 1)
     throw new Refusal(
-      `${file} holds ${list.length} ${what}s: name one with --${what} (${list.map((entry) => `"${entry.name}"`).join(", ")}).`,
+      `${file} holds ${list.length} ${what}s: name one with --${flag} (${list.map((entry) => `"${entry.name}"`).join(", ")}).`,
     );
   const [only] = list;
   if (!only) throw new Refusal(`${file} holds no ${what}.`);
@@ -131,6 +144,7 @@ async function readSource(
           collections.map(({ payload }) => ({ name: payload.collection.name, payload })),
           collection,
           "collection",
+          "collection",
           file,
         ).payload,
         globals: [],
@@ -153,7 +167,7 @@ async function readSource(
       meta: Record<string, unknown>[];
     };
   };
-  const chosen = pick(stores.collections, collection, "collection", file);
+  const chosen = pick(stores.collections, collection, "collection", "collection", file);
   const source: CollectionExport = {
     $id: "wayfarer/collection",
     meta: chosen.meta,
@@ -177,11 +191,11 @@ async function readSource(
   };
 }
 
-async function readEnvironment(file: string): Promise<{ name: string; vars: Row[] }> {
+async function readEnvironment(file: string, name: string | undefined): Promise<{ name: string; vars: Row[] }> {
   try {
     const { environments } = importText(await readText(file, "environment"));
-    const { name, vars } = pick(environments, undefined, "environment", file);
-    return { name, vars };
+    const chosen = pick(environments, name, "environment", "environment-name", file);
+    return { name: chosen.name, vars: chosen.vars };
   } catch (error) {
     if (error instanceof Error && error.name === "ImportError") throw new Refusal(`${file}: ${error.message}`);
     throw error;
@@ -241,6 +255,7 @@ async function main(argv: string[]): Promise<number> {
     allowPositionals: true,
     options: {
       environment: { type: "string", short: "e" },
+      "environment-name": { type: "string" },
       data: { type: "string", short: "d" },
       iterations: { type: "string", short: "n" },
       collection: { type: "string" },
@@ -279,6 +294,9 @@ async function main(argv: string[]): Promise<number> {
   const iterations = number(values.iterations, "iterations");
   if (iterations === 0) throw new Refusal("--iterations takes 1 or more.");
   const timeoutMs = number(values.timeout, "timeout") ?? 0;
+  // Node's fetch gives up on a response after 300 s whatever the request's own deadline says.
+  if (timeoutMs > NODE_FETCH_TIMEOUT_MS)
+    throw new Refusal(`--timeout takes at most ${NODE_FETCH_TIMEOUT_MS}: Node's fetch waits no longer for a response.`);
 
   const read = await readSource(file, values.collection);
   const holders = scriptHolders(read.source);
@@ -287,7 +305,12 @@ async function main(argv: string[]): Promise<number> {
       `This collection has scripts, in ${holders.join(", ")}. A file's scripts have not been reviewed: read them, and run again with --allow-scripts only if you trust them. Nothing was sent.`,
     );
   }
-  const environment = values.environment === undefined ? read.environment : await readEnvironment(values.environment);
+  if (values["environment-name"] !== undefined && values.environment === undefined)
+    throw new Refusal("--environment-name names an environment of the file given with --environment.");
+  const environment =
+    values.environment === undefined
+      ? read.environment
+      : await readEnvironment(values.environment, values["environment-name"]);
   const vault = values["vault-file"] === undefined ? read.vault : await readVaultFile(values["vault-file"]);
   let data: Row[][] | undefined;
   if (values.data !== undefined) {
@@ -330,11 +353,21 @@ async function main(argv: string[]): Promise<number> {
   );
   const info = { name: read.source.collection.name, startedAt };
   if (reporters.has("cli")) console.log(`\n${summary(report)}`);
-  if (reporters.has("json"))
-    await writeFile(join(values.out, "wayfarer-run.json"), `${JSON.stringify(runReportJson(report, info), null, 2)}\n`);
-  if (reporters.has("junit")) await writeFile(join(values.out, "wayfarer-run.junit.xml"), junitXml(report, info));
-  if (reporters.has("html")) await writeFile(join(values.out, "wayfarer-run.html"), runReportHtml(report, info));
-  return report.results.some(runFailed) ? 1 : 0;
+  const code = report.results.some(runFailed) ? 1 : 0;
+  try {
+    if (reporters.has("json"))
+      await writeFile(
+        join(values.out, "wayfarer-run.json"),
+        `${JSON.stringify(runReportJson(report, info), null, 2)}\n`,
+      );
+    if (reporters.has("junit")) await writeFile(join(values.out, "wayfarer-run.junit.xml"), junitXml(report, info));
+    if (reporters.has("html")) await writeFile(join(values.out, "wayfarer-run.html"), runReportHtml(report, info));
+  } catch (error) {
+    // The run happened: it is not "nothing was run".
+    console.error(`--out ${values.out}: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+  return code;
 }
 
 main(process.argv.slice(2)).then(

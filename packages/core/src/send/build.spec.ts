@@ -11,6 +11,7 @@ import {
   hostOf,
   normalizeUrl,
   oauthOf,
+  validateUrl,
   UnresolvedVariablesError,
   type BuildContext,
 } from "./build";
@@ -68,6 +69,21 @@ describe("buildRequest", () => {
     expect(result.vaulted).toEqual([{ name: "key", scope: "environment" }]);
   });
 
+  // The app refused these before the scripts, the CLI sent them to fetch: one road refuses them for both.
+  it("builds nothing for an address that is none, after the variables are replaced", () => {
+    for (const url of ["", "not a url", "{{empty}}", "ftp://api.test/x"]) {
+      expect(
+        () =>
+          buildRequest(requestContent({ url }), context({ scopes: () => ({ environment: rowsOf({ empty: "" }) }) })),
+        url,
+      ).toThrow(
+        new SendBlockedError(
+          "This is not an address a request can go to. Write it as https://host/path. Nothing was sent.",
+        ),
+      );
+    }
+  });
+
   it("holds a request with a variable without a value back when asked to, and names it", () => {
     expect(() =>
       buildRequest(requestContent({ url: "https://api.test/{{missing}}" }), context({ blockUnresolved: true })),
@@ -116,6 +132,23 @@ describe("buildRequest", () => {
         askHost,
       });
       expect(askHost).not.toHaveBeenCalled();
+    });
+
+    it("@claim:C-053 asks for a request whose only secret is its OAuth 2.0 token, before the token is fetched, and does not read the vault", async () => {
+      const moved = requestContent({ url: "https://{{host}}/", auth: oauth });
+      const readSecrets = vi.fn();
+      const oauthToken = vi.fn(() => Promise.resolve("tok"));
+      const askHost = vi.fn(() => Promise.resolve(true));
+      const result = await built(moved, { composed, askHost, readSecrets, oauthToken });
+      expect(askHost).toHaveBeenCalledExactlyOnceWith("before.test", "api.test");
+      expect(result.secrets).toEqual(["tok"]);
+
+      oauthToken.mockClear();
+      await expect(
+        built(moved, { composed, askHost: () => Promise.resolve(false), readSecrets, oauthToken }),
+      ).rejects.toBeInstanceOf(SendDeclinedError);
+      expect(oauthToken).not.toHaveBeenCalled();
+      expect(readSecrets).not.toHaveBeenCalled();
     });
   });
 
@@ -299,6 +332,15 @@ describe("the helpers of a build", () => {
     expect(normalizeUrl("http://api.test")).toBe("http://api.test");
     expect(appendQueryParam("https://api.test/?a=1", "b", "2")).toBe("https://api.test/?a=1&b=2");
     expect(appendQueryParam("http://[", "b", "2")).toBe("http://[");
+  });
+
+  it("validateUrl takes an http or https address with a host; without a scheme, one word is no host", () => {
+    for (const url of ["https://intranet", "http://api.test/x", "api.test", "localhost", "intranet:8080", "[::1]/x"]) {
+      expect(validateUrl(url), url).toBe(true);
+    }
+    for (const url of ["", "not a url", "intranet", "ftp://api.test", "http://[", "https://"]) {
+      expect(validateUrl(url), url).toBe(false);
+    }
   });
 
   it("hostOf names the host and a port that is not the scheme's, or the text itself", () => {

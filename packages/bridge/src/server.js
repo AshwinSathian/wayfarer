@@ -130,7 +130,9 @@ function readRequestBody(req) {
     req.on("data", (chunk) => {
       bytes += chunk.length;
       if (bytes > MAX_BODY_BYTES) {
-        req.destroy();
+        // Read the rest and keep none of it: a destroyed socket takes the 413 with it, and the page saw a reset.
+        req.removeAllListeners("data");
+        req.resume();
         reject(Object.assign(new Error("request body too large"), { statusCode: 413 }));
         return;
       }
@@ -152,21 +154,22 @@ function pairHeaders(rawHeaders) {
 
 /**
  * The request's headers as Node takes them, without the ones Node writes
- * itself. A name that repeats keeps every value. Built with no prototype:
+ * itself. A name that repeats keeps every value, also in another case. Built with no prototype:
  * a header may be named `__proto__`.
  */
 function sanitizeOutgoingHeaders(headers) {
-  const out = Object.create(null);
+  // By the name in lower case, as Node sets them, written as it first came: two spellings of one name were two keys, and Node kept the last.
+  const byName = Object.create(null);
   for (const [name, value] of headers) {
-    if (HOP_BY_HOP_HEADERS.has(name.toLowerCase())) {
+    const key = name.toLowerCase();
+    if (HOP_BY_HOP_HEADERS.has(key)) {
       continue;
     }
-    (out[name] ??= []).push(value);
+    (byName[key] ??= [name, []])[1].push(value);
   }
+  const out = Object.create(null);
   // Node takes a Host as one text, not as a list of one.
-  for (const name of Object.keys(out)) {
-    if (name.toLowerCase() === "host") out[name] = out[name][0];
-  }
+  for (const [key, [name, values]] of Object.entries(byName)) out[name] = key === "host" ? values[0] : values;
   return { ...out };
 }
 

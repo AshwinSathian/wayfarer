@@ -66,13 +66,14 @@ wayfarer-cli run <file> [options]
 | Option | What it does |
 |---|---|
 | `-e`, `--environment <file>` | The variables: a Wayfarer environments file or a Postman environment. |
+| `--environment-name <name>` | Which environment of a file that holds several, such as the app's **Export environments**. |
 | `-d`, `--data <file>` | A data file, CSV or JSON. Each row is one iteration. |
 | `-n`, `--iterations <n>` | How many iterations. Default: one per row of the data file, or 1. |
 | `--collection <name>` | Which collection to run, from a file that holds several. |
 | `--reporter <list>` | `cli`, `json`, `junit`, `html`, comma-separated. Default `cli`. |
 | `--out <dir>` | Where the `json`, `junit` and `html` reports go. Default: the current folder. |
 | `--bail` | Stop at the first failure. |
-| `--timeout <ms>` | Give up on a request after this long. Default: no limit. |
+| `--timeout <ms>` | Give up on a request after this long, at most `300000`. Default `300000`: Node's fetch waits no longer for a response. |
 | `--insecure` | Don't verify TLS certificates, for every request of the run. |
 | `--allow-scripts` | Run the file's scripts (see below). |
 | `--vault-file <file>` | A vault exported from the app, for requests that use a vault secret. |
@@ -84,7 +85,7 @@ wayfarer-cli run <file> [options]
 | Code | Meaning |
 |---|---|
 | `0` | Every request got a response and every test passed. |
-| `1` | A test failed, a request got no response, or a script ended in an error. |
+| `1` | A test failed, a request got no response, a script ended in an error, or a report could not be written. |
 | `2` | Nothing was run. The message on stderr says why. |
 
 ## Scripts run only when you allow them

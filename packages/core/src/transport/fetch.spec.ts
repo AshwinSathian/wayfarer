@@ -179,6 +179,17 @@ describe("FetchTransport", () => {
     expect(new Uint8Array(await (response.body as Blob).arrayBuffer()).every((byte) => byte === 7)).toBe(true);
   });
 
+  it("a timeout longer than a timer can hold is that long, not 1 ms", async () => {
+    const slow = new FetchTransport(
+      fakeFetch(() => new Promise<Response>((resolve) => setTimeout(() => resolve(new Response("ok")), 20))).fetch,
+    );
+    const response = await slow.send(
+      { method: "GET", url: "https://example.com/slow", headers: [] },
+      { signal: new AbortController().signal, timeoutMs: 3_000_000_000 },
+    );
+    expect(response.status).toBe(200);
+  });
+
   it("names a timeout, a cancel and a network failure", async () => {
     const hang = new FetchTransport(fakeFetch(never).fetch);
     const request = { method: "GET", url: "https://example.com/slow", headers: [] };
@@ -198,6 +209,20 @@ describe("FetchTransport", () => {
     expect(await offline.send(request, open()).catch((e: unknown) => e)).toMatchObject({
       kind: "network",
       message: "Failed to fetch",
+      responded: false,
+    });
+
+    // A body that breaks after the headers is a network failure the server had the request for (C-064).
+    const broken = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("partial"));
+        controller.error(new TypeError("network error"));
+      },
+    });
+    const cut = new FetchTransport(() => Promise.resolve(new Response(broken, { status: 200 })));
+    expect(await cut.send(request, open()).catch((e: unknown) => e)).toMatchObject({
+      kind: "network",
+      responded: true,
     });
 
     // Node's fetch names the reason in its cause's code; the cause's message, which holds the address, is not kept.
@@ -309,7 +334,7 @@ describe("FetchTransport", () => {
       );
       await tick();
       source.fail(new TypeError("network error"));
-      await expect(sent).rejects.toMatchObject({ kind: "network" });
+      await expect(sent).rejects.toMatchObject({ kind: "network", responded: true });
     });
 
     it("keeps the first megabyte of an endless stream as the body, and goes on giving events", async () => {

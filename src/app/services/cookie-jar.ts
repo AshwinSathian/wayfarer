@@ -28,6 +28,9 @@ export class CookieJar {
   readonly cookies = this.held.asReadonly();
   /** The keys of the cookies that are not stored. */
   private readonly unstored = new Set<string>();
+  /** How many changes this tab made, and the writes of them: a read that overlapped one is made again after it. */
+  private changes = 0;
+  private writes: Promise<void> = Promise.resolve();
 
   /** Reads the stored cookies. Called once, when the page starts. */
   async start(): Promise<void> {
@@ -38,8 +41,14 @@ export class CookieJar {
   }
 
   private async read(): Promise<void> {
+    const since = this.changes;
     try {
       const stored = (await this.repository.readAll()).map(({ key: _key, ...cookie }) => cookie);
+      // A change made meanwhile may not be in what was read: read again once it is stored.
+      if (since !== this.changes) {
+        await this.writes;
+        return await this.read();
+      }
       this.held.update((held) => [...stored, ...held.filter((cookie) => this.unstored.has(keyOf(cookie)))]);
     } catch (error) {
       // Storage that cannot be read: the shell's banner says so. The jar lives in the page.
@@ -103,7 +112,14 @@ export class CookieJar {
     );
   }
 
-  private async write(write: () => Promise<void>): Promise<void> {
+  private write(write: () => Promise<void>): Promise<void> {
+    this.changes += 1;
+    const done = this.stored(write);
+    this.writes = this.writes.then(() => done);
+    return done;
+  }
+
+  private async stored(write: () => Promise<void>): Promise<void> {
     try {
       await write();
     } catch (error) {

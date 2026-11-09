@@ -165,6 +165,7 @@ export {
   oauthOf,
   sentAuth,
   sentHeaders,
+  validateUrl,
   type Composed,
   type RunSend,
 } from "./send/build";

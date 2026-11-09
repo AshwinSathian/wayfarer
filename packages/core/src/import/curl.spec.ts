@@ -72,6 +72,36 @@ describe("parseCurl: options", () => {
     });
   });
 
+  it("data that is not form pairs is sent as written, with the form type curl gives it", () => {
+    expect(parsed(`curl https://a.test/ -d '{"a":1}'`)).toEqual({
+      method: "POST",
+      url: "https://a.test/",
+      headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+      body: { mode: "raw", text: '{"a":1}' },
+    });
+  });
+
+  it("--json is the body as written, with the JSON type and Accept that curl adds unless the command names them", () => {
+    expect(parsed(`curl --json '{"a":1}' https://api.test/items`)).toEqual({
+      method: "POST",
+      url: "https://api.test/items",
+      headers: [
+        ["Content-Type", "application/json"],
+        ["Accept", "application/json"],
+      ],
+      body: { mode: "raw", text: '{"a":1}' },
+    });
+    expect(parsed(`curl https://api.test/ -H 'accept: */*' --json '[]'`).headers).toEqual([
+      ["accept", "*/*"],
+      ["Content-Type", "application/json"],
+    ]);
+  });
+
+  it("the value of an option the app skips is never read as the address", () => {
+    for (const option of ["--url-query", "--proxy-header", "--socks5", "--request-target", "--netrc-file"])
+      expect(parsed(`curl ${option} q=1 https://api.test/`).url, option).toBe("https://api.test/");
+  });
+
   it("--data-urlencode encodes the content and not the name, in each of its forms", () => {
     expect(
       parsed(

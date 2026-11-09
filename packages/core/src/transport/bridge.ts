@@ -123,7 +123,8 @@ export class BridgeTransport implements Transport {
         url: request.url,
         headers,
         ...(bytes && { bodyB64: toBase64(bytes) }),
-        ...(timeoutMs > 0 && { timeoutMs }),
+        // The bridge waits at most 10 minutes: "no limit" and a longer timeout are that, not its own 30 s or a 400.
+        timeoutMs: timeoutMs > 0 ? Math.min(timeoutMs, BRIDGE_MAX_TIMEOUT_MS) : BRIDGE_MAX_TIMEOUT_MS,
         ...(insecure && { tls: { insecure: true } }),
       }),
       cache: "no-store",
@@ -165,6 +166,9 @@ async function wireBody(request: ResolvedRequest): Promise<{ headers: [string, s
     bytes,
   };
 }
+
+/** The longest `timeoutMs` the bridge takes (`MAX_TIMEOUT_MS` in packages/bridge/src/server.js). */
+const BRIDGE_MAX_TIMEOUT_MS = 600_000;
 
 function toBase64(bytes: Uint8Array): string {
   let binary = "";

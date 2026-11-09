@@ -37,12 +37,13 @@ export interface Doc {
   group: DocGroup;
 }
 
-/** Every Markdown file under docs/, each a page at `/docs/<id>/`. */
+/** Every Markdown file under docs/, each a page at `/docs/<id>/`, but the roadmap: it is the page /roadmap/. */
 export function docs(): Doc[] {
   return readdirSync(join(ROOT, "docs"), { recursive: true })
     .map(String)
     .filter((name) => name.endsWith(".md"))
     .map((name) => name.split("\\").join("/").slice(0, -3))
+    .filter((id) => id !== "roadmap")
     .map((id) => {
       return { id, title: titleOf(read(`docs/${id}.md`), id), group: GROUP_OF[id] ?? "Guides" };
     })

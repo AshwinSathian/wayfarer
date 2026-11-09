@@ -42,6 +42,8 @@ export class GraphqlSchemas {
       tools.attachGraphql(monaco, (problems) => this.problems.set(problems));
       return tools;
     });
+    // A failed fetch is not kept: the next use asks again.
+    void this.tools.catch(() => (this.tools = undefined));
     return this.tools;
   }
 

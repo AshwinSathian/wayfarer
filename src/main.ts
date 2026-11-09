@@ -4,7 +4,7 @@ import { installTrustedTypesPolicy } from "./app/shared/security/trusted-types";
 import { provideAppInitializer } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { App } from "./app/app";
-import { appConfig } from "./app/app.config";
+import { appConfig } from "./app/app-config";
 import { SwUpdate } from "./app/services/sw-update";
 import { listenForCspViolations } from "./app/services/diagnostics";
 import { takeShareFragment } from "./app/shared/share/link-at-start";

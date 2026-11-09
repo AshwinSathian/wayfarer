@@ -1,10 +1,7 @@
-import { Injectable, OnDestroy, inject } from "@angular/core";
-import { Diagnostics } from "../../services/diagnostics";
+import { Injectable, OnDestroy } from "@angular/core";
 
 type WorkerJob =
-  | { kind: "parse-pretty"; input: string; indent?: number }
-  | { kind: "minify"; input: string }
-  | { kind: "search"; input: string; query: string };
+  { kind: "parse-pretty"; input: string; indent?: number } | { kind: "search"; input: string; query: string };
 
 type WorkerMessage =
   { id: number; ok: true; result: string | WorkerSearchResult } | { id: number; ok: false; error: string };
@@ -22,75 +19,59 @@ export interface WorkerSearchResult {
 
 const WORKER_TIMEOUT_MS = 10_000;
 
+/**
+ * Formats and searches a large body off the main thread. A job that fails rejects: nothing is run on the main thread
+ * in its place, which would freeze the page the worker is there to spare. One that times out ends the worker, still
+ * busy with it, so the next job gets a new one.
+ */
 @Injectable({
   providedIn: "root",
 })
 export class JsonWorkerClient implements OnDestroy {
-  private readonly diagnostics = inject(Diagnostics);
   private worker: Worker | null = null;
   private nextId = 1;
   private readonly pending = new Map<number, PendingJob>();
 
-  async parsePretty(input: string, indent = 2): Promise<string> {
-    return this.dispatchJob({ kind: "parse-pretty", input, indent }, () => this.parsePrettyFallback(input, indent));
+  parsePretty(input: string, indent = 2): Promise<string> {
+    return this.dispatchJob({ kind: "parse-pretty", input, indent });
   }
 
-  async minify(input: string): Promise<string> {
-    return this.dispatchJob({ kind: "minify", input }, () => this.minifyFallback(input));
-  }
-
-  async search(input: string, query: string): Promise<WorkerSearchResult> {
-    return this.dispatchJob({ kind: "search", input, query }, () => this.searchFallback(input, query));
+  search(input: string, query: string): Promise<WorkerSearchResult> {
+    return this.dispatchJob({ kind: "search", input, query });
   }
 
   ngOnDestroy(): void {
     this.terminateWorker(new Error("JsonWorkerClient destroyed"));
   }
 
-  private async dispatchJob<T extends string | WorkerSearchResult>(
-    job: WorkerJob,
-    fallback: () => T | Promise<T>,
-  ): Promise<T> {
+  private dispatchJob<T extends string | WorkerSearchResult>(job: WorkerJob): Promise<T> {
     const worker = this.ensureWorker();
-    if (!worker) {
-      return Promise.resolve().then(() => fallback());
-    }
-
     const jobId = this.nextId++;
 
-    try {
-      return await new Promise<T>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          this.rejectJob(jobId, new Error("Worker timed out"));
-        }, WORKER_TIMEOUT_MS);
+    return new Promise<T>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.terminateWorker(new Error("Worker timed out"));
+      }, WORKER_TIMEOUT_MS);
 
-        this.pending.set(jobId, {
-          resolve: (value) => {
-            clearTimeout(timeout);
-            this.pending.delete(jobId);
-            resolve(value as T);
-          },
-          reject: (reason) => {
-            clearTimeout(timeout);
-            this.pending.delete(jobId);
-            reject(reason);
-          },
-          timeout,
-        });
-
-        worker.postMessage({ id: jobId, job });
+      this.pending.set(jobId, {
+        resolve: (value) => {
+          clearTimeout(timeout);
+          this.pending.delete(jobId);
+          resolve(value as T);
+        },
+        reject: (reason) => {
+          clearTimeout(timeout);
+          this.pending.delete(jobId);
+          reject(reason);
+        },
+        timeout,
       });
-    } catch (error) {
-      this.diagnostics.record(error, "json worker: job failed, running it inline");
-      return Promise.resolve().then(() => fallback());
-    }
+
+      worker.postMessage({ id: jobId, job });
+    });
   }
 
-  private ensureWorker(): Worker | null {
-    if (typeof Worker === "undefined") {
-      return null;
-    }
-
+  private ensureWorker(): Worker {
     if (!this.worker) {
       // The URL must be written inside `new Worker(...)`: that is the only
       // form the bundler recognises and emits a worker chunk for (F45).
@@ -147,55 +128,5 @@ export class JsonWorkerClient implements OnDestroy {
     this.worker.onmessage = null;
     this.worker.onerror = null;
     this.worker = null;
-  }
-
-  private parsePrettyFallback(input: string, indent = 2): string {
-    const value = JSON.parse(input);
-    return JSON.stringify(value, null, indent);
-  }
-
-  private minifyFallback(input: string): string {
-    const value = JSON.parse(input);
-    return JSON.stringify(value);
-  }
-
-  private searchFallback(input: string, query: string): WorkerSearchResult {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      return { count: 0, excerpts: [] };
-    }
-
-    const lowerInput = input.toLowerCase();
-    const lowerNeedle = trimmed.toLowerCase();
-
-    const excerpts: WorkerSearchResult["excerpts"] = [];
-    let startIndex = 0;
-
-    while (startIndex <= lowerInput.length) {
-      const matchIndex = lowerInput.indexOf(lowerNeedle, startIndex);
-      if (matchIndex === -1) {
-        break;
-      }
-
-      const contextRadius = 48;
-      const contextStart = Math.max(0, matchIndex - contextRadius);
-      const contextEnd = Math.min(input.length, matchIndex + trimmed.length + contextRadius);
-
-      excerpts.push({
-        index: matchIndex,
-        context: input.slice(contextStart, contextEnd),
-      });
-
-      if (excerpts.length >= 50) {
-        break;
-      }
-
-      startIndex = matchIndex + trimmed.length;
-    }
-
-    return {
-      count: excerpts.length,
-      excerpts,
-    };
   }
 }

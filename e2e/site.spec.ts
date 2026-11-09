@@ -552,15 +552,9 @@ test("the landing fetches the posters of the shown theme only, and the other the
   await page.waitForLoadState("networkidle");
   expect(posters.length).toBe(4);
   expect(posters.filter((path) => path.endsWith("-dark.avif"))).toEqual([]);
-  await expect(page.locator(".shot-light video").first()).toHaveJSProperty(
-    "poster",
-    expect.stringMatching(/-light\.avif$/),
-  );
+  await expect(page.locator(".shot-light video").first()).toHaveAttribute("poster", /-light\.avif$/);
   await page.getByRole("button", { name: "Switch between light and dark" }).click();
-  await expect(page.locator(".shot-dark video").first()).toHaveJSProperty(
-    "poster",
-    expect.stringMatching(/-dark\.avif$/),
-  );
+  await expect(page.locator(".shot-dark video").first()).toHaveAttribute("poster", /-dark\.avif$/);
 });
 
 // The site's policy has no 'unsafe-inline': every script is a file of the site's own (Astro inlines nothing: no

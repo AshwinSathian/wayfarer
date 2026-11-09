@@ -119,13 +119,15 @@ if (record && "PerformanceObserver" in window) {
 
 // A recording shows its poster and the site's Play, not the browser's controls, until it is asked for: the browser's
 // own drew their bar and a loading arc over the app's picture. Once asked for, it plays with the browser's controls.
-// The poster of each recording that is drawn, the shown theme's: the other theme's is fetched only once it is shown.
+// The poster of each recording of the shown theme (global.css's rule: dark unless the page is light): the other
+// theme's is fetched only once it is shown. Chosen by the theme, not by layout: WebKit ran this before the stylesheet
+// hid the other theme's, and gave them posters too.
 function showPosters() {
-  for (const video of document.querySelectorAll("video[data-poster]"))
-    if (!video.poster && video.getClientRects().length) video.poster = video.dataset.poster;
+  const theme = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  for (const video of document.querySelectorAll(`.shot-${theme} video[data-poster]`))
+    if (!video.poster) video.poster = video.dataset.poster;
 }
 showPosters();
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", showPosters);
 for (const button of document.querySelectorAll("[data-play]")) {
   const video = button.parentElement.querySelector("video");
   video.controls = false;

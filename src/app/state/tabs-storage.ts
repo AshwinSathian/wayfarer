@@ -189,8 +189,9 @@ export class TabsStorage {
         continue;
       }
       const tab = local?.tab ?? new TabState(record.id);
-      // Nothing changed for this tab: what it shows stays as it is.
-      if (!local || JSON.stringify(stored) !== this.stored.get(record.id)) await this.restore(tab, record);
+      // Nothing changed for this tab: what it shows stays as it is. The store has no `held` mark; the tab's text has.
+      const was = { ...stored, ...(local?.tab.heldScripts() && { held: true }) };
+      if (!local || JSON.stringify(was) !== this.stored.get(record.id)) await this.restore(tab, record);
       next.push(tab);
       this.stored.set(record.id, JSON.stringify(this.record(tab, next.length - 1)));
     }

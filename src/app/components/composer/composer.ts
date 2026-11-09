@@ -290,26 +290,20 @@ export class Composer {
     return this.tabStrip().close();
   }
 
-  async sendRequest(): Promise<void> {
+  /** Every send of the composer: Send, Send anyway (`allowUnresolved`) and the Local Bridge's offer after a failed one. */
+  async sendRequest(options: Parameters<WorkspaceStore["send"]>[0] = {}): Promise<void> {
     // A run's tab and the Environments tab have no request to send or to save: the palette's commands do nothing there.
     if (this.tabs.active().document) return;
     // An address of a WebSocket is connected to, not sent (P5.7).
     if (this.socket.isSocket()) return this.socket.connect();
     // On a phone the response is a pane of its own (U-028): a send shows it.
     this.view.mobilePane.set("response");
-    if (await this.store.send()) {
-      this.newRequest.emit();
-    }
+    if (await this.store.send(options)) this.newRequest.emit();
   }
 
   /** Reconnect of an event stream: a send like any other, with the last event's id. */
   async reconnect(): Promise<void> {
     if (await this.store.reconnect()) this.newRequest.emit();
-  }
-
-  /** A send that got no response, once more through the Local Bridge, which can say why (U-051). */
-  protected sendThroughBridge(): void {
-    void this.store.send({ route: "bridge" });
   }
 
   async saveCurrentRequest(): Promise<void> {

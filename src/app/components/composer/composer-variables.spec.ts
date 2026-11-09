@@ -1,5 +1,8 @@
 import { TestBed } from "@angular/core/testing";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type OAuth2Auth, emptyAuth } from "@wayfarer/core";
+import { OAuthTokens } from "../../services/oauth-tokens";
+import { Tabs } from "../../state/tabs";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { inCollection, rowsOf } from "../../../testing/request-fixtures";
 import {
@@ -22,9 +25,13 @@ describe("Composer: variable scopes", () => {
   let environmentsService: ComposerHarness["environmentsService"];
   let collectionsService: ComposerHarness["collectionsService"];
   let requestSave: ComposerHarness["requestSave"];
+  let vault: ComposerHarness["vault"];
+  let view: ComposerHarness["view"];
+  let fixture: ComposerHarness["fixture"];
 
   beforeEach(async () => {
-    ({ component, store, httpMock, environmentsService, collectionsService, requestSave } = await setupComposer());
+    ({ component, store, httpMock, environmentsService, collectionsService, requestSave, vault, view, fixture } =
+      await setupComposer());
   });
 
   afterEach(() => {
@@ -139,5 +146,55 @@ describe("Composer: variable scopes", () => {
     store.setUrl("https://{{host}}/items");
     await component.sendRequest();
     expect(store.endpointError()).toBe("This is not an address a request can go to. Write it as https://host/path.");
+  });
+
+  it("Get token reads the variables of the tab it was asked in, though another is opened while the vault is read", async () => {
+    const tabs = TestBed.inject(Tabs);
+    const get = vi.spyOn(TestBed.inject(OAuthTokens), "get").mockResolvedValue();
+    collectionsService.setTree([
+      collection("c1", { tokenUrl: "https://one.test/token" }),
+      collection("c2", { tokenUrl: "https://two.test/token" }),
+    ]);
+    requestSave.bind(makeRequestDoc({ id: "b", collectionId: "c2" }));
+    const other = tabs.active();
+    tabs.open();
+    requestSave.bind(makeRequestDoc({ id: "a", collectionId: "c1" }));
+    store.patch({
+      auth: {
+        ...(emptyAuth("oauth2") as OAuth2Auth),
+        grant: "client_credentials",
+        tokenUrl: "{{tokenUrl}}",
+        clientSecret: "{{$secret.s}}",
+      },
+    });
+    const key = store.oauth()!.key;
+    vault.readSecret.mockImplementationOnce(async () => {
+      tabs.activate(other.id);
+      return "shh";
+    });
+
+    await store.getOAuthToken();
+    expect(get).toHaveBeenCalledWith(expect.objectContaining({ tokenUrl: "https://one.test/token" }), key);
+  });
+
+  it("Send anyway is a send like Send: History hears of it and a phone shows the response", async () => {
+    let emitted = false;
+    component.newRequest.subscribe(() => (emitted = true));
+    store.patch({ url: "https://example.com/data", headers: rows([{ key: "X-A", value: "{{nowhere}}" }]) });
+    await component.sendRequest();
+    expect(emitted).toBe(false);
+    view.mobilePane.set("request");
+    await fixture.whenStable();
+
+    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll("button")].find(
+      (b) => b.textContent?.trim() === "Send anyway",
+    );
+    button!.click();
+    expect(view.mobilePane()).toBe("response");
+    await vi.waitFor(() => httpMock.expectOne("https://example.com/data"));
+    httpMock
+      .expectOne("https://example.com/data")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    await vi.waitFor(() => expect(emitted).toBe(true));
   });
 });

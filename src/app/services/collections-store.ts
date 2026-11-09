@@ -318,14 +318,9 @@ export class CollectionsStore {
     return removed;
   }
 
-  getCollection(id: string): Collection | undefined {
-    return this.treeState()
-      .map((entry) => entry.collection)
-      .find((collection) => collection.meta.id === id);
-  }
-
-  getCollectionTree(id: string): CollectionTree | undefined {
-    return this.treeState().find((entry) => entry.collection.meta.id === id);
+  /** The collection `id` names, with its folders and requests; none for no id. Read in a `computed`, it follows the tree. */
+  getCollectionTree(id: string | null | undefined): CollectionTree | undefined {
+    return id == null ? undefined : this.treeState().find((entry) => entry.collection.meta.id === id);
   }
 
   /**

@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
+- **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
+- **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

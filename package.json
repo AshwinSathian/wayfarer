@@ -61,7 +61,8 @@
     "check:links": "node scripts/check-links.mjs",
     "check:site-links": "node scripts/check-site-links.mjs",
     "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=342448",
-    "cli:test": "npm -w packages/cli test"
+    "cli:test": "npm -w packages/cli test",
+    "gen:shots": "node scripts/site-screenshot.mjs"
   },
   "dependencies": {
     "@angular/aria": "^22.2.5",

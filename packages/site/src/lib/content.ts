@@ -182,3 +182,10 @@ export function claimText(id: string): string {
   if (!claim) throw new Error(`no claim ${id} in docs/claims.md`);
   return claim.text;
 }
+
+/** The path of one of the app's icons (packages/tokens/brand/icons), drawn inline as the app draws it. */
+export function iconPath(name: string): string {
+  const path = /\sd="([^"]+)"/.exec(read(`packages/tokens/brand/icons/${name}.svg`))?.[1];
+  if (!path) throw new Error(`packages/tokens/brand/icons/${name}.svg has no path`);
+  return path;
+}

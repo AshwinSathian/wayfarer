@@ -36,6 +36,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **`wayfarer-cli` reads an environments file with several environments**, such as the app's Export environments: name one with the new `--environment-name`. Before, such a file could not be used, and the error named `--environment`, which takes the file.
 - **`wayfarer-cli` says that `--timeout` is at most 300000 ms**, Node's own limit on waiting for a response, and refuses a longer one. Before, the help said "no limit", and Node gave up after 5 minutes anyway.
 - **`wayfarer-cli` exits 1 when a report cannot be written after the run**, with one line naming `--out`. Before, it printed a stack trace and exited 2, "nothing was run", although every request had been sent.
+- **Storage keeps working after the browser drops its connection.** When the browser closed its connection to the database (Safari, after a tab long in the background, site data cleared while the app was open), every save after that failed until a reload, and nothing said so. The app now opens the database again.
+- **An import that cannot store everything says so.** When a write failed part way (storage full), the report stayed open as if nothing had happened, and the collections already stored had no Undo. It now says how many were stored and offers the Undo of those.
+- **An import's Undo is all or nothing.** It deleted the imported collections and put back the ones they replaced one step at a time, so a failure in between could leave neither; and an Undo that failed went away without a word. It is now one step, and an Undo that fails stays to be tried again.
+- **The collections list no longer mixes up two collections when another tab writes at the same moment.** A re-read could put one collection's requests under the next one, or bring back a collection another tab had just deleted.
+- **A cookie stored through the Local Bridge is no longer lost when another tab writes cookies at the same moment.**
 
 ## [3.3.1] - 2026-11-09
 

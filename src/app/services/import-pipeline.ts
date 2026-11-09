@@ -188,6 +188,7 @@ export class ImportPipeline {
     const added: string[] = [];
     const names: string[] = [];
     const replaced: Removed[] = [];
+    const offerUndo = (message: string) => this.undo.offer(message, () => this.collections.undoImport(added, replaced));
     try {
       for (const { payload } of imported.collections) {
         const stored = await this.collections.importCollection(payload, {
@@ -200,19 +201,26 @@ export class ImportPipeline {
         }
       }
       await this.storeEnvironments(entries);
+    } catch (error) {
+      recordDiagnostic(error, "import: could not store");
+      const stored = added.length ? ` ${added.length} of ${imported.collections.length} collections were stored.` : "";
+      if (opened === this.opened)
+        this.refused.set({
+          message: `Wayfarer could not store everything this file holds.${stored} Settings › Diagnostics has the details.`,
+          issues: [],
+        });
+      if (added.length && !entries.length) offerUndo(`Imported part of ${name}.`);
+      return added;
     } finally {
       this.storing.set(false);
     }
     // A link holds one collection: it is said by its name, as receive.md's "Added {collection}." has it.
     const fromLink = name === SHARED_LINK && added.length === 1;
-    // Its environments are merged into the ones here, row by row: an Undo of the collections alone would say more than it does.
+    // Its environments replace the ones of the same name here, or are added as new ones: an Undo of the collections alone
+    // would say more than it does.
     const environments = entries.length;
     if (opened === this.opened) this.close();
-    if (added.length && !environments)
-      this.undo.offer(fromLink ? `Added ${names[0]}.` : `Imported ${name}.`, async () => {
-        for (const id of added) await this.collections.deleteCollection(id);
-        for (const removed of replaced) await this.collections.restore(removed);
-      });
+    if (added.length && !environments) offerUndo(fromLink ? `Added ${names[0]}.` : `Imported ${name}.`);
     if (fromLink) this.addedFromLink.set({ id: added[0] });
     return added;
   }

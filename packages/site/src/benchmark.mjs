@@ -1,9 +1,9 @@
-// The benchmark on the comparison pages (W5.4 of PLAN-design.md), read from docs/design/benchmark.md at build time, so
+// The benchmark on the comparison pages (W5.4 of PLAN-design.md), read from docs/benchmark.md at build time, so
 // a page cannot say other than the doc. Wayfarer's numbers are its "Wayfarer, measured" table; each rival's are the
 // rows of each task's table, its documented steps. A table the pages need that is not there fails the build.
 import GithubSlugger from "github-slugger";
 
-/** Where the site serves the recordings of docs/design/benchmark/ (benchmark-recordings.mjs copies them there). */
+/** Where the site serves the recordings of docs/benchmark/ (benchmark-recordings.mjs copies them there). */
 export const RECORDINGS = "/benchmark/";
 
 /** The cells of a Markdown table's rows, header and separator left out. */
@@ -39,7 +39,7 @@ export const plain = (cell) =>
 export const urls = (cell) => [...cell.matchAll(/https:\/\/[^\s;)]+/g)].map((match) => match[0]);
 
 /**
- * The benchmark as the pages show it: per task, its number, its name, its heading's id on /docs/design/benchmark/,
+ * The benchmark as the pages show it: per task, its number, its name, its heading's id on /docs/benchmark/,
  * Wayfarer's measured rows (task 5 has three) and each rival's documented row.
  */
 export function benchmarkOf(markdown) {

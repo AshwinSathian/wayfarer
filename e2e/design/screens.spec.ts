@@ -2,10 +2,10 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { OPEN, quiet, still } from "./open";
 import { SCREENS_INDEX, WIDTHS } from "./screens";
 
-// D0.1 of PLAN-design.md: every screen of the index (screens.ts) at four widths, in both themes, as a
+// D0.1: every screen of the index (screens.ts) at four widths, in both themes, as a
 // `toHaveScreenshot` baseline (section 10). It runs in the design-* projects only, a CI job of its own
 // that does not fail the build. The snapshots are Linux's: take them in Playwright's Docker image
-// (docs/design/baseline/index.md says how).
+// (e2e/design/README.md says how).
 
 // A service worker takes control of the page sooner or later, and Diagnostics says which: none here.
 test.use({ serviceWorkers: "block" });

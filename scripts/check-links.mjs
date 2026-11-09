@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 // Link gate for the docs (P7.6), offline: no request is made. Fails (exit 1)
 // when a Markdown file links a repository file that is not there, or when a
-// doc under docs/ is not linked from the README, unless it says `<!-- off-site -->`
-// (kept in the repository, shown nowhere: packages/site/src/lib/content.ts reads
-// the same mark). A link to another site, or
+// doc under docs/ is not linked from the README. A link to another site, or
 // to a heading of the same file, is not checked.
 //
 // Usage: node scripts/check-links.mjs   (from the repo root)
@@ -23,7 +21,7 @@ const SKIP_DIRS = new Set([
   "vm-libs",
 ]);
 // History: written as it was, about files that may since have gone (CLAUDE.md: do not rewrite history).
-const HISTORY = new Set(["CHANGELOG.md", "PLAN-airtight-remediation.md", "e2e/FLAKES.md"]);
+const HISTORY = new Set(["CHANGELOG.md", "e2e/FLAKES.md"]);
 // Written by the build next to the file that links it (THIRD_PARTY_NOTICES.md is served beside it).
 const BUILT = new Set(["3rdpartylicenses.txt"]);
 
@@ -58,12 +56,7 @@ export function checkLinks(root) {
   const linked = new Set(readme.map((target) => normalize(target.split("#")[0]).replaceAll("\\", "/")));
   const docs =
     existsSync(join(root, "docs")) && statSync(join(root, "docs")).isDirectory()
-      ? files.filter(
-          (file) =>
-            file.startsWith("docs/") &&
-            !file.startsWith("docs/archive/") &&
-            !readFileSync(join(root, file), "utf8").includes("<!-- off-site -->"),
-        )
+      ? files.filter((file) => file.startsWith("docs/") && !file.startsWith("docs/archive/"))
       : [];
   for (const doc of docs) if (!linked.has(doc)) errors.push(`README.md does not link ${doc}`);
   return errors;

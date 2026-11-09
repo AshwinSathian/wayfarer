@@ -117,10 +117,10 @@ jobs:
           path: ${{ runner.temp }}/prod-server.log
           retention-days: 7
 
-  # D0.1 of PLAN-design.md: every screen at four widths in both themes, and D0.2's task scripts (e2e/design).
+  # D0.1: every screen at four widths in both themes, and D0.2's task scripts (e2e/design).
   # It never fails the build: a difference is for a reviewer to read, in the report it uploads.
-  # Chromium's snapshots are committed (docs/design/baseline/design-chromium); Firefox's and WebKit's are
-  # written fresh each run and uploaded (docs/design/baseline/index.md says how to update them).
+  # Chromium's snapshots are committed (e2e/design/baseline/design-chromium); Firefox's and WebKit's are
+  # written fresh each run and uploaded (e2e/design/README.md says how to update them).
   design:
     name: Design capture (${{ matrix.browser }})
     needs: pick
@@ -160,5 +160,5 @@ jobs:
           path: |
             playwright-report/
             test-results/design-tasks/
-            docs/design/baseline/design-${{ matrix.browser }}/
+            e2e/design/baseline/design-${{ matrix.browser }}/
           retention-days: 7

@@ -10,11 +10,9 @@ export const metadata = pageMeta(
 
 const NOTES: Partial<Record<DocGroup, string>> = {
   Operations: "How the site and the app are deployed and run. For the maintainer, not for using Wayfarer.",
-  "Design records":
-    "Working notes, audits and plans for the design, some for things not built yet. They are not user documentation: what Wayfarer does is in the guides and the claims ledger.",
 };
 
-/** The docs, grouped: the guides and the reference first, the design records last (they are working notes). */
+/** The docs, grouped: the guides and the reference first, the operations docs last. */
 export default function DocsIndex() {
   const all = docs();
   return (
@@ -26,12 +24,6 @@ export default function DocsIndex() {
           <section key={group} aria-labelledby={slug(group)}>
             <h2 id={slug(group)}>{group}</h2>
             {NOTES[group] && <p>{NOTES[group]}</p>}
-            {group === "Design records" && (
-              <p>
-                What the design audit changed, as you see it in the app:{" "}
-                <a href="/what-changed-in-3-0/">What changed in 3.0</a>.
-              </p>
-            )}
             <ul>
               {all
                 .filter((doc) => doc.group === group)

@@ -9,7 +9,7 @@ export const dynamic = "force-static";
 
 /**
  * Every page search engines should list (W3.1), with the day it last changed where the site knows it: a doc's from
- * git, a comparison's from the newest source it read, a post's its date. The working notes (design records, the
+ * git, a comparison's from the newest source it read, a post's its date. The working notes (the
  * operations docs) are pages, but `noindex` and not here. The app at /app/ is one address, its own page.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -31,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...posts().map((post): [string, string | undefined] => [`/blog/${post.slug}/`, post.date]),
     ["/what-changed-in-3-0/", lastChanged("packages/site/src/whats-new.mjs")],
     ["/changelog/", lastChanged("CHANGELOG.md")],
-    ["/roadmap/", lastChanged("PLAN-design.md")],
+    ["/roadmap/", lastChanged("docs/roadmap.md")],
   ];
   return pages.map(([path, modified]) => ({ url: `${SITE}${path}`, ...(modified ? { lastModified: modified } : {}) }));
 }

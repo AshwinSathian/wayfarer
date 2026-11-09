@@ -52,12 +52,12 @@ export default defineConfig({
       expect: { timeout: CLAIMS_EXPECT_MS },
     },
     // D0.1: every screen at four widths in both themes, a screenshot baseline (e2e/design). A job of its own
-    // in CI, which does not fail the build. The snapshots are Linux's (docs/design/baseline/index.md).
+    // in CI, which does not fail the build. The snapshots are Linux's (e2e/design/README.md).
     {
       name: `design-${name}`,
       use: { ...device },
       testMatch: "design/**/*.spec.ts",
-      snapshotPathTemplate: "{testDir}/../docs/design/baseline/{projectName}/{arg}{ext}",
+      snapshotPathTemplate: "{testDir}/design/baseline/{projectName}/{arg}{ext}",
       retries: 0,
     },
   ]),

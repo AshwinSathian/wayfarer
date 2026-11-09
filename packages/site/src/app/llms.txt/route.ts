@@ -58,8 +58,7 @@ const line = ([text, ids]: [string, string[]]) => {
 
 /** /llms.txt (W3.1): what Wayfarer is and is not, and where its docs are, in the format llmstxt.org describes. */
 export function GET() {
-  const userDocs = docs().filter((doc) => doc.group !== "Design records" && indexed(doc));
-  const records = docs().filter((doc) => doc.group === "Design records" && indexed(doc));
+  const userDocs = docs().filter(indexed);
   const text = `# Wayfarer
 
 > Wayfarer, the API client, is free and open source (MIT) and runs in a browser tab. It needs no install and no account, and it has no server of its own: a request goes from the tab to the host you name. Collections, environments and history stay in the browser; secrets are stored only as ciphertext.
@@ -94,10 +93,6 @@ ${RIVALS.map((rival) => `- [Wayfarer vs ${rival.name}](${SITE}/compare/${rival.i
 - [Changelog](${SITE}/changelog/)
 - [Source](https://github.com/AshwinSathian/wayfarer)
 
-## Optional
-
-${records.map((doc) => `- [${doc.title}](${SITE}/docs/${doc.id}/): ${docDescription(doc.id)}`).join("\n")}
-- [Design records](${SITE}/docs/#design-records): working notes and plans, some for things not built yet. Not user documentation.
 `;
   return new Response(text, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

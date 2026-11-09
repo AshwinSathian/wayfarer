@@ -1,6 +1,5 @@
 # Wayfarer's brand files
 
-D2.4 of `PLAN-design.md`; the choices and the arguments against them are row 1.62 of its section 14.
 Every file here is written from `../brand.mjs` and the tokens: do not edit one by hand.
 
 - `npm run gen:tokens` writes the SVGs, and `npm run check:tokens` fails when one is not what the

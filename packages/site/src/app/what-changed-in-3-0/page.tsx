@@ -1,9 +1,8 @@
-// "What changed in 3.0" (W5.5 of PLAN-design.md): the redesign, screen by screen, each change tied to its finding in
-// docs/design/audit.md. The words and the pictures are src/whats-new.mjs's; scripts/whats-new.test.mjs holds every
-// finding of severity 1 and 2 to this page. A sentence that says what Wayfarer does names its claims.
+// "What changed in 3.0": the redesign, screen by screen, each change tied to the number of its finding in the design
+// audit. The words and the pictures are src/whats-new.mjs's; scripts/whats-new.test.mjs holds each finding to its
+// before and after. A sentence that says what Wayfarer does names its claims.
 import { Claims } from "../../components/Claims";
 import { H2, Page } from "../../components/Page";
-import { REPO } from "../../lib/content";
 import { pageMeta } from "../../lib/meta";
 import { FINDINGS, GROUPS, SCREENS, screenHtml } from "../../whats-new.mjs";
 import sizes from "../../whats-new-images.mjs";
@@ -14,7 +13,6 @@ export const metadata = pageMeta(
   "Wayfarer 3.0's redesign, screen by screen: each picture of 2.x beside today's, and each change tied to the audit finding it fixes.",
 );
 
-const AUDIT = `${REPO}/blob/main/docs/design/audit.md`;
 const LINK = "text-action underline underline-offset-4";
 
 type Finding = { was: string; now?: string; accepted?: string; claims?: string[] };
@@ -51,7 +49,7 @@ export default function WhatChanged() {
           Before 3.0 the app was reviewed screen by screen, in six passes, and each problem found was written down with
           a number and a severity. Here is each screen as 2.x drew it beside the same screen in 3.0, then the changes a
           picture cannot show. Every finding that blocked a task, or slowed or misled someone, is on this page. Its
-          number is the one in <a href={AUDIT}>the audit</a>, which has the evidence and the change that closed it.
+          number is the one the audit gave it.
         </p>
       }
     >
@@ -91,11 +89,7 @@ export default function WhatChanged() {
       ))}
 
       <p className="mt-16 max-w-2xl text-ink-muted">
-        The smaller findings are in{" "}
-        <a className={LINK} href={AUDIT}>
-          the audit
-        </a>{" "}
-        with their state, and the rest of what 3.0 changed is in{" "}
+        The rest of what 3.0 changed is in{" "}
         <a className={LINK} href="/changelog/">
           the changelog
         </a>

@@ -241,8 +241,7 @@ because there was never a server-side copy.
 
 ## Known limitations
 
-These are open, tracked, and scheduled in
-[`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
+These are open and tracked:
 
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Offline, the app has the parts it has loaded once: the page, the editor, and whatever you used. A part that was never loaded on this device (the script engine before a script ever ran, the importer before a file was ever picked, an editor language's helper before the editor was idle once) is fetched the first time it is needed, and that needs the network. Nothing precaches all of them: together they are 12.9 MB.

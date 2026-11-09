@@ -23,7 +23,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const doc = await find(params);
-  // A working note (a design record, an operations doc) is not listed by search engines; they follow its links.
+  // A working note (an operations doc) is not listed by search engines; they follow its links.
   return pageMeta(
     `/docs/${doc.id}/`,
     `${doc.title}: Wayfarer API client docs`,
@@ -33,15 +33,13 @@ export async function generateMetadata({ params }: Props) {
 }
 
 /** A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article of a doc search engines may list:
- * a working note (a design record, an operations doc) is not a search result (W6.8). */
+ * a working note (an operations doc) is not a search result (W6.8). */
 export default async function DocPage({ params }: Props) {
   const doc = await find(params);
   const id = doc.id;
   return (
     <DocsFrame current={id}>
-      {doc.group !== "Design records" && doc.group !== "Operations" && (
-        <JsonLd data={docGraph(doc, docDescription(id), lastChanged(`docs/${id}.md`))} />
-      )}
+      {doc.group !== "Operations" && <JsonLd data={docGraph(doc, docDescription(id), lastChanged(`docs/${id}.md`))} />}
       <article
         className={id === "claims" ? "prose claims-ledger" : "prose"}
         {...(indexed(doc) ? { "data-pagefind-body": "" } : {})}

@@ -126,7 +126,8 @@ describe("Composer", () => {
   it("should send GET requests and persist history", async () => {
     const mockCreatedAt = 1_700_000_000_000;
     vi.spyOn(Date, "now").mockReturnValue(mockCreatedAt);
-    vi.spyOn(performance, "now").mockReturnValueOnce(1000).mockReturnValueOnce(1105);
+    // The send's start, the attempt's start (the router's), the end.
+    vi.spyOn(performance, "now").mockReturnValueOnce(1000).mockReturnValueOnce(1000).mockReturnValueOnce(1105);
 
     let emitted = false;
     component.newRequest.subscribe(() => (emitted = true));

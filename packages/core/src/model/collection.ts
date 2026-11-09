@@ -87,23 +87,38 @@ type TreeChild<F, R> = { folder: F; request?: undefined } | { request: R; folder
  * What a folder holds, or with no `parent` what stands at the top of the
  * collection: its folders and its requests as one list, by the one `order`
  * they share, as a Postman file has its items. Two of one number: a folder
- * before a request, then by id.
+ * before a request, then by id. The tree is read once, when it is given:
+ * ask the function it returns for each parent.
  */
 export function childrenInOrder<
   F extends Pick<Folder, "id" | "order" | "parentFolderId">,
   R extends Pick<RequestDoc, "id" | "order" | "folderId">,
->(tree: { folders: readonly F[]; requests: readonly R[] }, parent?: string): TreeChild<F, R>[] {
-  const entries = [
-    ...tree.folders
-      .filter((folder) => folder.parentFolderId === parent)
-      .map((folder) => ({ order: folder.order, kind: 0, id: folder.id, child: { folder } as TreeChild<F, R> })),
-    ...tree.requests
-      .filter((request) => request.folderId === parent)
-      .map((request) => ({ order: request.order, kind: 1, id: request.id, child: { request } as TreeChild<F, R> })),
-  ];
-  return entries
-    .sort((a, b) => a.order - b.order || a.kind - b.kind || a.id.localeCompare(b.id))
-    .map((entry) => entry.child);
+>(tree: { folders: readonly F[]; requests: readonly R[] }): (parent?: string) => TreeChild<F, R>[] {
+  interface Entry {
+    order: number;
+    kind: number;
+    id: string;
+    child: TreeChild<F, R>;
+  }
+  const byParent = new Map<string | undefined, Entry[]>();
+  const add = (parent: string | undefined, entry: Entry) => {
+    const siblings = byParent.get(parent);
+    if (siblings) siblings.push(entry);
+    else byParent.set(parent, [entry]);
+  };
+  for (const folder of tree.folders)
+    add(folder.parentFolderId, { order: folder.order, kind: 0, id: folder.id, child: { folder } });
+  for (const request of tree.requests)
+    add(request.folderId, { order: request.order, kind: 1, id: request.id, child: { request } });
+  const sorted = new Map(
+    [...byParent].map(([parent, entries]) => [
+      parent,
+      entries
+        .sort((a, b) => a.order - b.order || a.kind - b.kind || a.id.localeCompare(b.id))
+        .map((entry) => entry.child),
+    ]),
+  );
+  return (parent) => sorted.get(parent) ?? [];
 }
 
 /**
@@ -118,8 +133,9 @@ export function treeInOrder<
   R extends Pick<RequestDoc, "id" | "order" | "folderId">,
 >(tree: { folders: readonly F[]; requests: readonly R[] }): TreeItem<F, R>[] {
   const entered = new Set<string>();
+  const childrenOf = childrenInOrder(tree);
   const walk = (parent: string | undefined): TreeItem<F, R>[] =>
-    childrenInOrder(tree, parent).flatMap((child): TreeItem<F, R>[] => {
+    childrenOf(parent).flatMap((child): TreeItem<F, R>[] => {
       if (child.request !== undefined) return [{ kind: "request", request: child.request }];
       // A generic child does not narrow to its folder: read it, and a folder entered before is not entered again.
       const { folder } = child;

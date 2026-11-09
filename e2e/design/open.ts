@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { openEnvironments, openSettings, PASSPHRASE, send, toolbarOrDrawer } from "../support/app";
+import { openEnvironments, openSettings, PASSPHRASE, send, toolbarOrDrawer, untilBooted } from "../support/app";
 import { ECHO } from "../support/echo";
 import { type ScreenId } from "./screens";
 
@@ -128,6 +128,7 @@ async function seed(page: Page): Promise<void> {
 /** The collections tree: in the drawer below 1,200 px, which this opens. */
 async function tree(page: Page): Promise<Locator> {
   const found = page.getByRole("tree");
+  await untilBooted(page);
   if (!(await page.locator("app-collections-sidebar").isVisible())) {
     await button(page, "Show sidebar").click();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toBeVisible();

@@ -171,6 +171,7 @@ const VALUE_OPTIONS: Record<string, string> = {
   "--data-raw": "data-raw",
   "--data-binary": "data-binary",
   "--data-urlencode": "data-urlencode",
+  "--json": "json",
   "-F": "form",
   "--form": "form",
   "--form-string": "form-string",
@@ -281,6 +282,15 @@ const SKIPPED_VALUE_OPTIONS = new Set([
   "--stderr",
   "--proto",
   "--proto-default",
+  "--url-query",
+  "--proxy-header",
+  "--socks5",
+  "--socks5-hostname",
+  "--preproxy",
+  "--request-target",
+  "--doh-url",
+  "--output-dir",
+  "--netrc-file",
 ]);
 
 const formEncode = (text: string) => new URLSearchParams([[text, ""]]).toString().slice(0, -1);
@@ -340,7 +350,7 @@ export function parseCurl(text: string): ParsedCurl {
   const urls: string[] = [];
   let method: string | undefined;
   let basic: ParsedCurl["basic"];
-  let [get, head, binaryOnly] = [false, false, true];
+  let [get, head, binaryOnly, json] = [false, false, true, false];
 
   const take = (kind: string, value: string): void => {
     switch (kind) {
@@ -357,7 +367,10 @@ export function parseCurl(text: string): ParsedCurl {
       }
       case "data":
       case "data-binary":
-        if (kind === "data") binaryOnly = false;
+      case "json":
+        // --json is --data-binary with a type of its own, and curl's Accept.
+        if (kind === "json") json = true;
+        if (kind !== "data-binary") binaryOnly = false;
         data.push(value.startsWith("@") ? { file: value.slice(1) } : { text: value });
         break;
       case "data-raw":
@@ -444,6 +457,10 @@ export function parseCurl(text: string): ParsedCurl {
     );
   let url = urls[0];
 
+  if (json)
+    for (const name of ["Content-Type", "Accept"])
+      if (!headers.some(([named]) => named.toLowerCase() === name.toLowerCase()))
+        headers.push([name, "application/json"]);
   const type = (contentType(headers) ?? "").toLowerCase();
   let body: ExportBody = { mode: "none" };
   const files = data.flatMap((datum) => ("file" in datum ? [datum.file] : []));
@@ -461,9 +478,12 @@ export function parseCurl(text: string): ParsedCurl {
   } else if (data.length) {
     if (files.length) warnings.push(`The data of the file ${files.join(", ")} was left out: the file was not read.`);
     const wire = data.flatMap((datum) => ("text" in datum ? [datum.text] : [])).join("&");
-    // Without a type of its own, curl sends data as a form.
+    // Without a type of its own, curl sends data as a form. Data that is not form pairs is kept as
+    // written, under the type curl gives it: as fields, the app would encode it again.
+    const pairs = wire.split("&").every((piece) => /^[\w.~%+\-[\]]*(=|$)/.test(piece));
+    if (!type && !pairs) headers.push(["Content-Type", "application/x-www-form-urlencoded"]);
     body =
-      !type || type.startsWith("application/x-www-form-urlencoded")
+      (!type && pairs) || type.startsWith("application/x-www-form-urlencoded")
         ? { mode: "urlencoded", fields: [...new URLSearchParams(wire)] }
         : { mode: "raw", text: wire };
   }

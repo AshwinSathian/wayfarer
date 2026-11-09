@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RequestSave } from "../../services/request-save";
 import { ImportRefused, ImportWorkerClient } from "../../shared/import/import-worker-client";
 import { WorkspaceStore } from "../../state/workspace-store";
+import { Tabs } from "../../state/tabs";
 import { ComposerHarness, makeRequestDoc, setupComposer } from "../../../testing/composer-setup";
 
 // P4.5: a cURL command pasted into the address field becomes the request it
@@ -13,6 +14,7 @@ describe("Composer: a cURL command pasted into the address field", () => {
   let fixture: ComposerHarness["fixture"];
   let httpMock: ComposerHarness["httpMock"];
   let idbService: ComposerHarness["idbService"];
+  let view: ComposerHarness["view"];
   const worker = {
     curl: vi.fn(async (text: string) => {
       try {
@@ -27,7 +29,7 @@ describe("Composer: a cURL command pasted into the address field", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    ({ store, fixture, httpMock, idbService } = await setupComposer([
+    ({ store, fixture, httpMock, idbService, view } = await setupComposer([
       { provide: ImportWorkerClient, useValue: worker },
     ]));
   });
@@ -80,6 +82,45 @@ describe("Composer: a cURL command pasted into the address field", () => {
 
     expect(saved.loadedCollectionRequest()).toBeNull();
     expect(store.draft().url).toBe("https://api.test/other");
+  });
+
+  it("leaves the tab unsaved, so the tab is kept like any other edit", async () => {
+    await paste("curl https://api.test/kept");
+
+    expect(TestBed.inject(Tabs).active().dirty()).toBe(true);
+  });
+
+  it("goes into the tab it was pasted in, though another was opened while the command was read, and nowhere once that tab is closed", async () => {
+    const tabs = TestBed.inject(Tabs);
+    const answer = (text: string) => {
+      let resolve!: () => void;
+      const read = new Promise<void>((done) => (resolve = done));
+      worker.curl.mockImplementationOnce(async () => {
+        await read;
+        return curlToRequest(text);
+      });
+      return resolve;
+    };
+
+    const pastedIn = tabs.active();
+    let resolve = answer("curl https://api.test/pasted");
+    const pasting = view.pasteCurl("curl https://api.test/pasted");
+    tabs.open();
+    const other = tabs.active();
+    store.patch({ url: "https://other.test/" });
+    resolve();
+    await pasting;
+    expect(other.draft().url).toBe("https://other.test/");
+    expect(pastedIn.draft().url).toBe("https://api.test/pasted");
+
+    tabs.open();
+    const closed = tabs.active();
+    resolve = answer("curl https://api.test/closed");
+    const closing = view.pasteCurl("curl https://api.test/closed");
+    tabs.close(closed.id);
+    resolve();
+    await closing;
+    expect(tabs.tabs().map((tab) => tab.draft().url)).toEqual(["https://api.test/pasted", "https://other.test/"]);
   });
 
   it("says under the address what the command asked for that the app does not do, until the next send", async () => {

@@ -339,12 +339,9 @@ export class CollectionsSidebar implements OnInit {
       const tree =
         data.type === "request"
           ? undefined
-          : this.collectionsService
-              .tree()
-              .find(
-                (entry) =>
-                  entry.collection.meta.id === (data.type === "collection" ? data.ref.meta.id : data.ref.collectionId),
-              );
+          : this.collectionsService.getCollectionTree(
+              data.type === "collection" ? data.ref.meta.id : data.ref.collectionId,
+            );
       if (!tree) return;
       // A folder's run is named with the folders it is in, as a request's breadcrumb is.
       if (data.type === "folder")
@@ -546,7 +543,7 @@ export class CollectionsSidebar implements OnInit {
 
   /** What a folder's deletion takes with it, as a sentence; nothing for an empty folder. */
   private insideFolder(folder: Folder): string {
-    const tree = this.collectionsService.tree().find((entry) => entry.collection.meta.id === folder.collectionId);
+    const tree = this.collectionsService.getCollectionTree(folder.collectionId);
     const within = (folderId: string | undefined) =>
       folderChain(tree?.folders ?? [], folderId).some((entry) => entry.meta.id === folder.meta.id);
     const folders = (tree?.folders ?? []).filter(

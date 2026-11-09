@@ -48,6 +48,28 @@ describe("the repositories over IdbCore", () => {
     expect(latest[1]?.sent.url).toBe("https://example.com/old");
   });
 
+  it("lists what History draws of each entry, not its bodies: those are read by id when a row is opened", async () => {
+    const big = "x".repeat(1_000_000);
+    for (const createdAt of [1, 2, 3]) {
+      const entry = createRequest({
+        createdAt,
+        status: 200,
+        template: { body: { mode: "raw", raw: { language: "text", text: big } } },
+      });
+      entry.sent.bodyPreview = big;
+      entry.response!.body = { text: big, truncated: false };
+      await service.history.add(entry, 500);
+    }
+    const latest = await service.history.getLatest(3);
+    expect(latest.map((entry) => [entry.createdAt, entry.response?.status])).toEqual([
+      [3, 200],
+      [2, 200],
+      [1, 200],
+    ]);
+    expect(JSON.stringify(latest).length).toBeLessThan(10_000);
+    expect((await service.history.get(latest[0].id!))?.response?.body?.text).toBe(big);
+  });
+
   it("keeps no more than the cap: the oldest entries go when a new one is written", async () => {
     for (const createdAt of [3, 1, 2, 4]) {
       await service.history.add(createRequest({ url: `https://example.com/${createdAt}`, createdAt }), 3);
@@ -99,7 +121,7 @@ describe("the repositories (memory fallback, indexedDB unavailable)", () => {
     const core = TestBed.inject(IdbCore);
 
     await service.core.init();
-    expect(core.useMemoryFallback).toBe(true);
+    expect(core.memoryOnly()).toBe(true);
 
     const key = await service.history.add(createRequest({ url: "https://memory-only", createdAt: 42 }), 500);
     expect(key).toBe(1);

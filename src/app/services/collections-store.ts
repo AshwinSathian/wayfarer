@@ -38,6 +38,8 @@ export class CollectionsStore {
 
   private readonly treeState = signal<CollectionTree[]>([]);
   private readonly loadingState = signal(false);
+  private reads = 0;
+  private latest: Promise<void> = Promise.resolve();
 
   constructor() {
     // Another tab changed a collection, a folder or a request.
@@ -51,7 +53,16 @@ export class CollectionsStore {
   readonly tree: Signal<CollectionTree[]> = computed(() => this.treeState());
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
 
-  async refresh(): Promise<void> {
+  /**
+   * Reads the whole tree again. Refreshes overlap (another tab's write starts one at any moment): only the last one
+   * started sets the tree, and an earlier one ends when that one does.
+   */
+  refresh(): Promise<void> {
+    this.latest = this.readTree(++this.reads);
+    return this.latest;
+  }
+
+  private async readTree(read: number): Promise<void> {
     this.loadingState.set(true);
     try {
       const collections = await this.collectionsRepository.listCollections();
@@ -63,9 +74,10 @@ export class CollectionsStore {
         ]);
         trees.push({ collection, folders, requests });
       }
+      if (read !== this.reads) return await this.latest;
       this.treeState.set(trees);
     } finally {
-      this.loadingState.set(false);
+      if (read === this.reads) this.loadingState.set(false);
     }
   }
 
@@ -86,20 +98,22 @@ export class CollectionsStore {
    * top-level list shape and are comparatively rare.
    */
   private async refreshCollectionEntry(collectionId: string): Promise<void> {
-    const index = this.treeState().findIndex((entry) => entry.collection.meta.id === collectionId);
-    if (index === -1) {
+    if (!this.treeState().some((entry) => entry.collection.meta.id === collectionId)) {
       // Not in the current snapshot — fall back to a full reload rather than
       // silently doing nothing.
       await this.refresh();
       return;
     }
+    const read = this.reads;
     const [folders, requests] = await Promise.all([
       this.foldersRepository.listFolders(collectionId),
       this.requestsRepository.listRequests(collectionId),
     ]);
-    const next = [...this.treeState()];
-    next[index] = { ...next[index], folders, requests };
-    this.treeState.set(next);
+    // A refresh started meanwhile reads this collection too, or finds it gone.
+    if (read !== this.reads) return this.latest;
+    this.treeState.update((tree) =>
+      tree.map((entry) => (entry.collection.meta.id === collectionId ? { ...entry, folders, requests } : entry)),
+    );
   }
 
   private findFolderCollectionId(id: string): string | undefined {
@@ -206,6 +220,12 @@ export class CollectionsStore {
     await this.refresh();
   }
 
+  /** Undo of an import: the collections it added go and those it replaced come back, in one transaction. */
+  async undoImport(added: string[], replaced: Removed[]): Promise<void> {
+    await this.collectionsRepository.undoImport(added, replaced);
+    await this.refresh();
+  }
+
   async reorderCollections(order: { id: string; order: number }[]): Promise<void> {
     await this.collectionsRepository.reorderCollections(order);
     await this.refresh();
@@ -245,7 +265,7 @@ export class CollectionsStore {
   }
 
   /** The new places of a parent's folders and requests, which share one order. */
-  async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
+  async reorderChildren(order: { id: string; order: number }[]): Promise<void> {
     const collectionId = order[0]
       ? (this.findFolderCollectionId(order[0].id) ?? this.findRequestCollectionId(order[0].id))
       : undefined;
@@ -298,14 +318,9 @@ export class CollectionsStore {
     return removed;
   }
 
-  getCollection(id: string): Collection | undefined {
-    return this.treeState()
-      .map((entry) => entry.collection)
-      .find((collection) => collection.meta.id === id);
-  }
-
-  getCollectionTree(id: string): CollectionTree | undefined {
-    return this.treeState().find((entry) => entry.collection.meta.id === id);
+  /** The collection `id` names, with its folders and requests; none for no id. Read in a `computed`, it follows the tree. */
+  getCollectionTree(id: string | null | undefined): CollectionTree | undefined {
+    return id == null ? undefined : this.treeState().find((entry) => entry.collection.meta.id === id);
   }
 
   /**

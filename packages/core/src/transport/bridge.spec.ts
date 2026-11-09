@@ -44,11 +44,12 @@ describe("BridgeTransport", () => {
     expect(calls[0].url).toBe("http://127.0.0.1:7717/relay");
     expect(calls[0].init.method).toBe("POST");
     expect(new Headers(calls[0].init.headers).get("X-Wayfarer-Bridge-Token")).toBe("test-token");
-    // Exactly the fields the bridge reads: it refuses one it does not know. No body, so no `bodyB64`; no timeout, so none.
+    // Exactly the fields the bridge reads: it refuses one it does not know. No body, so no `bodyB64`; no timeout, so the bridge's longest.
     expect(relayed(calls[0].init)).toEqual({
       method: "GET",
       url: "https://internal.example.com/data",
       headers: [["Accept", "application/json"]],
+      timeoutMs: 600_000,
     });
     // The names in lower case, as a direct response has them.
     expect(response.headers).toEqual([["content-type", "application/json"]]);
@@ -290,7 +291,7 @@ describe("BridgeTransport", () => {
       expect(response.redirected).toBe(false);
       expect(relayed).toHaveLength(1);
       // The bridge is asked to follow nothing: it relays a hop, and the page decides the next.
-      expect(Object.keys(relayed[0]).sort()).toEqual(["headers", "method", "url"]);
+      expect(Object.keys(relayed[0]).sort()).toEqual(["headers", "method", "timeoutMs", "url"]);
     });
 
     it("makes each hop a relay of its own and lists it: status, the address that answered, Location as received", async () => {
@@ -476,22 +477,41 @@ describe("what a request asks of the bridge beyond its method, address, headers 
     const { fetch, calls } = relay(answer(200, [], "ok"));
     const response = await new BridgeTransport(BRIDGE, fetch).send(GET, open());
     expect(calls.map((call) => call.url)).toEqual(["http://127.0.0.1:7717/relay"]);
-    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [] });
+    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [], timeoutMs: 600_000 });
     expect(response.tlsInsecure).toBeUndefined();
+  });
+
+  it("no timeout, or one past the bridge's 10 minutes, asks the bridge for its 10 minutes: not its default 30 s, and not a 400", async () => {
+    const { fetch, calls } = relay(answer(200, [], "ok"));
+    const bridge = new BridgeTransport(BRIDGE, fetch);
+    await bridge.send(GET, open());
+    await bridge.send(GET, { ...open(), timeoutMs: 900_000 });
+    expect(calls.map((call) => relayed(call.init).timeoutMs)).toEqual([600_000, 600_000]);
   });
 
   it("TLS verification off: the request says tls.insecure, and the response says it was sent so", async () => {
     const { fetch, calls } = relay(answer(200, [], "ok"));
     const response = await new BridgeTransport(BRIDGE, fetch).send(GET, { ...open(), tlsInsecure: true });
     expect(calls.map((call) => [call.init.method, call.url])).toEqual([["POST", "http://127.0.0.1:7717/relay"]]);
-    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [], tls: { insecure: true } });
+    expect(relayed(calls[0].init)).toEqual({
+      method: "GET",
+      url: GET.url,
+      headers: [],
+      timeoutMs: 600_000,
+      tls: { insecure: true },
+    });
     expect(response.tlsInsecure).toBe(true);
   });
 
   it("a Host header goes in the header list as written", async () => {
     const { fetch, calls } = relay(answer(200, [], "ok"));
     await new BridgeTransport(BRIDGE, fetch).send({ ...GET, headers: [["Host", "api.internal"]] }, open());
-    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [["Host", "api.internal"]] });
+    expect(relayed(calls[0].init)).toEqual({
+      method: "GET",
+      url: GET.url,
+      headers: [["Host", "api.internal"]],
+      timeoutMs: 600_000,
+    });
   });
 
   it("timings are the bridge's when each is a number of 0 or more; an answer without them, or with one that is not, has none of that phase", async () => {

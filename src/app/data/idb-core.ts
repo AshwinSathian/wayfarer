@@ -110,10 +110,6 @@ export class IdbCore {
     this.changeListeners.push(listener);
   }
 
-  get useMemoryFallback(): boolean {
-    return this.memoryOnly();
-  }
-
   init(): Promise<void> {
     this.initPromise ??= this.open();
     return this.initPromise;
@@ -132,6 +128,12 @@ export class IdbCore {
         // Another tab is deleting the database (Reset all data, no new version) or opening it at a later
         // version (a later Wayfarer): holding the connection would block either.
         blocking: (_current, newVersion) => void this.closeForOtherTab(newVersion !== null),
+        // The browser closed the connection (WebKit's "connection to the server lost", site data cleared): open it
+        // again, and a refused open is the memory-only banner.
+        terminated: () => {
+          recordDiagnostic("the browser closed the IndexedDB connection", "idb: reopening");
+          this.initPromise = this.open();
+        },
       });
 
       await this.dbPromise;
@@ -149,6 +151,27 @@ export class IdbCore {
   }
 
   async getDatabase(): Promise<IDBPDatabase<WayfarerDB> | null> {
+    this.assertUsable();
+    await this.init();
+    // Again: the open this call waited on may have found a later version, or another tab closed it meanwhile.
+    this.assertUsable();
+
+    if (this.memoryOnly()) {
+      return null;
+    }
+
+    const pending = this.dbPromise;
+    if (!pending) throw new Error("Database unavailable");
+    try {
+      return await pending;
+    } catch (error) {
+      this.logError("Failed to resolve database instance. Switching to in-memory store.", error);
+      this.enableMemoryFallback();
+      return null;
+    }
+  }
+
+  private assertUsable(): void {
     if (this.closedByOtherTab()) {
       // Reopening would recreate the database the other tab just deleted, or fail on a later version.
       throw new Error(
@@ -164,19 +187,6 @@ export class IdbCore {
     if (this.resetForReload) {
       // A send that was on its way, a tab's timer: opening now would make the database again, with that one record in it.
       throw new Error("All data was reset; this tab is reloading.");
-    }
-    await this.init();
-
-    if (this.memoryOnly()) {
-      return null;
-    }
-
-    try {
-      return await this.dbPromise!;
-    } catch (error) {
-      this.logError("Failed to resolve database instance. Switching to in-memory store.", error);
-      this.enableMemoryFallback();
-      return null;
     }
   }
 

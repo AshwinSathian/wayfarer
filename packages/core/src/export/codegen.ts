@@ -61,9 +61,17 @@ function fetchCode(request: ExportRequest): string {
 function pythonCode(request: ExportRequest): string {
   const { body } = request;
   const args = [literal(request.method), literal(request.url)];
-  const headers = sentHeaders(request);
-  if (headers.length)
-    args.push(`headers={${headers.map(([name, value]) => `${literal(name)}: ${literal(value)}`).join(", ")}}`);
+  // A dict keeps one value a name: headers that share one are joined, as fetch's Headers joins them.
+  const headers = new Map<string, [string, string]>();
+  for (const [name, value] of sentHeaders(request)) {
+    const named = headers.get(name.toLowerCase());
+    if (named) named[1] += `, ${value}`;
+    else headers.set(name.toLowerCase(), [name, value]);
+  }
+  if (headers.size)
+    args.push(
+      `headers={${[...headers.values()].map(([name, value]) => `${literal(name)}: ${literal(value)}`).join(", ")}}`,
+    );
   if (body.mode === "raw" && body.text) {
     args.push(`data=${literal(body.text)}.encode("utf-8")`);
   } else if (body.mode === "urlencoded") {

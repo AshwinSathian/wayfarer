@@ -89,7 +89,7 @@ page when the browser cannot, and answers on `127.0.0.1` only.
 |---|---|---|---|---|
 | Page and Local Bridge | S, E | Another website you visit asks the bridge to send requests from your machine: to your intranet, or to `localhost` services. | The bridge relays only for an allowed origin that presents its token. | C-041 |
 | Page and Local Bridge | I | A redirect takes a request that holds a vault secret to another host. | Through the bridge, such a request is not followed to another host, another port, or the same host without TLS. | C-063 |
-| Page and Local Bridge | T | A request the server already received is sent a second time through the bridge. | Auto sends through the bridge only when the request cannot have reached the server, and asks you first otherwise. | C-064 |
+| Page and Local Bridge | T | A request the server already received is sent a second time through the bridge. | Auto never sends a request again once its response began. It sends one through the bridge at once only when it needed a preflight or is a GET, HEAD or OPTIONS, and asks you first otherwise. A server that passes the preflight and answers without CORS still gets it twice. | C-064 |
 
 ## The page and the sign-in window
 

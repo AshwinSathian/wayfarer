@@ -107,6 +107,18 @@ describe("UiTooltip", () => {
     fixture.destroy();
   });
 
+  it("is in the page only while it describes its host or shows: a list of rows keeps no popover per row", async () => {
+    const { fixture, el } = await setup();
+    // A card, and text that repeats the host's name, describe nothing until shown.
+    expect(tipOf(el("row")).isConnected).toBe(false);
+    expect(tipOf(el("same")).isConnected).toBe(false);
+    expect(tipOf(el("labelled")).isConnected).toBe(true);
+    enter(el("same"));
+    expect(tipOf(el("same")).parentElement).toBe(document.body);
+    expect(isOpen(el("same"))).toBe(true);
+    fixture.destroy();
+  });
+
   it("shows for a mouse or a pen, not for a touch", async () => {
     const { fixture, el } = await setup();
     const host = el("labelled");

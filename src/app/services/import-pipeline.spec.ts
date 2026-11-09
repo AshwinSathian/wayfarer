@@ -66,7 +66,7 @@ const worker = {
 // their assertions; the worker is stood in for by a direct call.
 describe("ImportPipeline", () => {
   let service: ImportPipeline;
-  const collections = { importCollection: vi.fn() };
+  const collections = { importCollection: vi.fn(), undoImport: vi.fn() };
   const existing = signal<EnvironmentDoc[]>([]);
   const environments = { environments: existing, updateEnvironment: vi.fn(), createEnvironment: vi.fn() };
 
@@ -348,6 +348,43 @@ describe("ImportPipeline", () => {
 
     expect(undo.current()?.message).toBe("Imported billing.json.");
     expect(service.addedFromLink()).toBeNull();
+  });
+
+  it("a write that fails part way says how much was stored, and offers the Undo of that part", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    const one = importText(collectionFile, { duplicateAsNew: false });
+    worker.run.mockResolvedValueOnce({ ...one, collections: [one.collections[0], one.collections[0]] });
+    collections.importCollection
+      .mockResolvedValueOnce({ meta: meta("col-1"), name: "Billing" })
+      .mockRejectedValueOnce(new DOMException("full", "QuotaExceededError"));
+    await service.stage("billing.json", collectionFile);
+
+    await expect(service.confirm()).resolves.toEqual(["col-1"]);
+
+    expect(service.refused()?.message).toContain("1 of 2 collections were stored");
+    expect(service.storing()).toBe(false);
+    expect(undo.current()?.message).toBe("Imported part of billing.json.");
+    await undo.undo();
+    expect(collections.undoImport).toHaveBeenCalledWith(["col-1"], []);
+  });
+
+  it("an import's Undo deletes what it added and puts back what it replaced in one call, and stays when it fails", async () => {
+    const undo = TestBed.inject(UndoNotice);
+    const original = { collections: [], folders: [], requests: [], files: [] };
+    collections.importCollection.mockImplementationOnce(
+      async (_payload: unknown, options: { replaced: (removed: typeof original) => void }) => {
+        options.replaced(original);
+        return { meta: meta("col-1"), name: "Billing" };
+      },
+    );
+    collections.undoImport.mockRejectedValueOnce(new Error("aborted"));
+    await service.stage("billing.json", collectionFile);
+    await service.confirm();
+
+    await undo.undo();
+
+    expect(collections.undoImport).toHaveBeenCalledExactlyOnceWith(["col-1"], [original]);
+    expect(undo.current()?.message).toBe("Imported billing.json.");
   });
 
   it("a worker that fails is said as such, and nothing is stored", async () => {

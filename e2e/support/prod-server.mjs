@@ -49,10 +49,11 @@ const TYPES = {
   ".ttf": "font/ttf",
   ".wasm": "application/wasm",
   ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
 };
 
-const COMPRESSIBLE = /^(text\/|application\/(json|manifest\+json|wasm)|image\/svg\+xml)/;
+const COMPRESSIBLE = /^(text\/|application\/(json|manifest\+json|wasm|xml)|image\/svg\+xml)/;
 
 /** The encoding to send a body of `type` in, for a request's `Accept-Encoding`: brotli, gzip, or none. */
 export function encodingFor(accept, type) {

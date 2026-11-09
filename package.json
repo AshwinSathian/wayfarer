@@ -92,7 +92,8 @@
     "dompurify": "^3.4.17",
     "qs": "6.17.1",
     "vite": "8.3.4",
-    "minimatch": "^11.0.4"
+    "minimatch": "^11.0.4",
+    "fflate": "0.8.3"
   },
   "devDependencies": {
     "@angular-eslint/builder": "22.6.0",

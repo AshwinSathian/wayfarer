@@ -1,0 +1,276 @@
+---
+// The landing's "What the others ask of you first" (D5-e): five questions a person asks before switching, Wayfarer's
+// answer with its claims, and each rival's from its own documentation, every cell with its source and the date it was
+// read. The rivals' cells are docs/benchmark.md's (read on 2026-11-04) and Postman's price is the compare page's (read
+// again on 2026-11-07). The last row is where Wayfarer is behind, and says so. The landing gives it its section and
+// heading. From 64 em it is a table, a question a row; below, a question a block, the others folded under Wayfarer's
+// answer (five answers each, with their sources, were a screen and a half of a phone per question).
+import type { Rich as RichText } from "../lib/rivals";
+import Rich from "./Rich.astro";
+
+const RIVALS = ["Postman", "Bruno", "Yaak", "Insomnia", "Hoppscotch"] as const;
+type RivalName = (typeof RIVALS)[number];
+
+interface Cell {
+  text: string;
+  /** Whose page it is, as the link says it. */
+  source: string;
+  url: string;
+  /** When it was read, YYYY-MM-DD. */
+  read: string;
+}
+
+const READ = "2026-11-04";
+const cell = (text: string, source: string, url: string, read = READ): Cell => ({ text, source, url, read });
+const BENCHMARK = "/docs/benchmark/";
+
+const ROWS: { question: string; wayfarer: RichText; rivals: Record<RivalName, Cell> }[] = [
+  {
+    question: "What to install before the first request",
+    wayfarer: ["Nothing: type an address and press Enter (", { a: "measured", href: BENCHMARK }, ")."],
+    rivals: {
+      Postman: cell(
+        "A desktop app, or an agent for the web app",
+        "Postman docs",
+        "https://learning.postman.com/docs/getting-started/first-steps/sending-the-first-request/",
+      ),
+      Bruno: cell("A desktop app", "Bruno docs", "https://docs.usebruno.com/get-started/bruno-basics/create-a-request"),
+      Yaak: cell("A desktop app", "Yaak docs", "https://yaak.app/docs/request-types/http-requests"),
+      Insomnia: cell("A desktop app", "Insomnia docs", "https://developer.konghq.com/insomnia/requests/"),
+      Hoppscotch: cell(
+        "Nothing, for an API that allows CORS; otherwise an agent, an extension or a proxy",
+        "Hoppscotch docs",
+        "https://docs.hoppscotch.io/documentation/getting-started/rest/creating-a-request",
+      ),
+    },
+  },
+  {
+    question: "An account, to keep a collection",
+    wayfarer: ["No. Your work stays in this browser. ", { claims: ["C-001", "C-002"] }],
+    rivals: {
+      Postman: cell(
+        "Yes: signed out, there are no collections",
+        "Postman docs",
+        "https://learning.postman.com/docs/getting-started/basics/using-api-client/",
+      ),
+      Bruno: cell("No", "Bruno changelog", "https://www.usebruno.com/changelog"),
+      Yaak: cell("No", "Yaak changelog", "https://yaak.app/changelog/2026.9.0"),
+      Insomnia: cell("No, in the local Scratch Pad", "Insomnia docs", "https://developer.konghq.com/insomnia/storage/"),
+      Hoppscotch: cell(
+        "No, in the web app",
+        "Hoppscotch docs",
+        "https://docs.hoppscotch.io/documentation/getting-started/rest/creating-a-request",
+      ),
+    },
+  },
+  {
+    question: "A secret only your passphrase opens, free",
+    wayfarer: [
+      "Yes. Only its ciphertext is stored, under a key held in memory. ",
+      { claims: ["C-003", "C-004", "C-005"] },
+    ],
+    rivals: {
+      Postman: cell(
+        "No: the key is in the system's password manager",
+        "Postman docs",
+        "https://learning.postman.com/docs/use/postman-vault/postman-vault-key.md",
+      ),
+      Bruno: cell(
+        "No: encrypted on disk; kept off disk only in the paid Ultimate",
+        "Bruno docs",
+        "https://docs.usebruno.com/secrets-management/secret-variables",
+      ),
+      Yaak: cell(
+        "No: the key is in the system's keychain",
+        "Yaak docs",
+        "https://yaak.app/docs/collaboration/secrets-encryption",
+      ),
+      Insomnia: cell(
+        "No: encrypted on disk, with no passphrase documented",
+        "Insomnia docs",
+        "https://developer.konghq.com/insomnia/environments/",
+      ),
+      Hoppscotch: cell(
+        "No: kept in the browser's localStorage",
+        "Hoppscotch security policy",
+        "https://docs.hoppscotch.io/support/security-policy",
+      ),
+    },
+  },
+  {
+    question: "Why a request failed (CORS, DNS, a 401)",
+    wayfarer: [
+      "What the browser will do, named before you send; after, the real error, never a made-up one. ",
+      { claims: ["C-049", "C-010"] },
+    ],
+    rivals: {
+      Postman: cell(
+        "Not documented",
+        "Postman docs",
+        "https://learning.postman.com/docs/use/send-requests/response-data/troubleshooting-api-requests.md",
+      ),
+      Bruno: cell("Not documented", "Bruno docs", "https://docs.usebruno.com/debugging/timeline"),
+      Yaak: cell("Not documented", "Yaak docs", "https://yaak.app/docs/troubleshooting/troubleshooting"),
+      Insomnia: cell("Not documented", "Insomnia docs", "https://developer.konghq.com/insomnia/requests.md"),
+      Hoppscotch: cell(
+        "Not documented",
+        "Hoppscotch docs",
+        "https://docs.hoppscotch.io/documentation/getting-started/troubleshooting.md",
+      ),
+    },
+  },
+  {
+    question: "A workspace your team shares",
+    wayfarer: [
+      { strong: "Not yet." },
+      " A collection goes as a copy: a file, or an encrypted link that reaches no server, read before it is stored. ",
+      { claims: ["C-084", "C-086"] },
+      " A workspace in step, through Git, is ",
+      { a: "next", href: "/roadmap/" },
+      ".",
+    ],
+    rivals: {
+      Postman: cell(
+        "The Team plan, $19 a user a month, billed yearly",
+        "Postman pricing",
+        "https://www.postman.com/pricing/",
+        "2026-11-07",
+      ),
+      Bruno: cell(
+        "Through Git; pushing from the app needs Pro or Ultimate",
+        "Bruno docs",
+        "https://docs.usebruno.com/git-integration/using-gui/provider",
+      ),
+      Yaak: cell("Through Git", "Yaak docs", "https://yaak.app/docs/collaboration/local-directory-git-sync"),
+      Insomnia: cell(
+        "An organisation, with an account",
+        "Insomnia docs",
+        "https://developer.konghq.com/insomnia/organizations.md",
+      ),
+      Hoppscotch: cell(
+        "Workspaces, with sign-in",
+        "Hoppscotch docs",
+        "https://docs.hoppscotch.io/documentation/features/workspaces.md",
+      ),
+    },
+  },
+];
+
+const day = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+---
+
+<div class="mt-12 hidden lg:block">
+  <table class="facts table-fixed">
+    <caption class="sr-only">
+      What Wayfarer and five other API clients ask of you first, with each answer's source
+    </caption>
+    <thead>
+      <tr class="align-bottom">
+        <td class="w-[16%]"></td>
+        <th scope="col" class="w-[20%] text-ink">Wayfarer</th>
+        {RIVALS.map((name) => <th scope="col" class="text-ink">{name}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {
+        ROWS.map((row) => (
+          <tr>
+            <th scope="row" class="text-ink">
+              {row.question}
+            </th>
+            <td class="text-ink">
+              <Rich parts={row.wayfarer} />
+            </td>
+            {RIVALS.map((name) => {
+              const value = row.rivals[name];
+              return (
+                <td>
+                  <span class="text-ink-muted">{value.text}</span>
+                  <span class="cite mt-1 block type-site-caption text-ink-muted">
+                    <a class="link" href={value.url}>{value.source}</a>, <time class="whitespace-nowrap" datetime={value.read}>{day(value.read)}</time>
+                  </span>
+                </td>
+              );
+            })}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-10 space-y-12 lg:hidden">
+  {
+    ROWS.map((row) => (
+      <div>
+        <h3 class="type-site-title-3 font-semibold text-ink">{row.question}</h3>
+        <p class="mt-3 text-ink">
+          <span class="font-semibold">Wayfarer:</span> <Rich parts={row.wayfarer} />
+        </p>
+        <details class="ask-fold mt-3">
+          <summary class="type-site-small text-ink-muted">What the others say</summary>
+          <dl class="mt-3 space-y-3 type-site-small">
+            {RIVALS.map((name) => {
+              const value = row.rivals[name];
+              return (
+                <div class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
+                  <dt class="font-semibold text-ink">{name}</dt>
+                  <dd>
+                    <span class="text-ink-muted">{value.text}</span>
+                    <span class="cite mt-1 block type-site-caption text-ink-muted">
+                      <a class="link" href={value.url}>{value.source}</a>, <time class="whitespace-nowrap" datetime={value.read}>{day(value.read)}</time>
+                    </span>
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </details>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  /* The fold is the browser's <details> with none of its look: its words, underlined when pointed at, and a mark
+     that turns a quarter when it opens. */
+  .ask-fold > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    text-underline-offset: 0.2em;
+  }
+  .ask-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .ask-fold > summary:hover,
+  .ask-fold > summary:focus-visible {
+    text-decoration: underline;
+  }
+  .ask-fold > summary::after {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-0.15rem) rotate(45deg);
+    transition: transform var(--dur-quick) var(--ease-standard);
+  }
+  .ask-fold[open] > summary::after {
+    transform: translateY(0.1rem) rotate(-135deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ask-fold > summary::after {
+      transition: none;
+    }
+  }
+</style>

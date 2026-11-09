@@ -1,6 +1,6 @@
 // The benchmark's recordings (docs/benchmark/task-*.webm) served by the site at /benchmark/ (W5.4 of
 // PLAN-design.md): the comparison pages and the benchmark's page link each of Wayfarer's numbers to its recording.
-// Run after `next build`, with the output folder: node benchmark-recordings.mjs out
+// Run after `astro build`, with the output folder: node benchmark-recordings.mjs out
 import { copyFileSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

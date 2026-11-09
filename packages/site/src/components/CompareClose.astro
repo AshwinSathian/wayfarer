@@ -1,0 +1,27 @@
+---
+// The close of every comparison page: the app, and the way in from Postman, on a band one tone off the page.
+import type { Rival } from "../lib/rivals";
+import Claims from "./Claims.astro";
+
+interface Props {
+  rival?: Rival;
+}
+const { rival } = Astro.props;
+---
+
+<section aria-labelledby="try" class="mt-24 bg-paper-sunk py-20 sm:mt-32 sm:py-28">
+  <div class="frame">
+    <div class="col">
+      <h2 id="try" class="type-site-title-1 font-semibold text-ink">
+        {rival ? `Try it with your ${rival.name} work` : "Try it with your own requests"}
+      </h2>
+      <p class="mt-4 type-site-lede text-ink-muted">
+        It opens in this tab, with nothing to install and no account. <Claims ids={["C-001"]} />
+      </p>
+      <p class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <a class="btn type-site-body" href="/app/">Open Wayfarer</a>
+        <a class="link text-ink" href="/compare/moving-from-postman/">Moving from Postman</a>
+      </p>
+    </div>
+  </div>
+</section>

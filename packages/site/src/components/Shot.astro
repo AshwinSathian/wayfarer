@@ -1,0 +1,33 @@
+---
+/**
+ * A still of the app as built (scripts/site-screenshot.mjs, `npm run gen:shots`), one per theme, the page's shown. The
+ * hidden one is lazy, so it is not fetched; the hero's are eager, the first thing drawn.
+ */
+interface Props {
+  name: string;
+  alt: string;
+  width: number;
+  height: number;
+  sizes: string;
+  hero?: boolean;
+  class?: string;
+}
+const { name, alt, width, height, sizes, hero = false, class: className = "h-auto" } = Astro.props;
+---
+
+{
+  (["dark", "light"] as const).map((theme) => (
+    <img
+      class:list={[`shot-${theme} block w-full`, className]}
+      src={hero ? `/shots/${name}-${theme}.1x.avif` : `/shots/${name}-${theme}.avif`}
+      srcset={hero ? `/shots/${name}-${theme}.1x.avif 1440w, /shots/${name}-${theme}.2x.avif 2880w` : undefined}
+      sizes={sizes}
+      width={width}
+      height={height}
+      alt={alt}
+      loading={hero ? "eager" : "lazy"}
+      fetchpriority={hero ? "high" : undefined}
+      decoding="async"
+    />
+  ))
+}

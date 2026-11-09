@@ -17,7 +17,7 @@ without it the mark is a plain W.
 The tile is the ink, Send's fill, and the glyph the colour on it (`--ink` and `--on-ink`), so it is
 dark on the light theme and light on the dark one. Hue means a method or a status in Wayfarer and
 nothing else (DQ11), so the mark has none. The glyph is 2.4 units wide on the 26-unit tile, centred,
-and drawn inline in the app (`app-mark`) and on the site (`Mark.tsx`) from the same numbers
+and drawn inline in the app (`app-mark`) and on the site (`Mark.astro`) from the same numbers
 (`TRAIL` and `HOST` in `../brand.mjs`; `scripts/installed-app.test.mjs` holds them equal).
 
 The name is set in Atkinson Hyperlegible Next Bold (700), in the app, on the site and in the

@@ -164,7 +164,7 @@
     }
   },
   "font": {
-    "$description": "Font families (DQ11). Atkinson Hyperlegible Next speaks for Wayfarer: its I, l and 1, and its 0 and O, differ at 12 and 13 px (U-150). It has Latin only; Inter is the per-glyph fallback for Greek, Cyrillic and Vietnamese. JetBrains Mono is the wire.",
+    "$description": "Font families (DQ11). Atkinson Hyperlegible Next speaks for Wayfarer: its I, l and 1, and its 0 and O, differ at 12 and 13 px (U-150). It has Latin only; Inter is the per-glyph fallback for Greek, Cyrillic and Vietnamese. JetBrains Mono is the wire. STIX Two Text is the site's voice (the website rebuild in Astro): a plain roman of the printed page, for a site that reads like a well-kept document; the app keeps Atkinson Hyperlegible Next.",
     "font-sans": {
       "$type": "fontFamily",
       "$value": [
@@ -180,6 +180,10 @@
     "font-mono": {
       "$type": "fontFamily",
       "$value": ["JetBrains Mono", "Menlo", "SF Mono", "Consolas", "monospace"]
+    },
+    "font-site": {
+      "$type": "fontFamily",
+      "$value": ["STIX Two Text", "Georgia", "Times New Roman", "serif"]
     }
   },
   "type": {
@@ -298,65 +302,65 @@
     }
   },
   "site-type": {
-    "$description": "The site's type scale (D3.2's second scale, W5.1): the app's face at the sizes a page that is read, not worked in, needs. In rem, as the app's; nothing under 12 px. Written into packages/site as Tailwind utilities (`type-site-body`), so that a breakpoint can change a size (`md:type-site-display`). Titles are 700: the site loads Atkinson Hyperlegible Next at 400 and 700 only.",
+    "$description": "The site's type scale (D3.2's second scale, rebuilt with the site in Astro): STIX Two Text at the sizes a page that is read needs, set larger than a sans for the same colour on the page. In rem, as the app's; nothing under 12 px. Written into packages/site as Tailwind utilities (`type-site-body`), so that a breakpoint can change a size. The site loads the face at 400 and 600 only.",
     "type-site-display": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 3.5,
+          "value": 3.25,
           "unit": "rem"
         },
-        "fontWeight": 700,
+        "fontWeight": 400,
         "letterSpacing": {
-          "value": -0.02,
+          "value": -0.024,
           "unit": "em"
         },
         "lineHeight": 1.05
       }
     },
     "type-site-hero": {
-      "$description": "The landing's one headline (D5-e): about four times the body, as the study's strong sites set theirs.",
+      "$description": "The landing's one headline: the one large thing on the first screen.",
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
           "value": 4.5,
           "unit": "rem"
         },
-        "fontWeight": 700,
+        "fontWeight": 400,
         "letterSpacing": {
-          "value": -0.03,
+          "value": -0.028,
           "unit": "em"
         },
-        "lineHeight": 1
+        "lineHeight": 1.02
       }
     },
     "type-site-title-1": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
           "value": 2.25,
           "unit": "rem"
         },
-        "fontWeight": 700,
+        "fontWeight": 400,
         "letterSpacing": {
-          "value": -0.015,
+          "value": -0.02,
           "unit": "em"
         },
-        "lineHeight": 1.1
+        "lineHeight": 1.12
       }
     },
     "type-site-title-2": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
           "value": 1.5,
           "unit": "rem"
         },
-        "fontWeight": 700,
+        "fontWeight": 600,
         "letterSpacing": {
           "value": -0.01,
           "unit": "em"
@@ -367,12 +371,12 @@
     "type-site-title-3": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 1.1875,
+          "value": 1.25,
           "unit": "rem"
         },
-        "fontWeight": 700,
+        "fontWeight": 600,
         "letterSpacing": {
           "value": 0,
           "unit": "em"
@@ -383,25 +387,25 @@
     "type-site-lede": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 1.25,
+          "value": 1.375,
           "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
-          "value": 0,
+          "value": -0.005,
           "unit": "em"
         },
-        "lineHeight": 1.5
+        "lineHeight": 1.45
       }
     },
     "type-site-body": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 1.0625,
+          "value": 1.1875,
           "unit": "rem"
         },
         "fontWeight": 400,
@@ -409,15 +413,15 @@
           "value": 0,
           "unit": "em"
         },
-        "lineHeight": 1.6
+        "lineHeight": 1.55
       }
     },
     "type-site-small": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 0.875,
+          "value": 1,
           "unit": "rem"
         },
         "fontWeight": 400,
@@ -431,17 +435,17 @@
     "type-site-caption": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-site}",
         "fontSize": {
-          "value": 0.8125,
+          "value": 0.875,
           "unit": "rem"
         },
         "fontWeight": 400,
         "letterSpacing": {
-          "value": 0.01,
+          "value": 0.005,
           "unit": "em"
         },
-        "lineHeight": 1.4
+        "lineHeight": 1.45
       }
     }
   }

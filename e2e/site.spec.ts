@@ -536,35 +536,38 @@ test("a recording waits behind the site's Play button, then plays with the brows
   await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused || v.ended)).toBe(true);
 });
 
-// PLAN-design 1.8: the site is built with React and sends none of it (packages/site/strip-scripts.mjs), and its
-// policy has no 'unsafe-inline'. A page with one of Next's scripts left, or an inline one, would break either.
-test("no page of the site has a script of Next's, an inline script, an inline handler or a style attribute", () => {
+// The site's policy has no 'unsafe-inline': every script is a file of the site's own (Astro inlines nothing: no
+// processed <script>, no island) or data. An inline one, a handler or a style attribute would break the policy.
+test("no page of the site has an inline script, an inline handler or a style attribute", () => {
   for (const path of sitePages()) {
     const file = `${DEPLOY}${path.endsWith("/") ? `${path}index.html` : path}`;
     const html = readFileSync(file, "utf8");
     // Every script, closed or not, is a file of the site's own or data.
     const scripts = html.match(/<script\b[^>]*>/gi) ?? [];
     expect(
-      scripts.filter((tag) => !/\ssrc="\/(?!_next\/)[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)),
+      scripts.filter((tag) => !/\ssrc="\/[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)),
       path,
     ).toEqual([]);
     expect(html.match(/\s(style|on[a-z]+)="/g) ?? [], path).toEqual([]);
   }
 });
 
-// What the pages do in the browser is public/site.js: the landing's demo and the theme toggle.
-test("the landing's demo plays to its answer and again on Replay, and the toggle switches the theme the app reads", async ({
+// What the pages do in the browser is public/site.js: the landing's record of what the page fetched, and the theme
+// toggle. The record is the browser's own (Resource Timing): every file from the page's own host, and no cookie.
+test("the landing lists every file it fetched, all from its own host, and the toggle switches the theme the app reads", async ({
   page,
 }) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("wayfarer:theme", "dark"));
   await page.reload();
-  const demo = page.locator("[data-demo]");
-  await expect(demo.getByText("200 OK")).toBeVisible({ timeout: 10_000 });
-  await expect(demo.locator("[data-demo-address]")).toHaveText("https://api.example.com/v1/users/42");
-  await demo.getByRole("button", { name: "Replay" }).click();
-  await expect(demo.getByText("200 OK")).toBeHidden();
-  await expect(demo.getByText("200 OK")).toBeVisible({ timeout: 10_000 });
+  const record = page.locator("[data-record]");
+  await expect(record.locator("[data-record-summary]")).toHaveText(/^\d+ files from 1 host, .+ in all, no cookies\.$/);
+  const host = new URL(page.url()).host;
+  const kinds = record.locator("[data-record-kinds] tr");
+  await expect.poll(() => kinds.count()).toBeGreaterThanOrEqual(4);
+  for (const from of await record.locator("[data-record-kinds] td.from").allTextContents()) expect(from).toBe(host);
+  await record.getByText("Every file, by name").click();
+  await expect(record.locator("[data-record-rows] li").first()).toContainText(host);
 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByRole("button", { name: "Switch between light and dark" }).click();
@@ -574,10 +577,15 @@ test("the landing's demo plays to its answer and again on Replay, and the toggle
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
-test("with reduced motion the demo shows its answer at once", async ({ page }) => {
+// With reduced motion nothing on the landing moves into place: no section waits for its entrance.
+test("with reduced motion the landing's sections are in place from the start", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator("[data-demo]").getByText("200 OK")).toBeVisible({ timeout: 1_000 });
+  await expect(page.locator("html")).not.toHaveAttribute("data-enter");
+  for (const transform of await page
+    .locator(".rise")
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).transform)))
+    expect(transform).toBe("none");
 });
 
 // D5-e: the demo shows the same request's key as it was sent and as history keeps it. Two radio buttons and a rule

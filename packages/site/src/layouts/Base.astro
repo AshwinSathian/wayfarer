@@ -1,0 +1,62 @@
+---
+// Every page of the site: its head (what search engines, assistants and a link's card read), the header, the page, the
+// footer. Nothing is inlined (the site's policy has no 'unsafe-inline'): the stylesheet is a file, /app/theme.js sets
+// the theme before the body is drawn (the app's own file, so the two agree), and /site.js does the rest.
+import "../styles/global.css";
+import stix from "../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff2?url";
+import stixSemibold from "../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-600-normal.woff2?url";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { headOf, type Meta } from "../lib/meta";
+
+interface Props extends Meta {
+  /** schema.org data for the page. */
+  graph?: object;
+  /** A page that draws its own header and footer (none do yet) passes false. */
+  chrome?: boolean;
+}
+const { graph, chrome = true, ...meta } = Astro.props;
+const head = headOf(meta);
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{head.title}</title>
+    <meta name="description" content={head.description} />
+    <link rel="canonical" href={head.canonical} />
+    {head.noindex && <meta name="robots" content="noindex, follow" />}
+    <script is:inline src="/app/theme.js"></script>
+    <link rel="preload" href={stix} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={stixSemibold} as="font" type="font/woff2" crossorigin />
+    <script is:inline src="/site.js" defer></script>
+    <link rel="icon" href="/app/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/app/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title="Wayfarer blog" href="https://wayfarer.ashwinsathian.com/blog/rss.xml" />
+    <meta property="og:site_name" content="Wayfarer" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:type" content={head.type} />
+    <meta property="og:title" content={head.title} />
+    <meta property="og:description" content={head.description} />
+    <meta property="og:url" content={head.canonical} />
+    <meta property="og:image" content={head.image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={head.title} />
+    {head.published && <meta property="article:published_time" content={head.published} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={head.title} />
+    <meta name="twitter:description" content={head.description} />
+    <meta name="twitter:image" content={head.image} />
+    {graph && <JsonLd data={graph} />}
+  </head>
+  <body class="min-h-dvh antialiased">
+    {chrome && <Header />}
+    <slot />
+    {chrome && <Footer />}
+  </body>
+</html>

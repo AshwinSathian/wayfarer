@@ -71,7 +71,7 @@ code errors.
 ## The site and the app's address (phase W)
 
 - The deploy is `dist/deploy` (`scripts/build-deploy.mjs`, the last step
-  of `npm run build`): the site's build (`packages/site`, Next.js static export to
+  of `npm run build`): the site's build (`packages/site`, Astro's static build to
   `packages/site/out`) at the root and the app's (`dist/wayfarer/browser`) under `app/`. Wrangler, the
   e2e server and the release tarball serve or pack that folder. A test
   that reads a file of the app's build still reads `dist/wayfarer/browser`.
@@ -88,25 +88,40 @@ code errors.
   (`not_found_handling: "404-page"`); the app has no addresses of its own
   past `/app/`. `prod-server.mjs` does the same, and redirects a folder
   without its slash (`/app`) with a 307, as Workers do.
-- The site is Next.js with Tailwind 4 (`output: "export"`, PLAN-design
-  1.8): React renders each page when the site is built, and the browser
-  gets none of it (1.10: it cost the landing 1.1 s of mobile LCP).
-  `strip-scripts.mjs`, in the site's build, takes every script Next adds out
-  of the pages, with their files. So no component is `"use client"` and
-  none has a handler: what a page does in the browser is a script file of
-  the site's own (`public/site.js`: the theme toggle and the landing's
-  demo; the docs' search; `claims-ci.js`), found by a `data-` attribute.
-  The site loads nothing from another origin and has no `'unsafe-inline'`
-  (`security/csp-site.json`, `e2e/site.spec.ts`). Write no `style`
-  attribute (`style={{}}`) and no inline script; a test reads every built
-  page for both and for Next's scripts. Links are plain `<a>`, not
-  `next/link`.
+- The site is Astro 7 with Tailwind 4 (`@tailwindcss/vite`), every page
+  prerendered to files (`packages/site/astro.config.mjs`): no adapter, no
+  framework integration (no React), no `client:*` island, no client
+  router. A page is a `.astro` file in `src/pages` inside
+  `src/layouts/Base.astro`, which writes its head (title, description,
+  canonical, robots, the cards); `/sitemap.xml`, `/llms.txt` and
+  `/llms-full.txt` are endpoints there (`.ts`). Nothing is inlined:
+  `inlineStylesheets: "never"`, `assetsInlineLimit: 0`, and no
+  Astro-processed `<script>`. What a page does in the browser is a script
+  file of the site's own in `public/` (`site.js`: the theme toggle, the
+  landing's record of what the page fetched (Resource Timing, written as
+  text only), the recordings' Play and the sections' entrances, which move
+  and never fade; `docs-search.js`; `claims-ci.js`), found by a `data-`
+  attribute and loaded as `<script is:inline src="/x.js">` (external: the
+  only use of `is:inline`). The site loads nothing from another origin and
+  has no `'unsafe-inline'` (`security/csp-site.json`, `e2e/site.spec.ts`).
+  Write no `style` attribute, no `on*` attribute and no inline script; a
+  test reads every built page for all three. Structured data is
+  `JsonLd.astro` (`type="application/ld+json"`, the one inline script
+  allowed). `.astro` files are not linted or formatted by a tool: write
+  them as Prettier would.
+- Each page's social image (`/og/<path>.png`, 1200 by 630) is drawn after
+  the build by `social-images.mjs` from the built page's title and
+  description, with satori and resvg, in the site's face; no browser.
 - The site's colours, faces, radii, motion and type scale are the app's
-  tokens (W5.1): `npm run gen:tokens` writes `packages/site/src/app/tokens.css`
+  tokens (W5.1): `npm run gen:tokens` writes `packages/site/src/styles/tokens.css`
   (never edit it), with the site's own type scale (`type-site-*`, the
   `site-type` group of `base.tokens.json`) as Tailwind utilities.
-  `globals.css` names tokens in its `@theme` and writes no colour or face
-  (the token test); actions are ink, as the app's are (DQ11).
+  `global.css` names tokens in its `@theme` and writes no colour or face
+  but in the `@font-face` rules that load the tokens' faces (the token
+  test, which reads `.astro` classes too); actions are ink, as the app's
+  are (DQ11). The site's face is STIX Two Text (`font-site`, 400, 600 and
+  400 italic only, self-hosted from `@fontsource`); the app keeps Atkinson, and both
+  set code in JetBrains Mono.
   `scripts/contrast.test.mjs` holds the site's text on its surfaces.
 - The site's theme and mark are the app's: the layout loads
   `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
@@ -116,7 +131,7 @@ code errors.
   (`angular.json`'s assets). A brand file is written from the tokens
   (`npm run gen:tokens`, `npm run gen:brand`), never by hand.
 - A sentence of the site that says what Wayfarer does names its claims
-  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`;
+  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.astro`;
   a blog post's `<!-- claims C-NNN -->`), out of sight: it draws a
   `hidden` span whose `data-claims` the tests read, and the build fails on
   an ID `docs/claims.md` has not got. `e2e/site.spec.ts` holds every ID
@@ -379,7 +394,7 @@ code errors.
   Sizes are rem (U-073): no stylesheet writes a `font-size` in px, icons
   included (the token test). Working text (values, rows, tabs, controls)
   is 13 px, captions 12, prose and dialogs 14 (U-111).
-- The text face is Atkinson Hyperlegible Next, with Inter as the
+- The app's text face is Atkinson Hyperlegible Next, with Inter as the
   per-glyph fallback for Greek, Cyrillic and Vietnamese; the wire's is
   JetBrains Mono, never under 13 px (`type-mono-body`): its 0 and O are a
   device pixel apart at 12.
@@ -414,7 +429,7 @@ code errors.
   line should show.
 - No focus ring anywhere, in the app or on the site, from a pointer or
   the keyboard (maintainer, 2026-11-09): `:focus, :focus-visible { outline:
-  none !important }` in `src/styles.css` and the site's `globals.css`. A
+  none !important }` in `src/styles.css` and the site's `global.css`. A
   field keeps its own focus edge (`input.css`, `select.css`) and a menu's
   or tree's row its fill. Do not add a ring back; `keyboard-flow.spec.ts`
   checks every Tab stop.

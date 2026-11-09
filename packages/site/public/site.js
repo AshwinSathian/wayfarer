@@ -1,5 +1,5 @@
-// What the site's pages do in the browser (PLAN-design 1.8): a file of the site's own, since its policy allows no
-// inline script and the pages carry no React. The theme toggle, and the landing's demo.
+// What the site's pages do in the browser: a file of the site's own, since its policy allows no inline script. The theme
+// toggle, the landing's record of what the page fetched, the recordings' Play buttons, and each section's entrance.
 
 // The theme: the app's stored choice (`wayfarer:theme`), which /app/theme.js applied before the page was drawn.
 for (const button of document.querySelectorAll("[data-theme-toggle]")) {
@@ -17,51 +17,89 @@ for (const button of document.querySelectorAll("[data-theme-toggle]")) {
   });
 }
 
-// The demo: the address typed, Send, and the answer, then the request's row of the trace marked as sent.
-const demo = document.querySelector("[data-demo]");
-if (demo) {
-  const ADDRESS = "https://api.example.com/v1/users/42";
-  const part = (name) => demo.querySelector(`[data-demo-${name}]`);
-  const [address, caret, send, waiting, response, stop, replay] = [
-    "address",
-    "caret",
-    "send",
-    "waiting",
-    "response",
-    "stop",
-    "replay",
-  ].map(part);
-  let timers = [];
-
-  const show = (typed, phase) => {
-    address.textContent = ADDRESS.slice(0, typed);
-    caret.hidden = phase !== "typing";
-    send.textContent = phase === "sending" ? "Sending" : "Send";
-    waiting.hidden = phase === "answered";
-    waiting.textContent = phase === "sending" ? "Waiting for api.example.com…" : "No response yet.";
-    response.hidden = phase !== "answered";
-    stop.toggleAttribute("data-on", phase === "answered");
+// The page's own record: every file the browser fetched for it, from the browser's Resource Timing, as it arrives,
+// counted by kind, with every file by name below. Text only (textContent): a file's name is the browser's, not ours.
+const record = document.querySelector("[data-record]");
+if (record && "PerformanceObserver" in window) {
+  const kinds = record.querySelector("[data-record-kinds]");
+  const files = record.querySelector("[data-record-rows]");
+  const summary = record.querySelector("[data-record-summary]");
+  record.querySelector("[data-record-files]").hidden = false;
+  const KINDS = [
+    ["This page", /^$/],
+    ["Stylesheet", /\.css$/],
+    ["Scripts", /\.m?js$/],
+    ["Fonts", /\.woff2?$/],
+    ["Pictures", /\.(avif|webp|jpe?g|png|svg|ico)$/],
+    ["Recordings", /\.(webm|mp4)$/],
+  ];
+  const kindOf = (path, isPage) =>
+    isPage ? "This page" : (KINDS.find(([, test], i) => i > 0 && test.test(path))?.[0] ?? "Other");
+  const seen = new Set();
+  const tally = new Map();
+  const hosts = new Set();
+  let bytes = 0;
+  const kB = (n) => `${(n / 1024).toLocaleString("en-GB", { maximumFractionDigits: n < 10240 ? 1 : 0 })} kB`;
+  const cell = (row, text, className) => {
+    const td = document.createElement("td");
+    td.textContent = text;
+    if (className) td.className = className;
+    row.append(td);
   };
-
-  const play = () => {
-    timers.forEach(clearTimeout);
-    timers = [];
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return show(ADDRESS.length, "answered");
-    show(0, "typing");
-    const at = (ms, typed, phase) => timers.push(setTimeout(() => show(typed, phase), ms));
-    for (let i = 1; i <= ADDRESS.length; i++) at(500 + i * 38, i, "typing");
-    const typed = 500 + ADDRESS.length * 38;
-    at(typed + 450, ADDRESS.length, "sending");
-    at(typed + 1100, ADDRESS.length, "answered");
+  const draw = () => {
+    kinds.replaceChildren(
+      ...[...KINDS.map(([name]) => name), "Other"]
+        .filter((name) => tally.has(name))
+        .map((name) => {
+          const { count, size, from } = tally.get(name);
+          const row = document.createElement("tr");
+          cell(row, name);
+          cell(row, String(count), "num");
+          cell(row, [...from].join(", "), "from");
+          cell(row, kB(size), "num");
+          return row;
+        }),
+    );
+    const n = seen.size === 1 ? "1 file" : `${seen.size} files`;
+    const from = hosts.size === 1 ? "1 host" : `${hosts.size} hosts`;
+    const cookies = document.cookie === "" ? "no cookies" : "cookies set";
+    summary.textContent = `${n} from ${from}, ${kB(bytes)} in all, ${cookies}.`;
   };
-
-  replay.hidden = false;
-  replay.addEventListener("click", play);
-  play();
+  const add = (url, size, isPage = false) => {
+    if (seen.has(url)) return;
+    seen.add(url);
+    const at = new URL(url, location.href);
+    let path = at.pathname;
+    try {
+      path = decodeURIComponent(path);
+    } catch {
+      // A name the browser recorded with a stray %: shown as it was recorded.
+    }
+    const kind = kindOf(path, isPage);
+    const entry = tally.get(kind) ?? { count: 0, size: 0, from: new Set() };
+    entry.count += 1;
+    entry.size += size;
+    entry.from.add(at.host);
+    tally.set(kind, entry);
+    hosts.add(at.host);
+    bytes += size;
+    const item = document.createElement("li");
+    item.className = "arrive file";
+    item.textContent = `${at.host}${path} (${size ? kB(size) : "from the cache"})`;
+    files.append(item);
+  };
+  const take = (entries) => {
+    entries.forEach((entry) => add(entry.name, entry.transferSize ?? 0));
+    draw();
+  };
+  const [navigation] = performance.getEntriesByType("navigation");
+  add(location.href.split("#")[0], navigation?.transferSize ?? 0, true);
+  take(performance.getEntriesByType("resource"));
+  new PerformanceObserver((list) => take(list.getEntries())).observe({ type: "resource" });
 }
 
-// The recordings: the browser's own controls drew their bar and a loading arc over the app's picture. With script,
-// each clip shows its poster and a Play button; once asked for, it plays with the browser's controls to pause and seek.
+// A recording shows its poster and the site's Play, not the browser's controls, until it is asked for: the browser's
+// own drew their bar and a loading arc over the app's picture. Once asked for, it plays with the browser's controls.
 for (const button of document.querySelectorAll("[data-play]")) {
   const video = button.parentElement.querySelector("video");
   video.controls = false;
@@ -72,4 +110,26 @@ for (const button of document.querySelectorAll("[data-play]")) {
     void video.play();
     video.focus();
   });
+}
+
+// Each part of a section rises into place as the section comes into view, once. The page is marked only when there is
+// something below the first screen to show, so without script, or with reduced motion, everything is simply there.
+if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  const all = [...document.querySelectorAll(".rise")];
+  const below = all.filter((el) => el.getBoundingClientRect().top > innerHeight);
+  if (below.length) {
+    for (const el of all) if (!below.includes(el)) el.classList.add("in");
+    document.documentElement.setAttribute("data-enter", "");
+    const watch = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries)
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            watch.unobserve(entry.target);
+          }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    below.forEach((el) => watch.observe(el));
+  }
 }

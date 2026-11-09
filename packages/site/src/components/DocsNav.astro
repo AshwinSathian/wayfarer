@@ -1,0 +1,41 @@
+---
+// The docs beside the open one: in the left margin on a wide window, a plain list after the page on a phone.
+import { DOC_GROUPS, docs } from "../lib/content";
+
+interface Props {
+  current?: string;
+  class?: string;
+}
+const { current, class: className = "" } = Astro.props;
+const all = docs();
+---
+
+<nav aria-label="Docs" class:list={["type-site-small", className]}>
+  <p class="font-semibold">
+    <a href="/docs/" class="link-quiet text-ink" aria-current={current === undefined ? "page" : undefined}>
+      All docs and search
+    </a>
+  </p>
+  {
+    DOC_GROUPS.map((group) => (
+      <>
+        <h2 class="mt-8 type-site-small font-semibold text-ink">{group}</h2>
+        <ul class="mt-2 space-y-1.5">
+          {all
+            .filter((doc) => doc.group === group)
+            .map((doc) => (
+              <li>
+                <a
+                  href={`/docs/${doc.id}/`}
+                  aria-current={doc.id === current ? "page" : undefined}
+                  class="link-quiet text-ink-muted aria-[current=page]:font-semibold aria-[current=page]:text-ink"
+                >
+                  {doc.title}
+                </a>
+              </li>
+            ))}
+        </ul>
+      </>
+    ))
+  }
+</nav>

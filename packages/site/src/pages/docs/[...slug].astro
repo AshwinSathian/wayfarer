@@ -1,0 +1,43 @@
+---
+// A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article of a doc search engines may list: a
+// working note (an operations doc) is noindex and not a search result (W6.8, D5-e).
+import Base from "../../layouts/Base.astro";
+import DocsNav from "../../components/DocsNav.astro";
+import { REPO, docDescription, docHtml, docs, indexed, lastChanged, type Doc } from "../../lib/content";
+import { docGraph } from "../../lib/structured-data";
+
+export function getStaticPaths() {
+  return docs().map((doc) => ({ params: { slug: doc.id }, props: { doc } }));
+}
+
+const { doc } = Astro.props as { doc: Doc };
+const description = docDescription(doc.id) || `Wayfarer's documentation: ${doc.title}.`;
+const listed = indexed(doc);
+---
+
+<Base
+  path={`/docs/${doc.id}/`}
+  title={`${doc.title}: Wayfarer API client docs`}
+  description={description}
+  noindex={!listed}
+  graph={listed ? docGraph(doc, description, lastChanged(`docs/${doc.id}.md`)) : undefined}
+>
+  <div class="frame pt-12 pb-8 sm:pt-16 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-x-16">
+    <main id="main" class="min-w-0">
+      <article
+        class:list={["prose", { "claims-ledger": doc.id === "claims" }]}
+        data-pagefind-body={listed ? "" : undefined}
+        set:html={docHtml(doc.id)}
+      />
+      <p class="mt-12 type-site-small">
+        <a class="link text-ink-muted" href={`${REPO}/blob/main/docs/${doc.id}.md`}>This page on GitHub</a>
+      </p>
+    </main>
+    <DocsNav
+      current={doc.id}
+      class="mt-20 lg:order-first lg:mt-0 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pb-8"
+    />
+  </div>
+  {/* The ledger's last CI result (W2.4): a file of the site's own, which adds a column to the table. */}
+  {doc.id === "claims" && <script is:inline src="/claims-ci.js"></script>}
+</Base>

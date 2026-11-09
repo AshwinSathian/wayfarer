@@ -1,0 +1,76 @@
+---
+// The repository's CHANGELOG.md as a page (W2.4): an index of the versions, then each version folded in a <details>,
+// the latest release open. No script: the browser opens and closes them.
+import Base from "../../layouts/Base.astro";
+import { posts } from "../../lib/blog";
+import { changelog, REPO } from "../../lib/content";
+
+const versions = changelog();
+const latest = versions.findIndex((v) => v.date);
+const releasePosts = new Map(posts().map((post) => [post.slug, post]));
+---
+
+<Base
+  path="/changelog/"
+  title="Changelog: Wayfarer API client"
+  description="What changed in each release of Wayfarer, and what is on main and not released yet."
+>
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <h1 class="type-site-display text-ink">Changelog</h1>
+      <p class="mt-5 type-site-lede text-ink">
+        What changed in each release, newest first. The same notes are <a class="link" href={`${REPO}/blob/main/CHANGELOG.md`}
+          >CHANGELOG.md</a
+        > in the repository. 3.0's redesign is shown screen by screen, before and after, on <a
+          class="link"
+          href="/what-changed-in-3-0/">What changed in 3.0</a
+        >.
+      </p>
+    </div>
+
+    <div class="col-wide mt-16 lg:max-w-5xl">
+      <nav aria-labelledby="versions">
+        <h2 id="versions" class="type-site-title-2 text-ink">Versions</h2>
+        <ol class="mt-5 space-y-3">
+          {
+            versions.map((v) => (
+              <li class="grid gap-x-8 gap-y-0.5 sm:grid-cols-[13rem_minmax(0,1fr)]">
+                <a class="link-quiet font-semibold text-ink" href={`#${v.id}`}>
+                  {v.title}
+                  {v.date && <span class="ml-2 type-site-small font-normal text-ink-muted">{v.date}</span>}
+                </a>
+                <span class="type-site-small text-ink-muted">{v.summary ?? "On main, not released yet."}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+
+    <div class="col mt-20 space-y-2">
+      {
+        versions.map((v, i) => {
+          const post = releasePosts.get(`wayfarer-${v.title.replace(/\./g, "-")}`);
+          return (
+            <details id={v.id} open={i === latest} class="version">
+              <summary class="flex flex-wrap items-baseline gap-x-3 py-3">
+                <h2 class="type-site-title-2 text-ink">{v.title}</h2>
+                {v.date && <span class="type-site-small text-ink-muted">{v.date}</span>}
+              </summary>
+              <div class="pb-10 pl-5">
+                {post && (
+                  <p class="mt-2 type-site-small">
+                    <a class="link" href={`/blog/${post.slug}/`}>
+                      Read the release post: {post.title}
+                    </a>
+                  </p>
+                )}
+                <article class="prose mt-4" set:html={v.html} />
+              </div>
+            </details>
+          );
+        })
+      }
+    </div>
+  </main>
+</Base>

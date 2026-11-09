@@ -109,14 +109,6 @@ dialog.ui-confirm-popup::backdrop {
   background: transparent;
 }
 
-/* The button a confirmation starts on shows its focus ring however the
-   confirmation was opened, so the default answer is visible before Enter. */
-dialog.ui-confirm .ui-button:focus,
-dialog.ui-confirm-popup .ui-button:focus {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
 /* ── Drawer: a modal dialog at the window's edge ── */
 dialog.ui-drawer {
   position: fixed;
@@ -160,9 +152,4 @@ dialog.ui-drawer-end[open] {
   from {
     transform: translateX(100%);
   }
-}
-
-/* A dialog a click opened: no ring on the control focus starts on, until a key is pressed (U-053, UiModal). */
-dialog[data-quiet-focus] :focus-visible {
-  outline: none;
 }

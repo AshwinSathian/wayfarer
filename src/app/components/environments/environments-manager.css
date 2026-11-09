@@ -41,15 +41,6 @@
   border-radius: var(--radius-sm);
 }
 
-.env-item-select:focus-visible {
-  outline: none;
-}
-
-.env-item-select:focus-visible::after {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
 .env-item-actions {
   position: relative;
 }

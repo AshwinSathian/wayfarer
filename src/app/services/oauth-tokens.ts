@@ -123,13 +123,18 @@ export class OAuthTokens {
       throw new OAuthError(
         "OAuth 2.0 sign-in needs the browser's cryptography, which a page has only over https or from localhost.",
       );
-    this.signIn?.abort("Another sign-in was started.");
-    const abort = new AbortController();
-    this.signIn = abort;
     const redirectUri = oauthRedirectUri();
     const state = newId();
     const { verifier, challenge } = await pkcePair();
     const address = authorizationUrl(auth, redirectUri, state, challenge);
+    if (containsSecretPlaceholder({ url: address, headers: [] })) {
+      throw new OAuthError(
+        "The sign-in address refers to a vault secret that could not be read (it may have been deleted), so it was not opened.",
+      );
+    }
+    this.signIn?.abort("Another sign-in was started.");
+    const abort = new AbortController();
+    this.signIn = abort;
     const channel = new BroadcastChannel(OAUTH_CHANNEL);
     let timer: ReturnType<typeof setTimeout> | undefined;
     this.notice.set("");

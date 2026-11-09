@@ -271,6 +271,9 @@ describe("VariableRows", () => {
       expect(component.isSecretValue("{{$secret.abc-123}}")).toBe(true);
       expect(component.isSecretValue("plain text")).toBe(false);
       expect(component.isSecretValue(undefined)).toBe(false);
+      // A reference inside other text is not a protected value: the row stays a field to edit, as core reads it.
+      expect(component.isSecretValue("Bearer {{$secret.ab12}}")).toBe(false);
+      expect(component.getSecretPreview("Bearer {{$secret.ab12}}")).toBeNull();
     });
 
     it("protectVariable replaces the plaintext value with a {{$secret.<id>}} placeholder when unlocked", async () => {

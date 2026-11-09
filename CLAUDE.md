@@ -412,6 +412,12 @@ code errors.
   utilities need: `box-sizing: border-box` on everything. Do not remove it.
 - `border` draws a border (Tailwind 4 sets the style). Add it only where a
   line should show.
+- No focus ring anywhere, in the app or on the site, from a pointer or
+  the keyboard (maintainer, 2026-11-09): `:focus, :focus-visible { outline:
+  none !important }` in `src/styles.css` and the site's `globals.css`. A
+  field keeps its own focus edge (`input.css`, `select.css`) and a menu's
+  or tree's row its fill. Do not add a ring back; `keyboard-flow.spec.ts`
+  checks every Tab stop.
 - A status or method colour used as text is its `-text` token
   (`--status-success-text`, `--method-get-text`): the plain token is for
   fills, borders and icons, and as small text on its own tint it is as low
@@ -420,7 +426,7 @@ code errors.
   at both contrast levels; the e2e sweep in `accessibility.spec.ts` scans
   every view in both themes.
 - Chrome and actions are ink; hue means protocol (DQ11). The ink
-  (`--ink`, the primary label) is Send's fill, the focus ring, the
+  (`--ink`, the primary label) is Send's fill, the
   selected row's mark and a checked box; only a `method` or `status`
   token carries a hue (the token test fails on chroma above 0.015
   elsewhere). Information is the secondary label with a glyph, not blue.

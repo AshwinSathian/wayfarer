@@ -154,22 +154,13 @@ body {
   color: var(--selection-text);
 }
 
-/* ── Focus visible ──────────────────────────────────────── */
+/* ── Focus ──────────────────────────────────────────────── */
+/* No focus ring, from a pointer or the keyboard (maintainer, 2026-11-09). A field still shows where typing goes with
+   its own edge (input.css, select.css), and a menu's or a tree's row its own fill. !important: a browser's or a
+   library's own rule is more specific. */
+:focus,
 :focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-/* Monaco takes focus in a hidden text area and draws no ring of its own:
-   the editor shows one while it has focus (P7.1). */
-.monaco-editor.focused {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-
-/* ── Remove focus outline for mouse interactions ─────────── */
-:focus:not(:focus-visible) {
-  outline: none;
+  outline: none !important;
 }
 
 /* Controls fade their colours on hover and focus. Nothing else has a colour

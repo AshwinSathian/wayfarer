@@ -56,6 +56,8 @@ import { UiButton } from "./button";
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: "ui-file",
+    role: "group",
+    "[attr.aria-label]": "label()",
     "[class.ui-file-over]": "over()",
     "[class.ui-file-disabled]": "disabled()",
     "(dragover)": "onDragOver($event)",

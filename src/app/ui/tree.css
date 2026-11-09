@@ -40,7 +40,8 @@
   }
 }
 
-.ui-tree-row:hover {
+.ui-tree-row:hover,
+.ui-tree-row:focus-visible {
   background: var(--fill-hover);
 }
 
@@ -51,7 +52,8 @@
   box-shadow: inset 3px 0 0 var(--ink);
 }
 
-.ui-tree-row--selected:hover {
+.ui-tree-row--selected:hover,
+.ui-tree-row--selected:focus-visible {
   background: var(--fill-active);
 }
 
@@ -69,6 +71,16 @@
   .ui-tree-row--selected {
     border-inline-start: 4px solid Highlight;
     padding-inline-start: 4px;
+  }
+
+  /* No ring anywhere and no fill here: the row the keys are on gets a dashed bar, the selected one's is solid. */
+  .ui-tree-row:focus-visible {
+    border-inline-start: 4px dashed CanvasText;
+    padding-inline-start: 4px;
+  }
+
+  .ui-tree-row--selected:focus-visible {
+    border-inline-start-color: Highlight;
   }
 
   /* A shadow is taken away too: the drop line is a border (U-116). */

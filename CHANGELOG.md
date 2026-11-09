@@ -11,6 +11,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 
+### Fixed
+
+- **The collections tree shows the row the keys are on.** Arrowing through the tree drew nothing on the focused row, so you could not tell which request Enter, F2 or Delete would act on. The row now takes the hover fill (in forced colours, a dashed bar at its start).
+- **A key a menu does not use reaches the browser.** With a menu open, F5, a zoom or Find did nothing: the menu prevented every key but Tab.
+- **A file field is named for what it chooses.** Its button said only "Choose a file…", the same in every row of a form; the field is now a group named by its label ("File for avatar").
+- **Two tests of one name are two rows.** A script that ran `pm.test` under one name more than once gave the results list duplicate keys, and the developer console a warning (NG0955).
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

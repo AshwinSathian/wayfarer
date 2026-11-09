@@ -556,7 +556,7 @@
                 } @else {
                 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
                 <div class="test-results">
-                  @for (result of testResults(); track result.label + result.source) {
+                  @for (result of testResults(); track $index) {
                   <div
                     class="test-result"
                     [class.test-result-pass]="result.passed"

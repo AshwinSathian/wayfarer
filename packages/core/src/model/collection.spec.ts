@@ -30,4 +30,13 @@ describe("treeInOrder", () => {
     expect([...listed].sort()).toEqual(["a", "b", "in-a", "lost", "root", "top"]);
     expect(new Set(listed).size).toBe(listed.length);
   });
+
+  it("keeps a folder and a request that share an id, and a second item with an id already listed", () => {
+    // The review lists what Trust approves: an item left out by its id would be approved unseen.
+    const tree = {
+      folders: [folder("x", 0)],
+      requests: [request("x", 1), request("x", 0, "x"), request("dup", 2), request("dup", 0, "missing")],
+    };
+    expect(treeInOrder(tree)).toHaveLength(5);
+  });
 });

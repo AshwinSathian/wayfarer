@@ -128,13 +128,13 @@ export function treeInOrder<
       return [{ kind: "folder", folder }, ...walk(folder.id)];
     });
   const listed = walk(undefined);
-  const seen = new Set(listed.map((item) => (item.kind === "request" ? item.request.id : item.folder.id)));
+  // By the item itself, not its id: a file may give a folder and a request one id, or two items one id, and a list
+  // the script review shows must hold every item whose scripts Trust then approves.
+  const seen = new Set<object>(listed.map((item) => (item.kind === "request" ? item.request : item.folder)));
   return [
     ...listed,
-    ...tree.folders.filter((folder) => !seen.has(folder.id)).map((folder) => ({ kind: "folder" as const, folder })),
-    ...tree.requests
-      .filter((request) => !seen.has(request.id))
-      .map((request) => ({ kind: "request" as const, request })),
+    ...tree.folders.filter((folder) => !seen.has(folder)).map((folder) => ({ kind: "folder" as const, folder })),
+    ...tree.requests.filter((request) => !seen.has(request)).map((request) => ({ kind: "request" as const, request })),
   ];
 }
 

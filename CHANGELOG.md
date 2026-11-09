@@ -9,6 +9,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- `graphql-language-service` 6.0.1 (was 5.7.0): the GraphQL editor's completion and checks. A diagnostic's message is now always text.
+- Dependencies: Angular 22.2.4 and its CDK and Aria 22.2.5, Tailwind 4.3.4, Vitest 5.1, ESLint 10.14, Next 16.4.5, Pagefind 1.6 and others (Dependabot #678), and the CodeQL actions 4.39.3 (#677).
 - Claim C-012 says what holds on the hosted app today: no script but the app's runs, and the Content-Security-Policy blocks any other, also the bot-detection script the host injects. Before, it said the page loaded with no CSP violation at all, which has not been true since that script appeared; its check was skipped on production, so nothing checked the claim. The check that runs every 6 hours is now the claim's own (`only-own-scripts`), and the stricter one stays for when the zone stops injecting.
 
 ## [3.2.4] - 2026-11-09

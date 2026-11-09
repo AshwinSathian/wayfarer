@@ -134,7 +134,7 @@ export function outlineOf(schema: GraphQLSchema): SchemaOutline {
 export function problemsOf(query: string, schema?: GraphQLSchema): GraphqlProblem[] {
   if (!query.trim()) return [];
   return getDiagnostics(query, schema).map((found) => ({
-    message: typeof found.message === "string" ? found.message : found.message.value,
+    message: found.message,
     line: found.range.start.line + 1,
     column: found.range.start.character + 1,
     endLine: found.range.end.line + 1,

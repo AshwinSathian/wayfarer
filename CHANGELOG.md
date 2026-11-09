@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-09
+
+A landing that shows the app, no focus rings, and the planning documents out of the repository.
+
+Your data carries over: 3.3.0 opens the same database as 3.2.5, under the same name and version.
+
 ### Changed
 
 - **No focus rings.** No control draws a ring when it has focus, from a click or the keyboard. A text field still shows where typing goes with its own edge, and a menu's or a tree's row its fill. Claim C-067 no longer says every Tab stop shows a ring; the rest of it (the core flow by keyboard alone, a dialog opening on its field, focus going back on close) is unchanged.

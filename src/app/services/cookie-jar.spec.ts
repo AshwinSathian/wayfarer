@@ -53,6 +53,24 @@ describe("CookieJar", () => {
     expect(stored()).toEqual(["sid=abc", "theme=dark"]);
   });
 
+  it("a read for another tab that overlapped a cookie this tab stored keeps that cookie", async () => {
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    const readAll = repository.readAll;
+    repository.readAll = async () => {
+      const before = await readAll();
+      await held;
+      return before;
+    };
+    idb.listener?.(["cookies"]);
+    await jar.store(URL, ["sid=abc; Path=/"], []);
+    repository.readAll = readAll;
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(sent("https://api.test/")).toEqual(["sid=abc"]);
+  });
+
   it("has every cookie of a response at once, before the store has any: the next hop of a redirect asks straight away", () => {
     void jar.store(URL, ["sid=abc; Path=/", "theme=dark; Path=/"], []);
     expect(sent("https://api.test/")).toEqual(["sid=abc", "theme=dark"]);

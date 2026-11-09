@@ -436,6 +436,21 @@ describe("collections, folders and requests (real IndexedDB)", () => {
       expect(await (await requests.readFile("in-folder"))?.text()).toBe("a");
     });
 
+    it("an import's Undo deletes what it added and puts back what it replaced, in one transaction", async () => {
+      const { collection } = await seed();
+      const replaced = await collections.deleteCollection(collection.meta.id);
+      const added = await collections.createCollection({ name: "Imported" });
+
+      // A put-back that fails leaves both as they were: the added collection is not deleted alone.
+      const broken = { ...replaced, collections: [{} as (typeof replaced.collections)[number]] };
+      await expect(collections.undoImport([added.meta.id], [broken])).rejects.toThrow();
+      expect((await collections.listCollections()).map((c) => c.name)).toEqual(["Imported"]);
+
+      await collections.undoImport([added.meta.id], [replaced]);
+      expect(await collections.listCollections()).toEqual(replaced.collections);
+      expect(await requests.listRequests(collection.meta.id)).toHaveLength(replaced.requests.length);
+    });
+
     it("does not put back a folder or a request whose collection is gone", async () => {
       const { collection, folder } = await seed();
       const removed = await folders.deleteFolder(folder.meta.id);

@@ -99,7 +99,7 @@ describe("the repositories (memory fallback, indexedDB unavailable)", () => {
     const core = TestBed.inject(IdbCore);
 
     await service.core.init();
-    expect(core.useMemoryFallback).toBe(true);
+    expect(core.memoryOnly()).toBe(true);
 
     const key = await service.history.add(createRequest({ url: "https://memory-only", createdAt: 42 }), 500);
     expect(key).toBe(1);

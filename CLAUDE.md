@@ -111,7 +111,10 @@ code errors.
   them as Prettier would.
 - Each page's social image (`/og/<path>.png`, 1200 by 630) is drawn after
   the build by `social-images.mjs` from the built page's title and
-  description, with satori and resvg, in the site's face; no browser.
+  description: SVG text laid out by measuring each word with resvg, which
+  draws it, in the site's face (its WOFF files unwrapped to TrueType with
+  `node:zlib`); no browser, and no layout library (satori pinned an
+  `fflate` that `npm audit` flags).
 - The site's colours, faces, radii, motion and type scale are the app's
   tokens (W5.1): `npm run gen:tokens` writes `packages/site/src/styles/tokens.css`
   (never edit it), with the site's own type scale (`type-site-*`, the

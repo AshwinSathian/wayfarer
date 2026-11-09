@@ -34,3 +34,19 @@ test("a card's description ends on a sentence or a whole word, never mid-word, a
   assert.equal(fit("No install, no account, no server of ours", 30), "No install, no account, no…");
   assert.equal(pagePath("404.html"), "/404/");
 });
+
+test("a WOFF font becomes the TrueType file resvg reads: its tables, inflated, behind a new directory", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { woffToSfnt } = await import("../social-images.mjs");
+  const woff = readFileSync(
+    new URL(
+      "../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff",
+      import.meta.url,
+    ),
+  );
+  const font = woffToSfnt(woff);
+  assert.equal(font.readUInt32BE(0), woff.readUInt32BE(4));
+  assert.equal(font.readUInt16BE(4), woff.readUInt16BE(12));
+  assert.equal(font.length % 4, 0);
+  assert.throws(() => woffToSfnt(Buffer.from("not a font")), /not a WOFF/);
+});

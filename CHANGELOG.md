@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.2.5] - 2026-11-09
+
+Claim C-012 as production is, checked every 6 hours again, and dependency updates.
+
+Your data carries over: 3.2.5 opens the same database as 3.2.4, under the same name and version.
+
 ### Changed
 
 - `graphql-language-service` 6.0.1 (was 5.7.0): the GraphQL editor's completion and checks. A diagnostic's message is now always text.

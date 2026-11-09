@@ -41,9 +41,7 @@ test.describe("Collections", () => {
     await expect(page.locator("input.address-url")).toHaveValue("");
   });
 
-  test("saves the composer's current request into a collection, then reloads it with everything intact", async ({
-    page,
-  }) => {
+  test("saves the composer's current request into a collection, then saves it again in place", async ({ page }) => {
     await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
@@ -72,22 +70,15 @@ test.describe("Collections", () => {
     ).toBeVisible();
     await expect(page.getByText(/Save writes back to it/)).toBeVisible();
 
-    // Starting a new request and reloading the saved one round-trips the
-    // full URL back in — previously this path lost everything but
-    // method/url/headers/body (auth, scripts, tests silently dropped) since
-    // the tree only ever emitted a lossy PastRequest-shaped object.
-    await page.getByRole("button", { name: "New tab", exact: true }).click();
-    await expect(urlInput).toHaveValue("");
-    await page.getByRole("tree").getByText("My Saved Request", { exact: true }).click();
-    await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=7`);
-
-    // Editing and hitting the now-"Save" (in-place) button persists the
-    // change back onto the same request rather than creating a duplicate.
+    // Editing and hitting the now-"Save" (in-place) button writes the
+    // change onto the same stored request rather than creating a duplicate.
     await urlInput.fill(`${ECHO}/content/json?todo=8`);
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await page.waitForTimeout(300);
+    const storedUrls = async () => ((await dumpIdb(page))["requests"] as { url: string }[]).map((r) => r.url);
+    await expect.poll(storedUrls).toEqual([`${ECHO}/content/json?todo=8`]);
+    await expect(page.getByRole("tree").getByText("My Saved Request", { exact: true })).toHaveCount(1);
 
-    // A new request is a new tab (docs/design/ia.md); the saved one stays open in its own, which the tree opens again.
+    // A new tab, then the tree opens the request again (the tab it is open in, which holds what was saved).
     await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(urlInput).toHaveValue("");
     await page.getByRole("tree").getByText("My Saved Request", { exact: true }).click();

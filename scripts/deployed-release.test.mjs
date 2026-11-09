@@ -23,11 +23,14 @@ test("a version that is not one is refused, not checked out", async () => {
   }
 });
 
-test("production that names no release is v2.6.0 (the site's 404) or v2.5.0 (the app's shell at any path)", async () => {
+test("production without /version.json is an error, not a guess at an old release", async () => {
   const notFound = async () =>
     new Response("<!doctype html>", { status: 404, headers: { "content-type": "text/html" } });
-  assert.equal(await deployedRelease("https://example.test", notFound), "v2.6.0");
-  assert.equal(await deployedRelease("https://example.test", answer("<!doctype html>", "text/html")), "v2.5.0");
+  await assert.rejects(deployedRelease("https://example.test", notFound), /404/);
+  await assert.rejects(
+    deployedRelease("https://example.test", answer("<!doctype html>", "text/html")),
+    /version\.json is not JSON/,
+  );
 });
 
 test("an answer that is neither the file nor a missing page is an error, with its status", async () => {

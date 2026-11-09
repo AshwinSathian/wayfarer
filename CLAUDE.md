@@ -932,7 +932,7 @@ code errors.
 
 - A GraphQL body (P5.5) is `body.graphql`, a query and the text of its
   variables, sent as one JSON object by `graphqlPayload`
-  (`@wayfarer/core`): the variables are replaced in both texts first and
+  (`packages/core/src/http/graphql.ts`): the variables are replaced in both texts first and
   the JSON is made of the result. An export and a script see that JSON text
   (`exportBody`, `scriptRequestOf`); a script that hands the body back
   unchanged leaves it a GraphQL body (`withScriptRequest`).
@@ -1159,7 +1159,7 @@ code errors.
   list of fields HAR 1.2 requires in that spec.
 - Imported files are untrusted: validate every field against the values the
   app itself writes (`validateRequestContent` and `validateRows` in
-  `@wayfarer/core`). A method is any RFC 9110 token of at most 32
+  `packages/core/src/model/validate.ts`). A method is any RFC 9110 token of at most 32
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`).
 - There is one version of Wayfarer and one shape of its data (maintainer,

@@ -10,6 +10,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Changed
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **The deploy needs browser tests that passed in all three engines.** Before, any green E2E run of the commit let it ship, also one run in Chromium alone, and the claims page then named that run as the one the claims passed in. The deployment guide now describes how production really ships (by hand, from CI's tested files) and the gate its steps check.
+- **The claims check no longer counts a skipped test.** A claim whose only test was `.skip`, `.fixme` or `.todo` passed the check, and the README listed it as tested.
+- **The production monitor fails when the site has no `/version.json`.** Before, it guessed v2.6.0 or v2.5.0 and ran that old release's tests against today's site.
+- **The release tarball's sitemap has each page's last-changed day again.** It was built from a shallow clone, which has no dates, and the release now fails if they are missing.
+- CI now fails on any `npm audit` advisory, and the Lighthouse job stops after a minute when its server does not answer, where it waited until the six-hour job limit.
+- `@wayfarer/core` exports only what the app and the CLI use, and knip reports an export of it that nothing imports.
 
 ## [3.3.1] - 2026-11-09
 

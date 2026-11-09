@@ -171,6 +171,9 @@ jobs:
       contents: write # the release and its assets
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The site's sitemap gives each doc the day git last changed it; a shallow clone has no such day.
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -190,6 +193,7 @@ jobs:
       - run: npm ci
       # The build carries this commit, which Settings → Diagnostics shows.
       - run: npm run build
+      - run: grep -q '<lastmod>' dist/deploy/sitemap.xml || { echo "::error::The sitemap has no <lastmod> (a shallow clone?)"; exit 1; }
 
       - name: The tarball, the SBOM and their checksums
         env:

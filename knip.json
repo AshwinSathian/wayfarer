@@ -20,6 +20,7 @@
     },
     "packages/core": {
       "entry": ["src/index.ts", "src/ai/index.ts", "src/**/*.spec.ts"],
+      "includeEntryExports": true,
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["@stryker-mutator/command-runner"],
       "ignoreBinaries": ["xmllint"]

@@ -8,6 +8,12 @@ lives in [`wrangler.jsonc`](../wrangler.jsonc).
 
 ## How it ships
 
+Production ships by hand today: [Manual deploy](#manual-deploy), from a
+laptop logged in to Cloudflare with `wrangler login`. `deploy.yml` below
+needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
+([One-time setup](#one-time-setup-owner)), which the repository does not
+have yet, and has not run without them.
+
 **Build once, deploy what was tested** (P1.7). Every push to `main` runs CI
 (`.github/workflows/ci.yml`), which builds `dist/deploy` once and uploads it
 as the `dist` artifact (kept 14 days). The browser tests are
@@ -18,7 +24,8 @@ WebKit.
 
 `.github/workflows/deploy.yml` (Actions → **Deploy** → *Run workflow*)
 deploys a green CI run's artifact without rebuilding, and only when an
-`e2e.yml` run of the same commit is green:
+`e2e.yml` run of the same commit passed in all three engines (a run with
+`engines` set to one browser is green too, and does not count):
 
 1. records the live version (the rollback target);
 2. `wrangler versions upload` (not live yet), tagged with the commit;
@@ -54,33 +61,44 @@ last:
 | Variable | Set to `true` when | Until then |
 |---|---|---|
 | `ZONE_HARDENED` | the zone changes in [`runbook.md`](runbook.md#cloudflare-zone) (P0.12) are done | deploy and synthetic skip the `no-edge-injection` test, with a warning; the zone still injects scripts, which the CSP blocks |
-| `SYNTHETIC_ENABLED` | production runs a build shipped by `deploy.yml` | the 6-hourly schedule does nothing; manual runs still work |
+| `SYNTHETIC_ENABLED` | production runs a release CI built (by `deploy.yml`, or by hand from CI's `dist` artifact) | the 6-hourly schedule does nothing; manual runs still work |
 
-The manual procedure below stays as the fallback when Actions is
-unavailable.
+The manual procedure below is how production ships until those secrets are
+set.
 
 ## Manual deploy
 
 ### Prerequisites (once)
 
 - Node 24 (see `.nvmrc`; Angular 22 needs 22.22.3 or later, or 24.15 or later).
-- `npx wrangler login`, then `npx wrangler whoami`. Check that the account
-  listed is the one that owns the `wayfarer` Worker. If you belong to several
-  accounts, set `CLOUDFLARE_ACCOUNT_ID` in your shell so wrangler never has to
-  guess.
+- `npx wrangler login`, then `npx wrangler whoami`. The login sees two
+  accounts, and only one owns the `wayfarer` Worker: without
+  `CLOUDFLARE_ACCOUNT_ID`, wrangler stops and asks which (or, with no
+  terminal, fails). Export the ID of the account that owns the Worker in
+  the shell you deploy from; it is not kept in this repository:
+
+  ```bash
+  export CLOUDFLARE_ACCOUNT_ID=<the account that owns the wayfarer Worker>
+  ```
 
 ### 1. Preflight
 
+From a worktree of the release tag, not a checkout with other work in it:
+
 ```bash
-git switch main && git pull --ff-only
+git worktree add ../wayfarer-deploy v1.x.y && cd ../wayfarer-deploy
 git status --short                          # must print nothing
-gh run list --workflow ci.yml --branch main --limit 1   # must be "completed success" for HEAD
-npm ci
-npm run build
+CI_RUN=$(gh run list --workflow ci.yml --commit "$(git rev-parse HEAD)" --status success \
+  --limit 1 --json databaseId --jq '.[0].databaseId')
+test -n "$CI_RUN" || { echo "no green ci.yml run for HEAD"; exit 1; }
+npm ci                                      # wrangler and Playwright
+gh run download "$CI_RUN" -n dist -D dist   # the files CI built and e2e.yml tested
 ```
 
 Deploy only a commit whose CI run and E2E run are green, and only from a
-clean tree. The
+clean tree. CI's `dist` artifact is kept 14 days; past that, `npm run
+build` makes the files again from the same commit, but they are not the
+bytes that were tested. The
 deployed files are exactly what is in `dist/deploy`: the site at its root,
 the app under `app/`, and `version.json`, the release they are (the
 synthetic monitor runs that release's tests). `deploy.yml` adds one file
@@ -90,9 +108,13 @@ deploy by hand writes the same file, from the green E2E run of the commit it
 deploys:
 
 ```bash
-RUN=$(gh run list --workflow e2e.yml --branch main --commit "$(git rev-parse HEAD)" --status success \
-  --limit 1 --json databaseId --jq '.[0].databaseId')
-test -n "$RUN" || { echo "no green e2e.yml run for HEAD: run it first"; exit 1; }
+RUN=
+for id in $(gh run list --workflow e2e.yml --commit "$(git rev-parse HEAD)" --status success \
+  --limit 20 --json databaseId --jq '.[].databaseId'); do
+  n=$(gh run view "$id" --json jobs --jq '[.jobs[] | select(.name | test("^E2E \\((chromium|firefox|webkit)\\)$")) | select(.conclusion == "success")] | length')
+  [ "$n" = 3 ] && { RUN=$id; break; }
+done
+test -n "$RUN" || { echo "no e2e.yml run of HEAD passed in all three engines: run it first"; exit 1; }
 gh run view "$RUN" --json databaseId,headSha,createdAt \
   --jq '{run: .databaseId, commit: .headSha, date: .createdAt}' > dist/deploy/ci-run.json
 cat dist/deploy/ci-run.json
@@ -100,8 +122,9 @@ cat dist/deploy/ci-run.json
 
 Without it the claims page says it was not deployed from a CI run.
 
-Optional local check, with production's headers applied (Playwright builds
-again and serves the build through `e2e/support/prod-server.mjs` itself):
+Optional local check, with production's headers applied (Playwright serves
+`dist/deploy` through `e2e/support/prod-server.mjs` itself, and builds only
+when there is none):
 
 ```bash
 CI=1 npx playwright test

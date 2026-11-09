@@ -1,4 +1,4 @@
-export { BinaryBody, decodeEnvelope } from "./http/response-body";
+export { BinaryBody } from "./http/response-body";
 export { browserLimits, type BrowserLimits } from "./browser/browser-limits";
 export { newId } from "./id";
 export { evaluatePath } from "./view/json-path";
@@ -10,15 +10,7 @@ export {
   responseViews,
   type ResponseView,
 } from "./view/response-view";
-export {
-  authTexts,
-  buildAuthHeaders,
-  buildAuthQueryParam,
-  credentialsOf,
-  effectiveAuth,
-  resolveAuth,
-} from "./auth/request-auth";
-export { signV4 } from "./auth/sigv4";
+export { authTexts, buildAuthHeaders, effectiveAuth, resolveAuth } from "./auth/request-auth";
 export {
   OAUTH_CHANNEL,
   OAuthError,
@@ -33,7 +25,6 @@ export {
 export type { OAuth2Auth, OAuthExchange, OAuthToken } from "./auth/oauth2";
 export {
   COLLECTION_FORMAT,
-  ENVIRONMENTS_FORMAT,
   ancestorsOf,
   childrenInOrder,
   treeInOrder,
@@ -47,13 +38,8 @@ export {
   type Meta,
   type RequestDoc,
 } from "./model/collection";
-export { serializeDeterministic, validateCollection } from "./import/wayfarer-collection";
-export {
-  exportedValue,
-  serializeEnvironmentExport,
-  validateEnvironmentExport,
-  type ProtectedValues,
-} from "./import/wayfarer-environments";
+export { serializeDeterministic } from "./import/wayfarer-collection";
+export { exportedValue, serializeEnvironmentExport, type ProtectedValues } from "./import/wayfarer-environments";
 export { buildCurl } from "./export/curl";
 export { exportBody, redactExport, type ExportBody, type ExportRequest, type ExportSource } from "./export/request";
 export { copyNote } from "./export/copy-note";
@@ -66,19 +52,9 @@ export type { ExportNote } from "./export/postman";
 export { isCurlCommand } from "./import/curl-command";
 export { unsupportedApis } from "./import/script-scan";
 // The importers themselves are `@wayfarer/core/import`, which only the import worker loads.
-export type { ImportOptions, ImportReport, ImportWarning, Imported, ImportedCollection } from "./import/import";
+export type { ImportOptions, Imported, ImportedCollection } from "./import/import";
 export type { CollectionImportPlanEntry } from "./import/wayfarer-collection";
-export {
-  BODY_MODES,
-  FORBIDDEN_METHODS,
-  HTTP_METHODS,
-  RAW_CONTENT_TYPES,
-  RAW_LANGUAGES,
-  emptyAuth,
-  emptyRequest,
-  fileIdsOf,
-  isHttpMethod,
-} from "./model/request";
+export { FORBIDDEN_METHODS, HTTP_METHODS, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {
   AssertionOperator,
   AssertionTarget,
@@ -94,19 +70,16 @@ export type {
   Route,
   Row,
   Scripts,
-  TestAssertion,
 } from "./model/request";
 export {
   applyVariableChanges,
   protectedSecretId,
-  scriptVariables,
   variableChanges,
   variablesByName,
   type ScriptVariable,
   type VariableChange,
 } from "./model/variables";
 export {
-  KDF_ITERATIONS,
   VAULT_FILE_FORMAT,
   createVault,
   decryptSecret,
@@ -119,35 +92,11 @@ export {
   type VaultKey,
   type VaultRecord,
 } from "./vault/vault-crypto";
-export {
-  VARIABLE_SCOPES,
-  VariableNestingError,
-  VariableResolver,
-  type ScopeStack,
-  type VariableScope,
-  type VariableSource,
-  type VariableToken,
-} from "./variables/resolver";
-export { validateInherited, validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
-export { MASK, MIN_SECRET_LENGTH, Redactor, isCredentialHeader, type RedactOptions } from "./redact/redactor";
-export {
-  IMPORT_TOO_LARGE,
-  MAX_IMPORT_BYTES,
-  isOversizedImport,
-  parseJson,
-  readImportText,
-  stringifyJson,
-} from "./safe-json";
-export { graphqlPayload } from "./http/graphql";
-export {
-  MAX_COOKIES,
-  cookieHeader,
-  cookiesFor,
-  parseSetCookie,
-  storeCookie,
-  withJarCookies,
-  type Cookie,
-} from "./cookies/jar";
+export { VariableNestingError, VariableResolver, type ScopeStack, type VariableToken } from "./variables/resolver";
+export type { ValidationIssue } from "./model/validate";
+export { MIN_SECRET_LENGTH, Redactor, type RedactOptions } from "./redact/redactor";
+export { IMPORT_TOO_LARGE, isOversizedImport, parseJson, readImportText, stringifyJson } from "./safe-json";
+export { cookiesFor, parseSetCookie, storeCookie, type Cookie } from "./cookies/jar";
 export { BridgeTransport, bridgeHealthProblem } from "./transport/bridge";
 export { afterDirectSend, routeOf, type RoutePolicy } from "./transport/route";
 export { FetchTransport } from "./transport/fetch";
@@ -162,23 +111,18 @@ export {
   type TransportOptions,
 } from "./transport/transport";
 export {
-  LOG_TRUNCATED,
   SCRIPT_LIMITS,
   emptyChanges,
   runScript,
   scriptMemory,
-  type ScriptBody,
   type ScriptContext,
   type ScriptLimits,
-  type ScriptRequest,
   type ScriptResponse,
   type ScriptResult,
-  type ScriptScope,
   type ScriptSendRequest,
 } from "./scripting/host";
 export { loadLibraries } from "./scripting/libraries";
-export { scriptRequestOf, sentScriptRequest, withScriptRequest } from "./scripting/request-view";
-export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";
+export { scriptDigest, scriptsApproved, scriptsOf } from "./scripting/trust";
 export {
   requestsInOrder,
   runFailed,
@@ -187,17 +131,14 @@ export {
   type RunOptions,
   type RunOutcome,
   type RunReport,
-  type RunRequest,
   type RunResult,
 } from "./run/runner";
 export { runCounts, runEnding, sharedErrorHeading, sharedErrors } from "./run/words";
 export { containsSecretPlaceholder } from "./send/wire";
-export { runAssertions, type AssertionResponseContext, type TestResult } from "./send/assertions";
+export { type TestResult } from "./send/assertions";
 export {
-  HISTORY_BODY_LIMIT,
   MODEL_ACTION_WORDS,
   PreRequestScriptError,
-  RequestSkipped,
   SendBlockedError,
   SendDeclinedError,
   exchange,
@@ -205,7 +146,6 @@ export {
   type BuiltRequest,
   type ExchangePorts,
   type ExchangeResult,
-  type HistoryBody,
   type ModelAction,
   type PastRequest,
   type RequestExecutionResponse,
@@ -225,23 +165,17 @@ export {
   oauthOf,
   sentAuth,
   sentHeaders,
-  type BuildContext,
   type Composed,
   type RunSend,
-  type SentBody,
 } from "./send/build";
 export { runOutcome } from "./send/run";
-export { previewAddress, previewVariables, type PreviewHolders, type PreviewVariable } from "./send/preview";
+export { previewAddress, previewVariables, type PreviewVariable } from "./send/preview";
 export {
   formatDuration,
-  lineText,
   recordHeadline,
   recordLines,
   recordRoute,
   type ExchangeRecord,
-  type FilledSecret,
-  type MaskedParts,
-  type RecordLine,
   type RecordPart,
 } from "./send/record";
 export {
@@ -252,9 +186,7 @@ export {
   validateWorkspaceFile,
 } from "./import/workspace";
 export {
-  LINK_DAMAGED,
   LINK_NOT_COLLECTION,
-  LINK_WRONG_CODE,
   SHARE_LINK_MAX_BYTES,
   encodeShareLink,
   groupedCode,

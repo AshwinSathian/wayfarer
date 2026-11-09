@@ -20,13 +20,13 @@ nothing else (DQ11), so the mark has none. The glyph is 2.4 units wide on the 26
 and drawn inline in the app (`app-mark`) and on the site (`Mark.astro`) from the same numbers
 (`TRAIL` and `HOST` in `../brand.mjs`; `scripts/installed-app.test.mjs` holds them equal).
 
-The name is set in Atkinson Hyperlegible Next Bold (700), in the app, on the site and in the
+The name is set in Bricolage Grotesque Bold (700), the headline face, in the app, on the site and in the
 wordmark, and in no other weight.
 
 | File | What it is |
 | --- | --- |
 | `mark.svg`, `mark-dark.svg` | The mark, for a light and a dark ground. 26 units; the tile's corners are 6. |
-| `wordmark.svg`, `wordmark-dark.svg` | The mark and the name, as the sidebar sets them: the name in Atkinson Hyperlegible Next Bold at 15 beside the 26-unit mark, 10 apart, its capitals centred on the tile. The name is outlined, so the file needs no font. |
+| `wordmark.svg`, `wordmark-dark.svg` | The mark and the name, as the sidebar sets them: the name in Bricolage Grotesque Bold at 15 beside the 26-unit mark, 10 apart, its capitals centred on the tile. The name is outlined, so the file needs no font. |
 | `favicon.svg` | The mark in the browser's own scheme (`prefers-color-scheme`). |
 | `maskable.svg` | The installed app's maskable icon: the tile fills the square, and the glyph is drawn at 0.74 of its size, 7.5 units from the centre at most, well inside the safe zone. |
 | `app/icon-192.png`, `app/icon-512.png` | The manifest's `any` icons: the mark, its corners clear. |
@@ -45,7 +45,7 @@ another face or weight.
 `icons/` holds one SVG per icon the app draws, by the name `<app-icon name>` takes. Each is a single path
 on a 24-unit grid, stroked 2 units wide with round caps and joins in `currentColor`, every point inside
 2 units of padding (`brand.test.mjs` holds the rules, and that the app draws each one). The stroke is
-0.083 of the icon's size, the weight of Atkinson Hyperlegible Next Regular's stems (0.084 to 0.094 em):
+0.083 of the icon's size, the weight of Figtree Regular's stems (0.080 to 0.085 em, its l and I):
 an icon at its text's size has its text's weight (U-127). `npm run gen:tokens` writes
 `src/app/shared/icon/icon-paths.ts` from them.
 

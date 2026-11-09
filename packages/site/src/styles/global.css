@@ -3,36 +3,27 @@
 @import "./tokens.css";
 
 /*
- * The site's colours are the app's (W5.1): tokens.css is written by packages/tokens, both themes and both contrast
- * levels. Its face is its own, STIX Two Text (the tokens' `font-site`), set larger than a sans would be; the wire keeps
- * the app's JetBrains Mono. The theme follows the app's stored choice (`wayfarer:theme`, set before the page is drawn by
+ * The site's colours and faces are the app's (W5.1): tokens.css is written by packages/tokens, both themes and both
+ * contrast levels. Figtree for the text, Bricolage Grotesque for the titles, JetBrains Mono for the wire. The theme follows the app's stored choice (`wayfarer:theme`, set before the page is drawn by
  * /app/theme.js), else the system's. Chrome and actions are ink; hue is for protocol (DQ11). This file writes no colour
  * and no family of its own.
  */
 
 @font-face {
-  font-family: "STIX Two Text";
+  font-family: "Figtree Variable";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 300 900;
   font-display: optional;
-  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff2")
-    format("woff2");
+  src: url("../../../../node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2")
+    format("woff2-variations");
 }
 @font-face {
-  font-family: "STIX Two Text";
+  font-family: "Bricolage Grotesque Variable";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 200 800;
   font-display: optional;
-  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-600-normal.woff2")
-    format("woff2");
-}
-@font-face {
-  font-family: "STIX Two Text";
-  font-style: italic;
-  font-weight: 400;
-  font-display: optional;
-  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-italic.woff2")
-    format("woff2");
+  src: url("../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2")
+    format("woff2-variations");
 }
 @font-face {
   font-family: "JetBrains Mono";
@@ -47,7 +38,8 @@
   --default-transition-duration: var(--dur-quick);
   --default-transition-timing-function: var(--ease-standard);
 
-  --font-text: var(--font-site);
+  --font-text: var(--font-sans);
+  --font-heading: var(--font-display);
   --font-code: var(--font-mono);
 
   --color-paper: var(--canvas-app);
@@ -503,6 +495,7 @@
   margin-top: 1em;
 }
 .prose h1 {
+  font-family: var(--font-display);
   font-size: var(--type-site-title-1-size);
   line-height: var(--type-site-title-1-line);
   letter-spacing: var(--type-site-title-1-tracking);
@@ -516,6 +509,7 @@
   }
 }
 .prose h2 {
+  font-family: var(--font-display);
   font-size: var(--type-site-title-1-size);
   line-height: var(--type-site-title-1-line);
   letter-spacing: var(--type-site-title-1-tracking);
@@ -523,12 +517,14 @@
   margin-top: 2.2em;
 }
 .prose h3 {
+  font-family: var(--font-display);
   font-size: var(--type-site-title-2-size);
   line-height: var(--type-site-title-2-line);
   font-weight: var(--type-site-title-2-weight);
   margin-top: 1.8em;
 }
 .prose h4 {
+  font-family: var(--font-display);
   font-size: var(--type-site-title-3-size);
   font-weight: 600;
   margin-top: 1.5em;

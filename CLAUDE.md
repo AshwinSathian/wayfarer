@@ -122,9 +122,10 @@ code errors.
   `global.css` names tokens in its `@theme` and writes no colour or face
   but in the `@font-face` rules that load the tokens' faces (the token
   test, which reads `.astro` classes too); actions are ink, as the app's
-  are (DQ11). The site's face is STIX Two Text (`font-site`, 400, 600 and
-  400 italic only, self-hosted from `@fontsource`); the app keeps Atkinson, and both
-  set code in JetBrains Mono.
+  are (DQ11). The site's faces are the app's: Figtree for the text,
+  Bricolage Grotesque (`font-display`) for the `type-site-*` titles and
+  the prose headings, each one variable file from `@fontsource-variable`,
+  and JetBrains Mono for code.
   `scripts/contrast.test.mjs` holds the site's text on its surfaces.
 - The site's theme and mark are the app's: the layout loads
   `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
@@ -398,10 +399,15 @@ code errors.
   Sizes are rem (U-073): no stylesheet writes a `font-size` in px, icons
   included (the token test). Working text (values, rows, tabs, controls)
   is 13 px, captions 12, prose and dialogs 14 (U-111).
-- The app's text face is Atkinson Hyperlegible Next, with Inter as the
-  per-glyph fallback for Greek, Cyrillic and Vietnamese; the wire's is
-  JetBrains Mono, never under 13 px (`type-mono-body`): its 0 and O are a
-  device pixel apart at 12.
+- Wayfarer's faces are ChatterMeter's pair (maintainer, 2026-11-09), in
+  the app and on the site: Figtree (`font-sans`) for every label, row,
+  control and paragraph, and Bricolage Grotesque (`font-display`) for a
+  headline (the app's `type-title-2`, a dialog's title; the name beside
+  the mark, `font-headline`; the site's titles). Inter is the per-glyph
+  fallback for Greek, Cyrillic and Vietnamese. Neither face keeps I, l and
+  1 or 0 and O apart at 13 px (U-150), so the rule below carries more
+  weight: the wire's face is JetBrains Mono, never under 13 px
+  (`type-mono-body`): its 0 and O are a device pixel apart at 12.
 - A value a user typed, or one a server sent or will read (an address, a
   header, a variable, a credential, a body field), is monospace; a name,
   prose, a passphrase or a number is not. Every text field (`uiInput`)

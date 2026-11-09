@@ -30,9 +30,9 @@
   --dur-none: 0.001ms;
 
   /* font */
-  --font-sans: 'Atkinson Hyperlegible Next', 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Figtree Variable', Figtree, 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', Menlo, 'SF Mono', Consolas, monospace;
-  --font-site: 'STIX Two Text', Georgia, 'Times New Roman', serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'Figtree Variable', Figtree, system-ui, sans-serif;
 
   /* type */
   --type-title-2-size: 1.125rem;
@@ -66,31 +66,31 @@
 
   /* site-type */
   --type-site-display-size: 3.25rem;
-  --type-site-display-line: 3.4375rem;
-  --type-site-display-weight: 400;
-  --type-site-display-tracking: -0.024em;
+  --type-site-display-line: 3.375rem;
+  --type-site-display-weight: 700;
+  --type-site-display-tracking: -0.03em;
   --type-site-hero-size: 4.5rem;
-  --type-site-hero-line: 4.5625rem;
-  --type-site-hero-weight: 400;
-  --type-site-hero-tracking: -0.028em;
+  --type-site-hero-line: 4.5rem;
+  --type-site-hero-weight: 700;
+  --type-site-hero-tracking: -0.035em;
   --type-site-title-1-size: 2.25rem;
   --type-site-title-1-line: 2.5rem;
-  --type-site-title-1-weight: 400;
-  --type-site-title-1-tracking: -0.02em;
+  --type-site-title-1-weight: 700;
+  --type-site-title-1-tracking: -0.025em;
   --type-site-title-2-size: 1.5rem;
-  --type-site-title-2-line: 1.875rem;
-  --type-site-title-2-weight: 600;
-  --type-site-title-2-tracking: -0.01em;
+  --type-site-title-2-line: 1.8125rem;
+  --type-site-title-2-weight: 700;
+  --type-site-title-2-tracking: -0.015em;
   --type-site-title-3-size: 1.25rem;
   --type-site-title-3-line: 1.625rem;
-  --type-site-title-3-weight: 600;
-  --type-site-title-3-tracking: 0;
+  --type-site-title-3-weight: 700;
+  --type-site-title-3-tracking: -0.01em;
   --type-site-lede-size: 1.375rem;
   --type-site-lede-line: 2rem;
   --type-site-lede-weight: 400;
   --type-site-lede-tracking: -0.005em;
-  --type-site-body-size: 1.1875rem;
-  --type-site-body-line: 1.8125rem;
+  --type-site-body-size: 1.125rem;
+  --type-site-body-line: 1.75rem;
   --type-site-body-weight: 400;
   --type-site-body-tracking: 0;
   --type-site-small-size: 1rem;

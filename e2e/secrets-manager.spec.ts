@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { closeEnvironments, openEnvironments } from "./support/app";
+import { closeEnvironments, openEnvironments, untilBooted } from "./support/app";
 
 test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
@@ -11,6 +11,7 @@ test.describe("Secrets management view", () => {
 
   test("opens from the command palette", async ({ page }) => {
     await page.goto("/app/");
+    await untilBooted(page);
     await page.keyboard.press("ControlOrMeta+K");
     await expect(page.getByPlaceholder("Search or run a command")).toBeVisible();
     await page.getByPlaceholder("Search or run a command").fill("Secrets");

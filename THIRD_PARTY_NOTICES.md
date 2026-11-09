@@ -2,6 +2,14 @@
 
 Wayfarer's own code is MIT-licensed (see [LICENSE](LICENSE)). The production build also contains the third-party material below. npm dependencies bundled into JavaScript are listed, with their licence texts, in [`/3rdpartylicenses.txt`](3rdpartylicenses.txt), which the build writes (Angular `extractLicenses`) and serves next to this file.
 
+## Figtree
+
+Self-hosted from `@fontsource-variable/figtree`. Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree). Licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+
+## Bricolage Grotesque
+
+Self-hosted from `@fontsource-variable/bricolage-grotesque`. Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage). Licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+
 ## Inter
 
 Self-hosted from `@fontsource-variable/inter`. Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter). Licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).

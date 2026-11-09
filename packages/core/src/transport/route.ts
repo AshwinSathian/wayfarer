@@ -24,10 +24,12 @@ const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /**
  * What the `auto` route does after the page sent `request` itself (D7). A
- * response is the answer ("keep"). After a network failure the request is
- * sent again through the bridge only when it cannot have reached the server,
- * since the browser's preflight failed first, or when sending it twice does
- * no harm; otherwise the browser may have sent it, and the user is asked.
+ * response is the answer ("keep"), also one whose body broke off. After a
+ * network failure with no response, the request is sent again through the
+ * bridge when a preflight was needed (the browser may have stopped it there;
+ * a server that passed the preflight and answered without CORS gets it
+ * twice) or when sending it twice does no harm; otherwise the browser may
+ * have sent it, and the user is asked.
  */
 export function afterDirectSend(request: LimitsRequest, pageOrigin: string, failed: boolean): "keep" | "retry" | "ask" {
   if (!failed) return "keep";

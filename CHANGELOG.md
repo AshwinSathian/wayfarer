@@ -24,6 +24,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
 - **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
 - **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
+
+### Fixed
+
+- **Auto no longer sends a request again after its response broke off.** With the route Auto and a bridge paired, a response whose body broke after its headers (a dropped connection, an event stream the server cut) counted as no answer, and a GET, or a POST that needed a preflight, went out again through the bridge without a question: the server got it twice. Such a failure now stands, and the request is sent once.
+- **A reference to a deleted vault secret is refused in every encoding.** Written with spaces (`{{ $secret.id }}`) in a query API key or an OAuth client secret sent in the header, or in an address that also held a stray `%`, the reference went out encoded. Now the send is stopped, as it is for every other form.
+- **Get token does not open the sign-in window with a vault secret's reference in it.** A client ID, scope or authorization address that named a secret the vault no longer has went to the identity provider in the window's address. Now the sign-in is refused and says why.
+- **Copy as HAR keeps every response header.** A repeated header (each `Set-Cookie` through the Local Bridge) was cut to its last value, and one named `__proto__` was left out.
+- **A variable whose value has a secret's reference inside other text stays a field.** `Bearer {{$secret.id}}` was shown as "Secret stored" and could no longer be edited. An export in plain text now also fills in every secret a value names, not only the first.
 
 ## [3.3.1] - 2026-11-09
 

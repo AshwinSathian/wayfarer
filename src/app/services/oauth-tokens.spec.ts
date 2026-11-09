@@ -394,5 +394,20 @@ describe("OAuthTokens", () => {
       await expect(tokens.get(code, codeKey)).rejects.toThrow("The browser blocked the sign-in window.");
       expect(tokens.waiting()).toBe(false);
     });
+
+    it("@claim:C-007 a sign-in address with a vault secret's reference in it is not opened", async () => {
+      const reference = "{{ $secret.00000000-0000-4000-8000-00000000d5d5 }}";
+      for (const withReference of [
+        auth({ grant: "authorization_code", clientId: reference }),
+        auth({ grant: "authorization_code", scope: reference }),
+        auth({ grant: "authorization_code", authUrl: `https://idp.test/${reference}/authorize` }),
+      ]) {
+        await expect(tokens.get(withReference, oauthTokenKey(withReference))).rejects.toThrow(
+          "refers to a vault secret that could not be read",
+        );
+      }
+      expect(opened).toEqual([]);
+      expect(tokens.waiting()).toBe(false);
+    });
   });
 });

@@ -43,7 +43,7 @@ export class TransportRouter implements Transport {
       policy.startedAt = performance.now();
       return await new FetchTransport().send(request, options);
     } catch (error) {
-      if (!(error instanceof TransportError) || error.kind !== "network") throw error;
+      if (!(error instanceof TransportError) || error.kind !== "network" || error.responded) throw error;
       // The page got no response. With no bridge paired, that is said (U-131); `auto` has nothing to try.
       const paired = !!this.bridge.config().url && (await this.bridge.hasToken());
       if (!paired) policy.unpaired = true;

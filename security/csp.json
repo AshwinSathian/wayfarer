@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "Single source of the Content-Security-Policy (P1.5). `npm run gen:csp` writes it into public/_headers (HTTP header, applied by Cloudflare) and src/index.html (<meta>, minus the directives a meta policy ignores). `npm run check:csp` fails CI when either file drifts.",
+    "Single source of the Content-Security-Policy (P1.5). `npm run gen:csp` writes it under /app/* into packages/site/public/_headers (HTTP header, applied by Cloudflare) and src/index.html (<meta>, minus the directives a meta policy ignores). `npm run check:csp` fails CI when either file drifts.",
     "script-src never gets 'unsafe-eval' or 'unsafe-inline' (plan section 2, Constraints).",
     "script-src 'wasm-unsafe-eval' is the script sandbox (P3.1): it lets the page compile WebAssembly, which is how the QuickJS engine that runs user scripts is loaded, from the app's own origin. It does not allow eval, new Function or a string given to setTimeout: those stay blocked.",
     "connect-src is open because sending requests to arbitrary user-specified hosts is the app's core feature.",

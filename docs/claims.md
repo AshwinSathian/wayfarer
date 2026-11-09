@@ -44,7 +44,7 @@ back gets reworded until one can, or removed.
 | C-009 | A response body is shown by its content type: formatted JSON, text, indented XML, an HTML preview, an image, or a hex dump. Any text body can be read as it was sent, and a binary body downloaded with its exact bytes. | README.md | e2e/tripwire.spec.ts, e2e/viewers.spec.ts |
 | C-010 | Network failures show the real network error, never a synthetic `504` from a service worker. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts, e2e/service-worker.spec.ts |
 | C-011 | The Content-Security-Policy forbids `eval` and inline script, so injected script does not run. | docs/trust-center.md | e2e/claims.spec.ts |
-| C-012 | The production page loads with no script the app didn't ship (0 CSP violations); checked every 6 hours. | docs/runbook.md | e2e/no-edge-injection.spec.ts |
+| C-012 | The production page runs no script but the app's: the Content-Security-Policy blocks any other, also one the host adds on the way; checked every 6 hours. | docs/runbook.md | e2e/no-edge-injection.spec.ts |
 | C-013 | Settings → Reset all data deletes the database; if another tab holds it open, that tab is told to reload. | README.md, docs/trust-center.md | e2e/reset-all-data.spec.ts |
 | C-014 | Collection exports mask credentials unless the user asks for them in that export: those of a request, and those of the auth and the variables a collection or a folder holds. | README.md, docs/trust-center.md | e2e/claims.spec.ts, src/app/services/collections-store.integration.spec.ts |
 | C-015 | After one visit the app loads offline; its service worker caches only the app's own files and never answers requests to other origins. | README.md, docs/trust-center.md | e2e/service-worker.spec.ts |

@@ -87,7 +87,9 @@ Then compare all response headers against what `_headers` (`packages/site/public
 curl -sI https://wayfarer.ashwinsathian.com/ | cut -d: -f1 | tr 'A-Z' 'a-z' | sort
 ```
 
-Then run the automated check. It fails on any CSP violation during page load. Once these steps are done, set the repository variable `ZONE_HARDENED` to `true` (GitHub → Settings → Secrets and variables → Actions → Variables). From then on the production page loads with no script the app didn't ship, and `deploy.yml` and `synthetic.yml` run this check on every deploy and every 6 hours. <!-- claim:C-012 -->
+Then run the automated check. It fails on any CSP violation during page load. Once these steps are done, set the repository variable `ZONE_HARDENED` to `true` (GitHub → Settings → Secrets and variables → Actions → Variables). From then on `deploy.yml` and `synthetic.yml` run this check on every deploy and every 6 hours.
+
+Until then they run the claim's own test, `only-own-scripts`: no script but the app's runs, and the only violations allowed are the policy blocking a script, which is what the zone's injected script gets. <!-- claim:C-012 -->
 
 ```sh
 BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test e2e/no-edge-injection.spec.ts

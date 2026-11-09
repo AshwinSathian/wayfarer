@@ -52,16 +52,13 @@ async function main() {
 
   // The social image: the wordmark and the line the site's home page leads with, on the light canvas.
   const colours = hexColours("light");
-  const font = (weight) =>
+  const font = () =>
     readFileSync(
-      new URL(
-        `../../node_modules/@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-${weight}-normal.woff2`,
-        import.meta.url,
-      ),
+      new URL(`../../node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2`, import.meta.url),
     ).toString("base64");
   await page.setViewportSize({ width: 1200, height: 630 });
   await page.setContent(`<style>
-    @font-face { font-family: A; src: url(data:font/woff2;base64,${font(400)}); font-weight: 400; }
+    @font-face { font-family: A; src: url(data:font/woff2;base64,${font()}); font-weight: 400; }
     body { margin: 0; width: 1200px; height: 630px; box-sizing: border-box; padding: 96px 104px; display: flex;
       flex-direction: column; background: ${colours["canvas-app"]}; font-family: A; }
     img { display: block; align-self: flex-start; height: 104px; width: auto; }
@@ -88,7 +85,7 @@ async function main() {
   for (const scale of [1, 2]) {
     const sheet = await browser.newPage({ deviceScaleFactor: scale, viewport: { width: 640, height: 400 } });
     await sheet.setContent(`<style>
-      @font-face { font-family: A; src: url(data:font/woff2;base64,${font(400)}); }
+      @font-face { font-family: A; src: url(data:font/woff2;base64,${font()}); }
       body { margin: 0; background: ${light["canvas-app"]}; font: 13px A; }
       table { border-collapse: collapse; }
       th { font-weight: 400; text-align: left; padding: 4px 12px; color: ${light["label-secondary"]}; }

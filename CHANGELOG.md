@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **An import's report and its script review list a collection's items in the order of its tree.** Each folder comes before what it holds, as the sidebar shows them. Before, both sorted by each item's place within its own folder alone, so every folder's first request came together ("Get customer" before "List orders") and the folders came before any request.
+
 ### Changed
 
 - **On a phone, the landing's comparison is short.** Each question shows Wayfarer's answer, and the five others' fold under "What the others say", with their sources. Before, each question ran a screen and a half.

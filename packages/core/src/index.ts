@@ -36,6 +36,7 @@ export {
   ENVIRONMENTS_FORMAT,
   ancestorsOf,
   childrenInOrder,
+  treeInOrder,
   folderChain,
   type Ancestor,
   type Collection,

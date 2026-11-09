@@ -6,6 +6,7 @@ import {
   type CollectionTree,
   type Folder,
   type RequestDoc,
+  treeInOrder,
 } from "../model/collection";
 import { validateInherited, validateRequestContent, validateRows } from "../model/validate";
 import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../safe-json";
@@ -162,22 +163,13 @@ function buildPlan(payload: CollectionExport, duplicate: boolean): CollectionImp
     },
   ];
 
-  for (const folder of payload.folders) {
-    entries.push({
-      type: "folder",
-      name: folder.name,
-      id: folder.meta.id,
-      action,
-    });
-  }
-
-  for (const request of payload.requests) {
-    entries.push({
-      type: "request",
-      name: request.name || request.url,
-      id: request.meta.id,
-      action,
-    });
+  // In the tree's order, each folder before what it holds: the report lists them as the sidebar will.
+  for (const child of treeInOrder(payload)) {
+    entries.push(
+      child.kind === "request"
+        ? { type: "request", name: child.request.name || child.request.url, id: child.request.meta.id, action }
+        : { type: "folder", name: child.folder.name, id: child.folder.meta.id, action },
+    );
   }
 
   return entries;

@@ -1,0 +1,232 @@
+/* The splash: the shell in skeleton, in src/index.html's <app-root>, drawn from the first frame (this sheet is in the
+   head and blocks the first paint) until Angular starts and replaces it. Each part is where the shell puts it at that
+   width, so nothing moves when the app is drawn: the toolbar, the pinned sidebar from 75 em, the composer's tab,
+   address and sections, and the status bar from 48 em. Its blocks are .ui-skeleton, the one loop allowed. main.ts puts
+   a message and Reload in its place if the app fails to start (.splash-failed). */
+
+.splash {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--canvas-app);
+  color: var(--label-primary);
+}
+
+/* No script, no app: the <noscript> line says so, on the bare canvas. */
+@media (scripting: none) {
+  .splash {
+    display: none;
+  }
+}
+
+/* As .app-sidebar-pinned, beside the page from 75 em. */
+.splash-sidebar {
+  display: none;
+  flex: none;
+  flex-direction: column;
+  width: 22rem;
+  border-right: 1px solid var(--separator);
+  background: var(--canvas-sidebar);
+}
+
+.splash-sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.splash-sidebar-head .brand-mark {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.splash-name {
+  font-family: var(--font-display);
+}
+.splash-sidebar-head .splash-name {
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.splash-sidebar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.splash-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* As .ds-toolbar. */
+.splash-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--separator);
+  background: var(--surface-toolbar);
+}
+
+.splash-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.splash-cluster .brand-mark {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.splash-cluster .splash-name {
+  display: none;
+  font-weight: 700;
+  color: var(--label-secondary);
+}
+
+/* Each block's margins put it where the composer draws its part: the tab, the address, the sections, a field. */
+.splash-composer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+}
+
+.splash-address {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 9px;
+}
+
+.splash-sections {
+  display: flex;
+  gap: 24px;
+  margin-top: 27px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--separator);
+}
+
+/* As .status-bar. */
+.splash-status {
+  display: none;
+  flex: none;
+  height: 30px;
+  margin-top: auto;
+  border-top: 1px solid var(--separator);
+  background: var(--canvas-sidebar);
+}
+
+/* The blocks: a control's height and a line of text's. */
+.splash-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.splash-control {
+  width: 8rem;
+  height: var(--ctl-height-md);
+}
+.splash-palette {
+  display: none;
+  flex: 0 1 280px;
+  height: var(--ctl-height-md);
+  margin-inline: auto;
+}
+.splash-wide-only {
+  display: none;
+}
+.splash-tab {
+  width: 8.5rem;
+  height: 1.25rem;
+  margin-block: 10px;
+}
+.splash-url {
+  flex: 1 1 100%;
+  height: var(--ctl-height-lg);
+  border-radius: var(--radius-lg);
+}
+.splash-send {
+  flex: 1 1 auto;
+  height: var(--ctl-height-lg);
+}
+.splash-word {
+  width: 3.25rem;
+  height: 0.875rem;
+}
+.splash-field {
+  height: var(--ctl-height-lg);
+  margin-top: 19px;
+}
+.splash-line {
+  height: 0.875rem;
+}
+.splash-line.splash-short {
+  width: 60%;
+}
+
+@media (width >= 48em) {
+  .splash-palette,
+  .splash-wide-only {
+    display: block;
+  }
+  .splash-status {
+    display: block;
+  }
+  .splash-composer {
+    padding: 16px 32px;
+  }
+  .splash-address {
+    flex-wrap: nowrap;
+  }
+  .splash-url {
+    flex: 1 1 auto;
+  }
+  .splash-send {
+    flex: none;
+    width: 5.5rem;
+  }
+  .splash-field {
+    width: min(100%, 36rem);
+  }
+}
+
+@media (width >= 64em) {
+  .splash-toolbar {
+    padding: 0 20px;
+  }
+  .splash-cluster .splash-name {
+    display: inline;
+  }
+}
+
+/* The sidebar holds the name; the toolbar does not repeat it. */
+@media (width >= 75em) {
+  .splash-sidebar {
+    display: flex;
+  }
+  .splash-toolbar .brand-mark,
+  .splash-toolbar .splash-name {
+    display: none;
+  }
+}
+
+/* The app did not start (main.ts): a line and Reload, where the composer would be. */
+.splash-failed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 32rem;
+  padding: 32px;
+  color: var(--label-secondary);
+}

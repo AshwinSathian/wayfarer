@@ -2,6 +2,7 @@
    scale (D3.2): each class reads its style's custom properties in tokens.css. */
 
 .type-title-2 {
+  font-family: var(--font-display);
   font-size: var(--type-title-2-size);
   line-height: var(--type-title-2-line);
   font-weight: var(--type-title-2-weight);

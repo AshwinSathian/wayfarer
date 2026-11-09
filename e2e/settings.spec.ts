@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import { openSettings } from "./support/app";
+import { openSettings, untilBooted } from "./support/app";
 
 test.describe("Settings surface", () => {
   const drawn = (page: import("@playwright/test").Page) =>
@@ -132,6 +132,7 @@ test.describe("Settings surface", () => {
 
   test("@claim:C-030 opens from the command palette", async ({ page }) => {
     await page.goto("/app/");
+    await untilBooted(page);
     await page.keyboard.press("ControlOrMeta+K");
     await page.getByPlaceholder("Search or run a command").fill("Settings");
     await page.getByRole("option", { name: "Settings", exact: true }).click();

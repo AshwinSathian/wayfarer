@@ -164,11 +164,12 @@
     }
   },
   "font": {
-    "$description": "Font families (DQ11). Atkinson Hyperlegible Next speaks for Wayfarer: its I, l and 1, and its 0 and O, differ at 12 and 13 px (U-150). It has Latin only; Inter is the per-glyph fallback for Greek, Cyrillic and Vietnamese. JetBrains Mono is the wire. STIX Two Text is the site's voice (the website rebuild in Astro): a plain roman of the printed page, for a site that reads like a well-kept document; the app keeps Atkinson Hyperlegible Next.",
+    "$description": "Font families (maintainer, 2026-11-09: ChatterMeter's pair, in the app and on the site). Figtree speaks for Wayfarer: every label, row, control and paragraph. Bricolage Grotesque sets the headlines: a dialog's title in the app, the titles of the site. Both are Latin; Inter is the per-glyph fallback for Greek, Cyrillic and Vietnamese. JetBrains Mono is the wire: a value a user typed or a server sent, where I, l and 1 and 0 and O must differ (U-150), which neither face keeps apart at 13 px.",
     "font-sans": {
       "$type": "fontFamily",
       "$value": [
-        "Atkinson Hyperlegible Next",
+        "Figtree Variable",
+        "Figtree",
         "Inter Variable",
         "Inter",
         "system-ui",
@@ -181,9 +182,16 @@
       "$type": "fontFamily",
       "$value": ["JetBrains Mono", "Menlo", "SF Mono", "Consolas", "monospace"]
     },
-    "font-site": {
+    "font-display": {
       "$type": "fontFamily",
-      "$value": ["STIX Two Text", "Georgia", "Times New Roman", "serif"]
+      "$value": [
+        "Bricolage Grotesque Variable",
+        "Bricolage Grotesque",
+        "Figtree Variable",
+        "Figtree",
+        "system-ui",
+        "sans-serif"
+      ]
     }
   },
   "type": {
@@ -191,7 +199,7 @@
     "type-title-2": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-sans}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 1.125,
           "unit": "rem"
@@ -302,83 +310,83 @@
     }
   },
   "site-type": {
-    "$description": "The site's type scale (D3.2's second scale, rebuilt with the site in Astro): STIX Two Text at the sizes a page that is read needs, set larger than a sans for the same colour on the page. In rem, as the app's; nothing under 12 px. Written into packages/site as Tailwind utilities (`type-site-body`), so that a breakpoint can change a size. The site loads the face at 400 and 600 only.",
+    "$description": "The site's type scale (D3.2's second scale): Bricolage Grotesque for the titles, Figtree for the text, at the sizes a page that is read needs. In rem, as the app's; nothing under 12 px. Written into packages/site as Tailwind utilities (`type-site-body`), so that a breakpoint can change a size.",
     "type-site-display": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 3.25,
           "unit": "rem"
         },
-        "fontWeight": 400,
+        "fontWeight": 700,
         "letterSpacing": {
-          "value": -0.024,
+          "value": -0.03,
           "unit": "em"
         },
-        "lineHeight": 1.05
+        "lineHeight": 1.04
       }
     },
     "type-site-hero": {
       "$description": "The landing's one headline: the one large thing on the first screen.",
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 4.5,
           "unit": "rem"
         },
-        "fontWeight": 400,
+        "fontWeight": 700,
         "letterSpacing": {
-          "value": -0.028,
+          "value": -0.035,
           "unit": "em"
         },
-        "lineHeight": 1.02
+        "lineHeight": 1
       }
     },
     "type-site-title-1": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 2.25,
           "unit": "rem"
         },
-        "fontWeight": 400,
+        "fontWeight": 700,
         "letterSpacing": {
-          "value": -0.02,
+          "value": -0.025,
           "unit": "em"
         },
-        "lineHeight": 1.12
+        "lineHeight": 1.1
       }
     },
     "type-site-title-2": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 1.5,
           "unit": "rem"
         },
-        "fontWeight": 600,
+        "fontWeight": 700,
         "letterSpacing": {
-          "value": -0.01,
+          "value": -0.015,
           "unit": "em"
         },
-        "lineHeight": 1.25
+        "lineHeight": 1.2
       }
     },
     "type-site-title-3": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-display}",
         "fontSize": {
           "value": 1.25,
           "unit": "rem"
         },
-        "fontWeight": 600,
+        "fontWeight": 700,
         "letterSpacing": {
-          "value": 0,
+          "value": -0.01,
           "unit": "em"
         },
         "lineHeight": 1.3
@@ -387,7 +395,7 @@
     "type-site-lede": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-sans}",
         "fontSize": {
           "value": 1.375,
           "unit": "rem"
@@ -403,9 +411,9 @@
     "type-site-body": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-sans}",
         "fontSize": {
-          "value": 1.1875,
+          "value": 1.125,
           "unit": "rem"
         },
         "fontWeight": 400,
@@ -419,7 +427,7 @@
     "type-site-small": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-sans}",
         "fontSize": {
           "value": 1,
           "unit": "rem"
@@ -435,7 +443,7 @@
     "type-site-caption": {
       "$type": "typography",
       "$value": {
-        "fontFamily": "{font.font-site}",
+        "fontFamily": "{font.font-sans}",
         "fontSize": {
           "value": 0.875,
           "unit": "rem"

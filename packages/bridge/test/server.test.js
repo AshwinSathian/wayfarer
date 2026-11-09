@@ -55,6 +55,34 @@ test("sanitizeOutgoingHeaders drops hop-by-hop headers and keeps a repeated name
   assert.deepEqual(out, { Authorization: ["Bearer xyz"], Host: "api.internal", "X-Twice": ["one", "two"] });
 });
 
+test("sanitizeOutgoingHeaders keeps every value of a name written in two cases, under its first spelling", () => {
+  // Node sets a header by its name in lower case: as two keys, only the last value went out.
+  assert.deepEqual(
+    sanitizeOutgoingHeaders([
+      ["X-A", "1"],
+      ["x-a", "2"],
+      ["host", "api.internal"],
+    ]),
+    { "X-A": ["1", "2"], host: "api.internal" },
+  );
+});
+
+test("a relay body over the limit is answered 413, not a reset connection", async () => {
+  const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
+  const port = await listen(bridge);
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
+      method: "POST",
+      headers: { Origin: ORIGIN, "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": TOKEN },
+      body: Buffer.alloc(25 * 1024 * 1024 + 1, 0x20),
+    });
+    assert.equal(res.status, 413);
+    assert.deepEqual(await res.json(), { error: "request body too large" });
+  } finally {
+    await close(bridge);
+  }
+});
+
 test("timingSafeEqualStrings matches equal strings and rejects mismatches/undefined", () => {
   assert.equal(timingSafeEqualStrings("abc", "abc"), true);
   assert.equal(timingSafeEqualStrings("abc", "abd"), false);

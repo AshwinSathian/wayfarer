@@ -179,6 +179,17 @@ describe("FetchTransport", () => {
     expect(new Uint8Array(await (response.body as Blob).arrayBuffer()).every((byte) => byte === 7)).toBe(true);
   });
 
+  it("a timeout longer than a timer can hold is that long, not 1 ms", async () => {
+    const slow = new FetchTransport(
+      fakeFetch(() => new Promise<Response>((resolve) => setTimeout(() => resolve(new Response("ok")), 20))).fetch,
+    );
+    const response = await slow.send(
+      { method: "GET", url: "https://example.com/slow", headers: [] },
+      { signal: new AbortController().signal, timeoutMs: 3_000_000_000 },
+    );
+    expect(response.status).toBe(200);
+  });
+
   it("names a timeout, a cancel and a network failure", async () => {
     const hang = new FetchTransport(fakeFetch(never).fetch);
     const request = { method: "GET", url: "https://example.com/slow", headers: [] };

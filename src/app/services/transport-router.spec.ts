@@ -59,7 +59,12 @@ describe("TransportRouter", () => {
     // The body is made into bytes first: the call follows a moment later.
     const req = await vi.waitFor(() => fetchMock.expectOne("http://127.0.0.1:7717/relay"));
     expect(req.request.headers.get("X-Wayfarer-Bridge-Token")).toBe("test-token");
-    expect(req.request.body).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: [] });
+    expect(req.request.body).toEqual({
+      method: "GET",
+      url: "https://internal.example.com/data",
+      headers: [],
+      timeoutMs: 600_000,
+    });
     req.flush(
       JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }),
       { status: 200 },

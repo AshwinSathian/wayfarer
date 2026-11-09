@@ -160,12 +160,16 @@ export async function withDeadline<T>(
   const cancel = () => controller.abort();
   if (options.signal.aborted) cancel();
   options.signal.addEventListener("abort", cancel);
+  // A delay past 2^31 - 1 ms is 1 ms to a timer: a longer timeout waits that long, about 24.8 days.
   const timer =
     options.timeoutMs > 0
-      ? setTimeout(() => {
-          timedOut = true;
-          controller.abort();
-        }, options.timeoutMs)
+      ? setTimeout(
+          () => {
+            timedOut = true;
+            controller.abort();
+          },
+          Math.min(options.timeoutMs, 2 ** 31 - 1),
+        )
       : undefined;
   try {
     // `arrived`: the answer has begun, and the timeout has nothing more to say (a stream).

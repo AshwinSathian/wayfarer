@@ -94,11 +94,12 @@ export function getFallbackBars(inspection: ResponseInspection | null): TimingBa
   ];
 }
 
-export function formatBytes(value: number | undefined): string {
+/** A size in binary units, as every place in the app writes one; `zero` for nothing (a response's "—", storage's "0 B"). */
+export function formatBytes(value: number | undefined, zero = "—"): string {
   if (!value || value <= 0) {
-    return "—";
+    return zero;
   }
-  const units = ["B", "kB", "MB", "GB"];
+  const units = ["B", "kB", "MB", "GB", "TB"];
   let size = value;
   let unitIndex = 0;
   while (size >= 1024 && unitIndex < units.length - 1) {

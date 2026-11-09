@@ -61,6 +61,20 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
   await expect(page.getByRole("button", { name: "Send request" })).toBeVisible();
 });
 
+test("on a connection that is up but answers nothing, the stored shell loads after a few seconds, not when the browser gives up", async ({
+  page,
+}) => {
+  await loadControlled(page);
+  // The server takes the connection and never answers: a train's Wi-Fi, not an unplugged cable.
+  server.kill("SIGSTOP");
+  try {
+    await page.reload({ waitUntil: "commit", timeout: 10_000 });
+    await expect(page.locator("input.address-url")).toBeVisible({ timeout: 10_000 });
+  } finally {
+    server.kill("SIGCONT");
+  }
+});
+
 test("@claim:C-015 offline after one visit, every script that visit loaded is there, the lazy ones too: the editor opens (F84)", async ({
   page,
   context,

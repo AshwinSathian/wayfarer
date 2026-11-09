@@ -38,6 +38,8 @@ import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { readImportText, serializeEnvironmentExport } from "@wayfarer/core";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { DOCS } from "../../shared/docs";
+import { saveJsonFile } from "../../shared/save-file";
+import { formatBytes } from "../../shared/inspect/timing-bars";
 
 interface KeyboardShortcut {
   keys: string;
@@ -106,8 +108,6 @@ const SECTIONS: SectionEntry[] = [
   { id: "about", label: "About", icon: "info", about: "This version, and where to read more." },
   { id: "danger", label: "Danger zone", icon: "warning", about: "What cannot be undone." },
 ];
-
-const UNITS = ["B", "kB", "MB", "GB", "TB"];
 
 /**
  * Settings: a dialog with its sections listed on the left and one section's
@@ -224,7 +224,7 @@ export class Settings {
 
   exportEnvironments(): void {
     const json = serializeEnvironmentExport(this.environmentsService.environments());
-    this.downloadJson(json, "environments-export.json");
+    saveJsonFile("environments-export.json", json);
   }
 
   /** The file goes down the one import road: the report opens over Settings, and nothing is stored before it is confirmed. */
@@ -276,11 +276,9 @@ export class Settings {
     });
   }
 
-  /** A size as a person reads it: "3.6 MB", "10 GB". */
+  /** A size as the response viewer writes it: "3.60 MB", "10.0 GB". */
   protected size(bytes: number): string {
-    const power = Math.min(UNITS.length - 1, bytes > 0 ? Math.floor(Math.log(bytes) / Math.log(1024)) : 0);
-    const value = bytes / 1024 ** power;
-    return `${value >= 100 || power === 0 ? Math.round(value) : Number(value.toFixed(1))} ${UNITS[power]}`;
+    return formatBytes(bytes, "0 B");
   }
 
   /** How much of what the browser allows is used, as a width for the bar: never less than a sliver once anything is stored. */
@@ -292,7 +290,7 @@ export class Settings {
   /** The Danger zone's backup keeps the history too: the reset beside it deletes that as well (U-185). */
   async exportBackup(history = this.backupHistory()): Promise<void> {
     this.backupErrors.set([]);
-    this.downloadJson(await this.backup.exportJson({ history }), "wayfarer-workspace.json");
+    saveJsonFile("wayfarer-workspace.json", await this.backup.exportJson({ history }));
   }
 
   /** Replaces everything stored here with the file's workspace, after the user confirms. */
@@ -319,16 +317,6 @@ export class Settings {
       // Every store changed under the page: start again from what is stored.
       location.reload();
     }
-  }
-
-  private downloadJson(json: string, filename: string): void {
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = filename;
-    anchor.click();
-    URL.revokeObjectURL(url);
   }
 
   close(): void {

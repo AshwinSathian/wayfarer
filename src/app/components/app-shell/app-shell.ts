@@ -32,13 +32,12 @@ import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
 import { Dialog } from "../../ui/dialog";
 import { UiModal } from "../../ui/modal";
-import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
 import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
-import { HistoryRepository } from "../../data/history-repository";
+import { HistoryRepository, type HistorySummary } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
 import { PaneLayout } from "../../services/pane-layout";
@@ -95,7 +94,7 @@ export class AppShell implements OnInit {
   protected readonly ariaKeys = ariaKeysOf;
   private readonly diagnostics = inject(Diagnostics);
   protected readonly swUpdate = inject(SwUpdate);
-  readonly pastRequests = input<PastRequest[]>([]);
+  readonly pastRequests = input<HistorySummary[]>([]);
   readonly historyLoading = input(false);
   readonly drawerVisible = input(true);
   /** The composer stacks its sections (below 768 px). */
@@ -454,7 +453,7 @@ export class AppShell implements OnInit {
         group: "History",
         label: entry.sent.url,
         method: entry.sent.method,
-        run: () => this.handleLoadRequest(entry),
+        run: () => void this.handleLoadRequest(entry),
       }));
     return [...commands, ...requests, ...places, ...environments, ...history];
   }
@@ -544,11 +543,13 @@ export class AppShell implements OnInit {
     return this.sidebarOverlay() ? "18rem" : this.canPin() ? "17.5rem" : "22rem";
   }
 
-  handleLoadRequest(request: PastRequest): void {
-    this.composer().loadPastRequest(request);
+  /** The list holds no template: the entry is read by its id, then loaded. */
+  async handleLoadRequest(request: HistorySummary): Promise<void> {
     if (this.sidebarOverlay()) {
       this.closeNavigation();
     }
+    const entry = request.id === undefined ? null : await this.history.get(request.id);
+    if (entry) this.composer().loadPastRequest(entry);
   }
 
   /** The drawer closes first: while it is open, the address field is in the inert page and takes no focus. */

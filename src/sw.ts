@@ -10,8 +10,9 @@
 // - Cross-origin requests are never intercepted: the user's API calls go
 //   straight to the network, and their failures reach the app unchanged.
 // - Navigations are network-first, falling back to the cached app shell, so
-//   the app loads offline after one visit. Not those under oauth/: that is
-//   the OAuth callback page, which is not the app.
+//   the app loads offline after one visit, and after 3 s on a connection that
+//   is up but answers nothing. Not those under oauth/: that is the OAuth
+//   callback page, which is not the app.
 // - Hashed same-origin assets are cache-first (their names change when their
 //   content does). The initial ones are precached at install; lazy chunks are
 //   cached the first time they load.
@@ -32,6 +33,8 @@ const NOT_THE_APP = `${SCOPE}oauth/`;
 // The build's output hashes: main-XU6HGUMA.js, media/inter-latin-…-B6TL4M5W.woff2, and for a lazy chunk
 // chunk-iAuoh2-d.js. Upper case alone left 20 of 28 lazy chunks out of the cache (F84).
 const HASHED = /-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
+// How long a navigation waits for the network before the stored shell answers.
+const STALLED_MS = 3000;
 
 sw.addEventListener("install", (event) => {
   event.waitUntil(
@@ -83,19 +86,28 @@ sw.addEventListener("fetch", (event) => {
   // and the shell is never served in its place.
   if (url.pathname.startsWith(NOT_THE_APP)) return;
   if (request.mode === "navigate") {
-    event.respondWith(networkFirstShell(request));
+    event.respondWith(networkFirstShell(event));
   } else if (HASHED.test(url.pathname) || PRECACHE.includes(url.pathname)) {
     event.respondWith(cacheFirst(request));
   }
 });
 
-async function networkFirstShell(request: Request): Promise<Response> {
-  try {
-    const response = await fetch(request);
+async function networkFirstShell(event: FetchEvent): Promise<Response> {
+  const network = fetch(event.request).then(async (response) => {
     // Only the SPA's index.html is the shell; a navigation to a text file
     // (THIRD_PARTY_NOTICES.md, security.txt) must not replace it.
     if (response.ok && isHtml(response)) await (await caches.open(CACHE)).put(SHELL, response.clone());
     return response;
+  });
+  // An answer that comes after the stored shell did still refreshes it.
+  event.waitUntil(Promise.allSettled([network]));
+  // A connection that is up but answers nothing (lie-fi) hangs until the browser gives up: the stored shell
+  // answers first, when there is one.
+  const stalled = new Promise<Response | undefined>((resolve) =>
+    setTimeout(() => resolve(caches.match(SHELL)), STALLED_MS),
+  );
+  try {
+    return (await Promise.race([network, stalled])) ?? (await network);
   } catch (error) {
     // Offline or unreachable: serve the cached shell (every route is the SPA).
     const cached = await caches.match(SHELL);

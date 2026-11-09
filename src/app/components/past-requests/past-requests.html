@@ -170,10 +170,10 @@
               <p class="text-label-secondary">{{ request.createdAt | date: "medium" }}</p>
             </div>
           </ng-template>
-          @if (request.model && expanded() === request.id && request.record) {
+          @if (request.model && expanded() === request.id && opened(); as entry) {
           <div class="history-model-record">
             <section class="exchange-record type-footnote" aria-label="Exchange record">
-              <app-exchange-record [record]="request.record" [actions]="false" />
+              <app-exchange-record [record]="entry.record" [actions]="false" />
             </section>
             <div class="flex flex-wrap gap-2">
               <button
@@ -184,7 +184,7 @@
                 (click)="showing.set(showing() === 'sent' ? null : 'sent')"
                 >Show what was sent</button
               >
-              @if (request.response?.body) {
+              @if (entry.response?.body) {
               <button
                 uiButton
                 type="button"
@@ -198,12 +198,12 @@
             @if (showing() === "sent") {
             <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="What was sent, as kept">
 {{
-            request.sent.method + " " + request.sent.url + "\n" + headerLines(request) + "\n\n" + (request.sent.bodyPreview ?? "")
+            entry.sent.method + " " + entry.sent.url + "\n" + headerLines(entry) + "\n\n" + (entry.sent.bodyPreview ?? "")
           }}</pre>
             } @else if (showing() === "answer") {
             <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The response, as kept">
 {{
-            request.response?.body?.text
+            entry.response?.body?.text
           }}</pre>
             }
           </div>

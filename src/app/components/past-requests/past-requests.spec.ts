@@ -4,6 +4,10 @@ import { PastRequest } from "@wayfarer/core";
 import { Confirm } from "../../ui/confirm";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 import { historyEntry } from "../../../testing/request-fixtures";
+import { HistoryRepository } from "../../data/history-repository";
+
+/** What the store holds: the list is given summaries, and a row opened or exported reads its entry by id. */
+let stored: PastRequest[] = [];
 
 describe("PastRequests", () => {
   let component: PastRequests;
@@ -11,9 +15,16 @@ describe("PastRequests", () => {
 
   beforeEach(async () => {
     const confirmationSpy = { confirm: vi.fn() } as unknown as Confirm;
+    stored = [];
     await TestBed.configureTestingModule({
       imports: [PastRequests],
-      providers: [{ provide: Confirm, useValue: confirmationSpy }],
+      providers: [
+        { provide: Confirm, useValue: confirmationSpy },
+        {
+          provide: HistoryRepository,
+          useValue: { get: vi.fn(async (id: number) => stored.find((entry) => entry.id === id) ?? null) },
+        },
+      ],
     }).compileComponents();
   });
 
@@ -36,7 +47,7 @@ describe("PastRequests", () => {
     component.loadRequest.subscribe(loadSpy);
     component.deleteRequest.subscribe(deleteSpy);
 
-    component.load(request);
+    await component.load(request);
     expect(loadSpy).toHaveBeenCalledWith(request);
 
     const confirmService = TestBed.inject(Confirm) as unknown as {
@@ -142,7 +153,7 @@ describe("PastRequests", () => {
     // A model call opens in place; only a send's entry is loaded into a tab.
     const loadSpy = vi.fn();
     component.loadRequest.subscribe(loadSpy);
-    component.load(call);
+    await component.load(call);
     expect(loadSpy).not.toHaveBeenCalled();
   });
 
@@ -173,6 +184,7 @@ describe("PastRequests", () => {
       ).harSource();
 
     beforeEach(() => {
+      stored = entries;
       fixture.componentRef.setInput("pastRequests", entries);
       // Choosing is a mode: Select… gives the rows their boxes (U-024).
       component.selecting.set(true);
@@ -184,13 +196,13 @@ describe("PastRequests", () => {
       expect(button(/as HAR/).disabled).toBe(true);
     });
 
-    it("ticked entries are exported oldest first, masked as history holds them, under a name of their own", () => {
+    it("ticked entries are exported oldest first, masked as history holds them, under a name of their own", async () => {
       boxes()[0].click();
       boxes()[2].click();
       fixture.detectChanges();
       expect(button(/as HAR/).textContent).toContain("Export 2 as HAR…");
       button(/as HAR/).click();
-      expect(source()?.name).toBe("wayfarer-history");
+      await vi.waitFor(() => expect(source()?.name).toBe("wayfarer-history"));
       expect(source()?.credentials).toBe(false);
       expect(
         source()

@@ -17,6 +17,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
 - **A request with an OAuth 2.0 token is asked about when its pre-request script moves it to another host,** as one with a vault secret is. Before, the token went to the new host with no question, though it was masked from the script and kept to its host on a redirect.
 - **An address that is not one is refused by the command line too.** An empty or malformed address (`not a url`) is refused after the pre-request scripts, with nothing sent, in the app and in the CLI alike. Before, the CLI handed it to the network and reported a network failure.
+- **History holds less.** The list keeps only what it shows of each entry (the method, the address, the status, the time); an entry's bodies are read when you open or export it. Before, every send read the whole history again, bodies included, into every open Wayfarer tab. A row's details card is no longer kept in the page while it is hidden.
+- **The service worker downloads less on install.** It no longer stores 760 kB of stylesheets the builder writes and nothing loads.
+- **Typing in one tab no longer writes out every other tab again.** A tab that did not change is not serialised at each key; with a 3 MB body open in another tab that was about 10 ms a key.
+- **A JSON path is read against the body parsed once**, not parsed again at each key typed.
+- **Sizes read the same everywhere**: Settings › Storage and the AI preview write them as the response viewer does ("3.60 MB").
 
 ### Fixed
 
@@ -56,6 +61,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A collection run sends TRACE or CONNECT through the Local Bridge when that request's route is the bridge.** Before, the run looked at the open tab's route and refused it.
 - **Duplicate tab on the Environments tab or a settings tab goes to that tab**, and the tab menu no longer offers it there. Before, it made a second one.
 - **A tab whose scripts wait for a review keeps its name when another browser tab writes.** Before, each write elsewhere read it back again as "This tab, as it was stored".
+- **An editor that could not load says so.** In a tab left open across a new version, or offline, a Body or Scripts editor stayed on "Loading editor…" for good; it now says the editor could not load and to reload. A failed load is tried again by the next editor, and a tab that comes back into view looks for a new version, so "Update available" shows.
+- **On a connection that is up but answers nothing**, the app's stored copy opens after 3 seconds instead of waiting until the browser gives up.
+- **History could miss the request you had just sent** when another tab wrote at the same moment: a refresh asked for while one was reading was dropped.
+- **A large response that the formatter could not finish in time** is shown as it came, and the stuck formatter is replaced. Before, the same work ran again on the page and froze it.
 
 ## [3.3.1] - 2026-11-09
 

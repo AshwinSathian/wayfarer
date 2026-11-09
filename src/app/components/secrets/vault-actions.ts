@@ -6,6 +6,7 @@ import { readImportText } from "@wayfarer/core";
 import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
 import { Icon } from "../../shared/icon/icon";
 import { UiFile } from "../../ui/file";
+import { saveJsonFile } from "../../shared/save-file";
 
 type Mode = "passphrase" | "export" | "import";
 
@@ -106,12 +107,7 @@ export class VaultActions {
       this.error.set("That is not the vault's passphrase. Nothing was exported.");
       return;
     }
-    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "wayfarer-vault.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
+    saveJsonFile("wayfarer-vault.json", json);
     this.finish("Exported. The file opens with the passphrase the vault has now.");
   }
 

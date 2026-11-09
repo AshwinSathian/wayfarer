@@ -130,7 +130,11 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
       void document.fonts.ready.then(() => monaco.editor.remeasureFonts());
       loadedMonaco = monaco;
       return monaco;
-    })();
+    })().catch((error: unknown) => {
+      // Not kept: a fetch that failed once (no network) is tried again by the next editor.
+      monacoLoader = null;
+      throw error;
+    });
   }
   return monacoLoader;
 }

@@ -4,18 +4,13 @@ interface ParsePrettyJob {
   indent?: number;
 }
 
-interface MinifyJob {
-  kind: "minify";
-  input: string;
-}
-
 interface SearchJob {
   kind: "search";
   input: string;
   query: string;
 }
 
-type Job = ParsePrettyJob | MinifyJob | SearchJob;
+type Job = ParsePrettyJob | SearchJob;
 
 interface WorkerRequest {
   id: number;
@@ -70,8 +65,6 @@ function handleJob(job: Job): string | SearchResult {
   switch (job.kind) {
     case "parse-pretty":
       return parsePretty(job.input, job.indent);
-    case "minify":
-      return minify(job.input);
     case "search":
       return search(job.input, job.query);
     default:
@@ -82,11 +75,6 @@ function handleJob(job: Job): string | SearchResult {
 function parsePretty(input: string, indent = 2): string {
   const value = JSON.parse(input);
   return JSON.stringify(value, null, indent ?? 2);
-}
-
-function minify(input: string): string {
-  const value = JSON.parse(input);
-  return JSON.stringify(value);
 }
 
 function search(input: string, rawQuery: string): SearchResult {

@@ -119,14 +119,14 @@ describe("Settings", () => {
     expect(theme.choice()).toBe("system");
   });
 
-  it("a size is written as a person reads it, and the bar is never empty once something is stored", () => {
+  it("a size is written as the response viewer writes it, and the bar is never empty once something is stored", () => {
     const settings = fixture.componentInstance as unknown as {
       size: (bytes: number) => string;
       used: (estimate: { usage: number; quota: number }) => number;
     };
     expect(
       [0, 512, 1536, 3.6 * 1024 ** 2, 10 * 1024 ** 3, 250 * 1024 ** 3].map((bytes) => settings.size(bytes)),
-    ).toEqual(["0 B", "512 B", "1.5 kB", "3.6 MB", "10 GB", "250 GB"]);
+    ).toEqual(["0 B", "512 B", "1.50 kB", "3.60 MB", "10.0 GB", "250 GB"]);
     expect(settings.used({ usage: 0, quota: 100 })).toBe(0);
     expect(settings.used({ usage: 1, quota: 1e9 })).toBe(1);
     expect(settings.used({ usage: 50, quota: 100 })).toBe(50);

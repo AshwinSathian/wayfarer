@@ -41,6 +41,8 @@ export class TabsStorage {
 
   /** Each tab as it is in the store, by id: what this browser tab last wrote or read. */
   private readonly stored = new Map<string, string>();
+  /** Each tab's record as text, with what it was made of: a key typed in one tab does not write out the others again. */
+  private readonly texts = new Map<string, { parts: unknown[]; text: string }>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   /** Writes go one after another. */
   private writing: Promise<void> = Promise.resolve();
@@ -54,9 +56,10 @@ export class TabsStorage {
       if (!this.ready()) return;
       // Every tab is read, each time: an effect follows only what its last run read, and a
       // run that stopped at the first changed tab never heard of an edit in a later one.
-      const now = this.storable().map((tab, order) => [tab.id, JSON.stringify(this.record(tab, order))]);
+      const now = this.storable().map((tab, order) => [tab.id, this.textOf(tab, order)]);
       const changed = now.some(([id, text]) => text !== this.stored.get(id));
       const closed = [...this.stored.keys()].some((id) => !now.some(([open]) => open === id));
+      for (const id of this.texts.keys()) if (!now.some(([open]) => open === id)) this.texts.delete(id);
       if (changed || closed) untracked(() => this.schedule());
     });
     // A saved request was renamed, moved or deleted in the tree, or saved from another browser tab: a tab that holds it is bound
@@ -138,13 +141,24 @@ export class TabsStorage {
     };
   }
 
+  /** The record's text, made again only when a signal it is made of holds a new value (an edit replaces the draft). */
+  private textOf(tab: TabState, order: number): string {
+    const parts = [tab.draft(), tab.baseline(), tab.bound()?.meta.id, tab.historyKey(), !!tab.heldScripts(), order];
+    const cached = this.texts.get(tab.id);
+    if (cached?.parts.every((part, i) => part === parts[i])) return cached.text;
+    const text = JSON.stringify(this.record(tab, order));
+    this.texts.set(tab.id, { parts, text });
+    return text;
+  }
+
   private async write(): Promise<void> {
     const tabs = this.storable();
     const put: StoredTab[] = [];
     const written = new Map<string, string>();
     for (const [order, tab] of tabs.entries()) {
-      const { held: _held, ...record } = this.record(tab, order);
-      const text = JSON.stringify(this.record(tab, order));
+      const full = this.record(tab, order);
+      const { held: _held, ...record } = full;
+      const text = JSON.stringify(full);
       if (text === this.stored.get(tab.id)) continue;
       // An empty tab that was never stored is not worth a record: every page starts with one.
       if (

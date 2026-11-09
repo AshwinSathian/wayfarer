@@ -17,6 +17,7 @@ import { AI_KEY_NAME, AiSettings } from "../../services/ai-settings";
 import { ModelCalls, type PreparedCall } from "../../services/model-calls";
 import { recordDiagnostic } from "../../services/diagnostics";
 import { UiButton } from "../../ui/button";
+import { formatBytes } from "../../shared/inspect/timing-bars";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 
 let previews = 0;
@@ -58,10 +59,7 @@ export class ModelCall {
 
   protected readonly keyName = AI_KEY_NAME;
   protected readonly routeWords = computed(() => ROUTE_WORDS[this.ai.provider()?.route ?? "auto"]);
-  protected readonly size = computed(() => {
-    const bytes = new TextEncoder().encode(this.call().body).length;
-    return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`;
-  });
+  protected readonly size = computed(() => formatBytes(new TextEncoder().encode(this.call().body).length, "0 B"));
   /** The request line, the headers as sent with the key as ***, a blank line and the body. */
   protected readonly sent = computed(() => {
     const call = this.call();

@@ -17,6 +17,11 @@ class FakeRegistration extends EventTarget {
   active: { scriptURL: string } | null = null;
   waiting: FakeWorker | null = null;
   installing: FakeWorker | null = null;
+  updates = 0;
+  update(): Promise<void> {
+    this.updates++;
+    return Promise.resolve();
+  }
 }
 
 class FakeContainer extends EventTarget {
@@ -66,5 +71,17 @@ describe("SwUpdate", () => {
     registration.waiting = new FakeWorker();
 
     expect(watch(registration).service.updateAvailable()).toBe(true);
+  });
+
+  it("asks for a new build when the page comes back into view: a tab left open is told of a deploy", () => {
+    const registration = new FakeRegistration();
+    registration.active = OURS;
+    watch(registration);
+    expect(registration.updates).toBe(0);
+
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(document.visibilityState).toBe("visible");
+    expect(registration.updates).toBe(1);
   });
 });

@@ -60,7 +60,6 @@ textarea.ui-input {
 .ui-input:focus {
   border-color: var(--ink);
   box-shadow: 0 0 0 1px var(--ink);
-  outline: none;
 }
 
 /* Invalid says so on the field itself, with its message beside it (U-114). */
@@ -71,20 +70,6 @@ textarea.ui-input {
 
 .ui-input[aria-invalid="true"]:focus {
   box-shadow: 0 0 0 1px var(--status-error);
-}
-
-/* Forced colours take the glow away: the focus is an outline, as Material's was. */
-@media (forced-colors: active) {
-  .ui-input:focus {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-  }
-
-  /* Inside the address bar, which clips what is outside it. */
-  .ui-input.address-field:focus,
-  .ui-input.method-field:focus {
-    outline-offset: -3px;
-  }
 }
 
 /* Disabled: no fill of its own and a hairline edge, its text still readable (U-113). Read-only: the text is the

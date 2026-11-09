@@ -2,33 +2,24 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
 import { closeEnvironments } from "./support/app";
 
-// P7.1: the core flow with the keyboard alone, and a focus ring on every
-// stop Tab reaches. No click, no fill: keys only, as a user without a
-// pointer has them.
+// P7.1: the core flow with the keyboard alone. No click, no fill: keys only, as a user without a pointer has them.
+// No control draws a focus ring, from the keyboard either (maintainer, 2026-11-09).
 
-/** Whether what has focus shows it: its own outline or glow, or the address bar it belongs to. A glow fades in, and Linux WebKit, short of frames while the app starts, finished it more than 1 s late: poll it. */
-async function focusShown(page: Page): Promise<string | null> {
+/** What has focus, when it draws an outline: a ring is drawn nowhere. */
+async function ringShown(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const element = document.activeElement;
-    // Past the page's last stop focus leaves for the browser's own UI: the document has none.
     if (!(element instanceof HTMLElement) || element === document.body) return null;
-    // A ring is an outline or a shadow with a spread (a glow). A field's drop shadow at rest has none, and is not one.
-    const ringed = (node: Element) => {
+    const outlined = (node: Element) => {
       const style = getComputedStyle(node);
-      if (style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0) return true;
-      return [...style.boxShadow.matchAll(/(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px/g)].some(
-        (shadow) => parseFloat(shadow[4]) >= 1,
-      );
+      return style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0;
     };
-    // Monaco types into a hidden text area: the editor around it shows the focus.
-    const editor = element.closest(".monaco-editor");
-    if (editor) return ringed(editor) ? null : "a Monaco editor has focus and shows no ring";
-    if (ringed(element)) return null;
-    // The halves of the address bar show their focus on the bar. A checkbox is its own box, and rings itself.
-    const bar = element.closest(".address-bar");
-    if (bar && ringed(bar)) return null;
+    const ringed = [element, element.closest(".monaco-editor"), element.closest(".address-bar")].find(
+      (node) => node && outlined(node),
+    );
+    if (!ringed) return null;
     const name = element.getAttribute("aria-label") ?? element.textContent?.trim().slice(0, 40) ?? "";
-    return `${element.tagName.toLowerCase()} "${name}" has focus and shows no ring`;
+    return `${element.tagName.toLowerCase()} "${name}" has focus and draws a ring`;
   });
 }
 
@@ -40,8 +31,7 @@ test.beforeEach(({ browserName }) => {
 
 /**
  * Presses Tab until `target` has focus, or Shift+Tab when it comes earlier in
- * the page (Firefox does not bring focus back into the page past its end),
- * checking the ring at every stop on the way.
+ * the page (Firefox does not bring focus back into the page past its end).
  */
 async function tabTo(page: Page, target: Locator, max = 120): Promise<void> {
   const has = () =>
@@ -58,13 +48,12 @@ async function tabTo(page: Page, target: Locator, max = 120): Promise<void> {
   const key = before ? `Shift+${TAB}` : TAB;
   for (let stop = 0; stop < max; stop++) {
     await page.keyboard.press(key);
-    await expect.poll(() => focusShown(page)).toBeNull();
     if (await has()) return;
   }
   throw new Error(`Tab did not reach ${target} in ${max} stops`);
 }
 
-test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", async ({ page }) => {
+test("no stop Tab reaches draws a focus ring, in both themes", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -76,7 +65,7 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
     const seen = new Set<string>();
     for (let stop = 0; stop < 60; stop++) {
       await page.keyboard.press(TAB);
-      await expect.poll(() => focusShown(page), { message: `${theme}, stop ${stop}` }).toBeNull();
+      expect(await ringShown(page), `${theme}, stop ${stop}`).toBeNull();
       seen.add(await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 60) ?? ""));
     }
     // The walk went somewhere: not one element over and over. Since the

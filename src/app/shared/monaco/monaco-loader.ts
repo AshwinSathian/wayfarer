@@ -167,7 +167,7 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
         "scrollbarSlider.background": t["scrollbar-thumb"],
         "scrollbarSlider.hoverBackground": t["scrollbar-thumb-hover"],
         "scrollbarSlider.activeBackground": t["scrollbar-thumb-hover"],
-        // The editor's host draws the app's focus ring (:focus-within); Monaco's own 1 px blue line is not drawn (U-052).
+        // No focus ring (maintainer, 2026-11-09): Monaco's own 1 px blue line is not drawn either (U-052).
         focusBorder: "#00000000",
         // Brackets in the text's own colour (U-038), whichever depth: Monaco's were #0431fa, #319331 and #7b3814.
         ...Object.fromEntries(

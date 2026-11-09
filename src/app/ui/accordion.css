@@ -50,11 +50,6 @@
   color: var(--ctl-surface-text);
 }
 
-.section-header:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-
 /* The chevron is the app's own glyph; it turns over when the section opens. */
 .section-chevron {
   flex: none;

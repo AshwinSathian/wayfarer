@@ -44,10 +44,10 @@
     font-size: var(--type-site-body-size);
     line-height: var(--type-site-body-line);
   }
+  /* No focus ring, from a pointer or the keyboard (maintainer, 2026-11-09), as in the app. */
+  :focus,
   :focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 3px;
-    border-radius: 2px;
+    outline: none !important;
   }
   ::selection {
     background: var(--selection-bg);

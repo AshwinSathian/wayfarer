@@ -8,6 +8,7 @@ import {
   JSON_HEADERS,
   buildEnvironment,
   jsonBytes,
+  makeRequestDoc,
   rows,
   setupComposer,
 } from "../../../testing/composer-setup";
@@ -87,6 +88,23 @@ describe("Composer: methods and body modes", () => {
       );
       await pending;
       expect(store.endpointError()).toBe("");
+    });
+
+    it("a run sends TRACE through the bridge when that request's route is the bridge, whatever the open tab's is", async () => {
+      TestBed.inject(BridgeSettings).config.set({ route: "auto", url: "http://127.0.0.1:7717", token: "t".repeat(16) });
+      const doc = makeRequestDoc({ method: "TRACE", url: "https://a.test/x", settings: { route: "bridge" } });
+      const pending = store.sendForRun(
+        doc,
+        { index: 0, count: 1, data: [] },
+        new AbortController().signal,
+        store.startRun(doc.collectionId),
+      );
+      const relay = await vi.waitFor(() => httpMock.expectOne("http://127.0.0.1:7717/relay"));
+      relay.flush(
+        JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }),
+        { status: 200 },
+      );
+      expect((await pending).outcome.error).toBeUndefined();
     });
   });
 

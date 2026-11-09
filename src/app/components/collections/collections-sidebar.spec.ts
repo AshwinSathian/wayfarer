@@ -56,6 +56,8 @@ class CollectionsServiceStub {
     this.treeState.set(tree);
   }
 
+  getCollectionTree = (id: string | null | undefined) => this.tree().find((entry) => entry.collection.meta.id === id);
+
   async ensureLoaded(): Promise<void> {
     // no-op — tree is set directly via setTree() in tests
   }

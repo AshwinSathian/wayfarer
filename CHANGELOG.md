@@ -10,6 +10,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Changed
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **An address that is not one is refused by the command line too.** An empty or malformed address (`not a url`) is refused after the pre-request scripts, with nothing sent, in the app and in the CLI alike. Before, the CLI handed it to the network and reported a network failure.
+
+### Fixed
+
+- **Opening a saved request while a send or a WebSocket is under way opens it in a tab of its own.** Before, it replaced the busy tab, and the answer then showed, and was kept in history, under the request opened after it.
+- **A pasted cURL command goes into the tab it was pasted in.** If another tab was opened while the command was being read, that tab's request was replaced instead.
+- **Send anyway and Send through the Local Bridge add the request to History at once**, and Send anyway shows the response on a phone. Before, History showed the send only after the next one or a reload.
+- **Get token uses the variables of the tab it was asked in**, also when another tab is opened while the vault is read.
+- **A collection run sends TRACE or CONNECT through the Local Bridge when that request's route is the bridge.** Before, the run looked at the open tab's route and refused it.
+- **Duplicate tab on the Environments tab or a settings tab goes to that tab**, and the tab menu no longer offers it there. Before, it made a second one.
+- **A tab whose scripts wait for a review keeps its name when another browser tab writes.** Before, each write elsewhere read it back again as "This tab, as it was stored".
 
 ## [3.3.1] - 2026-11-09
 

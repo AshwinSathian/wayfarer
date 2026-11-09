@@ -107,9 +107,13 @@ export class ComposerView {
     this.load(doc);
   }
 
-  /** A request about to be loaded goes into a tab of its own when the open tab holds changes that are not saved (P5.1). */
+  /**
+   * A request about to be loaded goes into a tab of its own when the open tab holds changes that are not saved (P5.1),
+   * or is waiting for a response or has a socket open: that answer belongs to the request it was sent for.
+   */
   private keepUnsaved(): void {
-    if (this.tabs.active().dirty() || this.tabs.active().document) this.tabs.open();
+    const tab = this.tabs.active();
+    if (tab.dirty() || tab.document || tab.loadingState() || tab.socket.status() !== "closed") this.tabs.open();
   }
 
   /** Opens the tab of a run of `target` (P5.2): the one that is open already, or a new one. Nothing is sent until Run. */
@@ -158,37 +162,34 @@ export class ComposerView {
     if (variable) tab.reveal.set({ key: variable });
   }
 
-  /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
-  clear(): void {
-    // A run's tab or the Environments tab holds no request: a new one goes into a tab of its own.
-    if (this.tabs.active().document) this.tabs.open();
-    this.requestSave.bind(null);
-    this.trust.openedHere();
-    this.store.reset();
-    this.tabs.active().markClean();
-    this.activeTab.set("params");
-    this.mobilePane.set("request");
-    this.showAuthPassword.set(false);
-    this.syncMobilePanelsFromActiveTab();
-  }
-
   /**
    * Fills the composer with the request a cURL command describes. It is a
    * new request, bound to no saved one, and nothing is stored. What the
    * command asked for that the app does not do is said under the address.
+   * It goes into the tab it was pasted in, which the worker's answer may find
+   * closed, or no longer the open one.
    */
   async pasteCurl(text: string): Promise<void> {
+    const tab = this.tabs.active();
     try {
       const { content, warnings } = await this.importWorker.curl(text);
-      this.clear();
+      if (!this.tabs.tabs().includes(tab)) return;
+      this.tabs.activate(tab.id);
+      // A run's tab or the Environments tab holds no request: a new one goes into a tab of its own.
+      if (tab.document) this.tabs.open();
+      this.requestSave.bind(null);
+      this.trust.openedHere();
       this.store.load(content);
+      this.tabs.active().markClean();
+      this.mobilePane.set("request");
+      this.showAuthPassword.set(false);
       this.store.refreshVariablePreview();
       this.store.pasteNotes.set(warnings);
       this.activeTab.set(content.body.mode === "none" ? "params" : "body");
       this.syncMobilePanelsFromActiveTab();
     } catch (error) {
       if (!(error instanceof ImportRefused)) throw error;
-      this.store.endpointError.set(error.message);
+      if (this.tabs.active() === tab) this.store.endpointError.set(error.message);
     }
   }
 

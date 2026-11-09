@@ -98,6 +98,20 @@ export function normalizeUrl(text: string): string {
   return hasExplicitScheme(address) ? address : `https://${address}`;
 }
 
+/**
+ * Whether `text`, a request's address with its variables replaced, is one a request can go to: http or https, with a
+ * host. An address typed without a scheme must name more than one word ("not a url" is not a host), unless it is
+ * `localhost`, has a port or is an IPv6 address.
+ */
+export function validateUrl(text: string): boolean {
+  if (!text) return false;
+  const parsed = URL.parse(normalizeUrl(text));
+  if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:") || !parsed.hostname) return false;
+  if (hasExplicitScheme(text)) return true;
+  const { hostname } = parsed;
+  return hostname === "localhost" || hostname.includes(".") || hostname.includes(":") || !!parsed.port;
+}
+
 /** Appends a single key/value pair onto a URL's query string, tolerating an unparseable base URL by returning it unchanged. */
 export function appendQueryParam(url: string, key: string, value: string): string {
   const parsed = URL.parse(normalizeUrl(url));
@@ -201,6 +215,13 @@ export function buildRequest(content: RequestContent, context: BuildContext): Bu
     const check = (request: BuiltRequest): BuiltRequest => {
       if (resolver.unresolved.size && context.blockUnresolved) {
         throw new UnresolvedVariablesError([...resolver.unresolved]);
+      }
+      // After the scripts, which may have written the address: an address that is none goes nowhere, in every adapter.
+      // Read as written, the variables replaced: `request.url` has had https put in front.
+      if (!validateUrl(resolver.resolve(content.url.trim()))) {
+        throw new SendBlockedError(
+          "This is not an address a request can go to. Write it as https://host/path. Nothing was sent.",
+        );
       }
       return request;
     };

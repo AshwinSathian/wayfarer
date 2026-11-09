@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-11-09
+
+An import's report and script review in the order of the tree, and a shorter comparison on a phone.
+
+Your data carries over: 3.3.1 opens the same database as 3.3.0, under the same name and version.
+
 ### Fixed
 
 - **An import's report and its script review list a collection's items in the order of its tree.** Each folder comes before what it holds, as the sidebar shows them. Before, both sorted by each item's place within its own folder alone, so every folder's first request came together ("Get customer" before "List orders") and the folders came before any request.

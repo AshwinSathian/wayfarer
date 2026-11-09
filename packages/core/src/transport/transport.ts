@@ -120,7 +120,11 @@ export interface Transport {
 
 export type TransportErrorKind = "network" | "timeout" | "aborted" | "bridge";
 
-/** No response was received. `status` is the bridge's own answer, when it gave one. */
+/**
+ * No whole response was received. `status` is the bridge's own answer, when it
+ * gave one. `responded`: the headers had arrived and the body then broke, so
+ * the server had the request (C-064: it is not sent again).
+ */
 export class TransportError extends Error {
   override readonly name = "TransportError";
 
@@ -128,6 +132,7 @@ export class TransportError extends Error {
     readonly kind: TransportErrorKind,
     message: string,
     readonly status?: number,
+    readonly responded = false,
   ) {
     super(message);
   }
@@ -155,12 +160,16 @@ export async function withDeadline<T>(
   const cancel = () => controller.abort();
   if (options.signal.aborted) cancel();
   options.signal.addEventListener("abort", cancel);
+  // A delay past 2^31 - 1 ms is 1 ms to a timer: a longer timeout waits that long, about 24.8 days.
   const timer =
     options.timeoutMs > 0
-      ? setTimeout(() => {
-          timedOut = true;
-          controller.abort();
-        }, options.timeoutMs)
+      ? setTimeout(
+          () => {
+            timedOut = true;
+            controller.abort();
+          },
+          Math.min(options.timeoutMs, 2 ** 31 - 1),
+        )
       : undefined;
   try {
     // `arrived`: the answer has begun, and the timeout has nothing more to say (a stream).

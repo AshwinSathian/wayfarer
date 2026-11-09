@@ -491,7 +491,7 @@ export class ResponseViewer {
         response: {
           status: entry.res.status,
           statusText: entry.res.statusText,
-          headers: redactor.headers(Object.entries(entry.res.headers), options),
+          headers: redactor.headers(entry.res.headers, options),
           ...(typeof body === "string" && !this.responseBinary() && { text: redactor.text(body) }),
           size: entry.res.sizes?.encodedBodySize,
         },

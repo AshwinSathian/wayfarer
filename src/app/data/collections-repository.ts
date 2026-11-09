@@ -7,7 +7,9 @@ import {
   InheritedPatch,
   RequestDoc,
 } from "../models/collections";
+import { IDBPTransaction } from "idb";
 import { IdbCore } from "./idb-core";
+import { StoreCollection, WayfarerDB } from "./idb-schema";
 import { sweepFiles } from "./request-files";
 import { filesOf, putBack, Removed } from "./removed";
 import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
@@ -18,8 +20,7 @@ import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
  * into `FoldersRepository`/`CollectionRequestsRepository` once this file
  * crossed ~540 lines. All three still operate on the same underlying
  * "collections"/"folders"/"requests" IndexedDB stores via the shared
- * `IdbCore`, and are recombined behind `Idb`'s facade, so
- * this split is purely about keeping each file's CRUD surface readable —
+ * `IdbCore`, so this split is purely about keeping each file's CRUD surface readable —
  * it changes no behavior or storage layout.
  */
 @Injectable({ providedIn: "root" })
@@ -219,20 +220,10 @@ export class CollectionsRepository {
   async deleteCollection(id: string): Promise<Removed> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
-    const collectionStore = tx.objectStore("collections");
-    const folderStore = tx.objectStore("folders");
-    const requestStore = tx.objectStore("requests");
-
     return this.core.commitOrRollback(tx, async () => {
-      const collection = await collectionStore.get(id);
-      const folders = await folderStore.index("by-collectionId").getAll(id);
-      const requests = await requestStore.index("by-collectionId").getAll(id);
-      const files = await filesOf(tx, requests);
-      await collectionStore.delete(id);
-      await Promise.all(folders.map((folder) => folderStore.delete(folder.meta.id)));
-      await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
+      const removed = await this.take(tx, id);
       await sweepFiles(tx);
-      return { collections: collection ? [collection] : [], folders, requests, files };
+      return removed;
     });
   }
 
@@ -241,6 +232,32 @@ export class CollectionsRepository {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
     await this.core.commitOrRollback(tx, () => putBack(tx, removed));
+  }
+
+  /** An import's Undo, in one transaction: the collections it added go and those it replaced come back, or neither. */
+  async undoImport(added: string[], replaced: Removed[]): Promise<void> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
+    await this.core.commitOrRollback(tx, async () => {
+      for (const id of added) await this.take(tx, id);
+      // Before the put-backs: they write the replaced requests' files back.
+      await sweepFiles(tx);
+      for (const removed of replaced) await putBack(tx, removed);
+    });
+  }
+
+  private async take(tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">, id: string): Promise<Removed> {
+    const collectionStore = tx.objectStore("collections");
+    const folderStore = tx.objectStore("folders");
+    const requestStore = tx.objectStore("requests");
+    const collection = await collectionStore.get(id);
+    const folders = await folderStore.index("by-collectionId").getAll(id);
+    const requests = await requestStore.index("by-collectionId").getAll(id);
+    const files = await filesOf(tx, requests);
+    await collectionStore.delete(id);
+    await Promise.all(folders.map((folder) => folderStore.delete(folder.meta.id)));
+    await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
+    return { collections: collection ? [collection] : [], folders, requests, files };
   }
 
   async reorderCollections(order: { id: string; order: number }[]): Promise<void> {

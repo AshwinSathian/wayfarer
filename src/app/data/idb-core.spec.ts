@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { DatabaseResetBlockedError, IdbCore } from "./idb-core";
 import { DB_NAME } from "./idb-schema";
+import { unwrap } from "idb";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 describe("IdbCore", () => {
@@ -17,7 +18,7 @@ describe("IdbCore", () => {
 
   it("opens a real IndexedDB connection when available", async () => {
     await service.init();
-    expect(service.useMemoryFallback).toBe(false);
+    expect(service.memoryOnly()).toBe(false);
     const db = await service.getDatabase();
     expect(db).not.toBeNull();
   });
@@ -102,7 +103,7 @@ describe("IdbCore", () => {
     const svc = new IdbCore();
     await svc.init();
 
-    expect(svc.useMemoryFallback).toBe(true);
+    expect(svc.memoryOnly()).toBe(true);
     expect(svc.memoryOnly()).toBe(true);
     expect(await svc.getDatabase()).toBeNull();
 
@@ -124,7 +125,7 @@ describe("IdbCore", () => {
     const result = await svc.getDatabase();
 
     expect(result).toBeNull();
-    expect(svc.useMemoryFallback).toBe(true);
+    expect(svc.memoryOnly()).toBe(true);
     expect(errorSpy).toHaveBeenCalledWith(
       "[IDB] Failed to resolve database instance. Switching to in-memory store.",
       error,
@@ -167,12 +168,12 @@ describe("IdbCore", () => {
 
   it("resetDatabase() clears connection state so a subsequent init() starts fresh", async () => {
     await service.init();
-    expect(service.useMemoryFallback).toBe(false);
+    expect(service.memoryOnly()).toBe(false);
 
     await service.resetDatabase();
     await service.init();
 
-    expect(service.useMemoryFallback).toBe(false);
+    expect(service.memoryOnly()).toBe(false);
     const db = await service.getDatabase();
     expect(db).not.toBeNull();
   });
@@ -243,6 +244,25 @@ describe("IdbCore", () => {
       expect(service.memoryOnly()).toBe(false);
       expect(service.closedForUpdate()).toBe(true);
       await expect(service.getDatabase()).rejects.toThrow(/updated in another tab/);
+    });
+
+    it("a first call that waits on an open finding a later version is refused, not handed no database", async () => {
+      const newer = await openAt(3);
+      newer.close();
+
+      await expect(service.getDatabase()).rejects.toThrow(/updated in another tab/);
+    });
+
+    it("opens the database again after the browser closed the connection", async () => {
+      await service.init();
+      const db = await service.getDatabase();
+      if (!db) throw new Error("no database");
+      const raw = unwrap(db);
+      raw.close();
+      raw.dispatchEvent(new Event("close"));
+
+      const tx = await service.txReadonly(["meta"]);
+      await expect(tx.objectStore("meta").getAll()).resolves.toEqual([]);
     });
 
     it("a later version's upgrade in another tab closes this tab's connection and says why, and is not held up (TQ9)", async () => {

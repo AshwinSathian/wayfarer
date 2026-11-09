@@ -1,25 +1,9 @@
 /**
- * A protected environment variable's value is replaced with a literal
- * `{{$secret.<id>}}` reference string, pointing at the encrypted row in the
- * `secrets` IndexedDB store rather than holding plaintext. Shared here so
- * every UI surface that needs to recognize/build/parse that reference
- * (EnvironmentsManager's per-variable lock icon, the dedicated
- * Secrets management view) agrees on exactly one format.
+ * Every vault secret a value refers to, once each, also a reference inside
+ * other text: what an export in plain text replaces (`exportedValue`) and
+ * what the Secrets view lists as a use. Whether a value is protected (one
+ * reference and nothing else) is core's `protectedSecretId`.
  */
-const SECRET_REFERENCE_PATTERN = /\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/i;
-
-export function isSecretReference(value: string | undefined): boolean {
-  return typeof value === "string" && SECRET_REFERENCE_PATTERN.test(value);
-}
-
-export function extractSecretId(value: string | undefined): string | null {
-  if (!value) {
-    return null;
-  }
-  const match = value.match(SECRET_REFERENCE_PATTERN);
-  return match ? match[1] : null;
-}
-
-export function buildSecretReference(id: string): string {
-  return `{{$secret.${id}}}`;
+export function secretIdsIn(value: string | undefined): string[] {
+  return [...new Set([...(value ?? "").matchAll(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/gi)].map((match) => match[1]))];
 }

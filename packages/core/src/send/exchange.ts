@@ -1,6 +1,6 @@
 import type { Cookie } from "../cookies/jar";
 import { withJarCookies } from "../cookies/jar";
-import { BinaryBody, decodeEnvelope } from "../http/response-body";
+import { BinaryBody, readEnvelope } from "../http/response-body";
 import type { RequestContent, Route, Row, Scripts, TestAssertion } from "../model/request";
 import { protectedSecretId, scriptVariables, type ScriptVariable, type VariableChange } from "../model/variables";
 import { Redactor } from "../redact/redactor";
@@ -193,6 +193,8 @@ export interface ScriptResponseContext {
   statusCode: number;
   statusText: string;
   body: unknown;
+  /** The body as the server sent it, when it was text: what a script reads, not `body` written out again. */
+  text?: string;
   headers: Record<string, string>;
   durationMs?: number;
   /** The size of the body as received, when it is known. */
@@ -210,7 +212,7 @@ export interface ScriptRunExtras extends Pick<
 
 /** A response as a script reads it. */
 export function scriptResponse(response: ScriptResponseContext): ScriptResponse {
-  const body = bodyText(response.body);
+  const body = response.text ?? bodyText(response.body);
   return {
     code: response.statusCode,
     status: response.statusText,
@@ -379,6 +381,8 @@ export interface RequestExecutionResponse {
 interface Shaped {
   /** The decoded body, for the post-response script and the assertions. */
   body: unknown;
+  /** The text `body` was decoded from, as the server sent it, for a script. */
+  text?: string;
   headers: Record<string, string>;
   /** As received, in order, a repeated name once per value. */
   headerList: [string, string][];
@@ -481,6 +485,8 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
         scriptExtras(ports, spec, "prerequest", scriptRequestOf(template)),
       );
       timings.preScriptMs += Math.round(performance.now() - scriptStarted);
+      // Stopped while the script ran: what it set is not stored, and nothing after it runs.
+      stopped(spec);
       preRuns.push({ name, result });
       const { changes } = result;
       // As the script wrote them: it runs before any secret is read, and was
@@ -515,6 +521,8 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   // Built only now, after the pre-script (and any environment mutations
   // it made) has already landed — see BuiltRequest / buildRequest's doc.
   // Awaited only when it is a promise: a request with no file to read is sent in the same task as the click.
+  // A stop before the build: the vault is not asked to unlock, nor C-053 asked, for a request the user stopped.
+  stopped(spec);
   let request: BuiltRequest;
   try {
     const built = spec.buildRequest(template);
@@ -559,6 +567,7 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   };
   const transmit = async (): Promise<ResponseEnvelope | TransportError> => {
     startedAt = performance.now();
+    delete policy.startedAt;
     sentCookies = undefined;
     try {
       return await ports.transport.send(
@@ -595,7 +604,8 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
       outcome = await transmit();
     }
   }
-  const durationMs = Math.round(performance.now() - startedAt);
+  // From the attempt that answered, when the route says: not the page's failed one, a question or a vault unlock before it.
+  const durationMs = Math.round(performance.now() - (policy.startedAt ?? startedAt));
   timings.requestMs = durationMs;
   ports.watch?.received(request.url);
 
@@ -630,6 +640,7 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
       statusCode: shaped.response.statusCode ?? 0,
       statusText: shaped.response.statusText ?? "",
       body: shaped.body,
+      ...(shaped.text !== undefined && { text: shaped.text }),
       headers: shaped.headers,
       durationMs,
       sizeBytes: outcome instanceof TransportError ? undefined : outcome.sizes.decoded,
@@ -710,6 +721,11 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   };
 }
 
+/** Throws when the send was stopped before its request went out. */
+function stopped(spec: RequestExecutionSpec): void {
+  if (spec.signal?.aborted) throw new SendBlockedError("You stopped the request. Nothing was sent.");
+}
+
 /** The first sentence of the app's words. */
 function firstSentence(text: string): string {
   const match = /^.*?[.!?](?=\s|$)/s.exec(text.trim());
@@ -771,7 +787,7 @@ export function recordOf(
 
 /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */
 function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
-  const body = decodeEnvelope(envelope);
+  const { value: body, text: sentText } = readEnvelope(envelope);
   const isError = envelope.status < 200 || envelope.status >= 300;
   // An error status is the server's answer: its body is shown as it came, and an empty one stays empty.
   const shown = body;
@@ -781,6 +797,7 @@ function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
   const contentLength = Number(header("content-length") || NaN);
   return {
     body,
+    ...(sentText !== undefined && { text: sentText }),
     headers: Object.fromEntries(envelope.headers),
     headerList: envelope.headers,
     bodyText: body === undefined || body === null || body instanceof BinaryBody ? undefined : text,
@@ -914,7 +931,7 @@ function scriptExtras(
 
 /**
  * `pm.sendRequest`: a script's request goes out as the user's own does,
- * through the same transport with the same options, and under the same
+ * through the same transport, following redirects on every route, and under the same
  * rule (C-007): a vault secret's reference is never sent as text. The
  * vault is not read for it, so such a request is refused. Nothing of it
  * is stored.
@@ -939,18 +956,25 @@ async function sendForScript(
   }
   const startedAt = performance.now();
   // By the route of the request whose script sends it. Nothing is asked in the middle of a script: a request the browser may have sent is not sent again (D7).
+  const policy: RoutePolicy = { route };
   const envelope = await ports.transport.send(
     request,
-    { signal: signal ?? new AbortController().signal, timeoutMs: ports.timeoutMs() },
-    { route },
+    {
+      signal: signal ?? new AbortController().signal,
+      timeoutMs: ports.timeoutMs(),
+      // Followed on every route, as a browser follows it: the vault is not read for this request, so no secret is held to its host.
+      redirects: { follow: true, stayOnHost: false },
+    },
+    policy,
   );
   const shaped = shapeResponse(envelope, ports.page);
   return scriptResponse({
     statusCode: envelope.status,
     statusText: envelope.statusText,
     body: shaped.body,
+    ...(shaped.text !== undefined && { text: shaped.text }),
     headers: shaped.headers,
-    durationMs: Math.round(performance.now() - startedAt),
+    durationMs: Math.round(performance.now() - (policy.startedAt ?? startedAt)),
     sizeBytes: envelope.sizes.decoded,
   });
 }

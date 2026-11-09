@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-10
+
+New faces, a shell drawn from the first frame, and some seventy fixes from a review of the whole codebase: the send road, secrets, scripts, storage, imports and exports, the Local Bridge and the command line, the website, and the gates that deploy it. With it, `wayfarer-bridge` 3.0.2 and `wayfarer-cli` 2.2.0.
+
+Your data carries over: 3.4.0 opens the same database as 3.3.1, under the same name and version.
+
 ### Changed
 
 - **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.

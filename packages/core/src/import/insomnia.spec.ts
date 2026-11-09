@@ -68,7 +68,8 @@ describe("an Insomnia export (P4.4)", () => {
     );
     // Two and a half times as long, and growing with the square, when each resource copied its siblings' list.
     expect(insomnia).toBeLessThan(postman * 1.6);
-  });
+    // Four reads of 30,000 requests: a CI runner took 7.5 s.
+  }, 30_000);
 
   it("is known by what it says it is, in both formats, and before a Postman file is asked for", () => {
     expect(detectFormat(v5([]))).toBe("insomnia");

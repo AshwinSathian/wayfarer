@@ -146,7 +146,8 @@ code errors.
   pictures of the app are `scripts/site-screenshot.mjs`'s: take them again
   when the app they show changes. Lighthouse (mobile) holds the site to
   95, 100 and 100 (`check-lighthouse.mjs --site`).
-- The docs are pages (`/docs/<name>/`, from `docs/**/*.md`): write a link to
+- The docs are pages (`/docs/<name>/`, from `docs/**/*.md`, but the roadmap,
+  which is `/roadmap/` alone): write a link to
   another doc as its file (`auth.md#oauth`), as GitHub reads it;
   `doc-links.mjs` makes it the page, and `markdown.mjs` (marked, GitHub's
   heading ids) renders it. The search (Pagefind) is under `security/csp-docs.json` on `/docs/*` and `/pagefind/*` (its

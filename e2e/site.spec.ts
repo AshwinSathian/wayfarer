@@ -440,7 +440,9 @@ test("every doc of the repository is a page of the site, its links leading to pa
     .filter((name) => name.endsWith(".md"))
     .map((name) => name.split("\\").join("/").slice(0, -3));
   expect(docs.length).toBeGreaterThan(15);
-  for (const doc of docs) {
+  // The roadmap is its own page, /roadmap/, and not a doc's as well: two pages of one text split its search ranking.
+  expect((await page.goto("/docs/roadmap/"))?.status()).toBe(404);
+  for (const doc of docs.filter((doc) => doc !== "roadmap")) {
     const response = await page.goto(`/docs/${doc}/`);
     expect(response?.status(), doc).toBe(200);
     await expect(page.locator("article h1").first(), doc).toBeVisible();
@@ -490,7 +492,7 @@ test("the landing's recordings play only when asked, each with its poster, its s
     const steps = /aria-describedby="([^"]+)"/.exec(tag)?.[1];
     expect(html).toMatch(new RegExp(`<div id="${steps}"`));
     const files = [
-      /poster="([^"]+)"/.exec(tag)?.[1],
+      /data-poster="([^"]+)"/.exec(tag)?.[1],
       ...[...video.matchAll(/<source src="([^"]+)"/g)].map((m) => m[1]),
     ];
     expect(files).toHaveLength(3);
@@ -534,6 +536,25 @@ test("a recording waits behind the site's Play button, then plays with the brows
   await expect(play).toBeHidden();
   await expect(video).toHaveJSProperty("controls", true);
   await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused || v.ended)).toBe(true);
+});
+
+// Review: a `poster` is fetched also on a video that is not drawn, so the landing fetched the other theme's four
+// posters. Only the shown theme's are, and the other's once the toggle shows them.
+test("the landing fetches the posters of the shown theme only, and the other theme's when it is switched to", async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "light"));
+  const posters: string[] = [];
+  page.on("request", (request) => {
+    if (/\/recordings\/[^/]+\.avif$/.test(request.url())) posters.push(new URL(request.url()).pathname);
+  });
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  expect(posters.length).toBe(4);
+  expect(posters.filter((path) => path.endsWith("-dark.avif"))).toEqual([]);
+  await expect(page.locator(".shot-light video").first()).toHaveAttribute("poster", /-light\.avif$/);
+  await page.getByRole("button", { name: "Switch between light and dark" }).click();
+  await expect(page.locator(".shot-dark video").first()).toHaveAttribute("poster", /-dark\.avif$/);
 });
 
 // The site's policy has no 'unsafe-inline': every script is a file of the site's own (Astro inlines nothing: no
@@ -630,6 +651,37 @@ test("the header's Open Wayfarer is one line at every phone width", async ({ pag
   await expect(page.getByRole("banner").getByRole("button", { name: "Switch between light and dark" })).toBeVisible();
 });
 
+// Review: the menu stayed open over the page after Escape or a press outside it.
+test("the header's menu closes on Escape, giving focus back to Menu, and on a press outside it", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/");
+  const menu = page.locator("details.menu");
+  const summary = page.getByRole("banner").getByText("Menu", { exact: true });
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  await page.keyboard.press("Escape");
+  await expect(menu).not.toHaveAttribute("open");
+  await expect(summary).toBeFocused();
+  await summary.click();
+  await expect(menu).toHaveAttribute("open");
+  // The panel is at the window's right; its left edge is the page.
+  await page.mouse.click(8, 600);
+  await expect(menu).not.toHaveAttribute("open");
+});
+
+// Review: on a doc the header said Docs was the page, and on the Trust center both Docs and Trust.
+test("the header marks one link current: the page it is, or the part of the site a doc is in", async ({ page }) => {
+  const nav = page.getByRole("navigation", { name: "Site" });
+  await page.goto("/docs/trust-center/");
+  await expect(nav.locator("[aria-current]")).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Trust" })).toHaveAttribute("aria-current", "page");
+  await page.goto("/docs/auth/");
+  await expect(nav.locator("[aria-current]")).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Docs" })).toHaveAttribute("aria-current", "true");
+  await page.goto("/docs/");
+  await expect(nav.getByRole("link", { name: "Docs" })).toHaveAttribute("aria-current", "page");
+});
+
 // D5-e: the ledger's IDs broke a character a line beside the statements' column.
 test("each ID of the claims ledger is on one line", async ({ page }) => {
   await page.goto("/docs/claims/");
@@ -704,6 +756,18 @@ test("with no CI run, or a file that is not one, the claims page says it has no 
   await page.reload();
   await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
   await expect(page.locator("article b")).toHaveCount(0);
+});
+
+// Review: a fetch of the CI run that failed was said to be a site that was not deployed from one.
+test("a failed fetch of the CI run says it could not be loaded, not that the site has none", async ({ page }) => {
+  await page.route("**/ci-run.json", (route) => route.abort());
+  await page.goto("/docs/claims/");
+  await expect(page.locator(".ci-note")).toHaveText(/could not be loaded/);
+  await page.unrouteAll();
+  await page.route("**/ci-run.json", (route) => route.fulfill({ status: 503, body: "" }));
+  await page.reload();
+  await expect(page.locator(".ci-note")).toHaveText(/could not be loaded/);
+  await expect(page.getByRole("link", { name: "Passed" })).toHaveCount(0);
 });
 
 // Launch QA: on a phone the comparison's five rival answers per question were a screen and a half each. Wayfarer's

@@ -269,7 +269,7 @@ test("no field, select, segmented choice, checkbox or file field reads --separat
 // contrast levels.
 const siteTheme = Object.fromEntries(
   [
-    ...readFileSync(new URL("../packages/site/src/app/globals.css", import.meta.url), "utf8").matchAll(
+    ...readFileSync(new URL("../packages/site/src/styles/global.css", import.meta.url), "utf8").matchAll(
       /--color-([\w-]+):\s*var\((--[\w-]+)\);/g,
     ),
   ].map((m) => [m[1], m[2]]),

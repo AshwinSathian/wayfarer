@@ -1,0 +1,41 @@
+---
+// Every task against the fewest actions any rival documents: the benchmark's own summary, on the comparison index.
+import { benchmark } from "../lib/content";
+import { BENCHMARK_PAGE } from "../lib/rivals";
+
+const { summary } = benchmark();
+---
+
+<div
+  class="compare-scroll col-wide mt-8"
+  role="region"
+  aria-label="Eight tasks, Wayfarer against the fewest any rival documents"
+  tabindex="0"
+>
+  <table class="compare-table w-full max-w-5xl">
+    <thead>
+      <tr>
+        <th scope="col">Task</th>
+        <th scope="col">Wayfarer, measured</th>
+        <th scope="col">Fewest any rival documents</th>
+        <th scope="col">Wayfarer is</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        summary.map((row) => (
+          <tr>
+            <th scope="row">
+              {row.n}. {row.task}
+            </th>
+            <td>
+              <a class="link" href={`${BENCHMARK_PAGE}#wayfarer-measured`}>{row.wayfarer}</a>
+            </td>
+            <td>{row.fewest}</td>
+            <td>{row.is}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

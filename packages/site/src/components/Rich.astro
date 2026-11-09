@@ -1,0 +1,29 @@
+---
+// A sentence of lib/rivals.ts, drawn: its text, links, code, strong words, hidden claims and citations.
+import type { Rich } from "../lib/rivals";
+import Claims from "./Claims.astro";
+import Cite from "./Cite.astro";
+
+interface Props {
+  parts: Rich;
+}
+const { parts } = Astro.props;
+---
+
+{
+  parts.map((part) =>
+    typeof part === "string" ? (
+      part
+    ) : "a" in part ? (
+      <a class="link" href={part.href}>{part.a}</a>
+    ) : "code" in part ? (
+      <code>{part.code}</code>
+    ) : "strong" in part ? (
+      <strong class="font-semibold">{part.strong}</strong>
+    ) : "claims" in part ? (
+      <Claims ids={part.claims} />
+    ) : (
+      <Cite source={part.cite} />
+    ),
+  )
+}

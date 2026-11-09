@@ -1,0 +1,21 @@
+---
+// The site's page for an address it has not got (out/404.html): Workers and prod-server.mjs send it with a 404. The
+// header's "Open Wayfarer" is the way to the app; this page names the docs and the front page.
+import Base from "../layouts/Base.astro";
+---
+
+<Base path="/404/" title="Not found: Wayfarer" description="There is no page at this address." noindex>
+  <main id="main" class="frame section">
+    <div class="col">
+      <h1 class="type-site-display font-semibold text-ink">There is no page at this address.</h1>
+      <p class="mt-6 type-site-lede text-ink-muted">
+        It may have moved when the site did. The docs are listed on <a class="link text-ink" href="/docs/">one page</a>,
+        and the app is a click away.
+      </p>
+      <p class="mt-10 flex flex-wrap gap-x-8 gap-y-4 type-site-body">
+        <a class="link text-ink" href="/">Go to the front page</a>
+        <a class="link text-ink" href="/docs/">Read the docs</a>
+      </p>
+    </div>
+  </main>
+</Base>

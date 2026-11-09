@@ -1,0 +1,88 @@
+---
+// Wayfarer against one rival on the benchmark's eight tasks (W5.4). Wayfarer's numbers are measured and link to their
+// recordings; the rival's are the steps its documentation gives, with the source and the date, and no seconds.
+import { benchmark } from "../lib/content";
+import { BENCHMARK_PAGE, type Rival, type Source } from "../lib/rivals";
+import Cite from "./Cite.astro";
+
+interface Props {
+  rival: Rival;
+}
+const { rival } = Astro.props;
+const { tasks, versions } = benchmark();
+
+/** A source cell's first address, as a citation: the page's host and path, and the day the benchmark read it. */
+function sourceOf(url: string, read: string): Source {
+  const { host, pathname } = new URL(url);
+  return { title: `${host}${pathname.replace(/\/$/, "")}`, url, read };
+}
+const LABELS: Record<string, string> = { "5a": "CORS", "5b": "DNS", "5c": "401" };
+---
+
+<p class="col mt-6 text-ink-muted">
+  An action is a click, a key press or a value typed. Wayfarer's are measured: a script ran each task three times on
+  the v3.0.0 release candidate in Chromium, and each number links to its recording. {rival.name}'s are the steps its
+  own documentation gives, read on <time datetime={rival.read}>{rival.read}</time> (version: {versions[rival.name]}).
+  {rival.name} was not run, so it has no seconds, and Wayfarer's seconds are the script's, not a person's. Method, every
+  step and every source: <a class="link text-ink" href={BENCHMARK_PAGE}>the benchmark</a>.
+</p>
+<div
+  class="compare-scroll col-wide mt-8"
+  role="region"
+  aria-label={`Eight tasks, Wayfarer and ${rival.name}`}
+  tabindex="0"
+>
+  <table class="compare-table w-full max-w-5xl">
+    <thead>
+      <tr>
+        <th scope="col">Task</th>
+        <th scope="col">Wayfarer, measured</th>
+        <th scope="col">{rival.name}, documented</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        tasks.map((task) => {
+          const row = task.documented.find((documented) => documented.rival === rival.name);
+          return (
+            <tr data-task={task.n}>
+              <th scope="row">
+                {task.n}. {task.name}
+              </th>
+              <td class="wayfarer-measured">
+                {task.measured.map((measured) => (
+                  <p>
+                    {LABELS[measured.id] ? `${LABELS[measured.id]}: ` : ""}
+                    <a class="link" href={measured.recording}>{measured.actions}</a>{" "}
+                    <span class="text-ink-muted">
+                      (recording; {measured.seconds} s in the script;{" "}
+                      <a class="link" href={`${BENCHMARK_PAGE}#wayfarer-measured`}>row</a>)
+                    </span>
+                  </p>
+                ))}
+              </td>
+              <td class="rival-documented">
+                {row ? (
+                  <>
+                    <p>
+                      {task.n === "5" ? "No page says the cause is named." : row.inputs}{" "}
+                      <span class="text-ink-muted">(documented)</span>
+                    </p>
+                    {row.steps && <p class="text-ink-muted">{row.steps}</p>}
+                    {row.note && <p class="text-ink-muted">{row.note}</p>}
+                    <p>
+                      <Cite source={sourceOf(row.sources[0], rival.read)} />{" "}
+                      <a class="link type-site-caption text-ink-muted" href={`${BENCHMARK_PAGE}#${task.anchor}`}>all of its steps</a>
+                    </p>
+                  </>
+                ) : (
+                  <span class="text-ink-muted">Not counted</span>
+                )}
+              </td>
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>

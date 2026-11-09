@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

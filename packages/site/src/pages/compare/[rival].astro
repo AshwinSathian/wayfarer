@@ -1,0 +1,130 @@
+---
+// One comparison (W2.3, W5.4). It opens with the answer a reader came for, who should pick which, then the table at a
+// glance, the eight tasks counted, where the rival is ahead, how Wayfarer differs, how to move, what the rival's
+// pages say (each fact with its source and the day it was read), where to read next, and the app.
+import Base from "../../layouts/Base.astro";
+import Cite from "../../components/Cite.astro";
+import CompareClose from "../../components/CompareClose.astro";
+import CompareGlance from "../../components/CompareGlance.astro";
+import CompareTasks from "../../components/CompareTasks.astro";
+import Rich from "../../components/Rich.astro";
+import { RIVALS, type Rival } from "../../lib/rivals";
+import { comparisonGraph } from "../../lib/structured-data";
+
+export function getStaticPaths() {
+  return RIVALS.map((rival) => ({ params: { rival: rival.id }, props: { rival } }));
+}
+
+interface Props {
+  rival: Rival;
+}
+const { rival } = Astro.props;
+const heading = `Wayfarer vs ${rival.name}`;
+const sources = [...rival.facts, ...rival.ahead].map((fact) => fact.source);
+
+const moving: [string, string][] =
+  rival.id === "postman" ? [["Moving from Postman, step by step", "/compare/moving-from-postman/"]] : [];
+const next: [string, string][] = [
+  ...moving,
+  ["Where Wayfarer is behind, against every rival", "/compare/#behind"],
+  ["The benchmark: eight tasks, counted, with every step and source", "/docs/benchmark/"],
+  ["Import: what comes across from each format", "/docs/import/"],
+  ["The secrets vault", "/docs/secrets/"],
+  ["What a browser cannot send, and the Local Bridge", "/docs/browser-limits/"],
+  ["Running a collection from the command line", "/docs/cli/"],
+  ...RIVALS.filter((other) => other.id !== rival.id).map((other): [string, string] => [
+    `Wayfarer vs ${other.name}`,
+    `/compare/${other.id}/`,
+  ]),
+];
+const H2 = "type-site-title-2 font-semibold text-ink md:type-site-title-1";
+const LIST = "mt-6 list-disc space-y-4 pl-5 marker:text-ink-muted";
+---
+
+<Base
+  path={`/compare/${rival.id}/`}
+  title={`${heading}: ${rival.title}`}
+  description={`Wayfarer, the API client in a browser tab, beside ${rival.name}: a table at a glance, eight tasks counted, where ${rival.name} is ahead, and the source and date of every fact.`}
+  graph={comparisonGraph(rival, heading, sources)}
+>
+  <main id="main">
+    <div class="frame pt-16 sm:pt-24">
+      <header class="col">
+        <h1 class="type-site-title-1 font-semibold text-ink sm:type-site-display">{heading}</h1>
+        <p class="mt-6 type-site-lede text-ink"><Rich parts={rival.pick} /></p>
+        <p class="mt-6 text-ink-muted">
+          {rival.is} Every fact about {rival.name} below is from its own pages, read on
+          <time datetime={rival.read}>{rival.read}</time>, with its source.
+        </p>
+      </header>
+
+      <section class="mt-20 sm:mt-28">
+        <h2 id="glance" class:list={["col", H2]}>At a glance</h2>
+        <CompareGlance rivals={[rival]} label={`Wayfarer and ${rival.name} at a glance`} />
+      </section>
+
+      <section class="mt-20 sm:mt-28">
+        <h2 id="tasks" class:list={["col", H2]}>Eight tasks, counted</h2>
+        <CompareTasks rival={rival} />
+      </section>
+
+      <section class="col mt-20 sm:mt-28">
+        <h2 id="ahead" class={H2}>Where {rival.name} is ahead</h2>
+        <ul class={LIST}>
+          {
+            rival.ahead.map((fact) => (
+              <li>
+                {fact.text} <Cite source={fact.source} />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="col mt-20 sm:mt-28">
+        <h2 id="differs" class={H2}>How Wayfarer differs</h2>
+        <ul class={LIST}>
+          {
+            rival.differs.map((sentence) => (
+              <li>
+                <Rich parts={sentence} />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="col mt-20 sm:mt-28">
+        <h2 id="moving" class={H2}>Moving from {rival.name}</h2>
+        <p class="mt-6"><Rich parts={rival.moving} /></p>
+      </section>
+
+      <section class="col mt-20 sm:mt-28">
+        <h2 id="facts" class={H2}>What {rival.name}'s pages say</h2>
+        <ul class={LIST}>
+          {
+            rival.facts.map((fact) => (
+              <li>
+                {fact.text} <Cite source={fact.source} />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <nav aria-labelledby="next" class="col mt-20 sm:mt-28">
+        <h2 id="next" class={H2}>Read next</h2>
+        <ul class="mt-6 space-y-3">
+          {
+            next.map(([text, href]) => (
+              <li>
+                <a class="link text-ink" href={href}>{text}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+    <CompareClose rival={rival} />
+  </main>
+</Base>

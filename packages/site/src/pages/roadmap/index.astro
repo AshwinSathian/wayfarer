@@ -1,0 +1,45 @@
+---
+// What shipped in 3.0 and since, Next and Later, each item what a user gets, from docs/roadmap.md when the site is
+// built (W2.4).
+import Base from "../../layouts/Base.astro";
+import Claims from "../../components/Claims.astro";
+import { roadmap } from "../../lib/content";
+
+const sections = roadmap();
+const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+---
+
+<Base
+  path="/roadmap/"
+  title="Roadmap: Wayfarer API client"
+  description="What Wayfarer has shipped since 3.0, what is next (collections in Git), and what comes later for teams."
+>
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <h1 class="type-site-display text-ink">Roadmap</h1>
+      <p class="mt-5 type-site-lede text-ink">
+        What shipped in 3.0 and since, what is next, and the work for teams after that. What each release changed is in <a
+          class="link"
+          href="/changelog/">the changelog</a
+        >.
+      </p>
+      {
+        sections.map((section) => (
+          <section aria-labelledby={slug(section.title)} class="mt-16">
+            <h2 id={slug(section.title)} class="type-site-title-2 text-ink">
+              {section.title}
+            </h2>
+            <ul class="mt-5 list-disc space-y-3 pl-5 marker:text-ink-muted">
+              {section.items.map((item) => (
+                <li>
+                  {item.text}
+                  {item.claims.length > 0 && <Claims ids={item.claims} />}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </main>
+</Base>

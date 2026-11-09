@@ -43,13 +43,13 @@ const sources = (pattern, skip = () => false) =>
 const siteRoot = new URL("../site/src/", import.meta.url).pathname;
 const siteSources = (pattern) =>
   readdirSync(siteRoot, { recursive: true })
-    .filter((file) => pattern.test(file) && file !== "app/tokens.css")
+    .filter((file) => pattern.test(file) && file !== "styles/tokens.css")
     .map((file) => [file, readFileSync(join(siteRoot, file), "utf8")]);
 
 test("the app or the site uses every token", () => {
   const files = [
     ...sources(/\.(css|scss|html|ts)$/, (file) => /design-system\/(tokens|typography)\.css$/.test(file)),
-    ...siteSources(/\.(css|tsx?|mjs)$/),
+    ...siteSources(/\.(css|tsx?|mjs|astro)$/),
   ]
     .map(([, text]) => text)
     .join("\n");
@@ -264,8 +264,12 @@ test("the site writes no colour or face of its own", () => {
   // A stylesheet: no colour value and no family but a var(). A class: no arbitrary colour or face (`bg-[#…]`).
   const css = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch)\(|font-family:(?!\s*var\()/i;
   const classes = /-\[[^\]]*(#[0-9a-f]{3}|rgba?\(|hsla?\(|oklch\(|rgb_|hsl_)|font-\[/i;
-  for (const [file, text] of siteSources(/\.(css|tsx?)$/))
-    for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1]))
+  // An @font-face block names the face it declares (the tokens' own faces, self-hosted): that family is not a literal.
+  const faceless = (text) => text.replace(/@font-face\s*\{[^}]*\}/g, (block) => block.replace(/[^\n]/g, ""));
+  for (const [file, text] of siteSources(/\.(css|tsx?|astro)$/))
+    for (const [line, n] of faceless(text)
+      .split("\n")
+      .map((line, i) => [line, i + 1]))
       if ((file.endsWith(".css") ? css : classes).test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line))
         literal.push(`${file}:${n}: ${line.trim()}`);
   assert.deepEqual(literal, []);

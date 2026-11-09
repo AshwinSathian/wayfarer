@@ -16,6 +16,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The release tarball's sitemap has each page's last-changed day again.** It was built from a shallow clone, which has no dates, and the release now fails if they are missing.
 - CI now fails on any `npm audit` advisory, and the Lighthouse job stops after a minute when its server does not answer, where it waited until the six-hour job limit.
 - `@wayfarer/core` exports only what the app and the CLI use, and knip reports an export of it that nothing imports.
+- **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
+- **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
+- **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
+- **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
+- **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 
 ## [3.3.1] - 2026-11-09
 

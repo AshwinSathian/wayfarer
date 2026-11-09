@@ -32,7 +32,8 @@
     },
     "packages/site": {
       "entry": ["src/pages/**/*.{astro,ts}", "*.mjs", "src/*.test.mjs"],
-      "project": ["src/**/*.{astro,ts,mjs,css}", "*.mjs"]
+      "project": ["src/**/*.{astro,ts,mjs,css}", "*.mjs"],
+      "ignoreDependencies": ["@fontsource/bricolage-grotesque", "@fontsource/figtree"]
     }
   },
   "ignoreExportsUsedInFile": true

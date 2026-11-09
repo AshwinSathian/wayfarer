@@ -115,6 +115,35 @@ describe("importText: one road from a file's text to the app's model", () => {
     expect(imported.environments).toEqual([]);
   });
 
+  it("the plan lists a Postman file's items in the order of its tree, each folder before what it holds", () => {
+    // Two folders, each with requests, then a request at the top: every folder's first request has order 0, and the
+    // plan was sorted by that number alone ("Get customer" before "List orders", the folders before any request).
+    const file = {
+      info: { name: "Store", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+      item: [
+        {
+          name: "Orders",
+          item: [
+            { name: "List orders", request: { method: "GET", url: "https://api.test/orders" } },
+            { name: "Create order", request: { method: "POST", url: "https://api.test/orders" } },
+          ],
+        },
+        { name: "Customers", item: [{ name: "Get customer", request: { method: "GET", url: "https://api.test/c" } }] },
+        { name: "Health", request: { method: "GET", url: "https://api.test/health" } },
+      ],
+    };
+    const [entry] = importText(JSON.stringify(file)).collections;
+    expect(entry.plan.map((item) => item.name)).toEqual([
+      "Store",
+      "Orders",
+      "List orders",
+      "Create order",
+      "Customers",
+      "Get customer",
+      "Health",
+    ]);
+  });
+
   it("as a copy, every id is a new one and the plan creates", () => {
     const imported = importText(JSON.stringify(collectionFile()), { duplicateAsNew: true });
     const { payload, plan } = imported.collections[0];

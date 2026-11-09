@@ -1,5 +1,12 @@
 import { Injectable, computed, effect, inject, signal } from "@angular/core";
-import { scriptDigest, scriptsApproved, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
+import {
+  scriptDigest,
+  scriptsApproved,
+  scriptsOf,
+  treeInOrder,
+  type Ancestor,
+  type RequestContent,
+} from "@wayfarer/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestSave } from "./request-save";
 import type { TabState } from "../state/tab-state";
@@ -61,11 +68,14 @@ export class ScriptTrust {
     if (history) return [{ kind: "request", name: "From history", ...history }];
     const tree = this.collection();
     if (!tree) return [];
-    // In the order they run: the collection's, the folders', the requests'.
+    // The collection's, then each folder's and request's in the order of the tree, as the sidebar lists them.
     const all: ReviewedScripts[] = [
       { kind: "collection", name: tree.collection.name, ...tree.collection.scripts },
-      ...tree.folders.map((folder): ReviewedScripts => ({ kind: "folder", name: folder.name, ...folder.scripts })),
-      ...tree.requests.map((request): ReviewedScripts => ({ kind: "request", name: request.name, ...request.scripts })),
+      ...treeInOrder(tree).map((child): ReviewedScripts =>
+        child.kind === "request"
+          ? { kind: "request", name: child.request.name, ...child.request.scripts }
+          : { kind: "folder", name: child.folder.name, ...child.folder.scripts },
+      ),
     ];
     return all.filter((entry) => scriptsOf({ scripts: entry }).length);
   });

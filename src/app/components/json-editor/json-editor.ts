@@ -10,6 +10,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
 } from "@angular/core";
 import { Theme } from "../../services/theme";
@@ -25,6 +26,7 @@ import {
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
+import { recordDiagnostic } from "../../services/diagnostics";
 import { parseJson, stringifyJson } from "@wayfarer/core";
 
 /** Monaco's name for plain text is "plaintext". */
@@ -58,7 +60,15 @@ const noop = () => {};
     -->
     <div class="h-full w-full" [style.height.px]="fill() ? null : (height() ?? defaultHeight)">
       @defer (on viewport; on timer(400ms)) {
-        <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
+        @if (loadFailed()) {
+          <div
+            class="flex h-full w-full items-center justify-center rounded-sm bg-canvas-elevated p-4 text-center type-callout text-label-secondary"
+          >
+            The editor could not load. Reload the page to get the latest version of Wayfarer.
+          </div>
+        } @else {
+          <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
+        }
       } @placeholder {
         <div
           class="flex h-full w-full items-center justify-center rounded-sm bg-canvas-elevated type-callout text-label-tertiary"
@@ -98,6 +108,7 @@ export class JsonEditor implements ControlValueAccessor, Validator, OnChanges, O
   readonly parsedChange = output<unknown>();
 
   readonly editorHost = viewChild<ElementRef<HTMLDivElement>>("editorHost");
+  protected readonly loadFailed = signal(false);
 
   private monacoModule: MonacoEditorModule | null = null;
 
@@ -114,7 +125,11 @@ export class JsonEditor implements ControlValueAccessor, Validator, OnChanges, O
     effect(() => {
       const host = this.editorHost();
       if (host) {
-        void this.initializeEditor();
+        // A chunk the server no longer has (a deploy since this tab opened), or no network: said, not an empty box.
+        this.initializeEditor().catch((error: unknown) => {
+          recordDiagnostic(error, "monaco: the editor did not load");
+          this.loadFailed.set(true);
+        });
       }
     });
   }

@@ -61,6 +61,15 @@ describe("UiFile", () => {
     expect(buttons()).toEqual(["Choose a file…"]);
   });
 
+  it("is a group named by its label, so its button says which file it chooses", async () => {
+    const { field } = await setup();
+    expect(field.getAttribute("role")).toBe("group");
+    // Named by the input's label, not a second copy of it: a test reaches the input by that label alone.
+    expect(field.hasAttribute("aria-label")).toBe(false);
+    const named = document.getElementById(field.getAttribute("aria-labelledby") ?? "");
+    expect(named?.getAttribute("aria-label")).toBe("File to send as the body");
+  });
+
   it("names the file chosen, and the same file chosen again is a change", async () => {
     const { fixture, field, input, buttons, host } = await setup();
     choose(input, file("pets.json"));

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import type { RoutePolicy } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FetchMock, type MockRequest } from "../../testing/fetch-mock";
 import { BridgeSettings } from "./bridge-settings";
@@ -58,7 +59,12 @@ describe("TransportRouter", () => {
     // The body is made into bytes first: the call follows a moment later.
     const req = await vi.waitFor(() => fetchMock.expectOne("http://127.0.0.1:7717/relay"));
     expect(req.request.headers.get("X-Wayfarer-Bridge-Token")).toBe("test-token");
-    expect(req.request.body).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: [] });
+    expect(req.request.body).toEqual({
+      method: "GET",
+      url: "https://internal.example.com/data",
+      headers: [],
+      timeoutMs: 600_000,
+    });
     req.flush(
       JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }),
       { status: 200 },
@@ -135,13 +141,21 @@ describe("TransportRouter", () => {
       fetchMock.verify();
     });
 
-    it("sends a simple POST through the bridge on a yes", async () => {
-      const pending = router.send(form, open(), { route: "auto", ask: () => Promise.resolve(true) });
+    it("sends a simple POST through the bridge on a yes, and its time starts after the answer (F11)", async () => {
+      let answered = 0;
+      const ask = () =>
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 30)).finally(
+          () => (answered = performance.now()),
+        );
+      const policy: RoutePolicy = { route: "auto", ask };
+      const pending = router.send(form, open(), policy);
 
       fetchMock.expectOne("https://api.example.com/items").fail();
       answer(await vi.waitFor(() => fetchMock.expectOne(relay)));
 
       expect((await pending).route).toBe("bridge");
+      expect(policy.startedAt).toBeGreaterThanOrEqual(answered);
+      expect(answered).toBeGreaterThan(0);
     });
 
     it("does not ask when there is no one to ask (a script's request): the failure stands", async () => {
@@ -161,6 +175,23 @@ describe("TransportRouter", () => {
       const envelope = await pending;
       expect(envelope.route).toBe("direct");
       expect(envelope.status).toBe(500);
+      fetchMock.verify();
+    });
+
+    it("@claim:C-064 does not send a request again when its response broke after the headers: the server had it", async () => {
+      const ask = vi.fn(() => Promise.resolve(true));
+      const pending = router.send(json, open(), { route: "auto", ask });
+
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("partial"));
+          controller.error(new TypeError("network error"));
+        },
+      });
+      fetchMock.expectOne("https://api.example.com/items").respond(new Response(body, { status: 200 }));
+
+      await expect(pending).rejects.toMatchObject({ kind: "network", responded: true });
+      expect(ask).not.toHaveBeenCalled();
       fetchMock.verify();
     });
 

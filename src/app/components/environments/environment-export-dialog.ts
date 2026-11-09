@@ -5,7 +5,7 @@ import { UiInput } from "../../ui/input";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { SecretsVault } from "../../services/secrets-vault";
 import { exportedValue, serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
-import { extractSecretId } from "../../shared/secrets/secret-reference";
+import { secretIdsIn } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
 import { saveJsonFile } from "../../shared/save-file";
 import { Dialog } from "../../ui/dialog";
@@ -104,10 +104,9 @@ export class EnvironmentExportDialog {
       return null;
     }
     const plaintexts = new Map<string, string>();
-    for (const row of this.environments().flatMap((env) => env.vars)) {
-      const id = extractSecretId(row.value);
-      const plaintext = id ? await this.vault.readSecret(id) : null;
-      if (id && plaintext !== null) plaintexts.set(id, plaintext);
+    for (const id of new Set(this.environments().flatMap((env) => env.vars.flatMap((row) => secretIdsIn(row.value))))) {
+      const plaintext = await this.vault.readSecret(id);
+      if (plaintext !== null) plaintexts.set(id, plaintext);
     }
     return { mode, plaintexts };
   }

@@ -18,6 +18,7 @@ import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import {
   MIN_SECRET_LENGTH,
   applyVariableChanges,
+  protectedSecretId,
   variableChanges,
   type Row,
   type VariableChange,
@@ -30,7 +31,6 @@ import { Icon } from "../../shared/icon/icon";
 import { JsonEditor } from "../json-editor/json-editor";
 import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
 import { recordDiagnostic } from "../../services/diagnostics";
-import { buildSecretReference, extractSecretId, isSecretReference } from "../../shared/secrets/secret-reference";
 
 /**
  * A set of variables these rows edit: an environment's, a collection's or a folder's. The rows write what changed
@@ -211,7 +211,7 @@ export class VariableRows implements OnDestroy {
   }
 
   isSecretValue(value: string | undefined): boolean {
-    return isSecretReference(value);
+    return protectedSecretId(value) !== null;
   }
 
   async protectVariable(index: number): Promise<void> {
@@ -309,7 +309,7 @@ export class VariableRows implements OnDestroy {
       plaintext,
     });
     this.shortSecretWarning.set(plaintext.length < MIN_SECRET_LENGTH ? pair.key.trim() : null);
-    draft.vars[index].value = buildSecretReference(secretId);
+    draft.vars[index].value = `{{$secret.${secretId}}}`;
     this.updateDraft(draft);
     this.syncJsonFromPairs();
     await this.commit();
@@ -317,14 +317,14 @@ export class VariableRows implements OnDestroy {
 
   async revealSecret(index: number): Promise<void> {
     const value = this.draft()?.vars[index]?.value;
-    const secretId = typeof value === "string" ? extractSecretId(value) : null;
+    const secretId = protectedSecretId(value);
     if (!secretId) return;
     const plaintext = await this.secretsService.readSecret(secretId);
     if (plaintext !== null) this.secretPreview.update((previews) => ({ ...previews, [secretId]: plaintext }));
   }
 
   getSecretPreview(value: string | undefined): string | null {
-    const secretId = extractSecretId(value ?? "");
+    const secretId = protectedSecretId(value);
     return secretId ? (this.secretPreview()[secretId] ?? null) : null;
   }
 
@@ -402,7 +402,7 @@ export class VariableRows implements OnDestroy {
       .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
       .flatMap((row, index) => {
         // The row on its way to the vault keeps what is stored until its reference replaces it.
-        if (index !== held || isSecretReference(row.value)) return [row];
+        if (index !== held || protectedSecretId(row.value) !== null) return [row];
         const stored = loadedValue(row.key);
         return stored === undefined ? [] : [{ ...row, value: stored }];
       })

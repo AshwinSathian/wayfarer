@@ -42,7 +42,7 @@
       <span class="redirect-note type-footnote text-label-secondary min-w-0 break-all">
         Redirected to <span class="font-mono">{{ finalUrl }}</span>
       </span>
-      } @let inspData = inspectionValue;
+      } @let inspData = inspectionValue();
 
       <!-- The facts wrap as one line, not one by one. -->
       <span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
@@ -374,7 +374,7 @@
           <!-- ── Timings tab ────────────────────────────────── -->
           <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
-              @let inspectionData = inspectionValue; @if (!inspectionData) {
+              @let inspectionData = inspectionValue(); @if (!inspectionData) {
               <!-- A line, not a dashed box around nothing (U-022). -->
               <p class="flex items-center gap-2 type-callout text-label-secondary py-3">
                 <app-icon name="timer" class="icon-xs text-label-tertiary" />Send the request and its timings show here.
@@ -474,9 +474,9 @@
                     }
                   </div>
 
-                  @if (hasGranularTimings()) {
+                  @if (timingBars().length) {
                   <div class="flex flex-col gap-2.5">
-                    @for (phase of getTimingBars(); track phase.key) {
+                    @for (phase of timingBars(); track phase.key) {
                     <div class="flex items-center gap-3">
                       <div class="flex w-24 items-center gap-1.5">
                         <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
@@ -506,7 +506,7 @@
                   </div>
                   } @else {
                   <div class="flex flex-col gap-2.5">
-                    @for (bar of getFallbackBars(); track bar.label) {
+                    @for (bar of fallbackBars(); track bar.label) {
                     <div class="flex items-center gap-3">
                       <div class="flex w-24 items-center gap-1.5">
                         <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
@@ -556,7 +556,7 @@
                 } @else {
                 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
                 <div class="test-results">
-                  @for (result of testResults(); track result.label + result.source) {
+                  @for (result of testResults(); track $index) {
                   <div
                     class="test-result"
                     [class.test-result-pass]="result.passed"

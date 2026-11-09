@@ -87,9 +87,7 @@ export class HolderSettings implements OnDestroy {
     { value: "bridge", label: "Local Bridge" },
   ];
 
-  private readonly tree = computed(() =>
-    this.collections.tree().find((entry) => entry.collection.meta.id === this.holder().collectionId),
-  );
+  private readonly tree = computed(() => this.collections.getCollectionTree(this.holder().collectionId));
   private readonly folder = computed(() =>
     this.tree()?.folders.find((folder) => folder.meta.id === this.holder().folderId),
   );

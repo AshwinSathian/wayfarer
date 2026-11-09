@@ -15,7 +15,10 @@ import ts from "typescript";
 
 const SOURCE = "src/sw.ts";
 
-/** App shell, everything index.html references, all CSS, woff2 fonts, icons, manifest. */
+/**
+ * App shell, everything index.html references (the page's stylesheet among it), Monaco's stylesheet, fonts, icons,
+ * manifest. Not the other CSS: the builder writes the CSS Monaco's modules import as files nothing loads (760 kB).
+ */
 export function precacheList(root) {
   const index = readFileSync(join(root, "index.html"), "utf8");
   // Not <base href>: the app's folder (/app/), not a file of it.
@@ -31,7 +34,7 @@ export function precacheList(root) {
         .join("/"),
     );
   const extra = files.filter((f) =>
-    /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.(ico|svg)$/.test(f),
+    /^monaco\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.(ico|svg)$/.test(f),
   );
   return [
     "/",

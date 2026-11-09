@@ -343,10 +343,19 @@ async function evaluate(
       if (Date.now() >= deadline.at) return { message: "", limit: "timeout" };
       const kind = vm.typeof(error);
       if (kind === "string") return { message: vm.getString(error) };
+      if (kind === "number" || kind === "boolean" || kind === "undefined") return { message: String(vm.dump(error)) };
       if (kind !== "object") return { message: "Script failed." };
-      // With no memory left QuickJS cannot make the error it wants to throw, and throws null.
-      // Asked without `vm.dump`, which allocates in the engine and has nothing to allocate with.
-      if (vm.sameValue(error, vm.null)) return { message: "", limit: "memory" };
+      // With no memory left QuickJS cannot make the error it wants to throw, and throws null. A script may throw null
+      // too: it is the limit only when the engine still cannot allocate. Asked without `vm.dump`, which allocates.
+      if (vm.sameValue(error, vm.null)) {
+        const probe = vm.evalCode("({})");
+        if (probe.error) {
+          probe.error.dispose();
+          return { message: "", limit: "memory" };
+        }
+        probe.value.dispose();
+        return { message: "null" };
+      }
       const name = property(vm, error, "name");
       const message = property(vm, error, "message") ?? "Script failed.";
       if (name === "InternalError" && message === "out of memory") return { message, limit: "memory" };

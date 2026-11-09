@@ -7,18 +7,19 @@ import { UiButton } from "../../ui/button";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
-import { MODEL_ACTION_WORDS, formatDuration, type PastRequest } from "@wayfarer/core";
+import { MODEL_ACTION_WORDS, formatDuration, type ExchangeRecord, type PastRequest } from "@wayfarer/core";
 import { statusTone } from "../../shared/http/status-tone";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
+import { HistoryRepository, type HistorySummary } from "../../data/history-repository";
 
 /**
  * Whether every word of `query` is part of the entry's URL or of the name and place of the saved request it was sent
  * from, or is its method or its status; for a model call, also part of its action, host or model (D4.10). Case does
  * not matter.
  */
-export function matches(request: PastRequest, query: string): boolean {
+export function matches(request: HistorySummary, query: string): boolean {
   const url = request.sent.url.toLowerCase();
   const from = request.sentFrom ? [request.sentFrom.name, ...request.sentFrom.path].join(" ").toLowerCase() : "";
   const method = request.sent.method.toLowerCase();
@@ -36,7 +37,7 @@ export function matches(request: PastRequest, query: string): boolean {
 }
 
 /** The host a request went to, as its record names it; the address when it has none. */
-export function hostOf(request: PastRequest): string {
+export function hostOf(request: HistorySummary): string {
   return request.record?.host ?? request.sent.url;
 }
 
@@ -51,7 +52,7 @@ const KINDS: UiSegment<HistoryKind>[] = [
 
 export interface HistoryGroup {
   label: string;
-  requests: PastRequest[];
+  requests: HistorySummary[];
 }
 
 @Component({
@@ -64,10 +65,10 @@ export interface HistoryGroup {
 })
 export class PastRequests {
   protected readonly statusTone = statusTone;
-  readonly pastRequests = input<PastRequest[]>([]);
+  readonly pastRequests = input<HistorySummary[]>([]);
   readonly loading = input(false);
   readonly displayHeader = input(true);
-  readonly loadRequest = output<PastRequest>();
+  readonly loadRequest = output<HistorySummary>();
   readonly deleteRequest = output<number>();
   /** Clear history… was chosen: the shell asks, then clears. */
   readonly clearAll = output<void>();
@@ -76,6 +77,7 @@ export class PastRequests {
   readonly selecting = signal(false);
 
   private readonly confirm = inject(Confirm);
+  private readonly history = inject(HistoryRepository);
 
   readonly skeletonPlaceholders = Array.from({ length: 4 }).map((_, i) => i);
 
@@ -92,6 +94,8 @@ export class PastRequests {
   protected readonly said = signal("");
   /** The model call opened into its record, by id: it loads into no tab (log.md). */
   protected readonly expanded = signal<number | undefined>(undefined);
+  /** That model call's entry as kept, read by its id when it was opened: the list holds no record or body. */
+  protected readonly opened = signal<(PastRequest & { record: ExchangeRecord }) | null>(null);
   /** Which kept text of the opened model call is shown. */
   protected readonly showing = signal<"sent" | "answer" | null>(null);
 
@@ -122,11 +126,11 @@ export class PastRequests {
   /** What the HAR dialog exports. Null while it is closed. */
   protected readonly harSource = signal<HarSource | null>(null);
 
-  protected isChosen(request: PastRequest): boolean {
+  protected isChosen(request: HistorySummary): boolean {
     return request.id !== undefined && this.ticked().has(request.id);
   }
 
-  protected choose(request: PastRequest, on: boolean): void {
+  protected choose(request: HistorySummary, on: boolean): void {
     if (request.id === undefined) return;
     const next = new Set(this.ticked());
     if (on) next.add(request.id);
@@ -151,19 +155,21 @@ export class PastRequests {
     this.ticked.set(next);
   }
 
-  /** The ticked entries as a HAR, oldest first: the order a reader of a log expects. */
-  protected exportChosen(): void {
-    const exchanges = [...this.chosen()].sort((a, b) => a.createdAt - b.createdAt).map(historyExchange);
+  /** The ticked entries as a HAR, oldest first: the order a reader of a log expects. Each is read by its id. */
+  protected async exportChosen(): Promise<void> {
+    const chosen = [...this.chosen()].sort((a, b) => a.createdAt - b.createdAt);
+    const entries = await Promise.all(chosen.map((request) => this.history.get(request.id ?? -1)));
+    const exchanges = entries.filter((entry) => entry !== null).map(historyExchange);
     this.harSource.set({ name: "wayfarer-history", credentials: false, exchanges: () => exchanges });
   }
 
-  private buildGroups(requests: PastRequest[]): HistoryGroup[] {
+  private buildGroups(requests: HistorySummary[]): HistoryGroup[] {
     const now = Date.now();
     const startOfToday = this.startOfDay(now);
     const startOfYesterday = startOfToday - 86_400_000;
     const startOfWeek = startOfToday - 6 * 86_400_000;
 
-    const buckets: Record<string, PastRequest[]> = {
+    const buckets: Record<string, HistorySummary[]> = {
       Today: [],
       Yesterday: [],
       "This week": [],
@@ -214,13 +220,19 @@ export class PastRequests {
   protected readonly formatDuration = formatDuration;
 
   /** A send's entry loads into a tab; a model call's opens into its record in place, since Send would use its key. */
-  load(req: PastRequest) {
+  async load(req: HistorySummary): Promise<void> {
     if (!req.model) {
       this.loadRequest.emit(req);
       return;
     }
-    this.expanded.set(this.expanded() === req.id ? undefined : req.id);
     this.showing.set(null);
+    if (this.expanded() === req.id || req.id === undefined) {
+      this.expanded.set(undefined);
+      return;
+    }
+    const entry = await this.history.get(req.id);
+    this.opened.set(entry?.record ? { ...entry, record: entry.record } : null);
+    this.expanded.set(req.id);
   }
 
   /** Escape inside an opened model call's row closes it, not the drawer, and focus goes back to the row. */
@@ -237,7 +249,7 @@ export class PastRequests {
     return request.sent.headers.map(([name, value]) => `${name}: ${value}`).join("\n");
   }
 
-  async confirmDelete(req: PastRequest, event: Event): Promise<void> {
+  async confirmDelete(req: HistorySummary, event: Event): Promise<void> {
     const id = req.id;
     if (typeof id === "undefined") return;
     const confirmed = await this.confirm.confirm({
@@ -248,7 +260,7 @@ export class PastRequests {
     if (confirmed) this.deleteRequest.emit(id);
   }
 
-  trackById(_index: number, item: PastRequest): number | undefined {
+  trackById(_index: number, item: HistorySummary): number | undefined {
     return item.id;
   }
 }

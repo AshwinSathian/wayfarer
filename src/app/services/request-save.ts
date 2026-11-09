@@ -56,8 +56,7 @@ export class RequestSave {
 
   /** What a saved request inherits from, as stored now. */
   ancestorsFor(bound: RequestDoc | null): Ancestor[] {
-    const tree =
-      bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const tree = bound && this.collectionsService.getCollectionTree(bound.collectionId);
     return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
   }
   /**
@@ -68,7 +67,7 @@ export class RequestSave {
     const bound = this.loadedCollectionRequest();
     if (!bound) return null;
     if (scope === "collection") return { collectionId: bound.collectionId };
-    const tree = this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const tree = this.collectionsService.getCollectionTree(bound.collectionId);
     const folder = folderChain(tree?.folders ?? [], bound.folderId)
       .reverse()
       .find((held) => variablesByName(held.variables).has(name));
@@ -78,8 +77,7 @@ export class RequestSave {
   /** Where the bound request is kept: its collection's name, then its folders' from the outside in. */
   readonly breadcrumb: Signal<string[]> = computed(() => {
     const bound = this.loadedCollectionRequest();
-    const tree =
-      bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const tree = bound && this.collectionsService.getCollectionTree(bound.collectionId);
     return tree
       ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)]
       : [];
@@ -101,7 +99,7 @@ export class RequestSave {
 
   readonly saveAsFolderOptions: Signal<{ label: string; value: string }[]> = computed(() => {
     const collectionId = this.saveAsCollectionId();
-    const entry = this.collectionsService.tree().find((e) => e.collection.meta.id === collectionId);
+    const entry = this.collectionsService.getCollectionTree(collectionId);
     return (entry?.folders ?? []).map((folder) => ({
       label: folder.name,
       value: folder.meta.id,

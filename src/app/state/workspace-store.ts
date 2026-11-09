@@ -18,6 +18,7 @@ import {
   scriptsOf,
   sentAuth,
   sentHeaders,
+  validateUrl,
   type BuiltRequest,
   type Composed,
   type OAuth2Auth,
@@ -71,12 +72,12 @@ import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
 import { TransportRouter } from "../services/transport-router";
 import { NOT_COPIED, writeToClipboard } from "../shared/http/clipboard";
-import { buildUrlFromParams, parseParamsFromUrl, validateUrl } from "../shared/http/request-url";
+import { buildUrlFromParams, parseParamsFromUrl } from "../shared/http/request-url";
 
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
 import { valueSources } from "../components/composer/auth-editor/value-sources";
-import { SHOWN_EVENTS, TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
+import { SHOWN_EVENTS, TabState, blankRow, contentOf } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
 
 /** A body as text, for the places that show or copy one. A file or a form has none. */
@@ -360,18 +361,6 @@ export class WorkspaceStore {
     this.tabs.active().showRecorded(entry, open);
   }
 
-  /** A new request. Scripts, tests and the response on screen stay. */
-  reset(): void {
-    this.draft.update((draft) => ({
-      ...emptyDraft(),
-      scripts: draft.scripts,
-      tests: draft.tests,
-      responseId: draft.responseId,
-    }));
-    this.endpointError.set("");
-    this.refreshVariablePreview();
-  }
-
   /**
    * A header row was edited in place. The list is replaced (its rows are
    * not), so that what is computed from the draft's headers runs again.
@@ -539,7 +528,7 @@ export class WorkspaceStore {
   private refusal(tab: TabState): string {
     const { url, method } = tab.draft();
     if (!url) return "Type an address to send the request.";
-    const methodError = this.methodError(method);
+    const methodError = this.methodError(method, tab);
     if (methodError) return methodError;
     try {
       const resolver = new VariableResolver(this.scopesOf(tab));
@@ -562,9 +551,7 @@ export class WorkspaceStore {
 
   private collectionRoute(tab: TabState): Route | undefined {
     const bound = tab.bound();
-    return bound
-      ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId)?.collection.route
-      : undefined;
+    return bound ? this.collections.getCollectionTree(bound.collectionId)?.collection.route : undefined;
   }
 
   /** The route the open tab's request has when it names none: its collection's, else the device's. */
@@ -665,8 +652,7 @@ export class WorkspaceStore {
     return {
       baseline: {
         environment: this.environments.activeEnvironment()?.vars,
-        collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection
-          .variables,
+        collection: this.collections.getCollectionTree(collectionId)?.collection.variables,
         global: this.environments.globals(),
       },
       acceptedHosts: new Set(),
@@ -707,7 +693,7 @@ export class WorkspaceStore {
     const bound = tab.bound();
     if (!bound) return {};
     const { collectionId } = bound;
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === collectionId);
+    const tree = this.collections.getCollectionTree(collectionId);
     // Where it is now, by name, as history keeps it: the collection, then its folders from the outside in.
     const path = tree
       ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)]
@@ -715,9 +701,7 @@ export class WorkspaceStore {
     return {
       info: { requestName: bound.name, requestId: bound.meta.id, path },
       collection: {
-        variables: () =>
-          this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables ??
-          [],
+        variables: () => this.collections.getCollectionTree(collectionId)?.collection.variables ?? [],
         change: (changes) => this.collections.changeCollectionVariables(collectionId, changes),
       },
     };
@@ -755,12 +739,14 @@ export class WorkspaceStore {
   async getOAuthToken(): Promise<void> {
     const oauth = this.oauth();
     if (!oauth) return;
-    const probe = new VariableResolver(this.scopes());
+    // The open tab's, read once: another may be open by the time the vault has been read.
+    const scopes = this.scopes();
+    const probe = new VariableResolver(scopes);
     resolveAuth(oauth.auth, (text) => probe.resolve(text));
     const secrets = probe.lockedSecrets.size
       ? await this.readSecrets([...probe.lockedSecrets], "Getting the token")
       : new Map<string, string>();
-    const resolver = new VariableResolver(this.scopes(), (id) => secrets.get(id));
+    const resolver = new VariableResolver(scopes, (id) => secrets.get(id));
     const auth = resolveAuth(oauth.auth, (text) => resolver.resolve(text));
     if (resolver.unresolved.size)
       throw new OAuthError(
@@ -770,14 +756,14 @@ export class WorkspaceStore {
   }
 
   /** Why this method cannot be sent, or "" when it can. */
-  private methodError(method: string): string {
+  private methodError(method: string, tab: TabState): string {
     if (!method) {
       return "Type a method, such as GET.";
     }
     if (!isHttpMethod(method)) {
       return `"${method}" is not an HTTP method. A method is one word of at most 32 characters: letters, digits and !#$%&'*+-.^_\`|~.`;
     }
-    if (FORBIDDEN_METHODS.includes(method) && this.firstRoute() !== "bridge") {
+    if (FORBIDDEN_METHODS.includes(method) && this.router.first(this.routeOf(tab)) !== "bridge") {
       return `A browser cannot send a ${method} request. Set this request's route to Local Bridge, in its Network tab.`;
     }
     return "";
@@ -899,8 +885,8 @@ export class WorkspaceStore {
         this.confirm.confirm({
           title: "Send to a different host?",
           message: composed?.accepted
-            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Allowed, every later request of this run may send to ${to} without asking.`
-            : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
+            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret or an OAuth 2.0 token, which would be sent there. Allowed, every later request of this run may send to ${to} without asking.`
+            : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret or an OAuth 2.0 token, which would be sent there.`,
           // The act says what one click allows (U-069): in a run, the host for the rest of the run.
           acceptLabel: composed?.accepted ? `Send to ${to} for this run` : `Send to ${to}`,
           rejectLabel: "Do not send",

@@ -104,6 +104,17 @@ describe("ui-menu", () => {
     fixture.destroy();
   });
 
+  it("leaves a key it does not use to the browser (F5, a zoom)", async () => {
+    const { fixture, root, items, press } = await setup();
+    root.querySelector<HTMLElement>(".opener")!.focus();
+    await press("Enter");
+    expect(document.activeElement).toBe(items()[0]);
+    const event = new KeyboardEvent("keydown", { key: "F5", bubbles: true, cancelable: true });
+    items()[0].dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    fixture.destroy();
+  });
+
   it("opens at the pointer with focus on its first item; Escape closes it and hands focus back", async () => {
     const { fixture, host, items, press, rightClick } = await setup();
     await rightClick();

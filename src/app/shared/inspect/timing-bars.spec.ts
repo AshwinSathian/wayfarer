@@ -31,14 +31,17 @@ describe("timing-bars", () => {
     ]);
   });
 
-  it("formats sizes in binary units and stops at GB", () => {
-    expect([undefined, 0, -1].map(formatBytes)).toEqual(["—", "—", "—"]);
+  it("formats sizes in binary units, up to TB, with a word of the caller's for nothing", () => {
+    expect([undefined, 0, -1].map((value) => formatBytes(value))).toEqual(["—", "—", "—"]);
+    expect(formatBytes(0, "0 B")).toBe("0 B");
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(60)).toBe("60 B");
     expect(formatBytes(1536)).toBe("1.50 kB");
     expect(formatBytes(15 * 1024)).toBe("15.0 kB");
     expect(formatBytes(256 * 1024)).toBe("256 kB");
     expect(formatBytes(5 * 1024 ** 3)).toBe("5.00 GB");
-    expect(formatBytes(5000 * 1024 ** 3)).toBe("5000 GB");
+    expect(formatBytes(5000 * 1024 ** 3)).toBe("4.88 TB");
+    // A quota on a large disk: Settings › Storage says it as the response viewer would.
+    expect(formatBytes(1.2 * 1024 ** 4)).toBe("1.20 TB");
   });
 });

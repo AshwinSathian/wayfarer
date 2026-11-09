@@ -1,47 +1,9 @@
-/**
- * Pure URL/query-param helpers for the request composer
- * (`WorkspaceStore`). Extracted so the URL-validation logic that fixes
- * "an unparseable URL silently fetches the app's own index.html" is unit
- * testable without an Angular TestBed, and so the composer component itself
- * isn't the only place this logic can be exercised from.
- */
-
-import { normalizeUrl } from "@wayfarer/core";
+/** The query-param helpers of the request composer (`WorkspaceStore`). Whether an address is one is `validateUrl` (`@wayfarer/core`). */
 
 export interface QueryParamRow {
   key: string;
   value: string;
   enabled: boolean;
-}
-
-function hasExplicitScheme(text: string): boolean {
-  return /^https?:\/\//i.test(text);
-}
-
-export function validateUrl(text: string): boolean {
-  if (!text) return false;
-  const schemePresent = hasExplicitScheme(text);
-  const parsed = URL.parse(normalizeUrl(text));
-  if (!parsed) {
-    return false;
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    return false;
-  }
-  if (!parsed.hostname) {
-    return false;
-  }
-  if (schemePresent) {
-    // The user typed a scheme explicitly — that's deliberate intent, so trust
-    // whatever host shape they gave us (including bare internal hostnames).
-    return true;
-  }
-  // No scheme was typed, so we're the ones guessing "https://". Reject bare,
-  // single-label input (e.g. "not a valid url at all") that technically parses
-  // as *some* hostname but was never actually a URL — that's exactly the input
-  // that used to slip through and resolve against the app's own origin.
-  const hostname = parsed.hostname;
-  return hostname === "localhost" || hostname.includes(".") || hostname.includes(":") || !!parsed.port;
 }
 
 /** `base?query#hash`, split as text: the endpoint field may hold `{{variables}}` and need not parse as a URL. */

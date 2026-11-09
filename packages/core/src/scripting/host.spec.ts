@@ -308,7 +308,7 @@ describe("runScript", () => {
   it("reports what a script threw", async () => {
     expect((await run(`throw new Error("boom");`)).error).toBe("boom");
     expect((await run(`throw "plain";`)).error).toBe("plain");
-    expect((await run(`throw 5;`)).error).toBe("Script failed.");
+    expect((await run(`throw 5;`)).error).toBe("5");
     expect((await run(`throw {};`)).error).toBe("Script failed.");
     expect((await run(`this is not javascript`)).error).toMatch(/expecting/);
     expect((await run(`notDefined()`)).error).toBe("'notDefined' is not defined");
@@ -454,6 +454,19 @@ describe("runScript", () => {
     expect(Date.now() - started).toBeLessThan(5000);
     const loop = await run(`(function again() { setTimeout(again, 20); })();`, {}, { timeoutMs: 200 });
     expect(loop.limit).toBe("timeout");
+  });
+
+  it("reports a thrown null, number or boolean as the value, not as a limit", async () => {
+    for (const [thrown, error] of [
+      ["null", "null"],
+      ["404", "404"],
+      ["false", "false"],
+      ["undefined", "undefined"],
+    ]) {
+      const result = await run(`throw ${thrown};`);
+      expect(result.error, thrown).toBe(error);
+      expect(result.limit, thrown).toBeUndefined();
+    }
   });
 
   it("stops a script that allocates more than the memory limit", async () => {

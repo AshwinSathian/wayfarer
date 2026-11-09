@@ -38,8 +38,9 @@ export class TransportRouter implements Transport {
     policy: RoutePolicy = { route: this.route() },
   ): Promise<ResponseEnvelope> {
     policy.took = this.first(policy.route);
-    if (policy.took === "bridge") return this.viaBridge(request, options);
+    if (policy.took === "bridge") return this.viaBridge(request, options, policy);
     try {
+      policy.startedAt = performance.now();
       return await new FetchTransport().send(request, options);
     } catch (error) {
       if (!(error instanceof TransportError) || error.kind !== "network") throw error;
@@ -48,7 +49,7 @@ export class TransportRouter implements Transport {
       if (!paired) policy.unpaired = true;
       if (policy.route !== "auto" || !paired || !(await this.retryable(request, policy))) throw error;
       policy.took = "bridge";
-      return this.viaBridge(request, options);
+      return this.viaBridge(request, options, policy);
     }
   }
 
@@ -58,7 +59,11 @@ export class TransportRouter implements Transport {
     return next === "retry" || (next === "ask" && !!policy.ask && (await policy.ask()));
   }
 
-  private async viaBridge(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
+  private async viaBridge(
+    request: ResolvedRequest,
+    options: TransportOptions,
+    policy: RoutePolicy,
+  ): Promise<ResponseEnvelope> {
     // Held in this tab: sent at once. Otherwise it may be in the vault, and the vault may have to be unlocked.
     const token = this.bridge.config().token || (await this.bridge.tokenForSend());
     if (!token) {
@@ -67,6 +72,8 @@ export class TransportRouter implements Transport {
         "The Local Bridge is on, and this tab does not have its token. Unlock the vault, or pair the bridge again in Settings › Local Bridge.",
       );
     }
+    // The request's time starts here: not with the page's failed attempt, the question or the vault unlock (F11).
+    policy.startedAt = performance.now();
     return new BridgeTransport({ url: this.bridge.config().url, token }).send(request, options);
   }
 }

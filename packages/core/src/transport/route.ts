@@ -11,6 +11,8 @@ export interface RoutePolicy {
   took?: "direct" | "bridge";
   /** Set by the sender when the page got no response and no Local Bridge is paired to try (U-131). */
   unpaired?: true;
+  /** Set by the sender: when (`performance.now()`) the attempt that gave the outcome began, after any question or token read before it (F11). */
+  startedAt?: number;
 }
 
 /** The route a request is sent by: its own, else its collection's, else the device's. Absent is "inherit". */

@@ -53,8 +53,16 @@ export function decodeResponseBody(
   bytes: ArrayBuffer | null | undefined,
   contentType: string | null | undefined,
 ): unknown {
+  return readBody(bytes, contentType).value;
+}
+
+/** `decodeResponseBody`'s value, and the text it was parsed from, as the server sent it: what a script reads. */
+function readBody(
+  bytes: ArrayBuffer | null | undefined,
+  contentType: string | null | undefined,
+): { value: unknown; text?: string } {
   if (!bytes || bytes.byteLength === 0) {
-    return null;
+    return { value: null };
   }
   const type = (contentType ?? "").trim();
   const mediaType = type.split(";")[0].trim();
@@ -67,12 +75,12 @@ export function decodeResponseBody(
     } catch (error) {
       // A fatal decoder throws TypeError on invalid UTF-8: that means binary.
       if (!(error instanceof TypeError)) throw error;
-      return new BinaryBody(bytes, "");
+      return { value: new BinaryBody(bytes, "") };
     }
   } else if (JSON_TYPE.test(mediaType) || isTextType(mediaType)) {
     text = decodeText(bytes, charsetOf(type));
   } else {
-    return new BinaryBody(bytes, mediaType);
+    return { value: new BinaryBody(bytes, mediaType) };
   }
 
   const trimmed = text.trim();
@@ -81,10 +89,10 @@ export function decodeResponseBody(
     const parsed = parseJson(text);
     // A JSON `null` stays the text "null", so the viewer doesn't report an empty body.
     if (parsed.ok && parsed.value !== null && (JSON_TYPE.test(mediaType) || typeof parsed.value === "object")) {
-      return parsed.value;
+      return { value: parsed.value, text };
     }
   }
-  return text;
+  return { value: text, text };
 }
 
 function charsetOf(contentType: string): string {
@@ -104,9 +112,14 @@ function decodeText(bytes: ArrayBuffer, charset: string): string {
 
 /** What the viewer shows of a transport's answer. A body over the display cap is a download, whatever its type. */
 export function decodeEnvelope(envelope: ResponseEnvelope): unknown {
+  return readEnvelope(envelope).value;
+}
+
+/** `decodeEnvelope`'s value, and the text it was parsed from, as the server sent it. */
+export function readEnvelope(envelope: ResponseEnvelope): { value: unknown; text?: string } {
   const contentType = envelope.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
   if (envelope.body instanceof Blob) {
-    return new BinaryBody(envelope.body, (contentType ?? "").split(";")[0].trim());
+    return { value: new BinaryBody(envelope.body, (contentType ?? "").split(";")[0].trim()) };
   }
-  return decodeResponseBody(envelope.body, contentType);
+  return readBody(envelope.body, contentType);
 }

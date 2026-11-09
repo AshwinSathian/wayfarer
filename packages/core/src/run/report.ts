@@ -175,7 +175,7 @@ export function runReportHtml(report: RunReport, info: RunInfo): string {
 :root { color-scheme: light dark; ${palette(REPORT_COLOURS.light)} }
 @media (prefers-color-scheme: dark) { :root { ${palette(REPORT_COLOURS.dark)} } }
 body { margin: 0; padding: 24px 16px; background: var(--canvas); color: var(--primary);
-  font: 14px/1.5 "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+  font: 14px/1.5 Figtree, system-ui, sans-serif; }
 main { max-width: 1100px; margin: 0 auto; }
 h1 { margin: 0 0 4px; font-size: 1.375rem; font-weight: 600; }
 .meta, .counts { margin: 0 0 16px; color: var(--secondary); }

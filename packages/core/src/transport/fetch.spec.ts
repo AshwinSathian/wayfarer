@@ -198,6 +198,20 @@ describe("FetchTransport", () => {
     expect(await offline.send(request, open()).catch((e: unknown) => e)).toMatchObject({
       kind: "network",
       message: "Failed to fetch",
+      responded: false,
+    });
+
+    // A body that breaks after the headers is a network failure the server had the request for (C-064).
+    const broken = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode("partial"));
+        controller.error(new TypeError("network error"));
+      },
+    });
+    const cut = new FetchTransport(() => Promise.resolve(new Response(broken, { status: 200 })));
+    expect(await cut.send(request, open()).catch((e: unknown) => e)).toMatchObject({
+      kind: "network",
+      responded: true,
     });
 
     // Node's fetch names the reason in its cause's code; the cause's message, which holds the address, is not kept.
@@ -309,7 +323,7 @@ describe("FetchTransport", () => {
       );
       await tick();
       source.fail(new TypeError("network error"));
-      await expect(sent).rejects.toMatchObject({ kind: "network" });
+      await expect(sent).rejects.toMatchObject({ kind: "network", responded: true });
     });
 
     it("keeps the first megabyte of an endless stream as the body, and goes on giving events", async () => {

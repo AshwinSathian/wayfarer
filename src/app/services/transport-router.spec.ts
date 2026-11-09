@@ -164,6 +164,23 @@ describe("TransportRouter", () => {
       fetchMock.verify();
     });
 
+    it("@claim:C-064 does not send a request again when its response broke after the headers: the server had it", async () => {
+      const ask = vi.fn(() => Promise.resolve(true));
+      const pending = router.send(json, open(), { route: "auto", ask });
+
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("partial"));
+          controller.error(new TypeError("network error"));
+        },
+      });
+      fetchMock.expectOne("https://api.example.com/items").respond(new Response(body, { status: 200 }));
+
+      await expect(pending).rejects.toMatchObject({ kind: "network", responded: true });
+      expect(ask).not.toHaveBeenCalled();
+      fetchMock.verify();
+    });
+
     it("with no bridge token anywhere, shows the page's failure, asks nothing, and says no bridge is paired", async () => {
       TestBed.inject(BridgeSettings).update({ token: "" });
       const ask = vi.fn(() => Promise.resolve(true));

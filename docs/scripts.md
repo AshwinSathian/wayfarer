@@ -410,7 +410,8 @@ One case the app does catch, and asks about. When a request
 is sent, the app works out the host it would go to twice: as you composed
 it with the variables as they were, and as its pre-request script left it,
 with the variables as they are now. If the two differ and the request uses
-a vault secret, a dialog names both hosts before the vault is read:
+a vault secret or an OAuth 2.0 token, a dialog names both hosts before the
+vault is read or the token fetched:
 
 - **Send to {host}** sends the request where the script pointed it.
 - **Do not send** sends nothing, and puts back every variable that script
@@ -433,10 +434,10 @@ dialog is a second look at the most direct case, not a wall.
 script of one request sets the host of the next. When the run starts, the
 app keeps the variables as they are. Each request's host is worked out
 under those, with the row of the data file, and again as the request is
-built. If the two differ and the request uses a vault secret, the run
+built. If the two differ and the request uses a vault secret or an OAuth 2.0 token, the run
 pauses with the same question, naming the request. **Send to {host} for
 this run** says what it allows: every later request of the run may go to
-that host without asking. **Do not send** sends nothing and ends the run. A request without a vault secret is
+that host without asking. **Do not send** sends nothing and ends the run. A request with neither is
 not asked about, and a host that came from the data file is not a change.
 The next run starts from the variables as they are by then: what an earlier
 run stored is that run's baseline.

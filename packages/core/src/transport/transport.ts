@@ -120,7 +120,11 @@ export interface Transport {
 
 export type TransportErrorKind = "network" | "timeout" | "aborted" | "bridge";
 
-/** No response was received. `status` is the bridge's own answer, when it gave one. */
+/**
+ * No whole response was received. `status` is the bridge's own answer, when it
+ * gave one. `responded`: the headers had arrived and the body then broke, so
+ * the server had the request (C-064: it is not sent again).
+ */
 export class TransportError extends Error {
   override readonly name = "TransportError";
 
@@ -128,6 +132,7 @@ export class TransportError extends Error {
     readonly kind: TransportErrorKind,
     message: string,
     readonly status?: number,
+    readonly responded = false,
   ) {
     super(message);
   }

@@ -19,9 +19,11 @@ import {
   SendBlockedError,
   SendDeclinedError,
   exchange,
+  scriptResponse,
   type BuiltRequest,
   type ExchangePorts,
   type RequestExecutionSpec,
+  type ScriptResponseContext,
   type ScriptRunExtras,
 } from "./exchange";
 
@@ -1224,6 +1226,27 @@ describe("exchange", () => {
       expect(transport.sendRequest).not.toHaveBeenCalled();
     });
 
+    it("a stop while a pre-request script runs ends the send there: what it set is not stored, no later script runs, nothing is built", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({}));
+      const controller = new AbortController();
+      scriptSandbox.execute.mockImplementation(async () => {
+        controller.abort();
+        return { logs: [], changes: { ...NO_CHANGES, environment: [{ key: "a", value: "1" }] }, testResults: [] };
+      });
+      const buildRequest = vi.fn(() => builtRequest());
+      const failure: unknown = await service
+        .execute({ ...spec(buildRequest), signal: controller.signal })
+        .catch((error: unknown) => error);
+
+      expect(failure).toBeInstanceOf(SendBlockedError);
+      expect((failure as Error).message).toBe("You stopped the request. Nothing was sent.");
+      expect(scriptSandbox.execute).toHaveBeenCalledTimes(1);
+      expect(environmentsService.changeEnvironment).not.toHaveBeenCalled();
+      // The vault is read, and C-053 asked, only in the build.
+      expect(buildRequest).not.toHaveBeenCalled();
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+    });
+
     it("an error in the collection's post-response script is a failed row named for it, and the scripts after it still run", async () => {
       scripted("collectionPost()");
       const result = await service.execute(spec());
@@ -1381,6 +1404,31 @@ describe("exchange", () => {
     expect(scriptSandbox.execute).toHaveBeenCalled();
     expect(result.durationMs).toBe(120);
     expect(result.history.durationMs).toBe(120);
+  });
+
+  it("measures from the attempt that answered: not the page's failed one, the question of the Auto route or a vault unlock (F11)", async () => {
+    let clock = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => clock);
+    const send = transport.send.bind(transport);
+    transport.send = (request, options, policy) => {
+      clock += 4000;
+      if (policy) policy.startedAt = clock;
+      clock += 80;
+      return send(request, options, policy);
+    };
+
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [{ id: "t", target: "duration", operator: "less-than", expected: "500" }],
+      buildRequest: () => builtRequest(),
+    });
+    vi.restoreAllMocks();
+
+    expect(result.durationMs).toBe(80);
+    expect(result.testResults).toEqual([expect.objectContaining({ passed: true })]);
   });
 
   it("shows a timeout and a cancel as what they are, with no status", async () => {
@@ -1854,6 +1902,38 @@ describe("exchange", () => {
     it("pm.sendRequest goes by the route of the request whose script sends it, and nothing is asked in the middle of a script (P6.4)", async () => {
       await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [] }, undefined, "auto");
       expect(transport.policy).toEqual({ route: "auto", took: "direct" });
+    });
+
+    it("pm.sendRequest and pm.response read the body as the server sent it, not as JSON written out again", async () => {
+      const raw = '{"id": 1234567890123456789,\n  "name": "caf\\u00e9"}';
+      transport.setResponse(envelope(200, "OK", raw));
+      const outcome = await scriptSends({ method: "GET", url: "https://auth.test/big", headers: [] });
+
+      expect(outcome).toMatchObject({ body: raw });
+      const response = scriptSandbox.execute.mock.calls[0][2] as ScriptResponseContext;
+      expect(scriptResponse(response).body).toBe(raw);
+    });
+
+    it("pm.sendRequest follows a redirect on every route, as Postman's does: it carries no vault secret to hold on the host", async () => {
+      await scriptSends({ method: "GET", url: "https://auth.test/login", headers: [] }, undefined, "bridge");
+      expect(transport.options?.redirects).toEqual({ follow: true, stayOnHost: false });
+    });
+
+    it("pm.sendRequest's time is the attempt that answered, not what came before it (F11)", async () => {
+      let clock = 0;
+      vi.spyOn(performance, "now").mockImplementation(() => clock);
+      const send = transport.send.bind(transport);
+      transport.send = (request, options, policy) => {
+        // The page's attempt that failed, and a vault unlock for the bridge's token.
+        clock += 4000;
+        if (policy) policy.startedAt = clock;
+        clock += 80;
+        return send(request, options, policy);
+      };
+      const outcome = await scriptSends({ method: "GET", url: "https://auth.test/login", headers: [] });
+      vi.restoreAllMocks();
+
+      expect(outcome).toMatchObject({ responseTime: 80 });
     });
 
     it("pm.sendRequest: a request that gets no response reaches the script as its error", async () => {

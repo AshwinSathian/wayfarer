@@ -1,29 +1,31 @@
-import type { Metadata } from "next";
 import { ogImagePath } from "../og-path.mjs";
 
 export const SITE = "https://wayfarer.ashwinsathian.com";
 
+export interface Meta {
+  /** The page's path, with its trailing slash: `/docs/auth/`. */
+  path: string;
+  title: string;
+  description: string;
+  /** A working note: search engines follow its links but do not list it, and it is not in the sitemap. */
+  noindex?: boolean;
+  /** A blog post's date, YYYY-MM-DD: the page is an article. */
+  published?: string;
+}
+
 /**
- * A page's metadata for search and sharing (W3.1): its title and description, its canonical address, and its Open
- * Graph and Twitter cards with the page's own image (social-images.mjs draws it from this title and description). A
- * working note says `noindex` (search engines follow its links but do not list it); a blog post is an article with
- * its date.
+ * What a page says about itself to search engines and to a link's card (W3.1): its title and description, its
+ * canonical address, and its Open Graph and Twitter cards with the page's own image (social-images.mjs draws it from
+ * this title and description).
  */
-export function pageMeta(
-  path: string,
-  title: string,
-  description: string,
-  { noindex = false, published }: { noindex?: boolean; published?: string } = {},
-): Metadata {
-  const image = { url: ogImagePath(path), width: 1200, height: 630, alt: title };
-  const card = { siteName: "Wayfarer", locale: "en_GB", url: path, title, description, images: [image] };
+export function headOf({ path, title, description, noindex = false, published }: Meta) {
   return {
     title,
     description,
-    ...(noindex ? { robots: { index: false, follow: true } } : {}),
-    // A page's own alternates replace the layout's, so every page names the feed itself.
-    alternates: { canonical: path, types: { "application/rss+xml": "/blog/rss.xml" } },
-    openGraph: published ? { ...card, type: "article", publishedTime: published } : { ...card, type: "website" },
-    twitter: { card: "summary_large_image", title, description, images: [image.url] },
+    canonical: `${SITE}${path}`,
+    image: `${SITE}${ogImagePath(path)}`,
+    noindex,
+    type: published ? "article" : "website",
+    published,
   };
 }

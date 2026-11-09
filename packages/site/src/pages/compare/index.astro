@@ -1,0 +1,118 @@
+---
+// The comparison pages' index (W2.3, W5.4): the short answer, every rival at a glance, the eight tasks against the
+// fewest actions any rival documents, where Wayfarer is behind, and a page per rival.
+import Base from "../../layouts/Base.astro";
+import Cite from "../../components/Cite.astro";
+import Claims from "../../components/Claims.astro";
+import CompareClose from "../../components/CompareClose.astro";
+import CompareGlance from "../../components/CompareGlance.astro";
+import CompareSummary from "../../components/CompareSummary.astro";
+import Rich from "../../components/Rich.astro";
+import { BEHIND, BENCHMARK_SOURCE, RIVALS } from "../../lib/rivals";
+import { compareIndexGraph } from "../../lib/structured-data";
+
+const TITLE = "Postman alternatives compared: Bruno, Yaak, Insomnia, Hoppscotch, Scalar";
+const pages: [string, string][] = [
+  ...RIVALS.map((rival): [string, string] => [`Wayfarer vs ${rival.name}`, `/compare/${rival.id}/`]),
+  ["Moving from Postman", "/compare/moving-from-postman/"],
+];
+const H2 = "type-site-title-2 font-semibold text-ink md:type-site-title-1";
+---
+
+<Base
+  path="/compare/"
+  title={TITLE}
+  description="Wayfarer, an API client in a browser tab, beside Postman, Bruno, Yaak, Hoppscotch, Insomnia and Scalar: a table at a glance, eight tasks counted, where each is ahead, every fact sourced and dated."
+  graph={compareIndexGraph(TITLE, pages)}
+>
+  <main id="main">
+    <div class="frame pt-16 sm:pt-24">
+      <header class="col">
+        <h1 class="type-site-title-1 font-semibold text-ink sm:type-site-display">Postman alternatives, compared</h1>
+        <p class="mt-6 type-site-lede text-ink">
+          Choose Wayfarer if you want the whole client in a browser tab, with nothing to install, no account, and each
+          request sent from the tab straight to the host you name. <Claims ids={["C-001"]} /> Choose Bruno, Yaak or
+          Insomnia if your collections must be files in Git, or Postman, Hoppscotch or Scalar if your team shares a
+          workspace in their cloud: Wayfarer keeps collections in your browser and shares them only as copies.
+          <Claims ids={["C-002", "C-084"]} />
+        </p>
+        <p class="mt-6 text-ink-muted">
+          Seven API clients, each described from its own pages, with the date each page was read. Where Wayfarer is
+          behind is <a class="link text-ink" href="#behind">listed below</a>, each point against the rivals ahead of it.
+        </p>
+      </header>
+
+      <section class="mt-20 sm:mt-28">
+        <h2 id="glance" class:list={["col", H2]}>At a glance</h2>
+        <CompareGlance rivals={RIVALS} label="Wayfarer and its rivals at a glance" />
+      </section>
+
+      <section class="mt-20 sm:mt-28">
+        <h2 id="tasks" class:list={["col", H2]}>Eight tasks, counted</h2>
+        <p class="col mt-6 text-ink-muted">
+          We counted the clicks, keys and values typed of eight everyday tasks in Wayfarer, and read the same tasks from
+          each rival's documentation. Wayfarer takes as few actions as any rival documents, or fewer, on five of the
+          eight, and is behind on adding an environment and on finding last week's request. <Cite
+            source={BENCHMARK_SOURCE}
+          /> Each rival's page sets Wayfarer's recordings beside that rival's documented steps.
+        </p>
+        <CompareSummary />
+      </section>
+
+      <section class="col mt-20 sm:mt-28">
+        <h2 id="behind" class={H2}>Where Wayfarer is behind</h2>
+        <ul class="mt-8 space-y-8">
+          {
+            BEHIND.map((item) => (
+              <li>
+                <h3 class="type-site-title-3 font-semibold text-ink">{item.title}</h3>
+                <p class="mt-2 text-ink-muted">
+                  <Rich parts={item.text} />
+                  {item.sources.map((source) => (
+                    <>
+                      {" "}
+                      <Cite source={source} />
+                    </>
+                  ))}
+                </p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="mt-20 sm:mt-28">
+        <h2 id="pages" class:list={["col", H2]}>Each comparison</h2>
+        <ul class="col-wide mt-8 grid max-w-5xl grid-cols-1 gap-x-14 gap-y-10 md:grid-cols-2">
+          {
+            RIVALS.map((rival) => (
+              <li>
+                <h3 class="type-site-title-3 font-semibold text-ink">
+                  <a class="link-quiet" href={`/compare/${rival.id}/`}>Wayfarer vs {rival.name}</a>
+                </h3>
+                <p class="mt-2 text-ink-muted">{rival.is}</p>
+              </li>
+            ))
+          }
+          <li>
+            <h3 class="type-site-title-3 font-semibold text-ink">
+              <a class="link-quiet" href="/compare/moving-from-postman/">Moving from Postman</a>
+            </h3>
+            <p class="mt-2 text-ink-muted">
+              Your collections, environments and scripts, step by step, and what does not come across.
+            </p>
+          </li>
+        </ul>
+        <p class="col mt-12 text-ink-muted">
+          Each rival's steps for eight everyday tasks, with quotes and sources, are in <a
+            class="link text-ink"
+            href="/docs/benchmark/rivals/">the rival benchmark</a
+          >; Wayfarer's own, counted and recorded, are in <a class="link text-ink" href="/docs/benchmark/"
+            >the benchmark</a
+          >.
+        </p>
+      </section>
+    </div>
+    <CompareClose />
+  </main>
+</Base>

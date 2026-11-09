@@ -3,12 +3,13 @@
 
 # Lockfiles and what a tool writes. Prettier reads the root .gitignore only:
 # the site's build output is named here.
-packages/site/.next/
+packages/site/.astro/
 packages/site/out/
-packages/site/next-env.d.ts
+# No Astro plugin for Prettier (no dependency for it): .astro files are formatted by hand.
+*.astro
 package-lock.json
 src/design-system/tokens.css
-packages/site/src/app/tokens.css
+packages/site/src/styles/tokens.css
 src/design-system/tokens.ts
 src/design-system/typography.css
 src/app/shared/icon/icon-paths.ts

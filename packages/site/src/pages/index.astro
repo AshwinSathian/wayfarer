@@ -1,0 +1,492 @@
+---
+// The landing. Each sentence that says what Wayfarer does names the claim that proves it (docs/claims.md), out of the
+// reader's sight (PLAN-design row 1.74): e2e/site.spec.ts holds every ID named here to the ledger, and the claims page
+// is one link, the footer's. A fact about another product names its source and the date it was read.
+//
+// The page argues in this order: what it is (the hero, with a picture of the app); the proof a reader can check from
+// here (what this very page fetched, read from the browser's own record); bringing a Postman collection; a day with the
+// app, recorded; keys and the browser's limits; the figures; what the others ask first; how a claim is tested; the
+// rest of the app; the questions; the call. One idea a section, each with its own composition, in one reading column.
+import Base from "../layouts/Base.astro";
+import Claims from "../components/Claims.astro";
+import Shot from "../components/Shot.astro";
+import Clip from "../components/Clip.astro";
+import AskFirst from "../components/AskFirst.astro";
+import { claims } from "../lib/content";
+import { homeGraph } from "../lib/structured-data";
+import { version } from "../../../../package.json";
+
+const TITLE = "Wayfarer: the API client that opens in a tab";
+const DESCRIPTION =
+  "Import Postman collections, run their scripts, keep API keys encrypted and share a collection by encrypted link, in your browser. No install, no account, no server of ours between you and your API. Free and MIT-licensed.";
+
+const POSTMAN_PLANS = "https://learning.postman.com/docs/billing/about-plans";
+const ledger = claims();
+
+/** The rows the trust section quotes, as the ledger words them, with the tests that hold them. */
+const QUOTED = ["C-084", "C-003", "C-001"]
+  .map((id) => ledger.find((row) => row.id === id))
+  .filter((row) => row !== undefined);
+
+/** Bringing a Postman collection: what you give, and what comes back. */
+const STEPS = [
+  {
+    title: "First, import it.",
+    shot: "import",
+    width: 960,
+    height: 720,
+    alt: "Wayfarer's import report for a Postman collection: what it adds, its scripts held, and the one host it calls",
+    text: "You see what it adds and every host it calls before anything is stored.",
+    ids: ["C-054", "C-090"],
+  },
+  {
+    title: "Then read its scripts.",
+    shot: "review",
+    width: 1100,
+    height: 825,
+    alt: "Wayfarer's review of the collection's scripts, each shown as it will run, before they are trusted",
+    text: "They wait until you have read them, then run in a sandbox.",
+    ids: ["C-051", "C-052"],
+  },
+  {
+    title: "Then run it, here or in CI.",
+    shot: "run",
+    width: 1100,
+    height: 825,
+    alt: "Wayfarer's run of the collection: six requests, each with its status, time and passing test",
+    text: "The same requests, in the same order, to the same results, with wayfarer-cli in a pipeline.",
+    ids: ["C-065"],
+  },
+];
+
+/** A day with the app, recorded. */
+const DAY = [
+  {
+    id: "first-request",
+    title: "A first request, one click from here",
+    text: "Type an address and press Enter. It goes to the host you typed and nowhere else. A cURL command pasted from an API's docs becomes the request.",
+    ids: ["C-001", "C-056"],
+    label: "Wayfarer sending its first request",
+  },
+  {
+    id: "record",
+    title: "Where each request went",
+    text: "Under every response, a record of where it went and what History kept, with every secret masked. Each variable says where its value came from.",
+    ids: ["C-008", "C-025"],
+    label: "Wayfarer's exchange record of a request sent with a token",
+  },
+  {
+    id: "share",
+    title: "A collection for a teammate",
+    text: "The collection travels encrypted after the link's #, which a browser sends to no server. Your teammate sees every host it calls before anything is stored.",
+    ids: ["C-084", "C-086", "C-090"],
+    label: "Wayfarer sharing a collection by link, and a teammate opening it",
+  },
+  {
+    id: "run",
+    title: "The same run, here and in CI",
+    text: "Run a collection here, or in CI with wayfarer-cli: the same requests, in the same order, to the same results.",
+    ids: ["C-065"],
+    label: "Wayfarer running a collection of three requests",
+  },
+];
+
+/** What the rest of the page did not show, each with its claims and its page. */
+const MORE = [
+  ["Auth", "Bearer, Basic, API key, OAuth 2.0 and AWS Signature, inherited from a folder.", ["C-019", "C-061", "C-062"], "/docs/auth/"],
+  ["Import", "Postman, Insomnia, OpenAPI, HAR and cURL, with a report before anything is stored.", ["C-058", "C-059", "C-060"], "/docs/import/"],
+  ["Export", "cURL, fetch, Python, HTTPie, HAR and Postman v2.1, with secrets masked.", ["C-020", "C-055", "C-035", "C-057"], "/docs/export/"],
+  ["GraphQL, WebSocket, event streams", "A schema from the server, sockets logged message by message, events as they arrive.", ["C-093", "C-091", "C-092"], "/docs/graphql/"],
+  ["AI that asks before it sends", "Off until you add a provider, and every byte shown before it goes.", ["C-069", "C-071"], "/docs/ai/"],
+  ["Offline and installable", "Loads offline after one visit, installs as an app, works by keyboard alone.", ["C-015", "C-036", "C-067"], "/docs/getting-started/"],
+] as const;
+
+/** The questions: the answer as reading text (with its links), and the claims it rests on. */
+const QUESTIONS: { q: string; a: string; ids: string[] }[] = [
+  {
+    q: "What does it cost?",
+    a: 'Nothing. Wayfarer is open source under the MIT licence, with no paid plan and no account to make. You can also <a href="/docs/self-hosting/">host it yourself</a>: it is a folder of files and a set of headers.',
+    ids: [],
+  },
+  {
+    q: "Is it safe to put API keys into a website?",
+    a: 'The page runs no script it did not ship: its policy forbids <code>eval</code> and inline script. A key in the vault is stored only as ciphertext, under a key held in memory. The <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not.',
+    ids: ["C-011", "C-016", "C-003", "C-005"],
+  },
+  {
+    q: "Where are my collections kept?",
+    a: "In your browser's IndexedDB, on the device you use. Back up the whole workspace to one file whenever you want; the vault's secrets stay encrypted inside it.",
+    ids: ["C-002", "C-046"],
+  },
+  {
+    q: "Can my team share collections?",
+    a: 'Yes, as a copy: a file, or a link whose encrypted content is after the <code>#</code>, which a browser sends to no server, and which holds no vault secret. Your teammate sees what it adds and every host it sends to before anything is stored. A workspace that stays in step through Git is <a href="/roadmap/">next</a>; see <a href="/docs/sharing/">sharing</a>.',
+    ids: ["C-084", "C-087", "C-086", "C-090"],
+  },
+  {
+    q: "A request works in Postman and fails here. Why?",
+    a: 'A page in a browser has rules a desktop app does not: CORS, headers it may not set, no relaxed TLS. The composer says before you send what the browser will do. For what a browser cannot do, the <a href="/docs/browser-limits/">Local Bridge</a> sends the request from your machine.',
+    ids: ["C-049", "C-041", "C-064"],
+  },
+  {
+    q: "Does it work offline?",
+    a: "Yes, after one visit: the app's files are kept by its service worker, and it installs as an app from the browser's menu.",
+    ids: ["C-015", "C-036"],
+  },
+  {
+    q: "Can I run my collections in CI?",
+    a: 'Yes. <a href="/docs/cli/">wayfarer-cli</a> runs a collection from the command line with the same engine as the app, to the same results.',
+    ids: ["C-065"],
+  },
+  {
+    q: "What does it not do yet?",
+    a: 'No gRPC, MQTT or Socket.IO, no MCP server, and collections are not files in a Git repository; Git is <a href="/roadmap/">next</a>. The comparisons list <a href="/compare/#behind">where Wayfarer is behind</a>.',
+    ids: [],
+  },
+];
+
+const plain = (html: string) =>
+  html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+const home = homeGraph(version, DESCRIPTION);
+const graph = {
+  ...home,
+  "@graph": [
+    ...home["@graph"],
+    {
+      "@type": "FAQPage",
+      url: "https://wayfarer.ashwinsathian.com/",
+      mainEntity: QUESTIONS.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: plain(a) },
+      })),
+    },
+  ],
+};
+---
+
+<Base path="/" title={TITLE} description={DESCRIPTION} graph={graph}>
+  <main id="main">
+    <!-- What it is, and the one thing to do. -->
+    <section aria-labelledby="hero" class="frame pt-16 sm:pt-28">
+      <div class="col">
+        <h1 id="hero" class="type-site-title-1 text-ink sm:type-site-display lg:type-site-hero lg:max-w-[11em]">
+          The API client that opens in a tab
+        </h1>
+        <p class="mt-8 type-site-lede text-ink">
+          Import a Postman collection, run its scripts and share it as an encrypted link. No install, no account, and
+          no server of ours between you and your API. <Claims ids={["C-058", "C-040", "C-084", "C-001"]} />
+        </p>
+        <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <a href="/app/" class="btn type-site-body px-6 py-3">Open Wayfarer</a>
+          <a href="/compare/moving-from-postman/" class="link type-site-body text-ink">Moving from Postman</a>
+        </div>
+        <p class="mt-6 type-site-small text-ink-muted">Free and MIT-licensed. Version {version}.</p>
+      </div>
+      <figure class="col-wide mt-16 sm:mt-24">
+        <!-- On a phone the picture is drawn twice its width and shows the request and its answer at a size that reads;
+             from 768 px it is the whole app. -->
+        <div class="plate aspect-[4/5] md:aspect-auto" data-ui>
+          <Shot
+            hero
+            class="h-full object-cover object-[80%_40%] md:h-auto md:object-fill"
+            name="hero"
+            width={1440}
+            height={900}
+            sizes="(min-width: 90rem) 78rem, (min-width: 48rem) 100vw, 230vw"
+            alt="Wayfarer with a Postman collection imported: a POST request built from its variables, and the JSON answer, 201 Created"
+          />
+        </div>
+        <figcaption class="mt-5 max-w-[36rem] type-site-small text-ink-muted">
+          A Postman collection, imported with its scripts. <Claims ids={["C-058"]} /> Each variable says where its value came
+          from. <Claims ids={["C-025"]} /> The answer came straight from the API, sent from this tab with no server of ours
+          in between. <Claims ids={["C-001", "C-064"]} />
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- The live part: what this page itself fetched, read from the browser's own record (public/site.js). -->
+    <section aria-labelledby="loaded" class="section frame" data-record>
+      <div class="col-wide grid grid-cols-1 gap-12 lg:max-w-[72rem] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20">
+        <div>
+          <h2 id="loaded" class="rise type-site-title-1 text-ink">What this page fetched</h2>
+          <p class="rise mt-6 text-ink">
+            Wayfarer sends your request to the host you typed and to no one else. The app's own files come once, and
+            then only your requests leave the tab. <Claims ids={["C-001", "C-015"]} />
+          </p>
+          <p class="rise mt-4 text-ink">
+            This website keeps the same rule. Beside this is every file your browser fetched for this page, read from
+            its own record as each one arrives. Scroll, and the pictures below join it.
+          </p>
+          <p class="rise mt-4 text-ink">
+            No analytics, no fonts or scripts from another site, no cookies. Your work in the app stays in this browser,
+            and a secret is stored only as ciphertext. <Claims ids={["C-002", "C-003"]} />
+          </p>
+        </div>
+        <div class="min-w-0 lg:pt-2">
+          <p class="type-site-lede text-ink" data-record-summary aria-live="polite">
+            Your browser's network panel will show one host: wayfarer.ashwinsathian.com.
+          </p>
+          <div class="mt-6 overflow-x-auto" data-ui>
+            <table class="facts" aria-label="What this page fetched, by kind">
+              <thead>
+                <tr>
+                  <th scope="col">Kind</th>
+                  <th scope="col" class="num">Files</th>
+                  <th scope="col" class="from">From</th>
+                  <th scope="col" class="num">Size</th>
+                </tr>
+              </thead>
+              <tbody data-record-kinds></tbody>
+            </table>
+          </div>
+          <details class="mt-6" data-record-files hidden>
+            <summary class="link inline cursor-pointer type-site-small text-ink">Every file, by name</summary>
+            <ol class="mt-4 space-y-1 type-site-small text-ink" data-record-rows></ol>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bringing a Postman collection: what you give and what comes back, in one column; the last breaks out wide. -->
+    <section aria-labelledby="postman" class="section frame">
+      <div class="col">
+        <h2 id="postman" class="rise type-site-title-1 text-ink">Bring your Postman collection</h2>
+        <p class="rise mt-6 text-ink text-links">
+          Postman Free has been one user since March 2026 (<a href={POSTMAN_PLANS}>Postman's plans</a>, read on
+          <time datetime="2026-11-07">7 November 2026</time>). Wayfarer has no plans and no seats.
+        </p>
+      </div>
+      <ol class="col-wide mt-16 space-y-24 lg:max-w-[76rem]">
+        {
+          STEPS.map((step) => (
+            <li class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-16">
+              <div class="lg:pt-6">
+                <h3 class="rise type-site-title-2 text-ink">{step.title}</h3>
+                <p class="rise mt-3 text-ink">
+                  {step.text} <Claims ids={step.ids} />
+                </p>
+              </div>
+              <div class="rise plate p-3 sm:p-5" data-ui>
+                <Shot
+                  name={step.shot}
+                  width={step.width}
+                  height={step.height}
+                  sizes="(min-width: 64rem) 44rem, 100vw"
+                  alt={step.alt}
+                />
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="col mt-12">
+        <a class="link type-site-body font-semibold text-ink" href="/compare/moving-from-postman/">Moving from Postman, step by step</a>
+      </p>
+    </section>
+
+    <!-- A day with the app: four recordings in a row, at a phone's width. -->
+    <section aria-labelledby="day" class="section bg-paper-sunk">
+      <div class="frame">
+        <div class="col">
+          <h2 id="day" class="rise type-site-title-1 text-ink">A day with Wayfarer</h2>
+          <p class="rise mt-6 text-ink">Recorded from the app as it is built, at a phone's width, against made-up answers.</p>
+        </div>
+      </div>
+      <div class="frame mt-14 px-0">
+        <div class="clip-row">
+          {
+            DAY.map((step) => (
+              <section aria-labelledby={step.id} class="flex flex-col">
+                <h3 id={step.id} class="type-site-title-3 text-ink">
+                  {step.title}
+                </h3>
+                <div id={`${step.id}-text`} class="mt-2 mb-6 flex-1 type-site-small text-ink">
+                  {step.text} <Claims ids={step.ids} />
+                </div>
+                <Clip name={step.id} label={step.label} title={step.title} described={`${step.id}-text`} />
+              </section>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Keys, and what the browser refuses: each a sentence beside a piece of the app that shows it. -->
+    <section aria-labelledby="keys" class="section frame">
+      <div class="col-wide grid grid-cols-1 gap-16 lg:max-w-[72rem] lg:grid-cols-2 lg:gap-20">
+        <div>
+          <h2 id="keys" class="rise type-site-title-1 text-ink">Keys that are never stored in clear</h2>
+          <p class="rise mt-6 text-ink">
+            Only the ciphertext is stored, under a key that lives in memory. <Claims ids={["C-003", "C-005"]} /> History,
+            exports and copies get a mask. <Claims ids={["C-008", "C-014"]} />
+          </p>
+          <div class="rise plate mt-8 p-5 type-site-small" data-ui data-demo>
+            <fieldset class="demo-switch">
+              <legend class="sr-only">Show the request's key</legend>
+              <div class="inline-flex gap-1 rounded-sm bg-paper p-1">
+                <label><input type="radio" name="key-view" value="sent" checked /><span>Sent</span></label>
+                <label><input type="radio" name="key-view" value="history" /><span>Kept in history</span></label>
+              </div>
+            </fieldset>
+            <div class="mt-5 grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-3">
+              <span class="text-ink-muted">Host</span>
+              <code class="truncate text-ink">api.example.com</code>
+              <span class="text-ink-muted">Authorization</span>
+              <span>
+                <code class="text-ink" data-demo-view="sent">Bearer 7c41f0a9d2e86b35</code>
+                <code class="text-ink" data-demo-view="history">Bearer ***</code>
+              </span>
+            </div>
+            <p class="mt-5 text-ink" data-demo-view="sent">The key goes in clear, to api.example.com only.</p>
+            <p class="mt-5 text-ink" data-demo-view="history">History, exports and copies keep a mask.</p>
+            <p class="mt-4 text-ink-muted">
+              PBKDF2-SHA-256 at 600,000 iterations wraps an AES-GCM-256 key. <Claims ids={["C-004"]} />
+            </p>
+          </div>
+        </div>
+        <div class="lg:pt-40">
+          <h2 id="limits" class="rise type-site-title-1 text-ink">When the browser says no</h2>
+          <p class="rise mt-6 text-ink text-links">
+            The composer says what the browser will do before you send. <Claims ids={["C-049"]} /> For what a page cannot
+            do, the <a href="/docs/browser-limits/">Local Bridge</a> sends it from your machine. <Claims ids={["C-041", "C-064"]} />
+          </p>
+          <div class="rise plate mt-8 p-5 type-site-small" data-ui>
+            <p class="font-semibold text-ink"><code>PUT</code> api.example.com/v1/users/42: what the browser does</p>
+            <p class="mt-4 text-ink">The browser will not send <code>Cookie</code>: a page is not allowed to set this header.</p>
+            <p class="mt-3 text-ink">
+              It asks the server first, with an <code>OPTIONS</code> request, because of the method PUT and the header
+              Authorization. The request is sent only if the server's answer allows it.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The figures, stated without raising the voice. -->
+    <section aria-labelledby="figures" class="section frame">
+      <div class="col-wide grid grid-cols-1 gap-10 lg:max-w-[72rem] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20">
+        <h2 id="figures" class="rise type-site-title-1 text-ink">In figures</h2>
+        <dl class="figures space-y-7 lg:pt-2">
+          <div class="rise">
+            <dt class="text-ink">accounts to make before your first request. <Claims ids={["C-001"]} /></dt>
+            <dd class="type-site-title-2 text-ink sm:type-site-title-1">0</dd>
+          </div>
+          <div class="rise">
+            <dt class="text-ink">servers of ours between you and your API. <Claims ids={["C-001"]} /></dt>
+            <dd class="type-site-title-2 text-ink sm:type-site-title-1">0</dd>
+          </div>
+          <div class="rise">
+            <dt class="text-ink">PBKDF2 iterations between your passphrase and the vault's key. <Claims ids={["C-004"]} /></dt>
+            <dd class="type-site-title-2 text-ink sm:type-site-title-1">600,000</dd>
+          </div>
+          <div class="rise">
+            <dt class="text-ink">public claims about the app, each held by an automated test.</dt>
+            <dd class="type-site-title-2 text-ink sm:type-site-title-1">{ledger.length}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- What the others ask of you first: from each one's own documentation, dated. -->
+    <section aria-labelledby="ask-first" class="section frame">
+      <div class="col">
+        <h2 id="ask-first" class="rise type-site-title-1 text-ink">What the others ask of you first</h2>
+        <p class="rise mt-6 text-ink">
+          From each one's own documentation, read on the date in its cell. The last row is where Wayfarer is behind.
+        </p>
+      </div>
+      <div class="col-wide mt-12 lg:max-w-[76rem]">
+        <AskFirst />
+      </div>
+      <p class="col mt-10">
+        <a href="/compare/" class="link type-site-body font-semibold text-ink">See every comparison</a>
+      </p>
+    </section>
+
+    <!-- How a sentence here is held to account. -->
+    <section aria-labelledby="trust" class="section bg-paper-sunk">
+      <div class="frame">
+        <div class="col-wide grid grid-cols-1 items-start gap-12 lg:max-w-[72rem] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+          <div>
+            <h2 id="trust" class="rise type-site-title-1 text-ink">Every sentence here names its test</h2>
+            <p class="rise mt-6 text-ink text-links">
+              What this page says Wayfarer does is a row of a public ledger, and each row names the test that proves it,
+              run in three browsers before a release ships (<a href="/blog/the-claims-ledger/">how it works</a>).
+            </p>
+            <p class="rise mt-4 text-ink text-links">
+              The <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not. The
+              <a href="https://github.com/AshwinSathian/wayfarer">source</a> is MIT.
+            </p>
+          </div>
+          <pre
+            class="rise min-w-0 overflow-x-auto rounded-lg bg-paper p-5 type-site-small whitespace-pre-wrap text-ink"
+            aria-label="The claims ledger's check in a terminal"><span class="text-ink-muted">$ </span>npm run check:claims
+Claims ledger OK: {ledger.length} claims, each with a doc marker and a test.
+
+{QUOTED.map((row) => (<span><span class="text-ok">✓</span> {row.text.split(/[:;]/)[0]}
+  <span class="text-ink-muted">{row.tests[0]}</span>
+</span>))}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- The rest of the app, as a table: a feature list is a list. -->
+    <section aria-labelledby="more" class="section frame">
+      <div class="col">
+        <h2 id="more" class="rise type-site-title-1 text-ink">Also in the app</h2>
+      </div>
+      <div class="col-wide mt-10 overflow-x-auto lg:max-w-[60rem]">
+        <table class="facts type-site-body">
+          <caption class="sr-only">What else Wayfarer does, with its documentation</caption>
+          <tbody>
+            {
+              MORE.map(([title, text, ids, href]) => (
+                <tr class="max-sm:block max-sm:py-2">
+                  <th scope="row" class="max-sm:block max-sm:pb-0 sm:w-[16rem]">
+                    <a href={href} class="link-quiet">
+                      {title}
+                    </a>
+                  </th>
+                  <td class="text-ink max-sm:block max-sm:pt-1">
+                    {text} <Claims ids={[...ids]} />
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- The questions, answered as reading text. The same answers are the page's FAQPage data. -->
+    <section aria-labelledby="questions" class="section frame">
+      <div class="col-wide grid grid-cols-1 gap-10 lg:max-w-[76rem] lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <h2 id="questions" class="rise type-site-title-1 text-ink">Questions</h2>
+        <div class="answers text-ink">
+          {
+            QUESTIONS.map(({ q, a, ids }) => (
+              <p>
+                <strong class="font-semibold">{q}</strong> <Fragment set:html={a} />
+                {ids.length > 0 && <Claims ids={ids} />}
+              </p>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- The call: one sentence and one action. -->
+    <section aria-labelledby="start" class="frame pt-24 pb-8 sm:pt-40">
+      <div class="col">
+        <h2 id="start" class="type-site-title-2 text-ink">Send your first request.</h2>
+        <p class="mt-3 text-ink">It opens in this tab, with nothing to install and no account to make.</p>
+        <a href="/app/" class="btn mt-8 type-site-body px-6 py-3">Open Wayfarer</a>
+      </div>
+    </section>
+  </main>
+</Base>

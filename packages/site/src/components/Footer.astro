@@ -1,0 +1,68 @@
+---
+import { REPO } from "../lib/content";
+import { version } from "../../../../package.json";
+
+const GROUPS = [
+  [
+    "Product",
+    [
+      ["Open the app", "/app/"],
+      ["Docs", "/docs/"],
+      ["Command line", "/docs/cli/"],
+      ["Sharing", "/docs/sharing/"],
+      ["Changelog", "/changelog/"],
+      ["Roadmap", "/roadmap/"],
+      ["Blog", "/blog/"],
+    ],
+  ],
+  [
+    "Compare",
+    [
+      ["Every comparison", "/compare/"],
+      ["Moving from Postman", "/compare/moving-from-postman/"],
+      ["Wayfarer and Postman", "/compare/postman/"],
+      ["Wayfarer and Bruno", "/compare/bruno/"],
+      ["Wayfarer and Insomnia", "/compare/insomnia/"],
+    ],
+  ],
+  [
+    "Trust",
+    [
+      ["How we test what we say", "/docs/claims/"],
+      ["Trust center", "/docs/trust-center/"],
+      ["Threat model", "/docs/threat-model/"],
+      ["Security policy", `${REPO}/blob/main/SECURITY.md`],
+      ["Host it yourself", "/docs/self-hosting/"],
+      ["Source on GitHub", REPO],
+      ["MIT licence", `${REPO}/blob/main/LICENSE`],
+    ],
+  ],
+] as const;
+---
+
+<!-- The close: the name again at full width, and the pages a reader may want next. No line above it: space. -->
+<footer class="frame pt-24 pb-10 sm:pt-32">
+  <div class="col-wide grid grid-cols-1 gap-10 sm:grid-cols-3 lg:max-w-5xl">
+    {
+      GROUPS.map(([title, links]) => (
+        <nav aria-label={title}>
+          <h2 class="type-site-small font-semibold text-ink">{title}</h2>
+          <ul class="mt-3 space-y-2 type-site-small">
+            {links.map(([name, href]) => (
+              <li>
+                <a href={href} class="link-quiet text-ink">
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+  </div>
+  <p class="col-wide mt-20 type-site-hero text-ink max-sm:type-site-display" aria-hidden="true">Wayfarer</p>
+  <p class="col-wide mt-4 type-site-small text-ink-muted">
+    An API client that opens in a browser tab. Version {version}. No account, no server of its own, no analytics on this
+    site.
+  </p>
+</footer>

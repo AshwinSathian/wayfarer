@@ -1,0 +1,46 @@
+---
+/**
+ * A recording of the app as built (scripts/site-record.mjs, `npm run gen:recordings`), at a phone's width, so that the
+ * app's text is its own size. One per theme, the page's shown: a <picture> per theme would not follow the toggle.
+ * Nothing plays until asked, so the poster, the clip's last frame, is the still a reader who asked for reduced motion
+ * sees; the text beside it (`described`) says what it shows. site.js takes the browser's controls off until the clip is
+ * asked for, and shows the Play button instead.
+ */
+interface Props {
+  name: string;
+  label: string;
+  title: string;
+  described: string;
+}
+const { name, label, title, described } = Astro.props;
+---
+
+<figure class="w-full">
+  {
+    (["dark", "light"] as const).map((theme) => (
+      <div class={`shot-${theme} relative`}>
+        <video
+          class="plate block h-auto w-full"
+          poster={`/recordings/${name}-${theme}.avif`}
+          width="390"
+          height="720"
+          controls
+          muted
+          playsinline
+          preload="none"
+          aria-label={label}
+          aria-describedby={described}
+        >
+          <source src={`/recordings/${name}-${theme}.webm`} type="video/webm" />
+          <source src={`/recordings/${name}-${theme}.mp4`} type="video/mp4" />
+        </video>
+        <button type="button" data-play hidden class="btn absolute bottom-4 left-4 type-site-small">
+          <svg aria-hidden="true" viewBox="0 0 12 12" class="size-3 fill-current">
+            <path d="M3 1.5v9l7.5-4.5z" />
+          </svg>
+          Play<span class="sr-only">: {title}</span>
+        </button>
+      </div>
+    ))
+  }
+</figure>

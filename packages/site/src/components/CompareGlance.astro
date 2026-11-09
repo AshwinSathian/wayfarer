@@ -1,0 +1,49 @@
+---
+// Where each product stands on the rows of GLANCE_ROWS: Wayfarer's cells name claims, a rival's cite its own page. A
+// table that scrolls sideways in its own box on a narrow window, which a keyboard reaches and a screen reader names.
+import { GLANCE_ROWS, WAYFARER_GLANCE, type Rival } from "../lib/rivals";
+import Cite from "./Cite.astro";
+import Rich from "./Rich.astro";
+
+interface Props {
+  rivals: Rival[];
+  label: string;
+}
+const { rivals, label } = Astro.props;
+// With every rival, a cell keeps a readable measure and the table scrolls instead.
+const many = rivals.length > 1;
+---
+
+<div class="compare-scroll col-wide mt-8" role="region" aria-label={label} tabindex="0">
+  <table class:list={["compare-table", many ? "[&_td]:min-w-44" : "w-full max-w-5xl"]}>
+    <thead>
+      <tr>
+        <th scope="col"><span class="sr-only">Question</span></th>
+        <th scope="col">Wayfarer</th>
+        {rivals.map((rival) => <th scope="col">{rival.name}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {
+        GLANCE_ROWS.map(([row, question]) => (
+          <tr>
+            <th scope="row">{question}</th>
+            <td>
+              <Rich parts={WAYFARER_GLANCE[row]} />
+            </td>
+            {rivals.map((rival) => {
+              const fact = rival.glance[row];
+              return fact ? (
+                <td>
+                  {fact.text} <Cite source={fact.source} />
+                </td>
+              ) : (
+                <td class="text-ink-muted">Not documented</td>
+              );
+            })}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

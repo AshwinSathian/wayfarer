@@ -1,0 +1,57 @@
+---
+// The docs, grouped (lib/content.ts's DOC_GROUPS), each its title and one line, and the search: Pagefind's interface,
+// from the site's own files (/docs/* has a policy of its own, security/csp-docs.json), drawn into #search by
+// /docs-search.js.
+import Base from "../../layouts/Base.astro";
+import { DOC_GROUPS, docDescription, docs, type DocGroup } from "../../lib/content";
+
+const NOTES: Partial<Record<DocGroup, string>> = {
+  Operations: "How the site and the app are deployed and run. For the maintainer, not for using Wayfarer.",
+};
+const all = docs();
+const slug = (group: string) => group.toLowerCase().replace(/ /g, "-");
+---
+
+<Base
+  path="/docs/"
+  title="Wayfarer API client docs"
+  description="Wayfarer's documentation: variables, auth, scripts, import and export, the vault, storage, the Local Bridge, the command line and the claims ledger."
+>
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <h1 class="type-site-display text-ink">Docs</h1>
+      <p class="mt-5 type-site-lede text-ink">
+        How to use Wayfarer, and how it is built and tested. Each page is a file of the repository's docs folder, as it
+        was when this site was built.
+      </p>
+      <div id="search" class="mt-10"></div>
+    </div>
+    <div class="col-wide grid grid-cols-1 gap-x-16 lg:max-w-[72rem] lg:grid-cols-2">
+      {
+        DOC_GROUPS.map((group) => (
+          <section aria-labelledby={slug(group)} class="mt-16">
+            <h2 id={slug(group)} class="type-site-title-2 text-ink">
+              {group}
+            </h2>
+            {NOTES[group] && <p class="mt-2 type-site-small text-ink-muted">{NOTES[group]}</p>}
+            <ul class="mt-5 space-y-5">
+              {all
+                .filter((doc) => doc.group === group)
+                .map((doc) => (
+                  <li>
+                    <a class="link font-semibold text-ink" href={`/docs/${doc.id}/`}>
+                      {doc.title}
+                    </a>
+                    <p class="mt-1 type-site-small text-ink-muted">{docDescription(doc.id)}</p>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </main>
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline src="/docs-search.js"></script>
+</Base>

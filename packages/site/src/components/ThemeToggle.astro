@@ -1,0 +1,22 @@
+---
+// Light or dark, stored as the app's own choice (`wayfarer:theme`), so the site and the app agree. /app/theme.js reads
+// it before the page is drawn; public/site.js makes this button switch it. `labelled` is the menu's: its name shows.
+interface Props {
+  labelled?: boolean;
+  class?: string;
+}
+const { labelled = false, class: className = "" } = Astro.props;
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  aria-label={labelled ? undefined : "Switch between light and dark"}
+  class:list={[labelled ? "flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left hover:bg-paper-sunk" : "icon-btn", className]}
+>
+  <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+    <circle cx="12" cy="12" r="8"></circle>
+    <path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"></path>
+  </svg>
+  {labelled && "Switch between light and dark"}
+</button>

@@ -1,0 +1,16 @@
+import { docMarkdown, docs, indexed } from "../lib/content";
+import { SITE } from "../lib/meta";
+
+/**
+ * /llms-full.txt: the user docs' Markdown in one file, so an assistant asked how to do something in Wayfarer reads
+ * one file instead of crawling. The operations docs are not in it: they are for the maintainer.
+ */
+export function GET() {
+  const text = [
+    `# Wayfarer: the user docs\n\nEvery user doc of ${SITE}/docs/, as the repository has it. What Wayfarer does is in the claims ledger, ${SITE}/docs/claims/.`,
+    ...docs()
+      .filter(indexed)
+      .map((doc) => `<!-- ${SITE}/docs/${doc.id}/ -->\n\n${docMarkdown(doc.id).trim()}`),
+  ].join("\n\n---\n\n");
+  return new Response(`${text}\n`, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+}

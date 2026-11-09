@@ -1,0 +1,728 @@
+@import "tailwindcss" source("../");
+
+@import "./tokens.css";
+
+/*
+ * The site's colours are the app's (W5.1): tokens.css is written by packages/tokens, both themes and both contrast
+ * levels. Its face is its own, STIX Two Text (the tokens' `font-site`), set larger than a sans would be; the wire keeps
+ * the app's JetBrains Mono. The theme follows the app's stored choice (`wayfarer:theme`, set before the page is drawn by
+ * /app/theme.js), else the system's. Chrome and actions are ink; hue is for protocol (DQ11). This file writes no colour
+ * and no family of its own.
+ */
+
+@font-face {
+  font-family: "STIX Two Text";
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: "STIX Two Text";
+  font-style: normal;
+  font-weight: 600;
+  font-display: optional;
+  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-600-normal.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: "STIX Two Text";
+  font-style: italic;
+  font-weight: 400;
+  font-display: optional;
+  src: url("../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-italic.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url("../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2")
+    format("woff2");
+}
+
+@theme inline {
+  --default-transition-duration: var(--dur-quick);
+  --default-transition-timing-function: var(--ease-standard);
+
+  --font-text: var(--font-site);
+  --font-code: var(--font-mono);
+
+  --color-paper: var(--canvas-app);
+  --color-paper-raised: var(--canvas-elevated);
+  --color-paper-sunk: var(--canvas-panel);
+  --color-ink: var(--label-primary);
+  --color-ink-muted: var(--label-secondary);
+  --color-line: var(--separator);
+  --color-line-strong: var(--ctl-boundary);
+  --color-action: var(--ink);
+  --color-on-action: var(--on-ink);
+  --color-action-soft: var(--fill-selected);
+  --color-ok: var(--status-success-text);
+  --color-code-bg: var(--canvas-panel);
+  --color-code-ink: var(--label-primary);
+  --color-code-muted: var(--label-secondary);
+  --color-code-key: var(--method-put-text);
+  --color-code-string: var(--status-success-text);
+}
+
+/* The page's frame: one gutter at every width, and the reading column's left edge, which moves right of the gutter on
+   a wide window so that the column sits left of centre (the site's composition). */
+:root {
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --col: clamp(0rem, 16vw - 6rem, 12rem);
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-text);
+    font-kerning: normal;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    margin: 0;
+    font-size: var(--type-site-body-size);
+    line-height: var(--type-site-body-line);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  ul,
+  ol,
+  dl,
+  dd,
+  figure,
+  blockquote,
+  pre {
+    margin: 0;
+  }
+  ul,
+  ol {
+    padding: 0;
+    list-style: none;
+  }
+  a {
+    color: inherit;
+  }
+  img,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  /* The attribute wins over a class that sets a display (.btn): a hidden Play button stays hidden. */
+  [hidden] {
+    display: none !important;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+  /* No focus ring, from a pointer or the keyboard (maintainer, 2026-11-09), as in the app. A link's underline and a
+     button's fill say where focus is instead. */
+  :focus,
+  :focus-visible {
+    outline: none !important;
+  }
+  ::selection {
+    background: var(--selection-bg);
+    color: var(--selection-text);
+  }
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-code);
+    font-variant-ligatures: none;
+    font-size: 0.8125em;
+  }
+  /* The face as a utility (a method, a header, an address) shows its characters as the app does (U-180). */
+  .font-code {
+    font-variant-ligatures: none;
+  }
+}
+
+/* A move between two pages of the site is a cross-fade the browser draws: no script, and none with reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+/* --- The frame ---------------------------------------------------------------------------------------------- */
+
+/* Everything sits inside one pair of equal margins. */
+.frame {
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+/* The reading column: one left edge for every heading and paragraph of a page. */
+.col {
+  margin-left: var(--col);
+  max-width: 36rem;
+}
+.col-wide {
+  margin-inline: var(--col);
+}
+/* Space, not a rule, sets sections apart, and it is clearly larger than any gap inside one. */
+.section {
+  padding-block: clamp(5rem, 10vw, 9rem);
+}
+
+/* --- Links, buttons --------------------------------------------------------------------------------------- */
+
+.link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.link:hover,
+.link:focus-visible {
+  text-decoration-thickness: 2px;
+}
+/* A quiet link: underlined only when pointed at or focused. */
+.link-quiet {
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+.link-quiet:hover,
+.link-quiet:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+/* The one action: a flat ink field at the site's one radius. Its fill deepens on hover and focus, and it gives a
+   little under the press. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-standard);
+}
+.btn:hover,
+.btn:focus-visible {
+  background: var(--ink-hover);
+}
+.btn:active {
+  background: var(--ink-press);
+  transform: translateY(1px);
+}
+@media (forced-colors: active) {
+  .btn {
+    border: 1px solid ButtonText;
+  }
+}
+
+/* An icon button in the header (the theme): its fill says hover and focus. */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--label-primary);
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: var(--fill-hover);
+}
+
+/* The skip link: out of sight until focused, then the first thing on the page. */
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: 0.75rem;
+  z-index: 30;
+  transform: translateY(-300%);
+}
+.skip:focus,
+.skip:focus-visible {
+  transform: none;
+}
+
+/* --- Header ------------------------------------------------------------------------------------------------ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--canvas-app);
+}
+/* The menu below 1024 px: the browser's <details>, with none of its look. */
+.menu > summary {
+  display: inline-grid;
+  place-items: center;
+  height: 2.75rem;
+  padding-inline: 0.75rem;
+  border-radius: var(--radius-sm);
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+.menu > summary:hover,
+.menu > summary:focus-visible,
+.menu[open] > summary {
+  background: var(--fill-hover);
+}
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+.menu-panel {
+  position: absolute;
+  right: var(--gutter);
+  top: calc(100% + 0.25rem);
+  min-width: 14rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--canvas-elevated);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* --- Pictures of the app ---------------------------------------------------------------------------------- */
+
+/* The app's picture in the page's theme: the dark one unless the page is light (/app/theme.js sets it). */
+:root:not([data-theme="light"]) .shot-light,
+[data-theme="light"] .shot-dark {
+  display: none;
+}
+
+/* A picture of the app sits on a field one step off the page, at the app's own corner, so the two read as two
+   things without a line or a shadow between them. */
+.plate {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--canvas-panel);
+}
+
+/* --- Tables of facts: no lines, every second row one tone off the page ------------------------------------- */
+
+.facts {
+  width: 100%;
+  font-size: var(--type-site-small-size);
+  line-height: var(--type-site-small-line);
+  font-variant-numeric: tabular-nums;
+}
+.facts th,
+.facts td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.75rem 1rem;
+}
+.facts thead th {
+  font-weight: 600;
+}
+.facts tbody tr:nth-child(odd) {
+  background: var(--canvas-panel);
+}
+.facts tbody th {
+  font-weight: 600;
+}
+.facts .num {
+  text-align: right;
+  white-space: nowrap;
+}
+@media (max-width: 40em) {
+  .facts .from {
+    display: none;
+  }
+}
+.file,
+.facts .file {
+  overflow-wrap: anywhere;
+}
+
+/* --- Figures: the quiet number lines --------------------------------------------------------------------- */
+
+.figures > div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: baseline;
+}
+@media (min-width: 48em) {
+  .figures > div {
+    grid-template-columns: 10rem minmax(0, 1fr);
+  }
+}
+.figures dt {
+  order: 2;
+}
+.figures dd {
+  order: 1;
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* --- Answers set as reading text -------------------------------------------------------------------------- */
+
+@media (min-width: 64em) {
+  .answers {
+    columns: 2;
+    column-gap: 3.5rem;
+  }
+}
+.answers > p {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+}
+.answers a,
+.text-links a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.answers a:hover,
+.text-links a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* --- The day, as a row of clips --------------------------------------------------------------------------- */
+
+.clip-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15rem, 19rem);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  padding-inline: var(--gutter);
+  padding-bottom: 1rem;
+  overscroll-behavior-x: contain;
+}
+.clip-row > * {
+  scroll-snap-align: start;
+}
+@media (min-width: 75em) {
+  .clip-row {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+/* --- Entrances: each part of a section rises into place, once ------------------------------------------- */
+
+/* site.js marks the page `data-enter` only when it will show the parts, so nothing stays out of place without it. The
+   parts move and never fade: text is at its full contrast at every moment, for a reader and for a checker. */
+[data-enter] .rise {
+  transform: translateY(1.5rem);
+  transition: transform var(--dur-enter) var(--ease-enter);
+}
+[data-enter] .rise.in {
+  transform: none;
+}
+[data-enter] .rise:nth-child(2) {
+  transition-delay: var(--dur-micro);
+}
+[data-enter] .rise:nth-child(3) {
+  transition-delay: calc(var(--dur-micro) * 2);
+}
+[data-enter] .rise:nth-child(4) {
+  transition-delay: calc(var(--dur-micro) * 3);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-enter] .rise {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --- Changelog --------------------------------------------------------------------------------------------- */
+
+.version > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.version > summary::-webkit-details-marker {
+  display: none;
+}
+.version > summary::before {
+  content: "";
+  align-self: center;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--label-primary);
+  border-bottom: 2px solid var(--label-primary);
+  transform: rotate(-45deg);
+  transition: transform var(--dur-quick) var(--ease-standard);
+}
+.version[open] > summary::before {
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .version > summary::before {
+    transition: none;
+  }
+}
+
+/* --- A doc, the changelog, a post: Markdown written for GitHub, set for reading ------------------------------ */
+
+.prose {
+  max-width: 40rem;
+  overflow-wrap: anywhere;
+}
+.prose > * + * {
+  margin-top: 1em;
+}
+.prose h1 {
+  font-size: var(--type-site-title-1-size);
+  line-height: var(--type-site-title-1-line);
+  letter-spacing: var(--type-site-title-1-tracking);
+  font-weight: var(--type-site-title-1-weight);
+}
+@media (min-width: 48em) {
+  .prose h1 {
+    font-size: var(--type-site-display-size);
+    line-height: var(--type-site-display-line);
+    letter-spacing: var(--type-site-display-tracking);
+  }
+}
+.prose h2 {
+  font-size: var(--type-site-title-1-size);
+  line-height: var(--type-site-title-1-line);
+  letter-spacing: var(--type-site-title-1-tracking);
+  font-weight: var(--type-site-title-1-weight);
+  margin-top: 2.2em;
+}
+.prose h3 {
+  font-size: var(--type-site-title-2-size);
+  line-height: var(--type-site-title-2-line);
+  font-weight: var(--type-site-title-2-weight);
+  margin-top: 1.8em;
+}
+.prose h4 {
+  font-size: var(--type-site-title-3-size);
+  font-weight: 600;
+  margin-top: 1.5em;
+}
+.prose a {
+  color: var(--label-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover,
+.prose a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+.prose ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.prose ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prose li + li {
+  margin-top: 0.4em;
+}
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.4em;
+}
+.prose blockquote {
+  padding: 0.75em 1em;
+  border-radius: var(--radius-sm);
+  background: var(--canvas-panel);
+}
+.prose :not(pre) > code {
+  background: var(--canvas-panel);
+  border-radius: var(--radius-xs);
+  padding: 0.1em 0.3em;
+}
+.prose pre {
+  background: var(--canvas-panel);
+  color: var(--label-primary);
+  border-radius: var(--radius-lg);
+  padding: 1em 1.2em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+  font-size: var(--type-site-small-size);
+  line-height: var(--type-site-small-line);
+  max-width: 100%;
+}
+.prose th,
+.prose td {
+  padding: 0.5em 0.75em;
+  text-align: left;
+  vertical-align: top;
+}
+.prose thead th {
+  font-weight: 600;
+}
+.prose tbody tr:nth-child(odd) {
+  background: var(--canvas-panel);
+}
+.prose hr {
+  border: 0;
+  height: 1.5rem;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+/* The ledger's IDs: one line each. The statement's column took them down to a character a line (D5-e). */
+.claims-ledger td:first-child {
+  white-space: nowrap;
+}
+.prose .ci-note {
+  padding: 0.75em 1em;
+  border-radius: var(--radius-sm);
+  background: var(--canvas-panel);
+}
+
+/* Pagefind's search box in the site's colours: its interface reads these variables. */
+#search {
+  --pagefind-ui-primary: var(--ink);
+  --pagefind-ui-text: var(--label-primary);
+  --pagefind-ui-background: var(--canvas-elevated);
+  --pagefind-ui-border: var(--ctl-boundary);
+  --pagefind-ui-tag: var(--canvas-panel);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: var(--radius-sm);
+  --pagefind-ui-font: var(--font-text);
+}
+/* Pagefind sets its Clear button at 0.8 of its own size (11.2 px): nothing on the site is under 12 px. */
+#search .pagefind-ui__search-clear {
+  font-size: var(--type-site-caption-size);
+}
+
+/* The comparison pages' tables (W5.4): they scroll sideways in their own box on a narrow window, never the page. */
+.compare-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.compare-table {
+  font-size: var(--type-site-small-size);
+  line-height: var(--type-site-small-line);
+  min-width: 40rem;
+}
+.compare-table th,
+.compare-table td {
+  padding: 0.75em 0.9em;
+  text-align: left;
+  vertical-align: top;
+}
+.compare-table thead th {
+  font-weight: 600;
+}
+.compare-table tbody tr:nth-child(odd) {
+  background: var(--canvas-panel);
+}
+.compare-table tbody th {
+  font-weight: 600;
+  min-width: 10rem;
+}
+.compare-table td p + p {
+  margin-top: 0.4em;
+}
+
+/* --- The key, as sent and as history keeps it ----------------------------------------------------------------- */
+
+/* Two radio buttons with none of the browser's look, each under its option's text, which lets the pointer through.
+   The chosen one is the ink, as the app's checked box is. What each shows is a rule here, so it works without script. */
+.demo-switch {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.demo-switch label {
+  display: grid;
+}
+.demo-switch input {
+  appearance: none;
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+.demo-switch input:hover {
+  background: var(--fill-hover);
+}
+.demo-switch input:checked {
+  background: var(--ink);
+}
+.demo-switch span {
+  grid-area: 1 / 1;
+  position: relative;
+  padding: 0.375rem 0.75rem;
+  color: var(--label-primary);
+  pointer-events: none;
+}
+.demo-switch input:checked + span {
+  color: var(--on-ink);
+}
+@media (forced-colors: active) {
+  .demo-switch input:checked {
+    background: Highlight;
+  }
+  .demo-switch input:checked + span {
+    color: HighlightText;
+  }
+}
+[data-demo]:has(input[value="history"]:checked) [data-demo-view="sent"],
+[data-demo]:not(:has(input[value="history"]:checked)) [data-demo-view="history"] {
+  display: none;
+}
+
+/* A row of the page's record arrives as the browser records its file. */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+.arrive {
+  animation: arrive var(--dur-standard) var(--ease-enter) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrive {
+    animation: none;
+  }
+}

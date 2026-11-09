@@ -1,0 +1,11 @@
+---
+// A source, as the comparison pages cite it: its title as a link, and the date it was read.
+import type { Source } from "../lib/rivals";
+
+interface Props {
+  source: Source;
+}
+const { source } = Astro.props;
+---
+
+<span class="cite type-site-caption text-ink-muted">(<a class="link" href={source.url}>{source.title}</a>, read <time datetime={source.read}>{source.read}</time>)</span>

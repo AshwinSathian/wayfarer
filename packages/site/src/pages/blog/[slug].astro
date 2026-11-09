@@ -1,0 +1,33 @@
+---
+import Base from "../../layouts/Base.astro";
+import { longDate, postHtml, posts, type Post } from "../../lib/blog";
+import { claimText } from "../../lib/content";
+import { postGraph } from "../../lib/structured-data";
+import { ogImagePath } from "../../og-path.mjs";
+
+export function getStaticPaths() {
+  return posts().map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const path = `/blog/${post.slug}/`;
+---
+
+<Base
+  path={path}
+  title={`${post.title}: Wayfarer API client blog`}
+  description={post.description}
+  published={post.date}
+  graph={postGraph(post, ogImagePath(path))}
+>
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <p class="type-site-small text-ink-muted">
+        <a class="link" href="/blog/">Blog</a>, <time datetime={post.date}>{longDate(post.date)}</time>
+      </p>
+      <h1 class="mt-3 type-site-title-1 text-ink sm:type-site-display">{post.title}</h1>
+      <p class="mt-5 type-site-lede text-ink">{post.description}</p>
+    </div>
+    <article class="prose col mt-12" set:html={postHtml(post, claimText)} />
+  </main>
+</Base>

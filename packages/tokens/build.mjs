@@ -86,7 +86,7 @@ const site = [
 ].join("\n");
 
 const outputs = [
-  [new URL("../site/src/app/tokens.css", import.meta.url), site],
+  [new URL("../site/src/styles/tokens.css", import.meta.url), site],
   [target, css],
   [new URL("../../src/design-system/typography.css", import.meta.url), typography],
   [new URL("../../src/design-system/tokens.ts", import.meta.url), ts],

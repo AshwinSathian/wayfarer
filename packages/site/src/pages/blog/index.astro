@@ -1,0 +1,34 @@
+---
+import Base from "../../layouts/Base.astro";
+import { longDate, posts } from "../../lib/blog";
+---
+
+<Base path="/blog/" title="Wayfarer API client blog" description="Release notes and write-ups about how Wayfarer is built and tested.">
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <h1 class="type-site-display text-ink">Blog</h1>
+      <p class="mt-5 type-site-lede text-ink">
+        Release notes and write-ups about how Wayfarer is built and tested. Follow it with <a class="link" href="/blog/rss.xml"
+          >the RSS feed</a
+        >.
+      </p>
+      <ul class="mt-16 space-y-12">
+        {
+          posts().map((post) => (
+            <li>
+              <p class="type-site-small text-ink-muted">
+                <time datetime={post.date}>{longDate(post.date)}</time>
+              </p>
+              <h2 class="mt-1 type-site-title-2 text-ink">
+                <a class="link-quiet" href={`/blog/${post.slug}/`}>
+                  {post.title}
+                </a>
+              </h2>
+              <p class="mt-2 text-ink">{post.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </main>
+</Base>

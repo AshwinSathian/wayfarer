@@ -1,0 +1,89 @@
+---
+// "What changed in 3.0": the redesign, screen by screen, each change tied to the number of its finding in the design
+// audit. The words and the pictures are src/whats-new.mjs's; scripts/whats-new.test.mjs holds each finding to its
+// before and after. A sentence that says what Wayfarer does names its claims.
+import Base from "../../layouts/Base.astro";
+import Claims from "../../components/Claims.astro";
+import { FINDINGS, GROUPS, SCREENS, screenHtml } from "../../whats-new.mjs";
+import sizes from "../../whats-new-images.mjs";
+
+type Finding = { was: string; now?: string; accepted?: string; claims?: string[] };
+const findings = FINDINGS as Record<string, Finding>;
+type Part = { id: string; title: string; findings: string[]; before?: string };
+const screens = SCREENS as (Part & object)[];
+const groups = GROUPS as Part[];
+---
+
+<Base
+  path="/what-changed-in-3-0/"
+  title="What changed in 3.0: Wayfarer API client"
+  description="Wayfarer 3.0's redesign, screen by screen: each picture of 2.x beside today's, and each change tied to the audit finding it fixes."
+>
+  <main id="main" class="frame pt-12 pb-8 sm:pt-16">
+    <div class="col">
+      <h1 class="type-site-display text-ink">What changed in 3.0</h1>
+      <p class="mt-5 type-site-lede text-ink">
+        Before 3.0 the app was reviewed screen by screen, in six passes, and each problem found was written down with a
+        number and a severity. Here is each screen as 2.x drew it beside the same screen in 3.0, then the changes a
+        picture cannot show. Every finding that blocked a task, or slowed or misled someone, is on this page. Its number
+        is the one the audit gave it.
+      </p>
+      <nav aria-labelledby="contents" class="mt-12">
+        <h2 id="contents" class="type-site-title-3 text-ink">On this page</h2>
+        <ul class="mt-3 grid gap-x-8 gap-y-1.5 type-site-small sm:grid-cols-2">
+          {
+            [...screens, ...groups].map((part) => (
+              <li>
+                <a class="link" href={`#${part.id}`}>
+                  {part.title}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    {
+      [...screens.map((s, i) => ({ part: s, shots: true, i })), ...groups.map((g, i) => ({ part: g, shots: false, i }))].map(
+        ({ part, shots, i }) => (
+          <section aria-labelledby={part.id} class="mt-24 sm:mt-32">
+            <h2 id={part.id} class="col type-site-title-1 text-ink">
+              {part.title}
+            </h2>
+            {shots && !part.before && (
+              <p class="col mt-4 text-ink-muted">
+                The audit has no picture of this screen in 2.x; what it showed is in the first line of each change.
+              </p>
+            )}
+            {shots && <div class="col-wide mt-8 space-y-6 lg:max-w-5xl" set:html={screenHtml(part, sizes, { lazy: i > 0 })} />}
+            <dl class="col mt-10 space-y-8">
+              {part.findings.map((id) => {
+                const f = findings[id];
+                return (
+                  <div id={id}>
+                    <dt class="type-site-small font-semibold text-ink-muted">{id}</dt>
+                    <dd class="mt-1 text-ink-muted">
+                      <span class="font-semibold text-ink">Before:</span> {f.was}
+                    </dd>
+                    <dd class="mt-2 text-ink">
+                      <span class="font-semibold">{f.accepted ? "Accepted:" : "Now:"}</span> {f.accepted ?? f.now}
+                      {f.claims && <Claims ids={f.claims} />}
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </section>
+        ),
+      )
+    }
+
+    <p class="col mt-24 text-ink">
+      The rest of what 3.0 changed is in <a class="link" href="/changelog/">the changelog</a>. <a
+        class="link"
+        href="/blog/the-3-0-redesign/">The post about the redesign</a
+      > is the short version.
+    </p>
+  </main>
+</Base>

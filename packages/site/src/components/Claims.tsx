@@ -1,9 +1,0 @@
-// The claims a sentence makes, kept out of sight (PLAN-design row 1.74): a reader sees the sentence, and the tests
-// hold its IDs. `claimText` fails the build for an ID docs/claims.md has not got, and e2e/site.spec.ts holds every
-// `data-claims` of every page to a row of it. The claims page is one link, in the footer.
-import { claimText } from "../lib/content";
-
-export function Claims({ ids }: { ids: string[] }) {
-  ids.forEach(claimText);
-  return <span hidden data-claims={ids.join(" ")} />;
-}

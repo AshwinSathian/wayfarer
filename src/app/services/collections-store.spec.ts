@@ -153,6 +153,49 @@ describe("CollectionsStore", () => {
     expect(service.tree().length).toBe(2);
   });
 
+  it("a collection's re-read that a refresh overtook does not write its children under another collection", async () => {
+    idb.collections = [makeCollection("c1"), makeCollection("c2"), makeCollection("c3")];
+    idb.folders = { c1: [], c2: [], c3: [] };
+    idb.requests = { c1: [], c2: [], c3: [makeRequest("r3", "c3")] };
+    await service.refresh();
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    vi.spyOn(idb, "listRequests").mockImplementationOnce(async (id) => {
+      await held;
+      return [makeRequest("r2", id)];
+    });
+    const created = service.createRequest({ collectionId: "c2", name: "New", method: "GET", url: "https://x" });
+    await vi.waitFor(() => expect(idb.listRequests).toHaveBeenCalled());
+
+    idb.collections = [makeCollection("c2"), makeCollection("c3")];
+    await service.refresh();
+    release();
+    await created;
+
+    expect(service.tree().map((entry) => entry.collection.id)).toEqual(["c2", "c3"]);
+    expect(service.getCollectionTree("c3")?.requests.map((r) => r.id)).toEqual(["r3"]);
+  });
+
+  it("an earlier refresh that ends last does not bring back what a later one found gone", async () => {
+    await service.refresh();
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    const listFolders = idb.listFolders.bind(idb);
+    vi.spyOn(idb, "listFolders").mockImplementationOnce(async (id) => {
+      await held;
+      return listFolders(id);
+    });
+    const earlier = service.refresh();
+    await vi.waitFor(() => expect(idb.listFolders).toHaveBeenCalled());
+
+    idb.collections = [makeCollection("c2")];
+    await service.refresh();
+    release();
+    await earlier;
+
+    expect(service.tree().map((entry) => entry.collection.id)).toEqual(["c2"]);
+  });
+
   it("createRequest only re-fetches the owning collection, not the whole tree", async () => {
     await service.refresh();
     idb.listFoldersCalls = [];

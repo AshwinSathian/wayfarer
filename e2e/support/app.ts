@@ -363,6 +363,8 @@ export async function exportCollectionFile(
  * History.
  */
 export async function toolbarOrDrawer(page: Page, name: "Environments" | "History"): Promise<void> {
+  // Which of the two holds it is read at once, so the shell must be drawn first: on the splash, neither does.
+  await untilBooted(page);
   const inToolbar = page.getByRole("banner").getByRole("button", { name, exact: true });
   if (await inToolbar.count()) return inToolbar.click();
   await page.getByRole("button", { name: /^(Show|Hide) sidebar$/ }).click();

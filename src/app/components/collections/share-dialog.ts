@@ -80,8 +80,7 @@ export class ShareDialog {
 
   /** What goes, from the collection as stored. */
   protected readonly summary = computed(() => {
-    const id = this.collection()?.id;
-    const tree = id ? this.collections.getCollectionTree(id) : undefined;
+    const tree = this.collections.getCollectionTree(this.collection()?.id);
     if (!tree) return null;
     const holders = [tree.collection, ...tree.folders];
     const rows = holders.flatMap((holder) => holder.variables);

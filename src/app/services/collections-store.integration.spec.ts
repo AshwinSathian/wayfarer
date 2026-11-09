@@ -31,8 +31,8 @@ describe("CollectionsStore with real storage", () => {
     const billing = await service.createCollection({ name: "Billing" });
     const users = await service.createCollection({ name: "Users" });
     expect(names()).toEqual(["Billing", "Users"]);
-    expect(service.getCollection(billing.meta.id)?.name).toBe("Billing");
-    expect(service.getCollection("missing")).toBeUndefined();
+    expect(service.getCollectionTree(billing.meta.id)?.collection.name).toBe("Billing");
+    expect(service.getCollectionTree("missing")).toBeUndefined();
 
     await service.renameCollection(billing.meta.id, { name: "Payments" });
     await service.reorderCollections([

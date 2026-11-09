@@ -365,6 +365,20 @@ describe("TabsStorage", () => {
     await storage.changedElsewhere();
     expect(tabs.tabs().map((tab) => tab.id)).toEqual([id]);
   });
+
+  it("a write of another browser tab leaves a tab whose scripts wait for a review as it was, when its record did not change", async () => {
+    await storage.start();
+    store.patch({ url: "https://one.test", scripts: { pre: "x()", post: "" } });
+    const tab = tabs.active();
+    tab.heldScripts.set({ pre: "x()", post: "", name: "From history" });
+    await storage.flush();
+    const draft = tab.draft();
+
+    repository.records.set("other", record("other", { order: 1 }));
+    await storage.changedElsewhere();
+    expect(tab.heldScripts()?.name).toBe("From history");
+    expect(tab.draft()).toBe(draft);
+  });
 });
 
 // The splash waits for the stored tabs, so the first frame is the tabs a reload left; a read that never ends does not

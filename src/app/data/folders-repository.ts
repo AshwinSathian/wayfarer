@@ -9,8 +9,7 @@ import { filesOf, Removed } from "./removed";
  * Folder-level CRUD, split out of `CollectionsRepository` (which used to
  * also own this) once that file crossed ~540 lines. Still operates on the
  * same "folders"/"requests" IndexedDB stores via the shared
- * `IdbCore`, and is recombined behind `Idb`'s facade
- * alongside `CollectionsRepository`/`CollectionRequestsRepository`.
+ * `IdbCore`.
  */
 @Injectable({ providedIn: "root" })
 export class FoldersRepository {
@@ -198,7 +197,7 @@ export class FoldersRepository {
   }
 
   /** The new places of a parent's folders and requests: the two share one order, so they are written together. */
-  async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
+  async reorderChildren(order: { id: string; order: number }[]): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests"]);
     await this.core.commitOrRollback(tx, async () => {

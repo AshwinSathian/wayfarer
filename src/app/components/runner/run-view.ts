@@ -52,7 +52,7 @@ export class RunView {
   /** The requests a run would send now, as they are stored. */
   protected readonly requests = computed(() => {
     const { collectionId, folderId } = this.run().target;
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === collectionId);
+    const tree = this.collections.getCollectionTree(collectionId);
     return tree ? requestsInOrder(tree, folderId) : [];
   });
   protected readonly failed = computed(() => this.run().results().filter(runFailed).length);
@@ -99,7 +99,7 @@ export class RunView {
 
   /** The saved request a result was sent from, if it is still there. */
   protected requestOf(id: string): RequestDoc | undefined {
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === this.run().target.collectionId);
+    const tree = this.collections.getCollectionTree(this.run().target.collectionId);
     return tree?.requests.find((request) => request.meta.id === id);
   }
 
@@ -117,7 +117,7 @@ export class RunView {
    */
   protected readonly held = signal(false);
   private readonly heldWatcher = effect((onCleanup) => {
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === this.run().target.collectionId);
+    const tree = this.collections.getCollectionTree(this.run().target.collectionId);
     if (!tree) return;
     let current = true;
     onCleanup(() => (current = false));

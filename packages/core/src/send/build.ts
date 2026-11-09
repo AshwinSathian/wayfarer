@@ -98,6 +98,20 @@ export function normalizeUrl(text: string): string {
   return hasExplicitScheme(address) ? address : `https://${address}`;
 }
 
+/**
+ * Whether `text`, a request's address with its variables replaced, is one a request can go to: http or https, with a
+ * host. An address typed without a scheme must name more than one word ("not a url" is not a host), unless it is
+ * `localhost`, has a port or is an IPv6 address.
+ */
+export function validateUrl(text: string): boolean {
+  if (!text) return false;
+  const parsed = URL.parse(normalizeUrl(text));
+  if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:") || !parsed.hostname) return false;
+  if (hasExplicitScheme(text)) return true;
+  const { hostname } = parsed;
+  return hostname === "localhost" || hostname.includes(".") || hostname.includes(":") || !!parsed.port;
+}
+
 /** Appends a single key/value pair onto a URL's query string, tolerating an unparseable base URL by returning it unchanged. */
 export function appendQueryParam(url: string, key: string, value: string): string {
   const parsed = URL.parse(normalizeUrl(url));
@@ -182,8 +196,9 @@ export function oauthOf(
  * editors keep the literal template.
  *
  * `context.composed` is the request before its pre-request script ran. When
- * the script left it going to another host and it uses a vault secret, the
- * user is asked before the vault is read (plan Q6). One send is compared:
+ * the script left it going to another host and it uses a vault secret or an
+ * OAuth 2.0 token, the user is asked before the vault is read or the token
+ * fetched (plan Q6). One send is compared:
  * a variable a script set in an earlier send is not seen here.
  */
 export function buildRequest(content: RequestContent, context: BuildContext): BuiltRequest | Promise<BuiltRequest> {
@@ -202,16 +217,27 @@ export function buildRequest(content: RequestContent, context: BuildContext): Bu
       if (resolver.unresolved.size && context.blockUnresolved) {
         throw new UnresolvedVariablesError([...resolver.unresolved]);
       }
+      // After the scripts, which may have written the address: an address that is none goes nowhere, in every adapter.
+      // Read as written, the variables replaced: `request.url` has had https put in front.
+      if (!validateUrl(resolver.resolve(content.url.trim()))) {
+        throw new SendBlockedError(
+          "This is not an address a request can go to. Write it as https://host/path. Nothing was sent.",
+        );
+      }
       return request;
     };
     return built instanceof Promise ? built.then(check) : check(built);
   };
+  // An OAuth 2.0 token is a secret too (it is masked like one, and held to its host on a redirect): C-053 asks for it.
+  const oauth = sentAuth(content.auth, context.ancestors).type === "oauth2";
   // Nothing to read from the vault: the request is built at once, in the same task as the click.
-  if (!probe.lockedSecrets.size) return checked(new VariableResolver(scopes()));
+  if (!probe.lockedSecrets.size && !oauth) return checked(new VariableResolver(scopes()));
   const withSecrets = () =>
-    context
-      .readSecrets([...probe.lockedSecrets])
-      .then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
+    probe.lockedSecrets.size
+      ? context
+          .readSecrets([...probe.lockedSecrets])
+          .then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))))
+      : checked(new VariableResolver(scopes()));
   const from = composed && hostOf(composed.url, composed.scopes);
   const to = hostOf(endpointText, scopes());
   if (from === undefined || from === to || composed?.accepted?.has(to)) return withSecrets();

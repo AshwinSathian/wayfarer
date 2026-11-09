@@ -50,10 +50,9 @@ export class ScriptTrust {
   /** A collection asked to be reviewed by id: a run's, whose tab has no bound request (U-039). Null: the bound one's. */
   readonly reviewOf = signal<string | null>(null);
 
-  private readonly collection = computed(() => {
-    const id = this.reviewOf() ?? this.saved.loadedCollectionRequest()?.collectionId;
-    return id ? this.collections.tree().find((entry) => entry.collection.meta.id === id) : undefined;
-  });
+  private readonly collection = computed(() =>
+    this.collections.getCollectionTree(this.reviewOf() ?? this.saved.loadedCollectionRequest()?.collectionId),
+  );
 
   /** The digests the collection's last review covered: a script whose digest is here was reviewed as it is now. */
   readonly approvedDigests = computed(() => {
@@ -111,7 +110,7 @@ export class ScriptTrust {
     const bound = tab.bound();
     if (!bound) return true;
     const scripts = [...(inherited ?? this.saved.ancestorsFor(bound)), bound].flatMap(scriptsOf);
-    const collection = this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const collection = this.collections.getCollectionTree(bound.collectionId);
     return scripts.length ? scriptsApproved(collection?.collection.scriptTrust, scripts) : true;
   }
 

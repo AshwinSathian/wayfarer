@@ -83,7 +83,7 @@ describe("buildHar: a HAR 1.2 log", () => {
     }
   });
 
-  it("an exchange: the request as sent, the query listed, the response with its type and where it points, what is not known as -1", () => {
+  it("an exchange: the request as sent, the query listed, the response with its type and where it points, what is not known as -1 (0 where the format allows no -1)", () => {
     expect(only({ timings: { wait: 30, receive: 2 } })).toEqual({
       startedDateTime: "2026-10-11T10:00:00.000Z",
       time: 42,
@@ -120,7 +120,7 @@ describe("buildHar: a HAR 1.2 log", () => {
         bodySize: 8,
       },
       cache: {},
-      timings: { blocked: -1, dns: -1, connect: -1, send: -1, wait: 30, receive: 2, ssl: -1 },
+      timings: { blocked: -1, dns: -1, connect: -1, send: 0, wait: 30, receive: 2, ssl: -1 },
     });
   });
 
@@ -225,7 +225,9 @@ describe("buildHar: a HAR 1.2 log", () => {
       headersSize: -1,
       bodySize: -1,
     });
-    expect(entry["time"]).toBe(-1);
+    // HAR 1.2: the time is the sum of the timings that are known, and send, wait and receive are never negative.
+    expect(entry["time"]).toBe(0);
+    expect(entry["timings"]).toMatchObject({ send: 0, wait: 0, receive: 0 });
     expect(entry["comment"]).toBe("No response: the host did not resolve.");
   });
 

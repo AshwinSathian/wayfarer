@@ -18,7 +18,7 @@ export class CollectionRunner {
   /** Runs `run`'s target as `run` says, and fills it as the results arrive. */
   async start(run: RunState): Promise<void> {
     if (run.running()) return;
-    const tree = this.collections.tree().find((entry) => entry.collection.meta.id === run.target.collectionId);
+    const tree = this.collections.getCollectionTree(run.target.collectionId);
     // The requests as they are stored when the run starts: an edit made while it runs is the next run's.
     const docs = tree ? requestsInOrder(tree, run.target.folderId) : [];
     const shared = this.store.startRun(run.target.collectionId);

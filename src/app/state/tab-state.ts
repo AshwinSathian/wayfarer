@@ -267,8 +267,6 @@ export class TabState {
     copy.baseline.set(this.baseline());
     // A second tab of a run is a run of the same requests, not yet started.
     if (this.run) copy.run = new RunState(this.run.target);
-    copy.environments = this.environments;
-    copy.holder = this.holder;
     return copy;
   }
 }

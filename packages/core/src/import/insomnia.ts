@@ -408,7 +408,9 @@ function format4(value: Loose): InsomniaExport {
   const children = new Map<string, Loose[]>();
   for (const resource of resources) {
     const parent = text(field(resource, "parentId"));
-    children.set(parent, [...(children.get(parent) ?? []), resource]);
+    const siblings = children.get(parent);
+    if (siblings) siblings.push(resource);
+    else children.set(parent, [resource]);
   }
   for (const list of children.values()) list.sort((a, b) => sortKey(a) - sortKey(b));
   const under = (parent: string, type: string): Loose[] =>

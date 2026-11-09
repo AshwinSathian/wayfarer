@@ -131,6 +131,8 @@ class CollectionsServiceStub {
     this.treeSignal.set(trees);
   }
 
+  getCollectionTree = (id: string | null | undefined) => this.tree().find((entry) => entry.collection.meta.id === id);
+
   ensureLoaded = async (): Promise<void> => undefined;
 }
 

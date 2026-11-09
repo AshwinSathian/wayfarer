@@ -25,16 +25,6 @@ export interface ResponseExportContext {
   credentials: string[];
 }
 
-function normalizeHeaderRecord(record: Record<string, string>): Record<string, string> {
-  return Object.entries(record ?? {}).reduce<Record<string, string>>((acc, [key, value]) => {
-    if (!key) {
-      return acc;
-    }
-    acc[key] = value ?? "";
-    return acc;
-  }, {});
-}
-
 export interface BuildExportEntryInput {
   context: ResponseExportContext | null;
   inspection: ResponseInspection | null;
@@ -75,28 +65,15 @@ export function buildExportEntry(input: BuildExportEntryInput): InspectorExportE
       ? inspection.duration
       : Math.max(0, (inspection?.endTime ?? 0) - (inspection?.startTime ?? 0));
 
-  const responseHeadersRecord = input.responseHeaders.reduce<Record<string, string>>((acc, header) => {
-    if (!header?.name) {
-      return acc;
-    }
-    acc[header.name] = header.value ?? "";
-    return acc;
-  }, {});
-
   return {
     id: inspection?.id ?? context.id ?? newId(),
     startedDateTime,
     time: duration,
-    req: {
-      method: context.method,
-      url,
-      headers: normalizeHeaderRecord(context.headers),
-      body: context.body,
-    },
     res: {
       status: statusCode,
       statusText: input.statusText ?? "",
-      headers: responseHeadersRecord,
+      // A list, not a record: a repeated header (Set-Cookie) and one named `__proto__` are kept.
+      headers: input.responseHeaders.filter(({ name }) => name).map(({ name, value }) => [name, value ?? ""]),
       body: input.isError ? input.responseError : input.responseData,
       sizes: inspection?.sizes,
     },

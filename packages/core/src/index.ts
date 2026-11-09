@@ -225,6 +225,7 @@ export {
   oauthOf,
   sentAuth,
   sentHeaders,
+  validateUrl,
   type BuildContext,
   type Composed,
   type RunSend,

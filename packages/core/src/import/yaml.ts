@@ -31,13 +31,19 @@ export const NOT_READABLE =
 export function parseYaml(text: string): unknown {
   if (text.length > MAX_YAML_CHARS) throw new ImportError(YAML_TOO_LARGE);
   try {
-    return parse(text, {
-      maxAliasCount: MAX_YAML_ALIASES,
-      schema: "core",
-      logLevel: "error",
-      uniqueKeys: false,
-      prettyErrors: false,
-    });
+    // Copied through JSON: an alias inside the value it names is a cycle, refused here, and a shared one becomes a
+    // tree, which the importers can write out as text.
+    return JSON.parse(
+      JSON.stringify(
+        parse(text, {
+          maxAliasCount: MAX_YAML_ALIASES,
+          schema: "core",
+          logLevel: "error",
+          uniqueKeys: false,
+          prettyErrors: false,
+        }),
+      ),
+    ) as unknown;
   } catch (error) {
     // The parser has no error type for this one: it is a ReferenceError that says "alias".
     throw new ImportError(error instanceof Error && /alias count/i.test(error.message) ? YAML_ALIASES : NOT_READABLE);

@@ -20,7 +20,7 @@ collection may name one for its requests (its settings, **Route**), and
 otherwise the device's applies (Settings, Local Bridge, **Route**). Auto is
 the default.
 
-Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 --> Without a bridge token in the tab or the
+Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request needed a preflight (the browser may have stopped it there) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again, also one that broke off after its headers. <!-- claim:C-064 --> Without a bridge token in the tab or the
 vault, Auto is Direct: nothing is asked and the page's failure is shown.
 
 Why: when the browser gets no answer, the page cannot tell why. A request

@@ -14,6 +14,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
 - **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
 - **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
+
+### Fixed
+
+- **Auto no longer sends a request again after its response broke off.** With the route Auto and a bridge paired, a response whose body broke after its headers (a dropped connection, an event stream the server cut) counted as no answer, and a GET, or a POST that needed a preflight, went out again through the bridge without a question: the server got it twice. Such a failure now stands, and the request is sent once.
 
 ## [3.3.1] - 2026-11-09
 

@@ -3,8 +3,8 @@
 // footer. Nothing is inlined (the site's policy has no 'unsafe-inline'): the stylesheet is a file, /app/theme.js sets
 // the theme before the body is drawn (the app's own file, so the two agree), and /site.js does the rest.
 import "../styles/global.css";
-import stix from "../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff2?url";
-import stixSemibold from "../../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-600-normal.woff2?url";
+import figtree from "../../../../node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2?url";
+import bricolage from "../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import JsonLd from "../components/JsonLd.astro";
@@ -30,8 +30,8 @@ const head = headOf(meta);
     <link rel="canonical" href={head.canonical} />
     {head.noindex && <meta name="robots" content="noindex, follow" />}
     <script is:inline src="/app/theme.js"></script>
-    <link rel="preload" href={stix} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={stixSemibold} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={figtree} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={bricolage} as="font" type="font/woff2" crossorigin />
     <script is:inline src="/site.js" defer></script>
     <link rel="icon" href="/app/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/app/favicon.svg" type="image/svg+xml" />

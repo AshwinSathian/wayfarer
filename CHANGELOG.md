@@ -11,6 +11,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 
+### Fixed
+
+- **Pasting a cURL command with `--json`** gives a POST with that body and the JSON type. Before, the JSON was read as the address and the body was lost. The values of `--url-query`, `--proxy-header`, `--socks5` and a few other options are no longer read as the address either.
+- **A cURL command whose `-d` data is not form pairs** (`-d '{"a":1}'` with no type) is imported as the text it was. Before, it became form fields, and the app sent it encoded again.
+- **Copy as cURL** adds `--globoff` when the address holds `[` `]` or `{` `}`: curl read `filter[name]=x` as a range and refused the command, or sent several requests for `{a,b}`. A header with an empty value is written `-H 'Name;'`: `Name: ` told curl to leave the header out.
+- **Python code** joins the values of headers that share a name. Before, the dict kept only the last.
+- **A HAR file** gives `send`, `wait`, `receive` and the time as 0 when they are not known, as HAR 1.2 requires. Before they were -1, which strict readers refuse.
+- **An import of a YAML file whose alias contains itself, or of a file nested very deeply,** is refused with the import report's message. Before, the import stopped with an error.
+- **Large collections**: the sidebar, a run, an export and an import read each folder's contents in one pass. A collection of thousands of folders, or an Insomnia export of tens of thousands of requests, took seconds.
+
 ## [3.3.1] - 2026-11-09
 
 An import's report and script review in the order of the tree, and a shorter comparison on a phone.

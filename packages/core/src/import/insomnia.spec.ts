@@ -38,6 +38,38 @@ const only = (file: unknown) => {
 const messages = (file: unknown) => own(read(file).report.warnings);
 
 describe("an Insomnia export (P4.4)", () => {
+  it("format 4: many resources under one parent take about as long as the same requests in a Postman file", () => {
+    const count = 30_000;
+    const names = Array.from({ length: count }, (_, i) => `R${i}`);
+    // The quicker of two reads, so that a pause of the collector or of a test beside it is not measured.
+    const timed = (file: unknown) =>
+      Math.min(
+        ...[0, 1].map(() => {
+          const started = performance.now();
+          expect(read(file).report.counts.requests).toBe(count);
+          return performance.now() - started;
+        }),
+      );
+    const postman = timed({
+      info: { name: "Shop", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+      item: names.map((name) => ({ name, request: { method: "GET", url: "https://a.test/" } })),
+    });
+    const insomnia = timed(
+      v4(
+        names.map((name) => ({
+          _id: `req_${name}`,
+          _type: "request",
+          parentId: "wrk_1",
+          name,
+          method: "GET",
+          url: "https://a.test/",
+        })),
+      ),
+    );
+    // Two and a half times as long, and growing with the square, when each resource copied its siblings' list.
+    expect(insomnia).toBeLessThan(postman * 1.6);
+  });
+
   it("is known by what it says it is, in both formats, and before a Postman file is asked for", () => {
     expect(detectFormat(v5([]))).toBe("insomnia");
     expect(detectFormat(v4([]))).toBe("insomnia");

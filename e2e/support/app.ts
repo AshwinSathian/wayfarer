@@ -411,3 +411,12 @@ export async function shareLink(
   await expect(dialog).toBeHidden();
   return { address, code };
 }
+
+/**
+ * Waits until the app has replaced its splash (src/index.html): the shell is drawn and listens. The app reads the
+ * stored tabs before its first frame, so a key pressed or a button clicked straight after `goto` can land on the
+ * splash, which has neither listeners nor buttons (seen in Linux WebKit, where that read is slowest).
+ */
+export async function untilBooted(page: Page): Promise<void> {
+  await expect(page.getByRole("status", { name: "Loading Wayfarer" })).toHaveCount(0);
+}

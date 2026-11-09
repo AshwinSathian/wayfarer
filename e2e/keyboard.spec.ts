@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { treeRow, withoutMethod } from "./support/app";
+import { treeRow, untilBooted, withoutMethod } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // Keyboard-only use of the app's own widgets (docs: WAI-ARIA Authoring
@@ -430,6 +430,7 @@ for (const [width, opener, name] of [
 test("history drawer: opened, closed and opened again in one task, it is open and has focus", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
+  await untilBooted(page);
   const drawer = page.getByRole("dialog", { name: "History", exact: true });
   const focused = await page.evaluate(() => {
     const opener = document.querySelector<HTMLElement>('button[aria-label="History"]')!;

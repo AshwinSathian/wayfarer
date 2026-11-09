@@ -304,3 +304,16 @@ export class TabsStorage {
     return null;
   }
 }
+
+/** How long the splash waits for the stored tabs at most. */
+export const RESTORE_WAIT_MS = 3000;
+
+/**
+ * Reads the stored tabs before the app is first drawn (an app initializer): the splash (src/index.html) stays until
+ * they are read, so a reload does not draw a new, empty tab and then the stored ones a frame later. A read that does
+ * not end holds the splash `RESTORE_WAIT_MS` at most; the tabs then come when it does.
+ */
+export function restoreTabsAtStart(): Promise<void> {
+  const reading = inject(TabsStorage).start();
+  return Promise.race([reading, new Promise<void>((resolve) => setTimeout(resolve, RESTORE_WAIT_MS))]);
+}

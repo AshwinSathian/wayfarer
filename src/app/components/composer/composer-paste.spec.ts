@@ -84,6 +84,12 @@ describe("Composer: a cURL command pasted into the address field", () => {
     expect(store.draft().url).toBe("https://api.test/other");
   });
 
+  it("leaves the tab unsaved, so the tab is kept like any other edit", async () => {
+    await paste("curl https://api.test/kept");
+
+    expect(TestBed.inject(Tabs).active().dirty()).toBe(true);
+  });
+
   it("goes into the tab it was pasted in, though another was opened while the command was read, and nowhere once that tab is closed", async () => {
     const tabs = TestBed.inject(Tabs);
     const answer = (text: string) => {

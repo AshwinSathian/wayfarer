@@ -6,7 +6,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";
-import { TabState, type HolderTarget } from "../../state/tab-state";
+import { TabState, contentOf, emptyDraft, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { WorkspaceStore } from "../../state/workspace-store";
 import type { TabMarkValue } from "./tab-mark";
@@ -180,7 +180,8 @@ export class ComposerView {
       this.requestSave.bind(null);
       this.trust.openedHere();
       this.store.load(content);
-      this.tabs.active().markClean();
+      // Unsaved against an empty request, as anything typed into a new tab is: so the tab is kept (P5.1).
+      this.tabs.active().baseline.set(JSON.stringify(contentOf(emptyDraft())));
       this.mobilePane.set("request");
       this.showAuthPassword.set(false);
       this.store.refreshVariablePreview();

@@ -235,8 +235,9 @@ export function AskFirst() {
         </table>
       </div>
 
-      {/* Below 48 em six columns do not fit: a question a block, Wayfarer's answer, then the others'. */}
-      <div className="mt-10 space-y-10 md:hidden">
+      {/* Below 48 em six columns do not fit: a question a block, Wayfarer's answer, the others' folded under it (five
+          answers each, with their sources, were a screen and a half of a phone per question). */}
+      <div className="mt-10 space-y-8 md:hidden">
         {ROWS.map((row) => (
           <div key={row.question}>
             <h3 className="type-site-lede font-bold text-ink">{row.question}</h3>
@@ -244,16 +245,27 @@ export function AskFirst() {
               <span className="font-bold">Wayfarer: </span>
               {row.wayfarer}
             </p>
-            <dl className="mt-4 space-y-3 type-site-small">
-              {RIVALS.map((name) => (
-                <div key={name} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
-                  <dt className="font-bold text-ink">{name}</dt>
-                  <dd>
-                    <Rival value={row.rivals[name]} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <details className="group mt-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 type-site-small font-bold text-ink [&::-webkit-details-marker]:hidden">
+                What the others say
+                <span
+                  aria-hidden="true"
+                  className="type-site-lede text-action transition-transform group-open:rotate-45"
+                >
+                  +
+                </span>
+              </summary>
+              <dl className="mt-2 space-y-3 type-site-small">
+                {RIVALS.map((name) => (
+                  <div key={name} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
+                    <dt className="font-bold text-ink">{name}</dt>
+                    <dd>
+                      <Rival value={row.rivals[name]} />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
           </div>
         ))}
       </div>

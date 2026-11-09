@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **On a phone, the landing's comparison is short.** Each question shows Wayfarer's answer, and the five others' fold under "What the others say", with their sources. Before, each question ran a screen and a half.
+
 ## [3.3.0] - 2026-11-09
 
 A landing that shows the app, no focus rings, and the planning documents out of the repository.

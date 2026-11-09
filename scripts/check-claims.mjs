@@ -56,17 +56,23 @@ export function parseLedger(text) {
     });
 }
 
-/** Titles of test(...), it(...), test.<modifier>(...) and it.each(table)(...) calls, skipping commented-out lines. */
+/**
+ * Titles of test(...), it(...), test.<modifier>(...) and it.each(table)(...) calls, skipping commented-out lines
+ * and the calls that do not run (`.skip`, `.fixme`, `.todo`): such a test proves no claim.
+ */
 export function testTitles(source) {
   const titles = [];
   // The title is the first argument, or for `.each` the first argument of the call its table is followed by,
   // on that line or the next (a formatter breaks a long call there). The table itself is on one line.
-  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\\n])*)\1/g;
+  const call = /(?:^|[^.\w])(?:test|it)(\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\2)[^\\\n])*)\2/g;
   const code = source
     .split(/\r?\n/)
     .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
     .join("\n");
-  for (const match of code.matchAll(call)) titles.push(match[2]);
+  for (const [, modifiers, , title] of code.matchAll(call)) {
+    if (!/^\.each\(/.test(modifiers) && /\.(skip|fixme|todo)\b/.test(modifiers)) continue;
+    titles.push(title);
+  }
   return titles;
 }
 

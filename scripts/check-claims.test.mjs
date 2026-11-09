@@ -41,10 +41,15 @@ test("parseLedger reads ID, source and test columns", () => {
   ]);
 });
 
-test("testTitles finds test/it titles in any quote style, including modifiers", () => {
+test("testTitles finds test/it titles in any quote style, including modifiers, but not a test that does not run", () => {
   const src =
-    "test('a @claim:C-001', f);\nit(\"b\", f);\ntest.skip(`c @claim:C-002`, f);\ntest.describe('d', f);\n// test('e @claim:C-003')\n";
-  assert.deepEqual(testTitles(src), ["a @claim:C-001", "b", "c @claim:C-002", "d"]);
+    "test('a @claim:C-001', f);\nit(\"b\", f);\ntest.skip(`c @claim:C-002`, f);\ntest.describe('d', f);\n// test('e @claim:C-003')\ntest.fixme('f', f);\nit.todo('g');\ntest.describe.skip('h', f);\ntest.only('i', f);\n";
+  assert.deepEqual(testTitles(src), ["a @claim:C-001", "b", "d", "i"]);
+});
+
+test("a claim whose only test is skipped has no test", () => {
+  const skipped = { ...GOOD, "src/app/x.spec.ts": "it.skip('encrypts @claim:C-002', () => {});\n" };
+  assert.match(checkClaims(fixture(skipped)).join("\n"), /C-002: no test titled @claim:C-002/);
 });
 
 test("testTitles finds the title of a table-driven test, which follows the table", () => {

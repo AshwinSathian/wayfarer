@@ -63,16 +63,20 @@ jobs:
             console.log(`id=${r.databaseId}\nsha=${r.headSha}`);
           ' >> "$GITHUB_OUTPUT"
 
-      # The browser tests run by hand (e2e.yml): a commit ships only once they passed on it.
+      # The browser tests run by hand (e2e.yml): a commit ships only once they passed on it, in all three
+      # engines. A run with engines=chromium is green too, so each run's jobs are read, newest first.
       - name: A green E2E run of the same commit
         id: e2e
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ steps.run.outputs.sha }}
         run: |
-          id=$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
-          if [ -z "$id" ]; then echo "Refusing to deploy: no green E2E run for $SHA (gh workflow run e2e.yml)" >&2; exit 1; fi
-          echo "id=$id" >> "$GITHUB_OUTPUT"
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --commit "$SHA" --status success --limit 20 --json databaseId --jq '.[].databaseId'); do
+            n=$(gh run view "$id" -R "$GITHUB_REPOSITORY" --json jobs --jq '[.jobs[] | select(.name | test("^E2E \\((chromium|firefox|webkit)\\)$")) | select(.conclusion == "success")] | length')
+            if [ "$n" = 3 ]; then echo "id=$id" >> "$GITHUB_OUTPUT"; exit 0; fi
+          done
+          echo "Refusing to deploy: no E2E run of $SHA passed in all three engines (gh workflow run e2e.yml)" >&2
+          exit 1
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

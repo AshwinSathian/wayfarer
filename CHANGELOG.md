@@ -23,6 +23,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A JSON path is read against the body parsed once**, not parsed again at each key typed.
 - **Sizes read the same everywhere**: Settings › Storage and the AI preview write them as the response viewer does ("3.60 MB").
 - **The roadmap is one page, at /roadmap/.** It was also a doc at /docs/roadmap/, with the same text, and both were in the sitemap.
+- **The deploy needs browser tests that passed in all three engines.** Before, any green E2E run of the commit let it ship, also one run in Chromium alone, and the claims page then named that run as the one the claims passed in. The deployment guide now describes how production really ships (by hand, from CI's tested files) and the gate its steps check.
+- **The claims check no longer counts a skipped test.** A claim whose only test was `.skip`, `.fixme` or `.todo` passed the check, and the README listed it as tested.
+- **The production monitor fails when the site has no `/version.json`.** Before, it guessed v2.6.0 or v2.5.0 and ran that old release's tests against today's site.
+- **The release tarball's sitemap has each page's last-changed day again.** It was built from a shallow clone, which has no dates, and the release now fails if they are missing.
+- CI now fails on any `npm audit` advisory, and the Lighthouse job stops after a minute when its server does not answer, where it waited until the six-hour job limit.
+- `@wayfarer/core` exports only what the app and the CLI use, and knip reports an export of it that nothing imports.
 
 ### Fixed
 

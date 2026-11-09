@@ -32,6 +32,8 @@ jobs:
       - run: npm ci
       # P1.14: registry signatures of every installed package.
       - run: npm audit signatures
+      # No known advisory in the dependency tree (CLAUDE.md: npm audit reports 0).
+      - run: npm audit
       - run: npm run lint
       - run: npm run format:check
       # P1.2: e2e targets the local echo-server only, never the internet.
@@ -199,7 +201,7 @@ jobs:
         run: |
           export CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()")
           node e2e/support/prod-server.mjs dist/deploy 4200 &
-          until curl -sf -o /dev/null http://localhost:4200/app/; do sleep 1; done
+          timeout 60 sh -c 'until curl -sf -o /dev/null http://localhost:4200/app/; do sleep 1; done'
           for run in 1 2 3; do
             # Pinned, and not a dependency of the project (as Newman is not, for the golden files). A run Lighthouse itself could not record is made again, once.
             for attempt in 1 2; do

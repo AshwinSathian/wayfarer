@@ -10,6 +10,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Changed
 
 - **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
+- **The roadmap is one page, at /roadmap/.** It was also a doc at /docs/roadmap/, with the same text, and both were in the sitemap.
+
+### Fixed
+
+- **The front page no longer fetches the other theme's recording posters.** Only the shown theme's four posters are fetched, and the other theme's once you switch to it; before, all eight were.
+- **The site's stylesheets and fonts are kept by your browser.** A return visit asked the server again for each of them before drawing the page.
+- **The site's menu on a phone closes on Escape and on a tap outside it.** It stayed open over the page until Menu was pressed again.
+- **The site's header marks one link as where you are.** On the Trust center page both Docs and Trust said they were the current page, and on any doc Docs did.
+- **The claims page says when it could not load the last CI run.** A failed request was reported as a site that had not been deployed from CI.
 
 ## [3.3.1] - 2026-11-09
 

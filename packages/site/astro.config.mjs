@@ -7,8 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   site: "https://wayfarer.ashwinsathian.com",
-  // SITE_OUT lets two builds run side by side while the site is worked on; the deploy reads out/.
-  outDir: process.env.SITE_OUT ?? "out",
+  outDir: "out",
   trailingSlash: "always",
   compressHTML: true,
   build: { format: "directory", inlineStylesheets: "never", assets: "_astro" },

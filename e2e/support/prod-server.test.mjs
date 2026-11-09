@@ -92,6 +92,15 @@ test("the repo's _headers gives the site its policy at /, the docs theirs at /do
   for (const path of ["/", "/docs/", "/app/"]) assert.equal(at(path)["x-content-type-options"], "nosniff", path);
 });
 
+test("the repo's _headers keeps the site's hashed files for a year, and has every other file asked again", () => {
+  const rules = parseHeadersFile(readFileSync(new URL("../../packages/site/public/_headers", import.meta.url), "utf8"));
+  const at = (path) => Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
+  for (const path of ["/_astro/Base.Ab12Cd.css", "/_astro/stix-two-text-latin-400-normal.Ab12Cd.woff2"])
+    assert.equal(at(path)["cache-control"], "public, max-age=31536000, immutable", path);
+  for (const path of ["/", "/docs/auth/", "/site.js", "/shots/hero-dark.1x.avif", "/app/"])
+    assert.equal(at(path)["cache-control"], undefined, path);
+});
+
 // P7.2: Cloudflare compresses what it serves; a page measured without that
 // is measured on a megabyte it never sends.
 test("encodingFor picks brotli, then gzip, for text, script and wasm, and nothing for the rest", () => {

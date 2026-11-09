@@ -1,5 +1,5 @@
 // What the site's pages do in the browser: a file of the site's own, since its policy allows no inline script. The theme
-// toggle, the landing's record of what the page fetched, the recordings' Play buttons, and each section's entrance.
+// toggle, the header's menu, the landing's record of what the page fetched, the recordings' Play buttons, and each section's entrance.
 
 // The theme: the app's stored choice (`wayfarer:theme`), which /app/theme.js applied before the page was drawn.
 for (const button of document.querySelectorAll("[data-theme-toggle]")) {
@@ -9,11 +9,30 @@ for (const button of document.querySelectorAll("[data-theme-toggle]")) {
       root.getAttribute("data-theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = current === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
+    showPosters();
     try {
       localStorage.setItem("wayfarer:theme", next);
     } catch {
       // Storage refused: the choice holds for this page only.
     }
+  });
+}
+
+// The menu below 1024 px, a <details> over the page, closes as the app's popups do: on Escape (focus back on Menu), on
+// a press outside it, and when focus leaves it. The browser's <details> does none of these.
+const menu = document.querySelector("details.menu");
+if (menu) {
+  const summary = menu.querySelector("summary");
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !menu.open) return;
+    menu.open = false;
+    summary.focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  menu.addEventListener("focusout", (event) => {
+    if (event.relatedTarget && !menu.contains(event.relatedTarget)) menu.open = false;
   });
 }
 
@@ -100,6 +119,13 @@ if (record && "PerformanceObserver" in window) {
 
 // A recording shows its poster and the site's Play, not the browser's controls, until it is asked for: the browser's
 // own drew their bar and a loading arc over the app's picture. Once asked for, it plays with the browser's controls.
+// The poster of each recording that is drawn, the shown theme's: the other theme's is fetched only once it is shown.
+function showPosters() {
+  for (const video of document.querySelectorAll("video[data-poster]"))
+    if (!video.poster && video.getClientRects().length) video.poster = video.dataset.poster;
+}
+showPosters();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", showPosters);
 for (const button of document.querySelectorAll("[data-play]")) {
   const video = button.parentElement.querySelector("video");
   video.controls = false;

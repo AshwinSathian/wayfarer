@@ -26,9 +26,13 @@ function runOf(data) {
     : null;
 }
 
+// Only a missing file (404) is a copy without a run; a fetch that failed says that, not that the site has none.
 fetch("/ci-run.json", { cache: "no-store" })
-  .then((response) => (response.ok ? response.json() : null))
-  .catch(() => null)
+  .then((response) => {
+    if (response.ok) return response.json();
+    if (response.status === 404) return null;
+    throw new Error(`/ci-run.json: ${response.status}`);
+  })
   .then((data) => {
     if (!table) return;
     const run = runOf(data);
@@ -53,4 +57,8 @@ fetch("/ci-run.json", { cache: "no-store" })
       cell.append(link("Passed", run.url));
       row.append(cell);
     }
+  })
+  .catch(() => {
+    if (table)
+      note.textContent = count + "The last CI run could not be loaded. Each claim's tests are named in its row.";
   });

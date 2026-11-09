@@ -14,7 +14,12 @@ const here = Astro.url.pathname;
 // The site's header: the name, the pages a reader looks for, the theme, and the app, on the page's own ground. Below
 // 1024 px the pages and the theme fold into a menu, and below 416 px the name is the mark alone, so that "Open
 // Wayfarer" keeps to one line at 320 px.
-const current = (href: string) => href.startsWith("/") && href !== "/" && here.startsWith(href);
+// One link is current, the longest the address starts with: "page" when it is this page, "true" when the page is in
+// its part of the site (a doc, under Docs).
+const match = LINKS.map(([, href]) => href as string)
+  .filter((href) => href.startsWith("/") && here.startsWith(href))
+  .sort((a, b) => b.length - a.length)[0];
+const current = (href: string) => (href !== match ? undefined : href === here ? "page" : "true");
 ---
 
 <header class="site-header">
@@ -27,7 +32,7 @@ const current = (href: string) => href.startsWith("/") && href !== "/" && here.s
     <nav aria-label="Site" class="hidden gap-7 type-site-small lg:flex">
       {
         LINKS.map(([name, href]) => (
-          <a href={href} class="link-quiet text-ink" aria-current={current(href) ? "page" : undefined}>
+          <a href={href} class="link-quiet text-ink" aria-current={current(href)}>
             {name}
           </a>
         ))
@@ -39,7 +44,11 @@ const current = (href: string) => href.startsWith("/") && href !== "/" && here.s
         <nav aria-label="Site" class="menu-panel flex flex-col type-site-small">
           {
             LINKS.map(([name, href]) => (
-              <a href={href} class="rounded-sm px-3 py-2 text-ink no-underline hover:bg-paper-sunk">
+              <a
+                href={href}
+                class="rounded-sm px-3 py-2 text-ink no-underline hover:bg-paper-sunk"
+                aria-current={current(href)}
+              >
                 {name}
               </a>
             ))

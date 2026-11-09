@@ -6,7 +6,7 @@ import { TabsRepository } from "../data/tabs-repository";
 import { ScriptTrust } from "../services/script-trust";
 import { makeRequestDoc, meta, setupComposer, type ComposerHarness } from "../../testing/composer-setup";
 import { Tabs } from "./tabs";
-import { TabsStorage } from "./tabs-storage";
+import { RESTORE_WAIT_MS, TabsStorage, restoreTabsAtStart } from "./tabs-storage";
 import { WorkspaceStore } from "./workspace-store";
 
 /** The `tabs` store, in memory: what was written, and what a read gives. */
@@ -364,5 +364,36 @@ describe("TabsStorage", () => {
     repository.records.delete("new");
     await storage.changedElsewhere();
     expect(tabs.tabs().map((tab) => tab.id)).toEqual([id]);
+  });
+});
+
+// The splash waits for the stored tabs, so the first frame is the tabs a reload left; a read that never ends does not
+// hold it for good.
+describe("restoreTabsAtStart", () => {
+  const started = (start: () => Promise<void>) => {
+    TestBed.configureTestingModule({ providers: [{ provide: TabsStorage, useValue: { start } }] });
+    return TestBed.runInInjectionContext(restoreTabsAtStart);
+  };
+
+  it("ends when the stored tabs are read", async () => {
+    let read = false;
+    await started(async () => {
+      read = true;
+    });
+    expect(read).toBe(true);
+  });
+
+  it("ends after RESTORE_WAIT_MS when the read does not", async () => {
+    vi.useFakeTimers();
+    try {
+      let done = false;
+      void started(() => new Promise<void>(() => undefined)).then(() => (done = true));
+      await vi.advanceTimersByTimeAsync(RESTORE_WAIT_MS - 1);
+      expect(done).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(done).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -3,7 +3,6 @@ import { AppShell } from "./components/app-shell/app-shell";
 import { HistoryRepository, type HistorySummary } from "./data/history-repository";
 import { IdbCore } from "./data/idb-core";
 import { RequestSettings } from "./services/request-settings";
-import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
 import { ModelCalls } from "./services/model-calls";
 import { recordDiagnostic } from "./services/diagnostics";
@@ -22,7 +21,6 @@ export class App implements OnInit {
   private readonly history = inject(HistoryRepository);
   private readonly idb = inject(IdbCore);
   private readonly requestSettings = inject(RequestSettings);
-  private readonly tabsStorage = inject(TabsStorage);
   private readonly cookieJar = inject(CookieJar);
   private readonly modelCalls = inject(ModelCalls);
   private readonly imports = inject(ImportPipeline);
@@ -55,8 +53,6 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     void this.initializeHistory();
-    // The tabs a reload or another browser tab left (P5.1).
-    void this.tabsStorage.start();
     // The cookie jar (P5.3), for requests that leave through the Local Bridge.
     void this.cookieJar.start();
     // Another tab sent a request, or cleared its history.

@@ -47,7 +47,80 @@
     <link rel="manifest" href="manifest.webmanifest" />
   </head>
   <body>
-    <app-root></app-root>
+    <app-root>
+      <!-- The splash (src/design-system/splash.css): the shell in skeleton from the first frame, until Angular starts
+           and replaces it. The mark is app-mark's. If the app does not start, main.ts says so here. -->
+      <div class="splash safe-area" role="status" aria-busy="true" aria-label="Loading Wayfarer">
+        <div class="splash-sidebar" aria-hidden="true">
+          <div class="splash-sidebar-head">
+            <svg class="brand-mark" viewBox="0 0 26 26" focusable="false">
+              <rect class="brand-mark-tile" width="26" height="26" rx="6" />
+              <g class="brand-mark-glyph">
+                <path
+                  d="M5.1 9.2L8.3 18.3L11.9 11.2L15.5 18.3L18.1 12.4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <circle cx="19.1" cy="9.4" r="3" fill="currentColor" />
+              </g>
+            </svg>
+            <span class="type-title-3 splash-name">Wayfarer</span>
+          </div>
+          <div class="splash-sidebar-body">
+            <span class="ui-skeleton splash-line splash-short"></span>
+            <span class="ui-skeleton splash-line"></span>
+            <span class="ui-skeleton splash-line splash-short"></span>
+          </div>
+        </div>
+        <div class="splash-main" aria-hidden="true">
+          <div class="splash-toolbar">
+            <div class="splash-cluster">
+              <span class="ui-skeleton splash-icon"></span>
+              <svg class="brand-mark" viewBox="0 0 26 26" focusable="false">
+                <rect class="brand-mark-tile" width="26" height="26" rx="6" />
+                <g class="brand-mark-glyph">
+                  <path
+                    d="M5.1 9.2L8.3 18.3L11.9 11.2L15.5 18.3L18.1 12.4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <circle cx="19.1" cy="9.4" r="3" fill="currentColor" />
+                </g>
+              </svg>
+              <span class="type-title-3 splash-name">Wayfarer</span>
+            </div>
+            <span class="ui-skeleton splash-palette"></span>
+            <div class="splash-cluster">
+              <span class="ui-skeleton splash-control"></span>
+              <span class="ui-skeleton splash-control splash-wide-only"></span>
+              <span class="ui-skeleton splash-icon"></span>
+              <span class="ui-skeleton splash-icon"></span>
+            </div>
+          </div>
+          <div class="splash-composer">
+            <span class="ui-skeleton splash-tab"></span>
+            <div class="splash-address">
+              <span class="ui-skeleton splash-url"></span>
+              <span class="ui-skeleton splash-send"></span>
+            </div>
+            <div class="splash-sections">
+              <span class="ui-skeleton splash-word"></span>
+              <span class="ui-skeleton splash-word"></span>
+              <span class="ui-skeleton splash-word"></span>
+              <span class="ui-skeleton splash-word splash-wide-only"></span>
+            </div>
+            <span class="ui-skeleton splash-field"></span>
+          </div>
+          <div class="splash-status"></div>
+        </div>
+      </div>
+    </app-root>
     <noscript>Wayfarer is an API client that runs in your browser, and it needs JavaScript to run.</noscript>
   </body>
 </html>

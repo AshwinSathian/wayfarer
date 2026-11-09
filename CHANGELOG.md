@@ -9,18 +9,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
-- **An address that is not one is refused by the command line too.** An empty or malformed address (`not a url`) is refused after the pre-request scripts, with nothing sent, in the app and in the CLI alike. Before, the CLI handed it to the network and reported a network failure.
-
-### Fixed
-
-- **Opening a saved request while a send or a WebSocket is under way opens it in a tab of its own.** Before, it replaced the busy tab, and the answer then showed, and was kept in history, under the request opened after it.
-- **A pasted cURL command goes into the tab it was pasted in.** If another tab was opened while the command was being read, that tab's request was replaced instead.
-- **Send anyway and Send through the Local Bridge add the request to History at once**, and Send anyway shows the response on a phone. Before, History showed the send only after the next one or a reload.
-- **Get token uses the variables of the tab it was asked in**, also when another tab is opened while the vault is read.
-- **A collection run sends TRACE or CONNECT through the Local Bridge when that request's route is the bridge.** Before, the run looked at the open tab's route and refused it.
-- **Duplicate tab on the Environments tab or a settings tab goes to that tab**, and the tab menu no longer offers it there. Before, it made a second one.
-- **A tab whose scripts wait for a review keeps its name when another browser tab writes.** Before, each write elsewhere read it back again as "This tab, as it was stored".
 - **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
 - **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
 - **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
@@ -28,6 +16,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 - **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
 - **A request with an OAuth 2.0 token is asked about when its pre-request script moves it to another host,** as one with a vault secret is. Before, the token went to the new host with no question, though it was masked from the script and kept to its host on a redirect.
+- **An address that is not one is refused by the command line too.** An empty or malformed address (`not a url`) is refused after the pre-request scripts, with nothing sent, in the app and in the CLI alike. Before, the CLI handed it to the network and reported a network failure.
 
 ### Fixed
 
@@ -60,6 +49,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A HAR file** gives `send`, `wait`, `receive` and the time as 0 when they are not known, as HAR 1.2 requires. Before they were -1, which strict readers refuse.
 - **An import of a YAML file whose alias contains itself, or of a file nested very deeply,** is refused with the import report's message. Before, the import stopped with an error.
 - **Large collections**: the sidebar, a run, an export and an import read each folder's contents in one pass. A collection of thousands of folders, or an Insomnia export of tens of thousands of requests, took seconds.
+- **Opening a saved request while a send or a WebSocket is under way opens it in a tab of its own.** Before, it replaced the busy tab, and the answer then showed, and was kept in history, under the request opened after it.
+- **A pasted cURL command goes into the tab it was pasted in.** If another tab was opened while the command was being read, that tab's request was replaced instead.
+- **Send anyway and Send through the Local Bridge add the request to History at once**, and Send anyway shows the response on a phone. Before, History showed the send only after the next one or a reload.
+- **Get token uses the variables of the tab it was asked in**, also when another tab is opened while the vault is read.
+- **A collection run sends TRACE or CONNECT through the Local Bridge when that request's route is the bridge.** Before, the run looked at the open tab's route and refused it.
+- **Duplicate tab on the Environments tab or a settings tab goes to that tab**, and the tab menu no longer offers it there. Before, it made a second one.
+- **A tab whose scripts wait for a review keeps its name when another browser tab writes.** Before, each write elsewhere read it back again as "This tab, as it was stored".
 
 ## [3.3.1] - 2026-11-09
 

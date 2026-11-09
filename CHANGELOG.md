@@ -7,16 +7,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Fixed
-
-- **Through the Local Bridge, a request with no timeout waits up to 10 minutes.** Before, the bridge's own default cut it off after 30 s, and a timeout over 10 minutes made every bridged request fail with a 400 before anything was sent. Settings now says the bridge waits 10 minutes at most.
-- **A very long request timeout is that long.** A timeout over about 24.8 days (2^31 − 1 ms) made every request time out at once, in the app and on the command line.
-- **The Local Bridge answers a request body over 25 MB with "request body too large".** Before, it reset the connection, and the app reported the bridge as unreachable.
-- **The Local Bridge sends every value of a header written twice in different cases** (`X-A` and `x-a`, from a script's `pm.sendRequest`). Before, only the last value went out; sent directly, both did.
-- **`wayfarer-cli` reads an environments file with several environments**, such as the app's Export environments: name one with the new `--environment-name`. Before, such a file could not be used, and the error named `--environment`, which takes the file.
-- **`wayfarer-cli` says that `--timeout` is at most 300000 ms**, Node's own limit on waiting for a response, and refuses a longer one. Before, the help said "no limit", and Node gave up after 5 minutes anyway.
-- **`wayfarer-cli` exits 1 when a report cannot be written after the run**, with one line naming `--out`. Before, it printed a stack trace and exited 2, "nothing was run", although every request had been sent.
-
 ### Changed
 
 - **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
@@ -39,6 +29,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **`pm.sendRequest` follows a redirect through the Local Bridge,** as it does from the page and in Postman. Before, the script got the 3xx.
 - **A request's time is the attempt that answered.** Through the Local Bridge after a failed send from the page, the time you took to answer "Send through the Local Bridge?" or to unlock the vault was counted, in the response, in history, in `pm.response.responseTime` and in a response-time test.
 - **A script that throws `null`, a number or a boolean says so.** `throw null` was reported as the 64 MB memory limit, and `throw 404` as "Script failed."
+- **Through the Local Bridge, a request with no timeout waits up to 10 minutes.** Before, the bridge's own default cut it off after 30 s, and a timeout over 10 minutes made every bridged request fail with a 400 before anything was sent. Settings now says the bridge waits 10 minutes at most.
+- **A very long request timeout is that long.** A timeout over about 24.8 days (2^31 − 1 ms) made every request time out at once, in the app and on the command line.
+- **The Local Bridge answers a request body over 25 MB with "request body too large".** Before, it reset the connection, and the app reported the bridge as unreachable.
+- **The Local Bridge sends every value of a header written twice in different cases** (`X-A` and `x-a`, from a script's `pm.sendRequest`). Before, only the last value went out; sent directly, both did.
+- **`wayfarer-cli` reads an environments file with several environments**, such as the app's Export environments: name one with the new `--environment-name`. Before, such a file could not be used, and the error named `--environment`, which takes the file.
+- **`wayfarer-cli` says that `--timeout` is at most 300000 ms**, Node's own limit on waiting for a response, and refuses a longer one. Before, the help said "no limit", and Node gave up after 5 minutes anyway.
+- **`wayfarer-cli` exits 1 when a report cannot be written after the run**, with one line naming `--out`. Before, it printed a stack trace and exited 2, "nothing was run", although every request had been sent.
 
 ## [3.3.1] - 2026-11-09
 

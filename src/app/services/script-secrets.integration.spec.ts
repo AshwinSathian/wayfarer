@@ -5,7 +5,6 @@ import { requestContent } from "../../testing/request-fixtures";
 import { repositories, type Repositories } from "../../testing/repositories";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
-import { buildSecretReference } from "../shared/secrets/secret-reference";
 import { EnvironmentsStore } from "./environments-store";
 import { SendDeclinedError } from "@wayfarer/core";
 import { RequestExecutor } from "./request-executor";
@@ -19,6 +18,7 @@ describe("a script sets a protected variable (P3.12)", () => {
   const PASSPHRASE = "correct horse battery staple";
   const OLD = "old-plaintext-3f9a1c";
   const NEW = "new-plaintext-7b2e4d";
+  const buildSecretReference = (id: string) => `{{$secret.${id}}}`;
   let executor: RequestExecutor;
   let environments: EnvironmentsStore;
   let vault: SecretsVault;

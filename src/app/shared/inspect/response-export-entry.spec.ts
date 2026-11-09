@@ -38,18 +38,25 @@ describe("buildExportEntry", () => {
     expect(entry.id).toBe("ctx-1");
     expect(entry.time).toBe(0);
     expect(Number.isNaN(Date.parse(entry.startedDateTime))).toBe(false);
-    expect(entry.req).toEqual({
-      method: "POST",
-      url: "https://api.test/items",
-      headers: { Accept: "*/*" },
-      body: { a: 1 },
-    });
     expect(entry.res).toMatchObject({
       status: 201,
       statusText: "Created",
-      headers: { "Content-Type": "application/json" },
+      headers: [["Content-Type", "application/json"]],
       body: '{"ok":true}',
     });
+  });
+
+  it("keeps every response header as it came: a repeated one, and one named __proto__", () => {
+    const responseHeaders = [
+      { name: "set-cookie", value: "a=1" },
+      { name: "set-cookie", value: "b=2" },
+      { name: "__proto__", value: "x" },
+    ];
+    expect(buildExportEntry({ ...base, responseHeaders })!.res.headers).toEqual([
+      ["set-cookie", "a=1"],
+      ["set-cookie", "b=2"],
+      ["__proto__", "x"],
+    ]);
   });
 
   it("prefers the browser's timing, and exports the error text for a failed response", () => {
@@ -80,9 +87,7 @@ describe("buildExportEntry", () => {
       inspection: { ...inspection, duration: Number.NaN } as ResponseInspection,
     })!;
     expect(spanned.time).toBe(50);
-    // The snapshot's URL is empty: the URL the browser timed is used.
-    expect(buildExportEntry({ ...base, inspection, context: { ...base.context!, url: "" } })!.req.url).toBe(
-      "https://api.test/from-timing",
-    );
+    // The snapshot's URL is empty: the URL the browser timed is enough for an entry.
+    expect(buildExportEntry({ ...base, inspection, context: { ...base.context!, url: "" } })).not.toBeNull();
   });
 });

@@ -189,10 +189,11 @@ Any other status is the target's, passed through.
 | 401 | `wrong pairing code` | Check the code in the terminal. Codes contain no `0`, `O`, `1`, `I` or `L`. |
 | 403 | `origin not allowed: …` | Start the bridge with `--allow-origin <origin>` for a self-hosted Wayfarer. From curl, send an allowed `Origin`. |
 | 410 | `this bridge has no pairing code: …` | The code was used. Restart the bridge for a new one; if you didn't pair, add `--rotate-token`. |
+| 413 | `request body too large` | The relay body was over 25 MB. A body travels base64-encoded, so a file of about 18 MB is the most the bridge takes. |
 | 421 | `unexpected Host header` | Use `127.0.0.1` or `localhost` in the address, not another name. |
 | 429 | `too many wrong codes: wait` | Wait for the seconds in `Retry-After`. |
 | 502 | `{ "message": "connect ECONNREFUSED 127.0.0.1:1", "code": "ECONNREFUSED" }` | The target couldn't be reached, its body couldn't be decoded, or the body was over 25 MB. The `code` is Node's. |
-| 504 | `{ "message": "relay request timed out", "code": "RELAY_TIMEOUT" }` | The target didn't answer within the request's timeout (30 s unless `timeoutMs` says otherwise). |
+| 504 | `{ "message": "relay request timed out", "code": "RELAY_TIMEOUT" }` | The target didn't answer within the request's timeout (30 s unless `timeoutMs` says otherwise; Wayfarer always sends it, 10 minutes for a request with no timeout). |
 
 If the bridge doesn't start with `Port 7717 is already in use`, another
 bridge is probably still running; stop it, or pass `--port`.
@@ -235,7 +236,9 @@ POST /relay
   field is exactly `{ "insecure": true }` or absent. Wayfarer shows a red
   "TLS verification off" pill on the request and on its response.
 - **A `Host` header** in the request is sent as written, at most one.
-- **One deadline** covers the whole exchange: `timeoutMs`, or 30 s.
+- **One deadline** covers the whole exchange: `timeoutMs`, or 30 s. Wayfarer
+  always sends it: the request's timeout, or 10 minutes for one with none or
+  a longer one.
 
 ## Options
 

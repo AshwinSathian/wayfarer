@@ -41,9 +41,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **An import's Undo is all or nothing.** It deleted the imported collections and put back the ones they replaced one step at a time, so a failure in between could leave neither; and an Undo that failed went away without a word. It is now one step, and an Undo that fails stays to be tried again.
 - **The collections list no longer mixes up two collections when another tab writes at the same moment.** A re-read could put one collection's requests under the next one, or bring back a collection another tab had just deleted.
 - **A cookie stored through the Local Bridge is no longer lost when another tab writes cookies at the same moment.**
-
-### Fixed
-
 - **Pasting a cURL command with `--json`** gives a POST with that body and the JSON type. Before, the JSON was read as the address and the body was lost. The values of `--url-query`, `--proxy-header`, `--socks5` and a few other options are no longer read as the address either.
 - **A cURL command whose `-d` data is not form pairs** (`-d '{"a":1}'` with no type) is imported as the text it was. Before, it became form fields, and the app sent it encoded again.
 - **Copy as cURL** adds `--globoff` when the address holds `[` `]` or `{` `}`: curl read `filter[name]=x` as a range and refused the command, or sent several requests for `{a,b}`. A header with an empty value is written `-H 'Name;'`: `Name: ` told curl to leave the header out.

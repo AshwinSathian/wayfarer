@@ -697,3 +697,23 @@ test("with no CI run, or a file that is not one, the claims page says it has no 
   await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
   await expect(page.locator("article b")).toHaveCount(0);
 });
+
+// Launch QA: on a phone the comparison's five rival answers per question were a screen and a half each. Wayfarer's
+// answer shows; the others' open under "What the others say", sources and all.
+test("on a phone the landing's comparison shows Wayfarer's answers and folds the others' under each question", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const section = page.locator("section", {
+    has: page.getByRole("heading", { name: "What the others ask of you first" }),
+  });
+  const folds = section.locator("details");
+  await expect(folds).toHaveCount(5);
+  await expect(section.getByText("Wayfarer:", { exact: true }).first()).toBeVisible();
+  const first = folds.first();
+  await expect(first.locator("dt", { hasText: "Postman" })).toBeHidden();
+  await first.getByText("What the others say").click();
+  await expect(first.locator("dt", { hasText: "Postman" })).toBeVisible();
+  await expect(first.getByRole("link", { name: /Postman docs/ })).toBeVisible();
+});

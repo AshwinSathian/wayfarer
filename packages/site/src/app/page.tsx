@@ -2,8 +2,9 @@
 // claim that proves it (docs/claims.md), out of the reader's sight (PLAN-design row 1.74): e2e/site.spec.ts holds
 // every ID named here to the ledger, and the claims page is one link, the footer's. A fact about another product
 // names its source and the date it was read. The page argues in the order of the site audit's section 6
-// (docs/design/site-audit-2026-11.md): the tab, why switch, the Postman collection, a day with the app, the proof,
-// the rest of the app, the questions, the call.
+// (site audit, November 2026), reworked for the launch after the rivals' pages: the tab and a picture of the app, the
+// figures, what leaves the tab, the Postman collection in three pictures, a day with the app as a gallery, why switch,
+// the proof, the rest of the app, the questions, the call. One idea a section, each with a picture of its own.
 import { pageMeta } from "../lib/meta";
 import { version } from "../../../../package.json";
 import type { ReactNode } from "react";
@@ -13,7 +14,7 @@ import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { RouteDemo } from "../components/RouteDemo";
 import { JsonLd } from "../components/JsonLd";
-import { claims } from "../lib/content";
+import { claims, iconPath } from "../lib/content";
 import { homeGraph } from "../lib/structured-data";
 
 const DESCRIPTION =
@@ -21,7 +22,6 @@ const DESCRIPTION =
 
 export const metadata = pageMeta("/", "Wayfarer: the API client that opens in a tab", DESCRIPTION);
 
-const POSTMAN_PRICING = "https://www.postman.com/pricing/";
 const POSTMAN_PLANS = "https://learning.postman.com/docs/billing/about-plans";
 const LINK = "text-action underline underline-offset-4";
 
@@ -100,19 +100,6 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Terminal({ label, children }: { label: string; children: ReactNode }) {
-  // It scrolls sideways on a narrow window, so it takes focus: a keyboard can scroll it.
-  return (
-    <pre
-      tabIndex={0}
-      aria-label={label}
-      className="overflow-x-auto rounded-lg bg-code-bg p-5 font-code type-site-caption whitespace-pre text-code-ink"
-    >
-      {children}
-    </pre>
-  );
-}
-
 /**
  * A recording of the app as built (scripts/site-record.mjs, `npm run gen:recordings`), at a phone's width, so that
  * the app's text is its own size on a phone. One per theme, the page's shown: a <picture> per theme would not follow
@@ -169,12 +156,8 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Open Wayfarer, type the address and press Enter: two actions from an empty app (
-          <a href="/docs/design/benchmark/">measured</a>). The response comes back with its status, time and size, sent
-          to the host you typed and nowhere else. <Claims ids={["C-001"]} />
-        </p>
-        <p>
-          Paste a cURL command from an API&apos;s docs instead, and it becomes the request. <Claims ids={["C-056"]} />
+          Type an address and press Enter. It goes to the host you typed and nowhere else. <Claims ids={["C-001"]} /> A
+          cURL command pasted from an API&apos;s docs becomes the request. <Claims ids={["C-056"]} />
         </p>
       </>
     ),
@@ -188,12 +171,8 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Under every response, a record says where the request went and what History kept of it, with{" "}
-          <code>Authorization</code> and every vault secret masked. <Claims ids={["C-008"]} />
-        </p>
-        <p>
-          Before you send, the composer shows where each variable&apos;s value comes from, and holds a request with an
-          empty one until you choose. <Claims ids={["C-025", "C-045"]} />
+          Under every response, a record of where it went and what History kept, with every secret masked.{" "}
+          <Claims ids={["C-008"]} /> Each variable says where its value came from. <Claims ids={["C-025"]} />
         </p>
       </>
     ),
@@ -212,12 +191,8 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Put a key in the vault and only its ciphertext is stored, under a key that lives in memory and is gone when
-          you reload. <Claims ids={["C-003", "C-005"]} />
-        </p>
-        <p>
-          It goes out in clear only to the request that names it. History, exports and copies get a mask.{" "}
-          <Claims ids={["C-007", "C-008", "C-014"]} />
+          Only the ciphertext is stored, under a key that lives in memory. <Claims ids={["C-003", "C-005"]} /> History,
+          exports and copies get a mask. <Claims ids={["C-008", "C-014"]} />
         </p>
       </>
     ),
@@ -250,13 +225,9 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Before you send, the composer names the headers a browser will not send and whether it will ask the server
-          first. After, a network failure shows the real error, never a 504 made up by the service worker.{" "}
-          <Claims ids={["C-049", "C-010"]} />
-        </p>
-        <p>
-          For what a page cannot do, the <a href="/docs/browser-limits/">Local Bridge</a>, a program you run, sends the
-          request from your machine, for an origin that holds its token. <Claims ids={["C-041", "C-064"]} />
+          The composer says what the browser will do before you send. <Claims ids={["C-049"]} /> For what a page cannot
+          do, the <a href="/docs/browser-limits/">Local Bridge</a> sends it from your machine.{" "}
+          <Claims ids={["C-041", "C-064"]} />
         </p>
       </>
     ),
@@ -283,13 +254,9 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Share… makes a link with the collection encrypted after its <code>#</code>, which a browser sends to no
-          server, ours included. <Claims ids={["C-084"]} />
-        </p>
-        <p>
-          Your teammate opens the link and sees what it adds and every host it sends to before anything is stored. No
-          vault secret goes with it, and a typed credential is <code>***</code> unless you include it.{" "}
-          <Claims ids={["C-086", "C-090", "C-087", "C-088"]} /> <a href="/docs/sharing/">How sharing works</a>
+          The collection travels encrypted after the link&apos;s <code>#</code>, which a browser sends to no server.{" "}
+          <Claims ids={["C-084"]} /> Your teammate sees every host it calls before anything is stored.{" "}
+          <Claims ids={["C-086", "C-090"]} />
         </p>
       </>
     ),
@@ -308,20 +275,9 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
     text: (
       <>
         <p>
-          Run… sends each request of a collection in order and runs its tests. <code>wayfarer-cli</code> runs the same
-          collection in CI with the app&apos;s engine: the same requests in the same order, statuses, tests and errors.{" "}
-          <Claims ids={["C-065"]} />
+          Run a collection here, or in CI with <code>wayfarer-cli</code>: the same requests, in the same order, to the
+          same results. <Claims ids={["C-065"]} />
         </p>
-        <p>
-          It runs a file&apos;s scripts only when you pass <code>--allow-scripts</code>. <Claims ids={["C-066"]} /> See{" "}
-          <a href="/docs/cli/">the command line</a>.
-        </p>
-        <Terminal label="The same run in a terminal">
-          <span className="text-code-muted">$ </span>npx wayfarer-cli run users.json --allow-scripts{"\n"}
-          <span className="text-code-string">✓</span> Get a user: 200 OK{"\n"}
-          <span className="text-code-string">✓</span> Create a user: 201 Created{"\n"}
-          <span className="text-code-string">✓</span> Delete a user: 204 No Content{"\n\n"}3 of 3 tests passed.
-        </Terminal>
       </>
     ),
     figure: (id, title) => (
@@ -330,14 +286,14 @@ const DAY: { id: string; title: string; text: ReactNode; figure: (id: string, ti
   },
 ];
 
-/** What the day did not show, each with its claims and its page. */
-const MORE: { title: string; text: ReactNode; href: string }[] = [
+/** What the day did not show, each with its icon, its claims and its page. */
+const MORE: { title: string; icon: string; text: ReactNode; href: string }[] = [
   {
     title: "Auth",
+    icon: "key",
     text: (
       <>
-        Bearer, Basic, API key, OAuth 2.0 (authorization code with PKCE, client credentials, password) and AWS Signature
-        Version 4, set on a request or inherited from its collection and folders.{" "}
+        Bearer, Basic, API key, OAuth 2.0 and AWS Signature, inherited from a folder.{" "}
         <Claims ids={["C-019", "C-061", "C-062"]} />
       </>
     ),
@@ -345,56 +301,70 @@ const MORE: { title: string; text: ReactNode; href: string }[] = [
   },
   {
     title: "Import",
+    icon: "upload_file",
     text: (
       <>
-        Postman collections, environments and globals; Insomnia exports; OpenAPI 3 and Swagger 2; HAR files and cURL
-        commands, each with a report before anything is stored. <Claims ids={["C-058", "C-059", "C-060", "C-056"]} />
+        Postman, Insomnia, OpenAPI, HAR and cURL, with a report first. <Claims ids={["C-058", "C-059", "C-060"]} />
       </>
     ),
     href: "/docs/import/",
   },
   {
     title: "Export",
+    icon: "download",
     text: (
       <>
-        Copy as cURL, JavaScript fetch, Python requests or HTTPie, masked; a HAR file; a Postman v2.1 collection.{" "}
-        <Claims ids={["C-020", "C-055", "C-035", "C-057"]} />
+        cURL, fetch, Python, HTTPie, HAR and Postman v2.1, masked. <Claims ids={["C-020", "C-055", "C-035", "C-057"]} />
       </>
     ),
     href: "/docs/export/",
   },
   {
-    title: "Bodies and responses",
+    title: "GraphQL, WebSocket, streams",
+    icon: "bolt",
     text: (
       <>
-        Raw, form, multipart, binary and GraphQL bodies. A response shown by its type, an HTML one in a frame that runs
-        none of its scripts. <Claims ids={["C-039", "C-009", "C-048"]} />
+        A schema from the server, sockets logged message by message, events as they arrive.{" "}
+        <Claims ids={["C-093", "C-091", "C-092"]} />
       </>
     ),
     href: "/docs/graphql/",
   },
   {
     title: "AI that asks before it sends",
+    icon: "visibility",
     text: (
       <>
-        Off until you add a provider. Then it writes tests, drafts a request or explains a failure, and shows every byte
-        before it goes, masked. Nothing changes until you accept it.{" "}
-        <Claims ids={["C-069", "C-071", "C-070", "C-073"]} />
+        Off until you add a provider, and every byte shown before it goes. <Claims ids={["C-069", "C-071"]} />
       </>
     ),
     href: "/docs/ai/",
   },
   {
-    title: "Offline, installed, by keyboard",
+    title: "Offline and installable",
+    icon: "dns",
     text: (
       <>
-        It loads offline after one visit and installs as an app. The core flow needs no pointer, and the main views pass
-        an automated WCAG 2.2 AA scan. <Claims ids={["C-015", "C-036", "C-067", "C-038"]} />
+        Loads offline after one visit, installs as an app, works by keyboard alone.{" "}
+        <Claims ids={["C-015", "C-036", "C-067"]} />
       </>
     ),
     href: "/docs/getting-started/",
   },
 ];
+
+/** One of the app's icons, drawn as the app draws it. */
+function Icon({ name }: { name: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+    >
+      <path d={iconPath(name)} />
+    </svg>
+  );
+}
 
 /** The ledger rows the trust section quotes, as the ledger words them, with the tests that hold them. */
 const QUOTED = ["C-084", "C-003", "C-001"];
@@ -402,28 +372,24 @@ const QUOTED = ["C-084", "C-003", "C-001"];
 function Ledger() {
   const rows = claims();
   const quoted = QUOTED.map((id) => rows.find((row) => row.id === id)).filter((row) => row !== undefined);
+  // The ledger's check, as it prints, and three rows: each claim's first clause and the test that holds it.
   return (
-    <div data-ui className="overflow-hidden rounded-lg border border-line-strong bg-paper-raised">
-      <div className="border-b border-line bg-paper-sunk px-4 py-2 type-site-small font-bold text-ink">
-        The claims ledger, {rows.length} rows
-      </div>
-      <ul className="divide-y divide-line">
-        {quoted.map((row) => (
-          <li key={row.id} className="px-4 py-3 type-site-small">
-            <p className="text-ink">{row.text}</p>
-            <p className="mt-1.5 text-ink-muted">
-              Tested by{" "}
-              {row.tests.map((test, i) => (
-                <span key={test}>
-                  {i ? ", " : ""}
-                  <code className="type-site-caption">{test}</code>
-                </span>
-              ))}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <pre
+      aria-label="The claims ledger's check in a terminal"
+      className="rounded-lg border border-line-strong bg-code-bg p-5 font-code type-site-caption whitespace-pre-wrap text-code-ink"
+    >
+      <span className="text-code-muted">$ </span>npm run check:claims{"\n"}
+      Claims ledger OK: {rows.length} claims, each with a doc marker and a test.{"\n\n"}
+      {quoted.map((row) => (
+        <span key={row.id}>
+          <span className="text-code-string">✓</span> {row.text.split(/[:;]/)[0]}
+          {"\n"}
+          {"  "}
+          <span className="text-code-muted">{row.tests[0]}</span>
+          {"\n"}
+        </span>
+      ))}
+    </pre>
   );
 }
 
@@ -479,56 +445,331 @@ const QUESTIONS: [string, ReactNode][] = [
   ],
 ];
 
+/**
+ * A still of the app as built (scripts/site-screenshot.mjs, `npm run gen:shots`), one per theme, the page's shown, as
+ * a recording is. The hidden one is lazy, so it is not fetched; the hero's are eager, the first thing drawn.
+ */
+function Shot({
+  name,
+  alt,
+  width,
+  height,
+  sizes,
+  hero = false,
+  className = "",
+}: {
+  name: string;
+  alt: string;
+  width: number;
+  height: number;
+  sizes: string;
+  hero?: boolean;
+  className?: string;
+}) {
+  return (
+    <>
+      {(["dark", "light"] as const).map((theme) => (
+        <img
+          key={theme}
+          className={`shot-${theme} block w-full ${className || "h-auto"}`}
+          src={hero ? `/shots/${name}-${theme}.1x.avif` : `/shots/${name}-${theme}.avif`}
+          srcSet={hero ? `/shots/${name}-${theme}.1x.avif 1440w, /shots/${name}-${theme}.2x.avif 2880w` : undefined}
+          sizes={sizes}
+          width={width}
+          height={height}
+          alt={alt}
+          loading={hero ? "eager" : "lazy"}
+          decoding="async"
+        />
+      ))}
+    </>
+  );
+}
+
+/** What the hero's picture points out: a number on the picture, at a place in it, and the line under it. */
+const MARKS: { at: string; text: ReactNode }[] = [
+  {
+    at: "left-[21%] top-[14%]",
+    text: (
+      <>
+        A Postman collection, imported, scripts and all. <Claims ids={["C-058"]} />
+      </>
+    ),
+  },
+  {
+    at: "left-[56.4%] top-[26.6%]",
+    text: (
+      <>
+        Each variable says where its value came from. <Claims ids={["C-025"]} />
+      </>
+    ),
+  },
+  {
+    at: "left-[77%] top-[37%]",
+    text: (
+      <>
+        The answer, straight from api.example.com. <Claims ids={["C-001"]} />
+      </>
+    ),
+  },
+  {
+    at: "left-[24.3%] top-[98.4%]",
+    text: (
+      <>
+        Sent from this tab: no server of ours in between. <Claims ids={["C-064"]} />
+      </>
+    ),
+  },
+];
+
+/** The Postman move, a picture a step. */
+const STEPS: { title: string; shot: string; width: number; height: number; alt: string; text: ReactNode }[] = [
+  {
+    title: "Import it",
+    shot: "import",
+    width: 960,
+    height: 720,
+    alt: "Wayfarer's import report for a Postman collection: what it adds, its scripts held, and the one host it calls",
+    text: (
+      <>
+        You see what it adds and every host it calls before anything is stored. <Claims ids={["C-054", "C-090"]} />
+      </>
+    ),
+  },
+  {
+    title: "Read its scripts",
+    shot: "review",
+    width: 1100,
+    height: 825,
+    alt: "Wayfarer's review of the collection's scripts, each shown as it will run, before they are trusted",
+    text: (
+      <>
+        They wait until you have read them, then run in a sandbox. <Claims ids={["C-051", "C-052"]} />
+      </>
+    ),
+  },
+  {
+    title: "Run it",
+    shot: "run",
+    width: 1100,
+    height: 825,
+    alt: "Wayfarer's run of the collection: six requests, each with its status, time and passing test",
+    text: (
+      <>
+        Here, or in CI with <code>wayfarer-cli</code>, to the same results. <Claims ids={["C-065"]} />
+      </>
+    ),
+  },
+];
+
 export default function Home() {
+  const ledger = claims();
+  const clips = DAY.filter((step) => ["first-request", "where-it-went", "share", "run"].includes(step.id));
+  const panels = DAY.filter((step) => !clips.includes(step));
   return (
     <>
       <Header />
       <JsonLd data={homeGraph(version, DESCRIPTION)} />
       <main id="main">
         <section aria-labelledby="hero">
-          <div className="mx-auto max-w-6xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 lg:pb-28">
+          <div className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
             <h1
               id="hero"
               className="max-w-[12em] type-site-title-1 font-bold text-balance text-ink sm:type-site-display lg:type-site-hero"
             >
               The API client that opens in a tab
             </h1>
-            <div className="mt-8 grid grid-cols-1 items-start gap-14 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
-              <div>
-                <p className="max-w-xl type-site-lede text-ink">
-                  Import a Postman collection, run its scripts, and send it to a teammate as an encrypted link, all from
-                  this browser tab. Nothing to install, no account, and no server of ours between you and your API.{" "}
-                  <Claims ids={["C-058", "C-040", "C-084", "C-001"]} />
-                </p>
-                <div className="mt-9 flex flex-wrap items-center gap-3">
-                  <a
-                    href="/app/"
-                    className="rounded-sm bg-action px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-on-action hover:opacity-90"
-                  >
-                    Open Wayfarer
-                  </a>
-                  <a
-                    href="/compare/moving-from-postman/"
-                    className="rounded-sm border border-line-strong bg-paper px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-ink hover:border-action"
-                  >
-                    Moving from Postman
-                  </a>
-                </div>
-                <p className="mt-5 type-site-small text-ink-muted">Free and MIT-licensed. It opens in this tab.</p>
-              </div>
-              <RouteDemo />
+            <p className="mt-6 max-w-2xl type-site-lede text-ink-muted">
+              Import a Postman collection, run its scripts and share it as an encrypted link. No install, no account,
+              and no server of ours in between. <Claims ids={["C-058", "C-040", "C-084", "C-001"]} />
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href="/app/"
+                className="rounded-sm bg-action px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-on-action hover:opacity-90"
+              >
+                Open Wayfarer
+              </a>
+              <a
+                href="/compare/moving-from-postman/"
+                className="rounded-sm border border-line-strong bg-paper px-6 py-3.5 type-site-lede font-bold whitespace-nowrap text-ink hover:border-action"
+              >
+                Moving from Postman
+              </a>
+              <span className="type-site-small text-ink-muted">Free and MIT-licensed.</span>
             </div>
+          </div>
+          <div className="mx-auto max-w-7xl px-4 pt-12 pb-16 sm:px-6 sm:pt-16 sm:pb-24">
+            <figure>
+              {/* On a phone the picture is drawn twice its width and shows the request and its answer, at a size that
+                  reads; from 768 px it is the whole app. */}
+              <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-line-strong shadow-2xl shadow-ink/10 md:aspect-auto">
+                <Shot
+                  hero
+                  className="h-full object-cover object-[80%_40%] md:h-auto md:object-fill"
+                  name="hero"
+                  width={1440}
+                  height={900}
+                  sizes="(min-width: 80rem) 78rem, (min-width: 48rem) 100vw, 230vw"
+                  alt="Wayfarer with a Postman collection imported: a POST request built from its variables, and the JSON answer, 201 Created"
+                />
+                {MARKS.map((mark, i) => (
+                  <span
+                    key={mark.at}
+                    aria-hidden="true"
+                    className={`absolute ${mark.at} hidden size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-paper bg-action font-code type-site-caption font-bold text-on-action md:grid`}
+                  >
+                    {i + 1}
+                  </span>
+                ))}
+              </div>
+              <figcaption>
+                <ol className="mt-6 grid grid-cols-1 gap-x-8 gap-y-3 type-site-small text-ink-muted sm:grid-cols-2 lg:grid-cols-4">
+                  {MARKS.map((mark, i) => (
+                    <li key={mark.at} className="flex gap-3">
+                      <span className="hidden font-code font-bold text-ink md:inline">{i + 1}</span>
+                      <span>{mark.text}</span>
+                    </li>
+                  ))}
+                </ol>
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section aria-label="Wayfarer in figures" className="border-y border-line">
+          <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 sm:px-6 lg:grid-cols-4">
+            {[
+              ["0", "accounts to make", ["C-001"]],
+              ["0", "servers of ours between you and your API", ["C-001"]],
+              [String(ledger.length), "public claims, each with its own test", []],
+              ["3", "browser engines that run those tests", []],
+            ].map(([figure, label, ids]) => (
+              <div key={String(label)} className="flex flex-col-reverse gap-1">
+                <dt className="type-site-small text-ink-muted">
+                  {label} {ids.length > 0 && <Claims ids={ids as string[]} />}
+                </dt>
+                <dd className="type-site-display font-bold text-ink">{figure}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section aria-labelledby="leaves" className="bg-paper-sunk">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+            <div>
+              <h2 id="leaves" className="type-site-title-1 font-bold text-ink">
+                What leaves the tab
+              </h2>
+              <p className="mt-5 type-site-lede text-ink-muted">
+                The app&apos;s own files, once. Then your request, to the host you typed. That is the whole list.{" "}
+                <Claims ids={["C-001", "C-015"]} />
+              </p>
+              <p className="mt-4 type-site-lede text-ink-muted">
+                Your work stays in this browser, and a secret is stored only as ciphertext.{" "}
+                <Claims ids={["C-002", "C-003"]} />
+              </p>
+            </div>
+            <RouteDemo />
           </div>
         </section>
 
         <Section
-          id="ask-first"
+          id="postman"
+          title="Bring your Postman collection"
+          intro={
+            <p>
+              Postman Free has been one user since March 2026 (
+              <a className={LINK} href={POSTMAN_PLANS}>
+                Postman&apos;s plans
+              </a>
+              , read on 7 November 2026). Wayfarer has no plans and no seats.
+            </p>
+          }
+        >
+          <ol className="mt-12 space-y-12 lg:space-y-16">
+            {STEPS.map((step, i) => (
+              <li
+                key={step.shot}
+                className={`grid grid-cols-1 items-center gap-6 lg:gap-14 ${i % 2 === 1 ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]" : "lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"}`}
+              >
+                <div className={i % 2 === 1 ? "lg:order-2" : undefined}>
+                  <h3 className="type-site-title-2 font-bold text-ink">
+                    <span className="mr-3 font-code text-ink-muted">{i + 1}</span>
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 type-site-lede text-ink-muted [&_code]:text-ink">{step.text}</p>
+                </div>
+                <div className="overflow-hidden rounded-lg border border-line-strong bg-paper p-3 shadow-xl shadow-ink/5 sm:p-4">
+                  <Shot
+                    name={step.shot}
+                    width={step.width}
+                    height={step.height}
+                    sizes="(min-width: 64rem) 36rem, 100vw"
+                    alt={step.alt}
+                  />
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-8">
+            <a className={`font-bold ${LINK}`} href="/compare/moving-from-postman/">
+              Moving from Postman, step by step
+            </a>
+          </p>
+        </Section>
+
+        <Section
+          id="day"
           sunk
+          title="A day with Wayfarer"
+          intro={<p>Recorded from the app as it is built, at a phone&apos;s width, against made-up answers.</p>}
+        >
+          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {clips.map((step) => (
+              <section
+                key={step.id}
+                aria-labelledby={step.id}
+                className="flex flex-col rounded-lg border border-line bg-paper p-5"
+              >
+                <h3 id={step.id} className="type-site-title-3 font-bold text-ink">
+                  {step.title}
+                </h3>
+                <div
+                  id={`${step.id}-text`}
+                  className="mt-2 mb-5 flex-1 type-site-small text-ink-muted [&_a]:underline [&_a]:underline-offset-4 [&_code]:text-ink"
+                >
+                  {step.text}
+                </div>
+                {step.figure(step.id, step.title)}
+              </section>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {panels.map((step) => (
+              <section key={step.id} aria-labelledby={step.id} className="rounded-lg border border-line bg-paper p-5">
+                <h3 id={step.id} className="type-site-title-3 font-bold text-ink">
+                  {step.title}
+                </h3>
+                <div
+                  id={`${step.id}-text`}
+                  className="mt-2 mb-5 type-site-small text-ink-muted [&_a]:underline [&_a]:underline-offset-4 [&_code]:text-ink"
+                >
+                  {step.text}
+                </div>
+                {step.figure(step.id, step.title)}
+              </section>
+            ))}
+          </div>
+        </Section>
+
+        <Section
+          id="ask-first"
           title="What the others ask of you first"
           intro={
             <p>
-              From each one&apos;s own documentation, read on the date in its cell. Wayfarer&apos;s answers name their
-              tests. The last row is where Wayfarer is behind.
+              From each one&apos;s own documentation, read on the date in its cell. The last row is where Wayfarer is
+              behind.
             </p>
           }
         >
@@ -540,119 +781,38 @@ export default function Home() {
           </p>
         </Section>
 
-        <Feature
-          id="postman"
-          title="Bring your Postman collection"
-          figure={
-            <ol className="space-y-8 lg:pt-2">
-              {[
-                [
-                  "Import it.",
-                  <>
-                    Collections v2.0 and v2.1, environments and globals. You see what the file adds, and what could not
-                    be kept, before anything is stored. <Claims ids={["C-058", "C-054"]} />
-                  </>,
-                ],
-                [
-                  "Read its scripts.",
-                  <>
-                    They stay held until you have read them and said you trust them. Then they run with the parts of{" "}
-                    <code>pm</code> the <a href="/docs/postman-compatibility/">compatibility page</a> lists.{" "}
-                    <Claims ids={["C-051", "C-040"]} />
-                  </>,
-                ],
-                [
-                  "Run it.",
-                  <>
-                    Here, or in CI with <code>wayfarer-cli</code>, to the same results. <Claims ids={["C-065"]} />
-                  </>,
-                ],
-              ].map(([title, text]) => (
-                <li key={String(title)}>
-                  <h3 className="type-site-title-2 font-bold text-ink">{title}</h3>
-                  <p className="mt-2 text-ink-muted [&_a]:underline [&_a]:underline-offset-4">{text}</p>
-                </li>
-              ))}
-            </ol>
-          }
-        >
+        <Feature id="trust" title="Every sentence here names its test" sunk flip figure={<Ledger />}>
           <p>
-            Postman Free has been one user since March 2026 (
-            <a className={LINK} href={POSTMAN_PLANS}>
-              Postman&apos;s plans
-            </a>
-            ), and its Team plan is $19 a user a month, billed yearly (
-            <a className={LINK} href={POSTMAN_PRICING}>
-              Postman&apos;s pricing
-            </a>
-            , both read on 7 November 2026). Wayfarer has no plans and no seats, and a collection goes to a teammate as
-            a file or an encrypted link. <Claims ids={["C-084"]} />
+            What this page says Wayfarer does is a row of a public ledger, and each row names the test that proves it,
+            run in three browsers before a release ships (<a href="/blog/the-claims-ledger/">how it works</a>).
           </p>
           <p>
-            <a className={`font-bold ${LINK}`} href="/compare/moving-from-postman/">
-              Moving from Postman, step by step
-            </a>
-          </p>
-        </Feature>
-
-        <section aria-labelledby="day" className="bg-paper-sunk">
-          <div className="mx-auto max-w-6xl px-4 pt-20 sm:px-6 sm:pt-28">
-            <h2 id="day" className="max-w-3xl type-site-title-1 font-bold text-ink">
-              A day with Wayfarer
-            </h2>
-            <p className="mt-5 max-w-2xl type-site-lede text-ink-muted">
-              Recorded from the app as it is built, at a phone&apos;s width, against made-up answers. Version 3.0
-              redesigned every screen:{" "}
-              <a className={LINK} href="/what-changed-in-3-0/">
-                see what changed
-              </a>
-              .
-            </p>
-          </div>
-          {DAY.map((step, i) => (
-            <Feature
-              key={step.id}
-              id={step.id}
-              title={step.title}
-              level={3}
-              flip={i % 2 === 1}
-              figure={step.figure(step.id, step.title)}
-            >
-              {step.text}
-            </Feature>
-          ))}
-        </section>
-
-        <Feature id="trust" title="Every sentence here names its test" flip figure={<Ledger />}>
-          <p>
-            Each sentence on this page that says what Wayfarer does is a row of its claims ledger, and each row names
-            the automated test that proves it. A claim test is never retried, and the browser tests run in Chromium,
-            Firefox and WebKit before a release is deployed (<a href="/blog/the-claims-ledger/">how the ledger works</a>
-            ).
-          </p>
-          <p>
-            The <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not; the{" "}
-            <a href="/docs/trust-center/">trust center</a> answers a security review; the{" "}
+            The <a href="/docs/threat-model/">threat model</a> says what this protects against and what it does not. The{" "}
             <a href="https://github.com/AshwinSathian/wayfarer">source</a> is MIT.
           </p>
         </Feature>
 
-        <Section id="more" sunk title="Also in the app">
-          <dl className="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+        <Section id="more" title="Also in the app">
+          <ul className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
             {MORE.map((item) => (
-              <div key={item.title}>
-                <dt className="type-site-title-2 font-bold text-ink">
-                  <a href={item.href} className="hover:text-action">
-                    {item.title}
-                  </a>
-                </dt>
-                <dd className="mt-2 text-ink-muted">{item.text}</dd>
-              </div>
+              <li key={item.title} className="bg-paper">
+                <a href={item.href} className="group flex h-full gap-4 p-6 hover:bg-paper-sunk">
+                  <span className="mt-0.5 text-ink">
+                    <Icon name={item.icon} />
+                  </span>
+                  <span>
+                    <span className="block type-site-title-3 font-bold text-ink group-hover:underline group-hover:underline-offset-4">
+                      {item.title}
+                    </span>
+                    <span className="mt-1 block type-site-small text-ink-muted">{item.text}</span>
+                  </span>
+                </a>
+              </li>
             ))}
-          </dl>
+          </ul>
         </Section>
 
-        <Section id="questions" title="Questions">
+        <Section id="questions" sunk title="Questions">
           <div className="mt-8 max-w-3xl divide-y divide-line border-y border-line">
             {QUESTIONS.map(([question, answer]) => (
               <details key={question} className="group py-5">

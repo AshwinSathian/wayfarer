@@ -9,22 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- **The website is rebuilt.** It has a new look, set in a serif made for reading. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
-- **A request with an OAuth 2.0 token is asked about when its pre-request script moves it to another host,** as one with a vault secret is. Before, the token went to the new host with no question, though it was masked from the script and kept to its host on a redirect.
-
-### Fixed
-
-- **Stop during a pre-request script stops the send there.** Before, the later scripts still ran and stored what they set, and the vault's unlock or the "different host" question could open for a request you had stopped.
-- **A script reads a response's body as the server sent it.** `pm.response.text()`, `responseBody` and a `pm.sendRequest` answer gave JSON parsed and written out again: a number past 2^53 came back rounded, and spacing and escapes changed.
-- **`pm.sendRequest` follows a redirect through the Local Bridge,** as it does from the page and in Postman. Before, the script got the 3xx.
-- **A request's time is the attempt that answered.** Through the Local Bridge after a failed send from the page, the time you took to answer "Send through the Local Bridge?" or to unlock the vault was counted, in the response, in history, in `pm.response.responseTime` and in a response-time test.
-- **A script that throws `null`, a number or a boolean says so.** `throw null` was reported as the 64 MB memory limit, and `throw 404` as "Script failed."
 - **New faces, in the app and on the website.** Text is set in Figtree and headlines in Bricolage Grotesque; values you type or a server sends stay in JetBrains Mono, where I, l and 1 and 0 and O are told apart. Before, the app used Atkinson Hyperlegible Next.
 - **The app draws its outline while it starts.** From the first frame the page shows the toolbar, the sidebar where it will be and the request's parts as quiet placeholders, in your theme, and the app takes their place when it is ready. Before, the page was blank until the app had started. With reduced motion the placeholders stay still.
 - **A reload shows the tabs you left from its first frame.** Before, the app drew a new, empty request for a moment and then the tabs it had kept.
 - **If the app fails to start, it says so and offers Reload.** Before, the page stayed blank.
 - **The website is rebuilt.** It has a new look. Every address it had still works: the docs, the comparisons, the blog and its feed, the changelog and the roadmap are where they were. The front page now lists, from your browser's own record, every file it fetched and the one host they came from. A page's preview card, when its link is shared, shows that page's title in the site's face.
 - **Auto's promise says what it checks.** The docs said Auto sends a request through the Local Bridge at once only when it "cannot have reached the server". It does so when the request needed a preflight, which the browser may have stopped it at; a server that passed the preflight and answered without CORS gets it twice. The docs now say so.
+- **A request with an OAuth 2.0 token is asked about when its pre-request script moves it to another host,** as one with a vault secret is. Before, the token went to the new host with no question, though it was masked from the script and kept to its host on a redirect.
 
 ### Fixed
 
@@ -33,6 +24,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **Get token does not open the sign-in window with a vault secret's reference in it.** A client ID, scope or authorization address that named a secret the vault no longer has went to the identity provider in the window's address. Now the sign-in is refused and says why.
 - **Copy as HAR keeps every response header.** A repeated header (each `Set-Cookie` through the Local Bridge) was cut to its last value, and one named `__proto__` was left out.
 - **A variable whose value has a secret's reference inside other text stays a field.** `Bearer {{$secret.id}}` was shown as "Secret stored" and could no longer be edited. An export in plain text now also fills in every secret a value names, not only the first.
+- **Stop during a pre-request script stops the send there.** Before, the later scripts still ran and stored what they set, and the vault's unlock or the "different host" question could open for a request you had stopped.
+- **A script reads a response's body as the server sent it.** `pm.response.text()`, `responseBody` and a `pm.sendRequest` answer gave JSON parsed and written out again: a number past 2^53 came back rounded, and spacing and escapes changed.
+- **`pm.sendRequest` follows a redirect through the Local Bridge,** as it does from the page and in Postman. Before, the script got the 3xx.
+- **A request's time is the attempt that answered.** Through the Local Bridge after a failed send from the page, the time you took to answer "Send through the Local Bridge?" or to unlock the vault was counted, in the response, in history, in `pm.response.responseTime` and in a response-time test.
+- **A script that throws `null`, a number or a boolean says so.** `throw null` was reported as the 64 MB memory limit, and `throw 404` as "Script failed."
 
 ## [3.3.1] - 2026-11-09
 

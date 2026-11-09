@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
 import { docs } from "../lib/content";
 
-/**
- * A docs page: the user docs listed beside the open one (the design records are one link to their list on /docs/,
- * or the open one when it is a record), and the search, which Pagefind draws into #search.
- */
+/** A docs page: the docs listed beside the open one, and the search, which Pagefind draws into #search. */
 export function DocsFrame({ current, children }: { current?: string; children: ReactNode }) {
-  const listed = docs().filter((doc) => doc.group !== "Design records" || doc.id === current);
+  const listed = docs();
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
       <aside className="lg:sticky lg:top-6 lg:self-start">
@@ -28,11 +25,6 @@ export function DocsFrame({ current, children }: { current?: string; children: R
                 </a>
               </li>
             ))}
-            <li>
-              <a href="/docs/#design-records" className="hover:text-action">
-                Design records
-              </a>
-            </li>
           </ul>
         </nav>
       </aside>

@@ -28,13 +28,13 @@ const files = (dir, ext) =>
 
 /**
  * The docs a person reads to use the app. Not the operations docs, which name the controls of Cloudflare's and
- * GitHub's dashboards, nor the compatibility matrix, generated from `pm`'s API, nor the design records, which name
- * controls as they were when each was written.
+ * GitHub's dashboards, nor the compatibility matrix, generated from `pm`'s API, nor the benchmark, which names the
+ * rivals' controls.
  */
 const DOCS = [
   "README.md",
   ...files("docs", /^[^/]+\.md$/).filter(
-    (f) => !/\/(runbook|deployment|self-hosting|postman-compatibility)\.md$/.test(f),
+    (f) => !/\/(runbook|deployment|self-hosting|postman-compatibility|benchmark)\.md$/.test(f),
   ),
 ];
 

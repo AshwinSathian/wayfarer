@@ -197,43 +197,9 @@ Also in the app, documented but not ledger claims: collection runs with data fil
 - [Trust center](docs/trust-center.md): encryption, data residency, subprocessors, procurement answers, hall of fame
 - [Threat model](docs/threat-model.md): each trust boundary, its threats, and the tested claim behind each mitigation
 - [Claims](docs/claims.md): every public claim and the test behind it
+- [Rival benchmark](docs/benchmark.md): eight tasks measured on Wayfarer, with a recording each, beside the steps each rival's documentation gives, and [the rivals' documented steps](docs/benchmark/rivals.md), with quotes and sources
+- [Roadmap](docs/roadmap.md): what shipped in 3.0 and since, what is next and what comes later
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
-
-### Design records
-
-How the interface was designed, audited and measured.
-
-<details>
-<summary>Research, audits, benchmarks and design decisions</summary>
-
-- [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
-- [Design audit, 2026](docs/design/audit.md): what is wrong with the interface, finding by finding, with screenshots and what became of each
-- [Site audit, November 2026](docs/design/site-audit-2026-11.md): the website read against the app it sells, v3.2.1: what the app does, claim by claim, and every place the site said less or other
-- [hig-review, 2026-10-23](docs/design/hig-review-2026-10-23.md): the audit's third pass, against Apple's Human Interface Guidelines and WCAG 2.2, and where each finding went in the plan
-- [hig-review, 2026-10-26](docs/design/hig-review-2026-10-26.md): the audit's fourth pass, a red-team review with research of rival API clients, three proposed reworks, a theming sketch and a measured look at the typefaces
-- [hig-review, 2026-11-04](docs/design/hig-review-2026-11-04.md): the audit's fifth pass, both hig-reviews repeated on the release candidate, with the logo-off and competitor-swap tests
-- [D1.8's captures](docs/design/hig-review/d18.md): the review's stress states in Chromium, Firefox and WebKit, and the touch targets measured without their parents
-- [Design baseline: the eight tasks](docs/design/baseline.md): what each core task costs in inputs and time on the app before the redesign, and how it is measured
-- [Personas](docs/design/personas.md): five people walked through their first ten minutes and their tenth day, every failed step a finding of the audit
-- [Rival benchmark](docs/design/benchmark.md): the eight tasks measured on Wayfarer, with a recording each, beside the steps each rival's documentation gives
-- [The rivals' documented steps](docs/design/benchmark/rivals.md): the benchmark's appendix, rival by rival, with quotes and sources
-- [Design baseline](docs/design/baseline/index.md): every screen as it looks before the redesign, at four widths in both themes, and how the captures are compared in CI
-- [Information architecture](docs/design/ia.md): where each action of the app lives, and how the palette, the sidebar and the tabs share work
-- [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends
-- [Motion](docs/design/motion.md): what moves, for how long, and what reduced motion does
-- [Voice](docs/design/voice.md): what the app calls things, how it says an error, asks a question and explains a limit, and how labels and shortcuts are written
-- [Type evaluation, 2026-11-02](docs/design/type-eval.md): the app's three typefaces measured for confusable letters in three browsers, and why Atkinson Hyperlegible Next speaks for Wayfarer
-- [Git, decided](docs/design/git.md): how a collection gets into a team's repository and back, the options argued against, and what Wayfarer does not do
-- [AI, decided](docs/design/ai.md): what AI does in Wayfarer, which models it may use, and how every byte sent to one is shown first
-- [AI flows](docs/design/ai/README.md): the design of D4.10, how a provider is set up, a model call previewed, a proposal accepted or undone, and each call kept in history
-- [AI setup](docs/design/ai/setup.md): Settings › AI, the provider, its key in the vault, the test call and removing it
-- [AI preview](docs/design/ai/preview.md): exactly what a model call's preview shows before it is sent, and its record after
-- [AI actions](docs/design/ai/actions.md): write tests, draft a request and explain a failed response, with the proposal, Accept and Undo
-- [AI log](docs/design/ai/log.md): model calls as history entries, filtered, opened and exported as HAR
-- [Team flows](docs/design/teams/README.md): sharing a collection by file and link, a folder in Git, peer to peer and a team server, designed and not built, with the principles each way keeps and the open questions
-  - [Share](docs/design/teams/share.md), [Receive](docs/design/teams/receive.md), [See who changed what](docs/design/teams/history.md), [Resolve a conflict](docs/design/teams/conflict.md) and [Review before taking a change](docs/design/teams/review.md): one spec per flow, each with a clickable prototype
-
-</details>
 
 ## Security
 

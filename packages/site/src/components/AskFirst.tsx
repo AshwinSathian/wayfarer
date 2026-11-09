@@ -1,6 +1,6 @@
 // The landing's "What the others ask of you first" (D5-e): five questions a person asks before switching, Wayfarer's
 // answer with its claims, and each rival's from its own documentation, every cell with its source and the date it was
-// read. The rivals' cells are docs/design/benchmark.md's (read on 2026-11-04) and Postman's price is the compare
+// read. The rivals' cells are docs/benchmark.md's (read on 2026-11-04) and Postman's price is the compare
 // page's (read again on 2026-11-07). The last row is where Wayfarer is behind, and says so.
 import type { ReactNode } from "react";
 import { Claims } from "./Claims";
@@ -20,7 +20,7 @@ interface Cell {
 const READ = "2026-11-04";
 const cell = (text: string, source: string, url: string, read = READ): Cell => ({ text, source, url, read });
 
-const BENCHMARK = "/docs/design/benchmark/";
+const BENCHMARK = "/docs/benchmark/";
 
 const ROWS: { question: string; wayfarer: ReactNode; rivals: Record<RivalName, Cell> }[] = [
   {

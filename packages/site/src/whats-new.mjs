@@ -1,16 +1,13 @@
-// "What changed in 3.0" (W5.5 of PLAN-design.md): the redesign, screen by screen, each change tied to its finding in
-// docs/design/audit.md. The page (/what-changed-in-3-0/) and the post that shows two of its screens read this file.
-// scripts/whats-new-images.mjs makes the pictures from docs/design/baseline/, and scripts/whats-new.test.mjs fails
-// when a finding of severity 1 or 2 has no before and after here, or when the audit says it was accepted and this file
-// gives no reason.
+// "What changed in 3.0": the redesign, screen by screen, each change tied to the number the design audit gave its
+// finding. The page (/what-changed-in-3-0/) and the post that shows two of its screens read this file. The pictures
+// are JPEGs in packages/site/public/whats-new/, made once from the audit's captures of 2.x and the design baseline
+// of 3.0; scripts/whats-new.test.mjs fails when a picture the page names is missing.
 
-/** Where the pictures are taken from, and where they are served. */
-export const BASELINE = "docs/design/baseline/";
+/** Where the pictures are served. */
 export const PUBLIC_DIR = "/whats-new/";
 
 /**
- * Each screen: the audit's picture of it before the redesign (2026-10-19 and 2026-10-22, the images at the top of
- * `BASELINE` and in `second-pass/`) and today's (`design-chromium/`, Chromium on Linux). `dark` only where a picture
+ * Each screen: the audit's picture of it before the redesign (2026-10-19 and 2026-10-22, the audit's own captures) and today's (`design-chromium/`, Chromium on Linux). `dark` only where a picture
  * of both exists in the dark theme. `cropBefore` keeps the top of a picture that is a whole page, in its pixels.
  */
 export const SCREENS = [

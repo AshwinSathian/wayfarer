@@ -3,16 +3,16 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { startBridge, type TestBridge } from "../support/bridge";
 import { ECHO } from "../support/echo";
 
-// D0.2 of PLAN-design.md: the eight tasks of D1.4, done on today's app the shortest way it offers, each
+// D0.2: the eight tasks of D1.4, done on today's app the shortest way it offers, each
 // input counted. A click is one event, a key press is one, and each character typed is one (a pasted value
 // would be one, but nobody pastes a URL they have not copied). The time is the script's, from the first
 // input to the result on the screen: the app's own waiting, not a person's, who reads and thinks as well.
-// Each task runs three times; docs/design/baseline.md gives the median. The counts land in
+// Each task runs three times; docs/benchmark.md gives the median. The counts land in
 // test-results/design-tasks/<project>-<task>.json.
 //
 // D1.4 (row 1.50) counts as the rivals' documentation does: a text entry is one action, however long, so `actions`
 // is clicks + keys + entries, beside the characters D0.2 counted. With RECORD=1 each task's first run is recorded
-// to docs/design/benchmark/task-<id>.webm (docs/design/benchmark.md).
+// to docs/benchmark/task-<id>.webm (docs/benchmark.md).
 
 const RUNS = 3;
 // A step that is wrong fails at once, not after the test's four minutes.
@@ -355,8 +355,8 @@ for (const task of TASKS) {
       const video = page.video();
       await context.close();
       if (record && video) {
-        mkdirSync("docs/design/benchmark", { recursive: true });
-        renameSync(await video.path(), `docs/design/benchmark/task-${task.id}.webm`);
+        mkdirSync("docs/benchmark", { recursive: true });
+        renameSync(await video.path(), `docs/benchmark/task-${task.id}.webm`);
       }
       if (counted && counted.events !== user.events) throw new Error(`task ${task.id}: the count changed between runs`);
       counted = user;

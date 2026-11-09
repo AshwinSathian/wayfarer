@@ -13,6 +13,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The landing shows the app.** It opens with a picture of Wayfarer with a Postman collection imported and a request answered, four numbered marks on it, and the figures under it (no account, no server of ours, the tested claims, three browsers). The Postman move is three steps with a picture each, the day with the app is a gallery of recordings, the claims ledger is shown as its check prints, and the rest of the app is a grid with the app's icons. Before, the page had the most words per screen of the API clients we measured, and pictures filled 6% of it. The page's still of the app (`app.jpg`) is taken again with the collection.
 
+- The planning and design-research documents (the plans, the design audits and reviews, the design records under `docs/design/`) are no longer in the repository, and the site's docs no longer list "Design records". The roadmap is now [`docs/roadmap.md`](docs/roadmap.md), from which the site's [/roadmap/](https://wayfarer.ashwinsathian.com/roadmap/) is made; before, the page was read from the internal plan and linked it. The rival benchmark the comparison pages cite moved to [`docs/benchmark.md`](docs/benchmark.md) (at `/docs/benchmark/`), with its recordings.
+
 ## [3.2.5] - 2026-11-09
 
 Claim C-012 as production is, checked every 6 hours again, and dependency updates.

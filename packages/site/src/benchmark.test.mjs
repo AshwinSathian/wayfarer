@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { benchmarkOf, plain, urls } from "./benchmark.mjs";
 
-const doc = benchmarkOf(readFileSync("docs/design/benchmark.md", "utf8"));
+const doc = benchmarkOf(readFileSync("docs/benchmark.md", "utf8"));
 
 test("every task of the summary has Wayfarer's measure, with its recording, and the rivals' documented rows", () => {
   assert.deepEqual(

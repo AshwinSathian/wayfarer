@@ -1,4 +1,4 @@
-// Written by scripts/whats-new-images.mjs: the pictures of "What changed in 3.0", their size in pixels and bytes.
+// The pictures of "What changed in 3.0" (packages/site/public/whats-new/), their size in pixels and bytes.
 export default {
   "1440-light-01b-first-run-full.jpg": { width: 1080, height: 1034, bytes: 47993 },
   "first-run-1440-light.jpg": { width: 1080, height: 675, bytes: 28823 },

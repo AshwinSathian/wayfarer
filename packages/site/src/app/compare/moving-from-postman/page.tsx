@@ -19,7 +19,7 @@ const POSTMAN_EXPORT: Source = {
 
 const BENCHMARK: Source = {
   title: "Wayfarer benchmark, task 2, with its recording",
-  url: `${SITE}/docs/design/benchmark/#wayfarer-measured`,
+  url: `${SITE}/docs/benchmark/#wayfarer-measured`,
   read: "2026-11-05",
 };
 

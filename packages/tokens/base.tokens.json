@@ -96,7 +96,7 @@
     }
   },
   "motion": {
-    "$description": "Durations and easings: docs/design/motion.md is their spec. No stylesheet writes a duration or an easing of its own (packages/tokens/tokens.test.mjs).",
+    "$description": "Durations and easings. No stylesheet writes a duration or an easing of its own (packages/tokens/tokens.test.mjs).",
     "ease-standard": {
       "$type": "cubicBezier",
       "$value": [0.25, 0, 0, 1]

@@ -112,8 +112,7 @@ When contributing:
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
   colors/spacing.
-- **Widgets are the app's own** (D3.3 of [`PLAN-design.md`](PLAN-design.md);
-  Angular Material is gone): the composite widgets on Angular Aria, the
+- **Widgets are the app's own** (Angular Material is gone): the composite widgets on Angular Aria, the
   others on the platform's own elements, each in `src/app/ui` with its own
   styles and none of the browser's look. "The platform" and "Angular Aria"
   in [`CLAUDE.md`](CLAUDE.md) have the markup for each widget and the places

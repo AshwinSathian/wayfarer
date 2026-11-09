@@ -41,7 +41,7 @@ function Next({ rival }: { rival: Rival }) {
   const links: [string, string][] = [
     ...moving,
     ["Where Wayfarer is behind, against every rival", "/compare/#behind"],
-    ["The benchmark: eight tasks, counted, with every step and source", "/docs/design/benchmark/"],
+    ["The benchmark: eight tasks, counted, with every step and source", "/docs/benchmark/"],
     ["Import: what comes across from each format", "/docs/import/"],
     ["The secrets vault", "/docs/secrets/"],
     ["What a browser cannot send, and the Local Bridge", "/docs/browser-limits/"],

@@ -75,6 +75,6 @@ bundle-report.json
 /packages/core/src/scripting/vm-libs
 /packages/cli/dist
 
-# D0.1: only Chromium's design snapshots are committed (docs/design/baseline/index.md).
-/docs/design/baseline/design-firefox/
-/docs/design/baseline/design-webkit/
+# D0.1: only Chromium's design snapshots are committed (e2e/design/README.md).
+/e2e/design/baseline/design-firefox/
+/e2e/design/baseline/design-webkit/

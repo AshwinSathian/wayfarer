@@ -13,11 +13,13 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
 export const REPO = "https://github.com/AshwinSathian/wayfarer";
 
-/** The headings of /docs/, in order: Start first, for a reader who is new. A doc under docs/design/ is a design record; a doc not listed is a guide. */
-export const DOC_GROUPS = ["Start", "Guides", "Reference", "Trust", "Operations", "Design records"] as const;
+/** The headings of /docs/, in order: Start first, for a reader who is new. A doc not listed is a guide. */
+export const DOC_GROUPS = ["Start", "Guides", "Reference", "Trust", "Operations"] as const;
 export type DocGroup = (typeof DOC_GROUPS)[number];
 const GROUP_OF: Record<string, DocGroup> = {
   "getting-started": "Start",
+  benchmark: "Reference",
+  "benchmark/rivals": "Reference",
   "collections-schema": "Reference",
   "postman-compatibility": "Reference",
   storage: "Reference",
@@ -28,49 +30,33 @@ const GROUP_OF: Record<string, DocGroup> = {
   deployment: "Operations",
 };
 
-/**
- * The design records that back the comparison pages, which search engines may index. The other design records are
- * working notes (audits, plans, flows not built yet), as are the operations docs: their pages say `noindex`, and
- * neither the sitemap nor llms.txt's main list names them, or an assistant would read a design as a feature.
- */
-const INDEXED_RECORDS = ["design/benchmark", "design/benchmark/rivals", "design/research-2026"];
-
-const OFF_SITE = "<!-- off-site -->";
-
 export interface Doc {
-  /** Its path under docs/, without `.md`: `auth`, `design/research-2026`. */
+  /** Its path under docs/, without `.md`: `auth`, `benchmark/rivals`. */
   id: string;
   title: string;
   group: DocGroup;
 }
 
-/**
- * Every Markdown file under docs/, each a page at `/docs/<id>/`, but one marked `<!-- off-site -->`: the repository
- * keeps it and the site does not show it (the reach plan, maintainer, 2026-11-05). `scripts/check-links.mjs` reads
- * the same mark.
- */
+/** Every Markdown file under docs/, each a page at `/docs/<id>/`. */
 export function docs(): Doc[] {
   return readdirSync(join(ROOT, "docs"), { recursive: true })
     .map(String)
     .filter((name) => name.endsWith(".md"))
     .map((name) => name.split("\\").join("/").slice(0, -3))
-    .filter((id) => !read(`docs/${id}.md`).includes(OFF_SITE))
     .map((id) => {
-      const group: DocGroup = id.startsWith("design/") ? "Design records" : (GROUP_OF[id] ?? "Guides");
-      return { id, title: titleOf(read(`docs/${id}.md`), id), group };
+      return { id, title: titleOf(read(`docs/${id}.md`), id), group: GROUP_OF[id] ?? "Guides" };
     })
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
-/** Whether search engines and llms.txt are pointed at a doc. */
+/** Whether search engines and llms.txt are pointed at a doc: not an operations doc, which is for the maintainer. */
 export function indexed(doc: Doc): boolean {
-  return (doc.group !== "Design records" && doc.group !== "Operations") || INDEXED_RECORDS.includes(doc.id);
+  return doc.group !== "Operations";
 }
 
 /**
  * A doc's description for search and sharing: the text of a `<!-- description: … -->` comment if it has one, else
- * its first paragraph or quote as plain text, up to 160 characters. A design record's status is a quote at its top
- * ("designed, not built"), so it is kept, and a design record says it is one first. Links keep their words, and code
+ * its first paragraph or quote as plain text, up to 160 characters. A quote at its top is kept. Links keep their words, and code
  * and emphasis marks go.
  */
 export function docDescription(id: string): string {
@@ -90,8 +76,7 @@ export function docDescription(id: string): string {
     .replace(/[`*_<>]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  const full = id.startsWith("design/") ? `Design record, not user documentation. ${text}` : text;
-  return full.length > 160 ? `${full.slice(0, 157).replace(/\s+\S*$/, "")}…` : full;
+  return text.length > 160 ? `${text.slice(0, 157).replace(/\s+\S*$/, "")}…` : text;
 }
 
 /** `text` without its HTML comments, an unclosed one to the end. */
@@ -138,7 +123,7 @@ export interface Benchmark {
   tasks: {
     n: string;
     name: string;
-    /** Its heading's id on /docs/design/benchmark/. */
+    /** Its heading's id on /docs/benchmark/. */
     anchor: string;
     measured: { id: string; task: string; actions: string; seconds: string; recording: string }[];
     documented: { rival: string; steps: string; inputs: string; sources: string[]; note: string }[];
@@ -147,13 +132,13 @@ export interface Benchmark {
   versions: Record<string, string>;
 }
 
-/** The benchmark, docs/design/benchmark.md, as the comparison pages show it (benchmark.mjs reads it). */
+/** The benchmark, docs/benchmark.md, as the comparison pages show it (benchmark.mjs reads it). */
 export function benchmark(): Benchmark {
-  return benchmarkOf(read("docs/design/benchmark.md")) as Benchmark;
+  return benchmarkOf(read("docs/benchmark.md")) as Benchmark;
 }
 
 export function roadmap() {
-  return roadmapOf(read("PLAN-design.md"));
+  return roadmapOf(read("docs/roadmap.md"));
 }
 
 export interface Claim {

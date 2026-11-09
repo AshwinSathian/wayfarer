@@ -363,7 +363,7 @@ finding.
 
 ### After the deploy that moves the app to `/app/` (W1)
 
-The release that carries the website (PLAN-design.md, v2.6.0) moves the app
+The release that carries the website (v2.6.0) moves the app
 from `/` to `/app/` on the same origin. Check once after its deploy:
 
 1. **`/` is the site, `/app/` the app.** `curl -sI https://<host>/` shows

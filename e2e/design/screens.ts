@@ -1,5 +1,4 @@
-// D0.1's index: every screen the design spec captures, with what it shows. docs/design/baseline/index.md
-// lists the same screens; scripts/design-index.test.mjs holds the two equal.
+// D0.1's index: every screen the design spec captures, with what it shows (e2e/design/README.md).
 
 export const WIDTHS = [
   { width: 360, height: 800 },

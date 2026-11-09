@@ -219,7 +219,7 @@ test("each comparison page sets Wayfarer's recorded numbers beside the rival's d
       for (const link of await ours.locator('a[href^="/benchmark/"]').all())
         recordings.add((await link.getAttribute("href")) ?? "");
       expect(await ours.locator('a[href^="/benchmark/"]').count(), rival).toBeGreaterThan(0);
-      await expect(ours.locator('a[href="/docs/design/benchmark/#wayfarer-measured"]').first(), rival).toBeVisible();
+      await expect(ours.locator('a[href="/docs/benchmark/#wayfarer-measured"]').first(), rival).toBeVisible();
       const theirs = row.locator("td.rival-documented");
       await expect(theirs.locator(".cite time"), rival).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}$/);
       await expect(theirs, rival).toContainText("(documented)");
@@ -234,7 +234,7 @@ test("each comparison page sets Wayfarer's recorded numbers beside the rival's d
     expect(response.status(), path).toBe(200);
     expect(response.headers()["content-type"], path).toBe("video/webm");
   }
-  await page.goto("/docs/design/benchmark/");
+  await page.goto("/docs/benchmark/");
   await expect(page.locator('a[href="/benchmark/task-2.webm"]').first()).toBeVisible();
   await page.goto("/compare/");
   expect(
@@ -300,18 +300,15 @@ test("no page a reader opens shows a claim's ID, and one link of the landing lea
   );
 });
 
-// D5-e: the design records are working notes, not user docs. They are pages, but search engines are told not to
-// list them (except the three the comparison pages rest on), and llms.txt does not offer them as docs: an assistant
-// read "designed, not built" flows as features.
-test("the design records are noindex and outside llms.txt's docs, and llms-full.txt holds the user docs", async ({
+// D5-e: the operations docs are for the maintainer. They are pages, but search engines are told not to list them,
+// and llms.txt does not offer them as docs.
+test("the operations docs are noindex and outside llms.txt's docs, and llms-full.txt holds the user docs", async ({
   page,
   request,
 }) => {
   for (const [path, noindex] of [
-    ["/docs/design/teams/README/", true],
-    ["/docs/design/audit/", true],
     ["/docs/runbook/", true],
-    ["/docs/design/benchmark/", false],
+    ["/docs/benchmark/", false],
     ["/docs/auth/", false],
   ] as const) {
     await page.goto(path);
@@ -319,18 +316,11 @@ test("the design records are noindex and outside llms.txt's docs, and llms-full.
     if (noindex) await expect(robots, path).toHaveAttribute("content", /noindex/);
     else await expect(robots, path).toHaveCount(0);
   }
-  await page.goto("/docs/design/teams/README/");
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-    "content",
-    /^Design record, not user documentation\. Status: designed, not built/,
-  );
-  await page.goto("/docs/");
-  await expect(page.getByRole("heading", { name: "Design records" })).toBeVisible();
 
   const llms = await (await request.get("/llms.txt")).text();
   const docsSection = llms.slice(llms.indexOf("## Docs"), llms.indexOf("## Compare"));
   expect(docsSection).toContain("/docs/auth/");
-  expect(docsSection).not.toContain("/docs/design/");
+  expect(docsSection).not.toContain("/docs/runbook/");
   expect(llms).toContain("## What it does not do");
   const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((m) => m[1]));
   const named = [...llms.matchAll(/C-\d{3}/g)].map((m) => m[0]);
@@ -341,18 +331,7 @@ test("the design records are noindex and outside llms.txt's docs, and llms-full.
   expect(full.status()).toBe(200);
   const text = await full.text();
   expect(text).toContain("# Secrets vault");
-  expect(text).not.toContain("# Team flows");
-});
-
-// The reach plan is the maintainer's working list of where to post (2026-11-05): it stays in the repository and is no
-// page of the site. A doc marked `<!-- off-site -->` is left out of the site's docs, its index and llms.txt.
-test("a doc marked off-site is no page of the site", async ({ page, request }) => {
-  expect((await request.get("/docs/design/reach/")).status()).toBe(404);
-  await page.goto("/docs/");
-  await expect(page.locator('a[href*="/docs/design/reach"]')).toHaveCount(0);
-  for (const file of ["/sitemap.xml", "/llms.txt", "/llms-full.txt"])
-    expect(await (await request.get(file)).text(), file).not.toContain("Reach plan");
-  expect(readFileSync("docs/design/reach.md", "utf8")).toContain("<!-- off-site -->");
+  expect(text).not.toContain("# Runbook");
 });
 
 // W3.1: every page names its canonical address, its Open Graph and Twitter cards and an image of its own, which is a
@@ -454,11 +433,11 @@ test("the header fits the window when the web fonts do not load", async ({ page 
   }
 });
 
-// W2.2: every file of docs/ but one marked off-site is a page, and the search, the site's one script, finds them.
+// W2.2: every file of docs/ is a page, and the search, the site's one script, finds them.
 test("every doc of the repository is a page of the site, its links leading to pages", async ({ page }) => {
   const docs = readdirSync("docs", { recursive: true })
     .map(String)
-    .filter((name) => name.endsWith(".md") && !readFileSync(`docs/${name}`, "utf8").includes("<!-- off-site -->"))
+    .filter((name) => name.endsWith(".md"))
     .map((name) => name.split("\\").join("/").slice(0, -3));
   expect(docs.length).toBeGreaterThan(15);
   for (const doc of docs) {

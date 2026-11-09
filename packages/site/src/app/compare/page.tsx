@@ -90,8 +90,8 @@ export default function Compare() {
       </ul>
       <p className={`mt-10 max-w-3xl text-ink-muted ${LINKS}`}>
         Each rival&apos;s steps for eight everyday tasks, with quotes and sources, are in{" "}
-        <a href="/docs/design/benchmark/rivals/">the rival benchmark</a>; Wayfarer&apos;s own, counted and recorded, are
-        in <a href="/docs/design/benchmark/">the benchmark</a>.
+        <a href="/docs/benchmark/rivals/">the rival benchmark</a>; Wayfarer&apos;s own, counted and recorded, are in{" "}
+        <a href="/docs/benchmark/">the benchmark</a>.
       </p>
       <Close />
     </Page>

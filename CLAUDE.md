@@ -3,7 +3,9 @@
 Wayfarer is a local-first API client: Angular 22 (zoneless, signals,
 standalone), IndexedDB, no backend. The rules below are the ones this
 codebase is held to. `CONTRIBUTING.md` has the same code-style rules for
-people; `PLAN-airtight-remediation.md` is the roadmap.
+people. The planning and design documents (the plans, audits and design
+research) are kept outside the repository; the public roadmap is
+`docs/roadmap.md`.
 
 ## Commands
 
@@ -39,7 +41,7 @@ flags): WebKit and Firefox differ in ways Chromium does not show
 (scrollbar width, focus, fonts, `AbortSignal`, WebSocket errors).
 
 A session ends when its PRs are merged and `gh workflow run e2e.yml` on
-`main` is green; its plan row names that run. Something red there is fixed
+`main` is green. Something red there is fixed
 in a new PR, and the run is made again. `deploy.yml` deploys only a commit
 with a green `e2e.yml` run.
 
@@ -58,17 +60,15 @@ code errors.
   `TransportRouter`, `SecretCrypto`. Repositories are `XRepository` in
   `x-repository.ts`.
 - Selectors: `app-` for features, `ui-` for the widgets in `src/app/ui`.
-- `PLAN-airtight-remediation.md` is the roadmap: read its section 0 first.
-  Its open tasks use today's names. Its sections 13 and 16, the audit's
-  problem statement and `CHANGELOG.md` are history and use the names from
+- `CHANGELOG.md` is history and uses the names from
   before the October 2026 rename (`main.service.ts` / `MainService` became
   `http-transport.ts` / `HttpTransport`, which P2.3 replaced with the
   transports in `packages/core`; otherwise drop the suffix). Do not
-  rewrite history. A change to the plan needs a row in its section 16.
+  rewrite history.
 - Do not reorganise the top-level folders (`components`, `services`, `data`,
-  `shared`, `ui`): Phase 2 of the plan moves code into `packages/core`.
+  `shared`, `ui`): code moves from them into `packages/core`.
 
-## The site and the app's address (PLAN-design.md, phase W)
+## The site and the app's address (phase W)
 
 - The deploy is `dist/deploy` (`scripts/build-deploy.mjs`, the last step
   of `npm run build`): the site's build (`packages/site`, Next.js static export to
@@ -133,8 +133,8 @@ code errors.
   heading ids) renders it. The search (Pagefind) is under `security/csp-docs.json` on `/docs/*` and `/pagefind/*` (its
   worker has its script's policy). `npm run check:site-links` follows every
   link of the built site to itself.
-- The changelog (`/changelog/`) and the roadmap (`/roadmap/`, from this
-  plan's section 9, `roadmap.mjs`) are built from the files. The claims
+- The changelog (`/changelog/`) and the roadmap (`/roadmap/`, from
+  `docs/roadmap.md`, `roadmap.mjs`) are built from the files. The claims
   page's "Last CI" column reads `/ci-run.json`, which `deploy.yml` writes
   beside the tested files; `claims-ci.js` writes it as text only.
 - The synthetic monitor runs the latest release's tests (`v*` tag), not
@@ -382,13 +382,13 @@ code errors.
 - The text face is Atkinson Hyperlegible Next, with Inter as the
   per-glyph fallback for Greek, Cyrillic and Vietnamese; the wire's is
   JetBrains Mono, never under 13 px (`type-mono-body`): its 0 and O are a
-  device pixel apart at 12 (`docs/design/type-eval.md`).
+  device pixel apart at 12.
 - A value a user typed, or one a server sent or will read (an address, a
   header, a variable, a credential, a body field), is monospace; a name,
   prose, a passphrase or a number is not. Every text field (`uiInput`)
   says which, with `font-mono` (or a `type-mono-*` class) or `font-sans`
   (`scripts/input-fonts.test.mjs` fails on one that says neither).
-- Durations and easings are the `motion` tokens (`docs/design/motion.md`):
+- Durations and easings are the `motion` tokens:
   no stylesheet or template writes its own (`0.2s`, `ease-in-out`,
   Tailwind's `duration-150`; the token test fails). Tailwind's transition
   utilities take `--dur-quick` and `--ease-standard` from `@theme`. With
@@ -531,7 +531,7 @@ code errors.
 ## Angular Material (history)
 
 - **Material has left the app (D3.3, plan row 1.34).** The maintainer
-  decided on 2026-10-19 (D1.5, `docs/design/widget-bakeoff.md`) that the
+  decided on 2026-10-19 (D1.5) that the
   composite widgets (tree, select, menus, tabs, accordion) move to Angular
   Aria with our own styles, and dialogs, tooltips, buttons, inputs,
   checkboxes and the toolbar to the platform (`<dialog>`, `popover`, the
@@ -753,7 +753,7 @@ code errors.
   (`@angular/aria`) with the app's own styles, in the component's own
   stylesheet (`tree.css`), not in `controls.css` or `material-theme.scss`.
   Aria gives roles, focus and keys; what it does not do is ours, with a
-  test each. `docs/design/widget-bakeoff.md` lists what the bake-off found.
+  test each.
 - Each moved widget is in the catalogue (`src/app/catalogue/catalogue.ts`)
   in every state a person can put it in, and `e2e/catalogue.spec.ts` scans
   each state with axe in both themes and walks its keys. The catalogue is

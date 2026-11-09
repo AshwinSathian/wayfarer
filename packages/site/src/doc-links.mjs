@@ -14,6 +14,6 @@ export function siteLink(url, from) {
   const target = posix.normalize(posix.join(posix.dirname(from), path));
   if (target.startsWith("docs/") && target.endsWith(".md")) return `/docs/${target.slice(5, -3)}/${hash}`;
   if (target === "CHANGELOG.md") return `/changelog/${hash}`;
-  if (/^docs\/design\/benchmark\/[^/]+\.webm$/.test(target)) return `/benchmark/${posix.basename(target)}`;
+  if (/^docs\/benchmark\/[^/]+\.webm$/.test(target)) return `/benchmark/${posix.basename(target)}`;
   return `${REPO}/${target}${hash}`;
 }

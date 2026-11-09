@@ -2,7 +2,7 @@
 // it was read; e2e/site.spec.ts holds each page to that. Every sentence about Wayfarer names its claims, or, for a
 // fact about the project rather than the app (its licence, its first release), the file that says so.
 //
-// Read on 2026-11-04, against docs/design/research-2026.md and docs/design/benchmark/rivals.md (both of that day) and,
+// Read on 2026-11-04, against docs/design/research-2026.md and docs/benchmark/rivals.md (both of that day) and,
 // where neither had re-read a page, the page itself.
 import type { ReactNode } from "react";
 import { Claims } from "../components/Claims";
@@ -66,13 +66,13 @@ const LICENSE = src("Wayfarer's LICENSE (MIT)", "https://github.com/AshwinSathia
 /** The benchmark's comparison, as a source: the site's own page, run again on 2026-11-05. */
 export const BENCHMARK_SOURCE: Source = {
   title: "Wayfarer benchmark: Wayfarer against the rivals",
-  url: `${SITE}/docs/design/benchmark/#wayfarer-against-the-rivals`,
+  url: `${SITE}/docs/benchmark/#wayfarer-against-the-rivals`,
   read: "2026-11-05",
 };
 const FIRST_RELEASE = src("Wayfarer changelog: 0.1.0, 2026-07-20", `${SITE}/changelog/#010---2026-07-20`);
 
 /** The benchmark's page, where each of Wayfarer's numbers has its row and each rival's its table. */
-export const BENCHMARK_PAGE = "/docs/design/benchmark/";
+export const BENCHMARK_PAGE = "/docs/benchmark/";
 
 /** Wayfarer's column of the table at a glance: each cell names its claims, or the file that says so. */
 export const WAYFARER_GLANCE: Record<GlanceRow, ReactNode> = {

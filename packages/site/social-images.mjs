@@ -15,7 +15,7 @@ import { ogImagePath } from "./src/og-path.mjs";
 import { hexColours } from "../tokens/tokens.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const FONTS = join(HERE, "../../node_modules/@fontsource/stix-two-text/files");
+const FONTS = join(HERE, "../../node_modules/@fontsource");
 const MARK = join(HERE, "../tokens/brand/mark.svg");
 // The light theme's colours (W5.1): a card is the page as most people first see it.
 const C = hexColours("light");
@@ -104,12 +104,12 @@ const escape = (text) =>
 
 /** The card's typesetter: words measured once each with resvg (at 100 px, scaled), and lines broken greedily. */
 function typesetter(fontFiles) {
-  const font = { fontFiles, loadSystemFonts: false, defaultFontFamily: "STIX Two Text" };
+  const font = { fontFiles, loadSystemFonts: false, defaultFontFamily: "Figtree" };
   const widths = new Map();
   const measure = (word, weight) => {
     const key = `${weight} ${word}`;
     if (!widths.has(key)) {
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="4000" height="200"><text x="0" y="150" font-family="${weight === 600 ? "STIX Two Text SemiBold, " : ""}STIX Two Text" font-size="100" font-weight="${weight}">${escape(word)}</text></svg>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="4000" height="200"><text x="0" y="150" font-family="${weight === 700 ? "Bricolage Grotesque" : "Figtree"}" font-size="100" font-weight="${weight}">${escape(word)}</text></svg>`;
       widths.set(key, new Resvg(svg, { font }).getBBox()?.width ?? 0);
     }
     return widths.get(key);
@@ -145,7 +145,7 @@ function card({ title, description }, mark, path, { lines }) {
   const address = `wayfarer.ashwinsathian.com${path === "/" ? "" : path}`;
   const [left, width] = [88, 1200 - 2 * 88];
   const titleSize = title.length > 48 ? 64 : 80;
-  const titleLines = lines(title, titleSize, 600, width, 3);
+  const titleLines = lines(title, titleSize, 700, width, 3);
   const titleTop = 72 + 48 + 64;
   const descTop = titleTop + titleLines.length * titleSize * 1.05 + 28;
   const descLines = lines(
@@ -156,14 +156,14 @@ function card({ title, description }, mark, path, { lines }) {
     titleLines.length > 2 ? 1 : 2,
   );
   const text = (content, x, y, size, weight, colour) =>
-    `<text x="${x}" y="${y}" font-family="${weight === 600 ? "STIX Two Text SemiBold, " : ""}STIX Two Text" font-size="${size}" font-weight="${weight}" fill="${colour}">${escape(content)}</text>`;
+    `<text x="${x}" y="${y}" font-family="${weight === 700 ? "Bricolage Grotesque" : "Figtree"}" font-size="${size}" font-weight="${weight}" fill="${colour}">${escape(content)}</text>`;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">`,
     `<rect width="1200" height="630" fill="${C["canvas-app"]}"/>`,
     `<image href="${mark}" x="${left}" y="72" width="48" height="48"/>`,
-    text("Wayfarer", left + 66, 72 + 36, 36, 600, C["label-primary"]),
+    text("Wayfarer", left + 66, 72 + 36, 36, 700, C["label-primary"]),
     ...titleLines.map((line, i) =>
-      text(line, left, titleTop + titleSize * (0.82 + i * 1.05), titleSize, 600, C["label-primary"]),
+      text(line, left, titleTop + titleSize * (0.82 + i * 1.05), titleSize, 700, C["label-primary"]),
     ),
     ...descLines.map((line, i) => text(line, left, descTop + 32 * (0.82 + i * 1.35), 32, 400, C["label-secondary"])),
     text(address, left, 630 - 72, 26, 400, C["label-secondary"]),
@@ -174,12 +174,16 @@ function card({ title, description }, mark, path, { lines }) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const out = process.argv[2];
   if (!out) throw new Error("Usage: node social-images.mjs <out>");
-  // The latin files first, latin-ext after them for a glyph the first has not got, written as TrueType for resvg.
+  // The faces as the site sets them: Bricolage Grotesque for the title and the name, Figtree for the rest, written as
+  // TrueType for resvg. The latin files first, latin-ext after them for a glyph the first has not got.
   const dir = mkdtempSync(join(tmpdir(), "wayfarer-og-"));
   const fontFiles = ["latin", "latin-ext"].flatMap((subset) =>
-    [400, 600].map((weight) => {
-      const file = join(dir, `stix-two-text-${subset}-${weight}.ttf`);
-      writeFileSync(file, woffToSfnt(readFileSync(`${FONTS}/stix-two-text-${subset}-${weight}-normal.woff`)));
+    [
+      ["bricolage-grotesque", 700],
+      ["figtree", 400],
+    ].map(([face, weight]) => {
+      const file = join(dir, `${face}-${subset}-${weight}.ttf`);
+      writeFileSync(file, woffToSfnt(readFileSync(`${FONTS}/${face}/files/${face}-${subset}-${weight}-normal.woff`)));
       return file;
     }),
   );

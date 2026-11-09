@@ -1,11 +1,9 @@
 /* ── Fonts (self-hosted; no requests to Google, F18) ────── */
-/* Atkinson Hyperlegible Next speaks for Wayfarer (DQ11, U-150); Latin only, so Inter Variable draws the Greek,
-   Cyrillic and Vietnamese glyphs it lacks. A face loads only when a glyph in its range is drawn. */
-@import "@fontsource/atkinson-hyperlegible-next/400.css";
-@import "@fontsource/atkinson-hyperlegible-next/500.css";
-@import "@fontsource/atkinson-hyperlegible-next/600.css";
-/* Bold is the name's alone, as the site sets it (packages/tokens/brand/README.md). */
-@import "@fontsource/atkinson-hyperlegible-next/700.css";
+/* Figtree speaks for Wayfarer and Bricolage Grotesque sets its headlines (packages/tokens' `font` group); both are
+   variable, one file a face for every weight. Latin only, so Inter Variable draws the Greek, Cyrillic and Vietnamese
+   glyphs they lack. A face loads only when a glyph in its range is drawn. */
+@import "@fontsource-variable/figtree/wght.css";
+@import "@fontsource-variable/bricolage-grotesque/wght.css";
 @import "@fontsource-variable/inter/opsz.css";
 @import "@fontsource-variable/inter/opsz-italic.css";
 @import "@fontsource/jetbrains-mono/400.css";
@@ -43,6 +41,9 @@
      last and ease by, unless a class says otherwise: the motion tokens. */
   --default-transition-duration: var(--dur-quick);
   --default-transition-timing-function: var(--ease-standard);
+
+  /* The headline face as a utility (`font-headline`): the name, beside the mark. */
+  --font-headline: var(--font-display);
 
   --color-canvas-app: var(--canvas-app);
   --color-canvas-sidebar: var(--canvas-sidebar);

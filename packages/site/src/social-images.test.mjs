@@ -39,10 +39,7 @@ test("a WOFF font becomes the TrueType file resvg reads: its tables, inflated, b
   const { readFileSync } = await import("node:fs");
   const { woffToSfnt } = await import("../social-images.mjs");
   const woff = readFileSync(
-    new URL(
-      "../../../node_modules/@fontsource/stix-two-text/files/stix-two-text-latin-400-normal.woff",
-      import.meta.url,
-    ),
+    new URL("../../../node_modules/@fontsource/figtree/files/figtree-latin-400-normal.woff", import.meta.url),
   );
   const font = woffToSfnt(woff);
   assert.equal(font.readUInt32BE(0), woff.readUInt32BE(4));

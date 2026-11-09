@@ -65,9 +65,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **On a connection that is up but answers nothing**, the app's stored copy opens after 3 seconds instead of waiting until the browser gives up.
 - **History could miss the request you had just sent** when another tab wrote at the same moment: a refresh asked for while one was reading was dropped.
 - **A large response that the formatter could not finish in time** is shown as it came, and the stuck formatter is replaced. Before, the same work ran again on the page and froze it.
-
-### Fixed
-
 - **The collections tree shows the row the keys are on.** Arrowing through the tree drew nothing on the focused row, so you could not tell which request Enter, F2 or Delete would act on. The row now takes the hover fill (in forced colours, a dashed bar at its start).
 - **A key a menu does not use reaches the browser.** With a menu open, F5, a zoom or Find did nothing: the menu prevented every key but Tab.
 - **A file field is named for what it chooses.** Its button said only "Choose a file…", the same in every row of a form; the field is now a group named by its label ("File for avatar").

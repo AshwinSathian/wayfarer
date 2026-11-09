@@ -1546,6 +1546,9 @@ test("file field: Tab reaches its button, Enter opens the system's picker, the f
 }) => {
   await open(page, "light");
   const field = page.locator("ui-file").first();
+  // A group named by its label, which names the hidden input alone (a test sets files by that label).
+  await expect(page.getByRole("group", { name: "File to send", exact: true })).toHaveCount(1);
+  await expect(page.getByLabel("File to send", { exact: true })).toHaveCount(1);
   await expect(page.locator('input[type="file"]').first()).toBeHidden();
   await expect(page.getByText("No file chosen")).toHaveCount(0);
 

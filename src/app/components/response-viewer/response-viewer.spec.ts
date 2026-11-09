@@ -301,6 +301,28 @@ describe("ResponseViewer", () => {
       expect(element().textContent?.match(/Send it through the Local Bridge/g)).toHaveLength(1);
     });
 
+    it("draws a test that ran twice under one name as two rows, each its own (NG0955)", () => {
+      const warn = vi.spyOn(console, "warn");
+      set({
+        isError: true,
+        responseError: "The request got no response.",
+        testResults: [
+          { label: "has id", passed: true, source: "script" },
+          { label: "has id", passed: false, source: "script" },
+        ],
+      });
+      // Angular checks the keys when it draws a list again: the next send's results.
+      set({
+        testResults: [
+          { label: "has id", passed: false, source: "script" },
+          { label: "has id", passed: true, source: "script" },
+        ],
+      });
+      expect(element().querySelectorAll(".test-result").length).toBe(2);
+      expect(warn.mock.calls.flat().join(" ")).not.toContain("NG0955");
+      warn.mockRestore();
+    });
+
     it("lists a header sent twice as two rows", () => {
       set({
         responseStatusCode: 200,

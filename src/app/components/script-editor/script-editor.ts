@@ -166,11 +166,11 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
 
     defineSandboxThemes(monaco);
 
-    this.model = this.model ?? monaco.editor.createModel(this.internalValue, "javascript", undefined);
+    const model = (this.model ??= monaco.editor.createModel(this.internalValue, "javascript", undefined));
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
       ...editorText(),
-      model: this.model,
+      model,
       automaticLayout: true,
       minimap: { enabled: false },
       theme: monacoThemeName(this.themeService.theme()),
@@ -181,8 +181,8 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
       insertSpaces: true,
     });
 
-    this.model.onDidChangeContent(() => {
-      const value = this.model!.getValue();
+    model.onDidChangeContent(() => {
+      const value = model.getValue();
       this.isUpdatingFromEditor = true;
       this.internalValue = value;
       this.onChange(value);

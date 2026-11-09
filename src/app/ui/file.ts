@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, input, output, signal } from "@angu
 import { Icon } from "../shared/icon/icon";
 import { UiButton } from "./button";
 
+let nextId = 0;
+
 /**
  * A file field (D3.5, U-059): the file chosen, by name, or a place to drop
  * one, with a button that opens the system's picker and one that clears.
@@ -46,6 +48,7 @@ import { UiButton } from "./button";
       #input
       type="file"
       class="hidden"
+      [id]="inputId"
       [attr.accept]="accept() || null"
       [attr.aria-label]="label()"
       [disabled]="disabled()"
@@ -56,6 +59,9 @@ import { UiButton } from "./button";
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: "ui-file",
+    role: "group",
+    // Named by the input, not a second aria-label: a test reaches the input by `label` alone.
+    "[attr.aria-labelledby]": "inputId",
     "[class.ui-file-over]": "over()",
     "[class.ui-file-disabled]": "disabled()",
     "(dragover)": "onDragOver($event)",
@@ -76,6 +82,8 @@ export class UiFile {
 
   readonly picked = output<File>();
   readonly cleared = output<void>();
+
+  protected readonly inputId = `ui-file-${nextId++}`;
 
   /** A file is being dragged over the field. */
   protected readonly over = signal(false);

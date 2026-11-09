@@ -60,7 +60,7 @@ const POSITIONS: ConnectedPosition[] = [
         [class.ui-menu--context]="!trigger()"
         (itemSelected)="choose($event)"
         (keydown.escape)="trigger() || close(true)"
-        (keydown)="$event.key === 'Tab' && tab()"
+        (keydown)="keydown($event)"
         (focusout)="leave($event)"
       >
         <!-- Not in ngMenuContent: its items come a render after the panel, which the CDK has
@@ -176,6 +176,11 @@ export class UiMenu {
    * the row. Left to the browser, Firefox kept focus in the menu and Chromium
    * moved it to the button.
    */
+  /** A listener that gave `false` would prevent every other key's default: F5, a zoom, Find. */
+  protected keydown(event: KeyboardEvent): void {
+    if (event.key === "Tab") this.tab();
+  }
+
   protected tab(): void {
     const trigger = this.trigger();
     if (!trigger) return this.close(true);

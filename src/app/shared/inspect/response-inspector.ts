@@ -235,7 +235,7 @@ export class ResponseInspector {
       "content",
     ];
 
-    const available = granularKeys.filter((key) => phases[key] && phases[key]! > 0);
+    const available = granularKeys.filter((key) => (phases[key] ?? 0) > 0);
     return available.length <= 1;
   }
 }

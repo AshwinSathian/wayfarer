@@ -14,10 +14,10 @@
       "@wayfarer/core/ai": ["./packages/core/src/ai/index.ts"],
       "@wayfarer/core/data-file": ["./packages/core/src/run/data-file.ts"],
       "@wayfarer/core/pm-compat/*": ["./packages/core/test/pm-compat/*"],
-      "monaco-editor/editor": ["./src/testing/monaco/monaco-editor.api.stub.ts"],
-      "monaco-editor/languages/features/*/register": ["./src/testing/monaco/contribution.stub.ts"],
-      "monaco-editor/languages/definitions/*/register": ["./src/testing/monaco/contribution.stub.ts"],
-      "monaco-editor/features/*/register": ["./src/testing/monaco/contribution.stub.ts"]
+      "monaco-editor/editor": ["./src/testing/monaco/monaco-editor-api-stub.ts"],
+      "monaco-editor/languages/features/*/register": ["./src/testing/monaco/contribution-stub.ts"],
+      "monaco-editor/languages/definitions/*/register": ["./src/testing/monaco/contribution-stub.ts"],
+      "monaco-editor/features/*/register": ["./src/testing/monaco/contribution-stub.ts"]
     }
   },
   "files": ["src/testing/vitest-providers.ts"],

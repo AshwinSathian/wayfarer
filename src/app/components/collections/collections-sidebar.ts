@@ -176,9 +176,10 @@ export class CollectionsSidebar implements OnInit {
       return;
     }
 
-    if (event.key === "Delete" && this.selectedNode()) {
+    const selected = this.selectedNode();
+    if (event.key === "Delete" && selected) {
       event.preventDefault();
-      void this.handleAction("delete", this.selectedNode()!);
+      void this.handleAction("delete", selected);
       return;
     }
 

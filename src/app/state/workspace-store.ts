@@ -899,8 +899,8 @@ export class WorkspaceStore {
         this.confirm.confirm({
           title: "Send to a different host?",
           message: composed?.accepted
-            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Allowed, every later request of this run may send to ${to} without asking.`
-            : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
+            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret or an OAuth 2.0 token, which would be sent there. Allowed, every later request of this run may send to ${to} without asking.`
+            : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret or an OAuth 2.0 token, which would be sent there.`,
           // The act says what one click allows (U-069): in a run, the host for the rest of the run.
           acceptLabel: composed?.accepted ? `Send to ${to} for this run` : `Send to ${to}`,
           rejectLabel: "Do not send",

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import type { RoutePolicy } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FetchMock, type MockRequest } from "../../testing/fetch-mock";
 import { BridgeSettings } from "./bridge-settings";
@@ -135,13 +136,21 @@ describe("TransportRouter", () => {
       fetchMock.verify();
     });
 
-    it("sends a simple POST through the bridge on a yes", async () => {
-      const pending = router.send(form, open(), { route: "auto", ask: () => Promise.resolve(true) });
+    it("sends a simple POST through the bridge on a yes, and its time starts after the answer (F11)", async () => {
+      let answered = 0;
+      const ask = () =>
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 30)).finally(
+          () => (answered = performance.now()),
+        );
+      const policy: RoutePolicy = { route: "auto", ask };
+      const pending = router.send(form, open(), policy);
 
       fetchMock.expectOne("https://api.example.com/items").fail();
       answer(await vi.waitFor(() => fetchMock.expectOne(relay)));
 
       expect((await pending).route).toBe("bridge");
+      expect(policy.startedAt).toBeGreaterThanOrEqual(answered);
+      expect(answered).toBeGreaterThan(0);
     });
 
     it("does not ask when there is no one to ask (a script's request): the failure stands", async () => {

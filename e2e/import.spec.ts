@@ -563,3 +563,45 @@ test("an item whose id another collection holds says it moves here, and Undo put
   await expect.poll(async () => JSON.stringify(await dumpIdb(page))).not.toContain("api.example.test/other");
   expect(JSON.stringify(await dumpIdb(page))).toContain("https://api.example.test/r-1");
 });
+
+// Launch QA: a Postman file's report and its script review listed the requests by their number alone, every folder's
+// first request together ("Get customer" before "List orders"). Both now follow the tree, each folder before what it holds.
+test("the import report and the script review list a collection's items in the order of its tree", async ({ page }) => {
+  const test = (name: string) => [{ listen: "test", script: { exec: [`pm.test("${name}", () => {});`] } }];
+  const file = {
+    info: { name: "Store", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+    item: [
+      {
+        name: "Orders",
+        item: [
+          { name: "List orders", request: { method: "GET", url: "https://api.test/orders" }, event: test("a") },
+          { name: "Create order", request: { method: "POST", url: "https://api.test/orders" }, event: test("b") },
+        ],
+      },
+      {
+        name: "Customers",
+        item: [{ name: "Get customer", request: { method: "GET", url: "https://api.test/c" }, event: test("c") }],
+      },
+      { name: "Health", request: { method: "GET", url: "https://api.test/health" }, event: test("d") },
+    ],
+  };
+  await page.goto("/app/");
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({
+    name: "store.postman_collection.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(file)),
+  });
+  const dialog = page.getByRole("dialog", { name: "Import collection" });
+  await expect(dialog.getByText("Its requests go to:")).toBeVisible();
+  const names = ["Store", "Orders", "List orders", "Create order", "Customers", "Get customer", "Health"];
+  const rows = dialog.getByRole("list", { name: "What is imported" }).locator(".import-plan-name");
+  await expect(rows).toHaveText(names);
+  await dialog.getByRole("button", { name: "Import and review scripts…" }).click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review.locator(".script-review-list li > div > span:first-child")).toHaveText([
+    "List orders",
+    "Create order",
+    "Get customer",
+    "Health",
+  ]);
+});

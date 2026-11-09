@@ -107,6 +107,38 @@ export function childrenInOrder<
 }
 
 /**
+ * Every folder and request of a tree in the order a reader sees it: each folder, then what it holds, as the tree and a
+ * run walk it. A folder that names another as its parent in a loop is entered once; an item whose parent is not in the
+ * tree comes last, so the list holds every item it was given.
+ */
+type TreeItem<F, R> = { kind: "folder"; folder: F } | { kind: "request"; request: R };
+
+export function treeInOrder<
+  F extends Pick<Folder, "id" | "order" | "parentFolderId">,
+  R extends Pick<RequestDoc, "id" | "order" | "folderId">,
+>(tree: { folders: readonly F[]; requests: readonly R[] }): TreeItem<F, R>[] {
+  const entered = new Set<string>();
+  const walk = (parent: string | undefined): TreeItem<F, R>[] =>
+    childrenInOrder(tree, parent).flatMap((child): TreeItem<F, R>[] => {
+      if (child.request !== undefined) return [{ kind: "request", request: child.request }];
+      // A generic child does not narrow to its folder: read it, and a folder entered before is not entered again.
+      const { folder } = child;
+      if (!folder || entered.has(folder.id)) return [];
+      entered.add(folder.id);
+      return [{ kind: "folder", folder }, ...walk(folder.id)];
+    });
+  const listed = walk(undefined);
+  const seen = new Set(listed.map((item) => (item.kind === "request" ? item.request.id : item.folder.id)));
+  return [
+    ...listed,
+    ...tree.folders.filter((folder) => !seen.has(folder.id)).map((folder) => ({ kind: "folder" as const, folder })),
+    ...tree.requests
+      .filter((request) => !seen.has(request.id))
+      .map((request) => ({ kind: "request" as const, request })),
+  ];
+}
+
+/**
  * What a request inherits from, in the order it applies: the collection,
  * then its folders from the outside in. `name` says which it is, as a
  * person reads it: `collection "Shop"`, `folder "Admin"`.

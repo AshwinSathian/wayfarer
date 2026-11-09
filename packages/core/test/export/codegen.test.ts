@@ -95,6 +95,20 @@ describe("generated code (P4.6 a)", () => {
     await expect(run("ls", [dir])).resolves.toMatchObject({ stdout: expect.not.stringContaining("pwned") as string });
   }, 60_000);
 
+  it("Python: headers that share a name are one entry of the dict, their values joined, as fetch sends them", () => {
+    const code = generateCode("python-requests", {
+      method: "GET",
+      url: "http://api.test/",
+      headers: [
+        ["X-Tag", "a"],
+        ["Accept", "*/*"],
+        ["x-tag", "b"],
+      ],
+      body: { mode: "none" },
+    });
+    expect(code).toContain(`headers={"X-Tag": "a, b", "Accept": "*/*"}`);
+  });
+
   it("HTTPie: a value it would read as a file is not written as a command", () => {
     const request = exportFixtures("http://api.test").find(
       (fixture) => fixture.name === "POST multipart text",

@@ -26,6 +26,17 @@ describe("buildCurl", () => {
     ).toBe("curl \\\n  'https://api.test/items?a=1' \\\n  -H 'Accept: application/json'");
   });
 
+  it("an address with [] or {} is sent with --globoff: curl would read them as a range or a list of addresses", () => {
+    const url = "https://api.test/items?filter[name]=a&x={a,b}";
+    expect(buildCurl(request({ url }))).toBe(`curl \\\n  --globoff \\\n  '${url}'`);
+  });
+
+  it("a header with an empty value is Name;, since curl removes a header written Name: with nothing after", () => {
+    expect(buildCurl(request({ headers: [["X-Debug", ""]] }))).toBe(
+      "curl \\\n  'https://api.test/' \\\n  -H 'X-Debug;'",
+    );
+  });
+
   it("adds the method and a text body for other methods", () => {
     expect(
       buildCurl(

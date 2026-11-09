@@ -15,8 +15,9 @@ export function collectionsToNodes(trees: CollectionTree[]): UiTreeNode<Collecti
 function toCollectionNode(entry: CollectionTree): UiTreeNode<CollectionNodeData> {
   const drawn = new Set<Folder>();
   // A parent's folders and requests are one list, in the order they share: the order of a run.
+  const childrenOf = childrenInOrder(entry);
   const children = (parent: string | undefined): UiTreeNode<CollectionNodeData>[] =>
-    childrenInOrder(entry, parent).flatMap((child) =>
+    childrenOf(parent).flatMap((child) =>
       child.request ? [toRequestNode(child.request)] : drawn.has(child.folder) ? [] : [toFolderNode(child.folder)],
     );
   const toFolderNode = (folder: Folder): UiTreeNode<CollectionNodeData> => {

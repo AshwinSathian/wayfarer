@@ -67,10 +67,13 @@ export function buildCurl(request: ExportRequest): string {
     // An imported collection can carry any string as its method; only a plain token goes unquoted.
     parts.push(`-X ${/^[A-Za-z]+$/.test(request.method) ? request.method : shellQuote(request.method)}`);
   }
+  // curl reads [] and {} in an address as a range or a list of addresses.
+  if (/[[\]{}]/.test(request.url)) parts.push("--globoff");
   // An address that starts with "-" would be read as an option: --url takes it as its value.
   parts.push(request.url.startsWith("-") ? `--url ${shellQuote(request.url)}` : shellQuote(request.url));
   for (const [name, value] of request.headers) {
-    if (name) parts.push(`-H ${shellQuote(`${name}: ${value}`)}`);
+    // "Name: " removes the header; "Name;" sends it empty.
+    if (name) parts.push(`-H ${shellQuote(value ? `${name}: ${value}` : `${name};`)}`);
   }
   parts.push(...bodyArguments(request.body));
   return parts.join(" \\\n  ");

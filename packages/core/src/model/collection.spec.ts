@@ -39,4 +39,16 @@ describe("treeInOrder", () => {
     };
     expect(treeInOrder(tree)).toHaveLength(5);
   });
+
+  it("reads each item once, not once per folder: 20,000 folders of one request each in well under a second", () => {
+    const count = 20_000;
+    const tree = {
+      folders: Array.from({ length: count }, (_, i) => folder(`f${i}`, i)),
+      requests: Array.from({ length: count }, (_, i) => request(`r${i}`, 0, `f${i}`)),
+    };
+    const started = performance.now();
+    expect(treeInOrder(tree)).toHaveLength(2 * count);
+    // Four seconds when every folder filtered the whole tree for its children.
+    expect(performance.now() - started).toBeLessThan(500);
+  });
 });

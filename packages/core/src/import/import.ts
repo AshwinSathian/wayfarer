@@ -207,7 +207,14 @@ function added(payload: CollectionExport): ImportedCollection {
  * nothing and stores nothing. Throws `ImportError`, and nothing else.
  */
 export function importText(text: string, options: ImportOptions = {}): Imported {
-  const imported = readText(text, options);
+  let imported: Imported;
+  try {
+    imported = readText(text, options);
+  } catch (error) {
+    // A value nested deeper than the engine's stack, which the importers walk.
+    if (error instanceof RangeError) throw new ImportError("The file is nested too deeply to read.");
+    throw error;
+  }
   return {
     ...imported,
     report: {

@@ -40,6 +40,8 @@ const headerOf = (headers: [string, string][], name: string): string | undefined
   headers.find(([key]) => key.toLowerCase() === name)?.[1];
 const known = (value: number | undefined): number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : -1;
+/** A time the format requires to be known: 0 when it is not. */
+const atLeastZero = (value: number | undefined): number => Math.max(0, known(value));
 
 /** The cookies of a request's `Cookie` headers, as HAR lists them. A header that was masked holds no pair and gives none. */
 function sentCookies(headers: [string, string][]): Pair[] {
@@ -121,7 +123,8 @@ function postData(body: ExportBody, headers: [string, string][]): Record<string,
 
 /**
  * A HAR 1.2 log of `exchanges`, in their order, with every field the
- * format requires. What is not known is `-1`, as the format says. Cookies
+ * format requires. What is not known is `-1` where the format allows it, and
+ * otherwise 0 (the time, send, wait and receive). Cookies
  * are not listed apart: one that was sent is in the `Cookie` header.
  */
 export function buildHar(
@@ -145,7 +148,7 @@ export function buildHar(
               : undefined;
         return {
           startedDateTime: exchange.startedAt,
-          time: known(exchange.timeMs),
+          time: atLeastZero(exchange.timeMs),
           request: {
             method: request.method,
             url: request.url,
@@ -178,9 +181,9 @@ export function buildHar(
             blocked: -1,
             dns: known(timings?.dns),
             connect: known(timings?.connect),
-            send: known(timings?.send),
-            wait: known(timings?.wait),
-            receive: known(timings?.receive),
+            send: atLeastZero(timings?.send),
+            wait: atLeastZero(timings?.wait),
+            receive: atLeastZero(timings?.receive),
             ssl: known(timings?.ssl),
           },
           ...(exchange.comment && { comment: exchange.comment }),

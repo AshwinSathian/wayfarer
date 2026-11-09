@@ -15,7 +15,7 @@ export class HistoryRepository {
    */
   async add(req: PastRequest, cap: number): Promise<number | null> {
     try {
-      if (this.core.useMemoryFallback) {
+      if (this.core.memoryOnly()) {
         return this.addToMemory(req, cap);
       }
 
@@ -45,7 +45,7 @@ export class HistoryRepository {
 
   async get(id: number): Promise<PastRequest | null> {
     try {
-      if (this.core.useMemoryFallback) {
+      if (this.core.memoryOnly()) {
         return this.memoryStore.find((item) => item.id === id) ?? null;
       }
 
@@ -67,7 +67,7 @@ export class HistoryRepository {
   /** The newest entries first. */
   async getLatest(limit = Number.POSITIVE_INFINITY): Promise<PastRequest[]> {
     try {
-      if (this.core.useMemoryFallback) {
+      if (this.core.memoryOnly()) {
         return this.memoryStore.slice(0, limit);
       }
 
@@ -94,7 +94,7 @@ export class HistoryRepository {
 
   async delete(id: number): Promise<void> {
     try {
-      if (this.core.useMemoryFallback) {
+      if (this.core.memoryOnly()) {
         this.memoryStore = this.memoryStore.filter((item) => item.id !== id);
         return;
       }
@@ -116,14 +116,14 @@ export class HistoryRepository {
 
   async clear(): Promise<void> {
     try {
-      if (this.core.useMemoryFallback) {
-        this.resetMemoryStore();
+      if (this.core.memoryOnly()) {
+        this.resetLocalState();
         return;
       }
 
       const db = await this.core.getDatabase();
       if (!db) {
-        this.resetMemoryStore();
+        this.resetLocalState();
         return;
       }
 
@@ -136,7 +136,7 @@ export class HistoryRepository {
     }
   }
 
-  /** Called by Idb.resetDatabase() after IdbCore's own reset. */
+  /** Called by AppShell.performResetAllData after IdbCore.resetDatabase(). */
   resetLocalState(): void {
     this.memoryStore = [];
     this.memorySequence = 1;
@@ -148,11 +148,6 @@ export class HistoryRepository {
     this.sortMemoryStore();
     this.memoryStore.length = Math.min(this.memoryStore.length, cap);
     return record.id;
-  }
-
-  private resetMemoryStore(): void {
-    this.memoryStore = [];
-    this.memorySequence = 1;
   }
 
   private sortMemoryStore(): void {

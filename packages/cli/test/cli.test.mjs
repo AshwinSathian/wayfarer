@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
 import { tmpdir } from "node:os";
@@ -410,6 +410,40 @@ test("a shared error is said once, and the summary is the app's sentences", asyn
   );
 });
 
+test("--environment-name picks one environment of a file the app exported with several", async () => {
+  const env = (id, name, path) => ({
+    meta: meta(id),
+    name,
+    order: 0,
+    vars: [{ key: "path", value: path, enabled: true }],
+  });
+  const environments = await file("environments-export.json", {
+    $id: "wayfarer/environments",
+    environments: [env("dev", "Dev", "dev"), env("prod", "Prod", "prod")],
+  });
+  const path = await file("by-env.json", collectionFile([request("Env", { url: `${recorded}/{{path}}` })]));
+  seen.length = 0;
+  const run = await cli(["run", path, "-e", environments, "--environment-name", "Prod"]);
+  assert.equal(run.code, 0, run.stderr);
+  assert.deepEqual(
+    seen.map((entry) => entry.url),
+    ["/prod"],
+  );
+  const unnamed = await cli(["run", path, "-e", environments]);
+  assert.equal(unnamed.code, 2);
+  assert.match(unnamed.stderr, /holds 2 environments: name one with --environment-name \("Dev", "Prod"\)/);
+});
+
+test("a report that cannot be written after the run is said, and the run's failure is exit 1, not 2", async () => {
+  const out = join(folder, "blocked");
+  await mkdir(join(out, "wayfarer-run.junit.xml"), { recursive: true });
+  const path = await file("passes.json", collectionFile([request("Fine", { url: `${recorded}/fine` })]));
+  const run = await cli(["run", path, "--reporter", "junit", "--out", out]);
+  assert.equal(run.code, 1);
+  assert.match(run.stderr, /^--out .*blocked: EISDIR/);
+  assert.doesNotMatch(run.stderr, /\n\s+at /);
+});
+
 test("what cannot be run is said, with exit code 2", async () => {
   const path = await file("one.json", collectionFile([request("One", { url: `${recorded}/` })]));
   const cases = [
@@ -418,6 +452,11 @@ test("what cannot be run is said, with exit code 2", async () => {
     [["run", path, "--reporter", "xml"], /Unknown reporter "xml": choose from cli, json, junit and html/],
     [["run", path, "-n", "x"], /--iterations takes a whole number/],
     [["run", path, "--collection", "Other"], /has no collection named "Other"/],
+    [["run", path, "--timeout", "300001"], /--timeout takes at most 300000/],
+    [
+      ["run", path, "--environment-name", "Prod"],
+      /--environment-name names an environment of the file given with --environment/,
+    ],
     [["run", path, "--unknown"], /Unknown option '--unknown'/],
   ];
   for (const [args, message] of cases) {

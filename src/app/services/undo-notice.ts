@@ -35,6 +35,8 @@ export class UndoNotice {
       await current.undo();
     } catch (error) {
       recordDiagnostic(error, "undo");
+      // Nothing was put back: the Undo stays, to be tried again.
+      this.offer(current.message, current.undo);
     }
   }
 

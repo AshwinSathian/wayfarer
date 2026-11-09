@@ -21,16 +21,10 @@ export interface InspectorExportEntry {
   id: string;
   startedDateTime: string;
   time: number;
-  req: {
-    method: string;
-    url: string;
-    headers: Record<string, string>;
-    body?: unknown;
-  };
   res: {
     status: number;
     statusText: string;
-    headers: Record<string, string>;
+    headers: [string, string][];
     body?: unknown;
     sizes?: {
       transferSize?: number;

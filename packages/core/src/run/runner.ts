@@ -79,8 +79,9 @@ export function runFailed(result: Pick<RunOutcome, "error" | "tests">): boolean 
  */
 export function requestsInOrder(tree: Pick<CollectionTree, "folders" | "requests">, folderId?: string): RequestDoc[] {
   const entered = new Set<string>();
+  const childrenOf = childrenInOrder(tree);
   const inOrder = (parent: string | undefined): RequestDoc[] =>
-    childrenInOrder(tree, parent).flatMap((child) => {
+    childrenOf(parent).flatMap((child) => {
       if (child.request) return [child.request];
       if (entered.has(child.folder.id)) return [];
       entered.add(child.folder.id);

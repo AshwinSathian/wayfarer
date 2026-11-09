@@ -263,8 +263,9 @@ export function postmanCollection(source: CollectionExport): { file: Entry; note
   const written = new Set<Folder>();
   const ids = new Set(source.folders.map((folder) => folder.id));
   // A folder's folders and requests in their one order, as the file has its items.
+  const childrenOf = childrenInOrder(source);
   const items = (parent: string | undefined): Entry[] =>
-    childrenInOrder(source, parent).flatMap((child) =>
+    childrenOf(parent).flatMap((child) =>
       child.request ? [request(child.request, notes)] : written.has(child.folder) ? [] : [group(child.folder)],
     );
   const group = (folder: Folder): Entry => {

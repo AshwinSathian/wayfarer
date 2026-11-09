@@ -133,6 +133,23 @@ describe("buildRequest", () => {
       });
       expect(askHost).not.toHaveBeenCalled();
     });
+
+    it("@claim:C-053 asks for a request whose only secret is its OAuth 2.0 token, before the token is fetched, and does not read the vault", async () => {
+      const moved = requestContent({ url: "https://{{host}}/", auth: oauth });
+      const readSecrets = vi.fn();
+      const oauthToken = vi.fn(() => Promise.resolve("tok"));
+      const askHost = vi.fn(() => Promise.resolve(true));
+      const result = await built(moved, { composed, askHost, readSecrets, oauthToken });
+      expect(askHost).toHaveBeenCalledExactlyOnceWith("before.test", "api.test");
+      expect(result.secrets).toEqual(["tok"]);
+
+      oauthToken.mockClear();
+      await expect(
+        built(moved, { composed, askHost: () => Promise.resolve(false), readSecrets, oauthToken }),
+      ).rejects.toBeInstanceOf(SendDeclinedError);
+      expect(oauthToken).not.toHaveBeenCalled();
+      expect(readSecrets).not.toHaveBeenCalled();
+    });
   });
 
   describe("the body, by mode", () => {

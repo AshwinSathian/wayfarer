@@ -984,8 +984,8 @@ test("segmented: the keys of WAI-ARIA's radio group, one tab stop, and a choice 
   await page.keyboard.press("ArrowLeft");
   await expect(option(theme, "Dark")).toBeFocused();
   await expect(option(theme, "Dark")).toBeChecked();
-  // The option an arrow moved to shows its focus ring (WebKit's own arrows took it away).
-  await expect(option(theme, "Dark")).toHaveCSS("outline-style", "solid");
+  // No focus ring, from the keyboard either (maintainer, 2026-11-09).
+  await expect(option(theme, "Dark")).toHaveCSS("outline-style", "none");
   await page.keyboard.press("Space");
   await expect(option(theme, "Dark")).toBeChecked();
   await expect(theme.getByRole("radio", { checked: true })).toHaveCount(1);
@@ -1339,14 +1339,13 @@ test("button: none of the browser's look; under the pointer, focused from the ke
   await outlined.hover();
   await expect.poll(() => css(outlined, "background-color")).not.toBe(rest);
 
-  // The ring is the app's, and the button keeps its own corners with it: the global :focus-visible rule sets another radius.
+  // Focused from the keyboard it draws no ring (maintainer, 2026-11-09) and keeps its own corners.
   const plain = page.getByRole("button", { name: "Plain", exact: true });
   const radius = await css(plain, "border-top-left-radius");
   await page.getByRole("button", { name: "Small icon success" }).focus();
   await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   await expect(plain).toBeFocused();
-  expect(await css(plain, "outline-style")).toBe("solid");
-  expect(await css(plain, "outline-width")).toBe("2px");
+  expect(await css(plain, "outline-style")).toBe("none");
   expect(await css(plain, "border-top-left-radius")).toBe(radius);
 
   // Pressed, its fill darkens and it keeps its size: nothing pressed often moves (D3.7, U-078).
@@ -1534,11 +1533,10 @@ test("text field: in forced colours each keeps its edge and a focused one shows 
     page.getByLabel(name, { exact: true }).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
   for (const name of ["Name", "Subprotocols", "Message"])
     expect(await css(name, "border-top-style"), name).toBe("solid");
-  // The glow is taken away; the outline is painted in the system's colour.
+  // The glow is taken away, and no outline takes its place (no focus ring, maintainer, 2026-11-09).
   for (const name of ["Name", "Address"]) {
     await page.getByLabel(name, { exact: true }).focus();
-    expect(await css(name, "outline-style"), name).toBe("solid");
-    expect(await css(name, "outline-width"), name).toBe("2px");
+    expect(await css(name, "outline-style"), name).toBe("none");
   }
 });
 
@@ -1635,14 +1633,12 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   await expect.poll(() => css(off, "border-top-color")).toBe(await token("--label-secondary"));
   await page.mouse.move(0, 0);
 
-  // Focused from the keyboard: the ring, 2 px off the box, which keeps its corners.
+  // Focused from the keyboard: no ring (maintainer, 2026-11-09), and the box keeps its corners.
   const radius = await css(off, "border-top-left-radius");
   await on.focus();
   await page.keyboard.press("Tab");
   await expect(off).toBeFocused();
-  expect(await css(off, "outline-style")).toBe("solid");
-  expect(await css(off, "outline-width")).toBe("2px");
-  expect(await css(off, "outline-offset")).toBe("2px");
+  expect(await css(off, "outline-style")).toBe("none");
   expect(await css(off, "border-top-left-radius")).toBe(radius);
   // A transition, even reduced to nothing, ends at a frame: Linux WebKit had none to give at once.
   await expect.poll(async () => css(off, "border-top-color")).toBe(await token("--label-secondary"));
@@ -1706,7 +1702,7 @@ test("checkbox: in forced colours each keeps its edge, a checked one is painted 
   expect(await css("Follow redirects", "background-color", "::before")).toBe(await system("HighlightText"));
   await box("Follow redirects").focus();
   await page.keyboard.press("Tab");
-  expect(await css("Do not verify the server's certificate", "outline-style")).toBe("solid");
+  expect(await css("Do not verify the server's certificate", "outline-style")).toBe("none");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

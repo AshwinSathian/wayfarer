@@ -30,12 +30,8 @@ const painted = (page: Page, selector: string) =>
       return kept && style.backgroundColor !== canvas && style.backgroundColor !== "rgba(0, 0, 0, 0)";
     });
 
-test("in forced colours the select's focus, the unsaved dot and the timing bars keep their marks", async ({ page }) => {
+test("in forced colours the unsaved dot and the timing bars keep their marks", async ({ page }) => {
   await forced(page);
-  const environment = page.getByRole("combobox", { name: "Environment" });
-  await environment.focus();
-  await expect(environment).toHaveCSS("outline-style", "solid");
-  await expect(environment).toHaveCSS("outline-width", "2px");
 
   await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
   await expect(page.getByRole("img", { name: "Unsaved changes" })).toBeVisible();

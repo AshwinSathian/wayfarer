@@ -46,11 +46,6 @@
   color: var(--label-primary);
 }
 
-.settings-nav-item:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-
 .settings-nav-item[aria-current="page"] {
   background: var(--fill-selected);
   color: var(--label-primary);
@@ -81,11 +76,6 @@
 .settings-nav-chevron,
 .settings-back.ui-button {
   display: none;
-}
-
-.settings-pane:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
 }
 
 .settings-pane {
@@ -171,11 +161,6 @@
 
 .settings-row-link:hover {
   background: var(--fill-hover);
-}
-
-.settings-row-link:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
 }
 
 .settings-actions,

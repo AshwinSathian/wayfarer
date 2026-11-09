@@ -75,11 +75,6 @@
   border-bottom: 2px solid var(--ink);
 }
 
-.tab-bar [role="tab"]:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-
 /* The composer's own tabs (P5.1): a request each, above the composer. The
    bar takes the room the three buttons beside it leave and scrolls. */
 .request-tab-strip {
@@ -175,12 +170,6 @@
 
 .tab-pane[inert] {
   display: none;
-}
-
-/* A pane with nothing to focus in it is a Tab stop (WAI-ARIA's pattern; uiTabList takes the others out, U-090). */
-[role="tabpanel"]:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
 }
 
 /* Forced colours paint every background as the canvas: the unsaved dot keeps its fill in the text's colour (U-116). */

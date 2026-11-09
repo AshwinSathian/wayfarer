@@ -23,6 +23,12 @@ describe("containsSecretPlaceholder", () => {
     expect(containsSecretPlaceholder({ url: "", headers: [], body: "a=%zz&b=%7B%7B%24secret.x%7D%7D" })).toBe(true);
   });
 
+  it("finds a reference with an encoded non-ASCII space, also beside a byte that is not UTF-8", () => {
+    for (const url of ["https://h/?k=%7B%7B%C2%A0%24secret.x%7D%7D", "https://h/?k=%FF%7B%7B%C2%A0%24secret.x%7D%7D"]) {
+      expect(containsSecretPlaceholder({ url, headers: [] })).toBe(true);
+    }
+  });
+
   it("passes a request with no reference", () => {
     expect(containsSecretPlaceholder({ url: "https://h/%zz?a=1+2", headers: [basic("u:p")], body: "a=%7B" })).toBe(
       false,

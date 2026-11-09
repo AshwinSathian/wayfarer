@@ -28,14 +28,19 @@ export function containsSecretPlaceholder(request: WireRequest): boolean {
 }
 
 /**
- * `+` as a space and each ASCII escape decoded, one at a time: the marker is
- * ASCII, and a malformed escape elsewhere (`%zz`) must not hide the others.
+ * `+` as a space and each run of escapes decoded as UTF-8 (`%C2%A0` is a
+ * space to `\s`), a byte that is not UTF-8 as U+FFFD, so that a malformed
+ * escape elsewhere (`%zz`, `%FF`) does not hide the others.
  */
 function formDecoded(text: string): string {
   return text
     .replaceAll("+", " ")
-    .replace(/%([0-7][0-9a-f])/gi, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+    .replace(/(?:%[0-9a-f]{2})+/gi, (run) =>
+      utf8.decode(Uint8Array.from(run.slice(1).split("%"), (hex) => parseInt(hex, 16))),
+    );
 }
+
+const utf8 = new TextDecoder();
 
 /**
  * The text a body puts on the wire: itself, also form-decoded (a form

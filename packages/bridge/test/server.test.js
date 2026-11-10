@@ -136,6 +136,16 @@ test("@claim:C-041 POST /relay rejects a missing/incorrect token with 401, even 
       body: JSON.stringify({ method: "GET", url: "http://example.com", headers: [] }),
     });
     assert.equal(res.status, 401);
+
+    // A wrong token is refused as a missing one is, also one that is the right one with a byte added or taken off.
+    for (const wrong of ["not-the-token", `${TOKEN}x`, TOKEN.slice(0, -1)]) {
+      const refused = await fetch(`http://127.0.0.1:${port}/relay`, {
+        method: "POST",
+        headers: { Origin: ORIGIN, "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": wrong },
+        body: JSON.stringify({ method: "GET", url: "http://example.com", headers: [] }),
+      });
+      assert.equal(refused.status, 401, wrong);
+    }
   } finally {
     await close(bridge);
   }

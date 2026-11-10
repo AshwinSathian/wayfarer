@@ -9,6 +9,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- A `funding.json` manifest at the repository root, which says what funding would pay for (an independent security review, Git-backed collections and an accessibility audit).
 - The project has earned the OpenSSF Best Practices "passing" badge, and the README shows it.
 - The README shows the project's OpenSSF Scorecard, which the weekly scorecard workflow already publishes.
 

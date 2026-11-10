@@ -1,0 +1,75 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.0.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Ashwin Sathian",
+    "email": "hello@ashwinsathian.com",
+    "phone": "",
+    "description": "I am a software engineer in Kochi, Kerala, India, and the sole maintainer of Wayfarer. I build it in the open under the MIT licence, with no company and no outside funding so far.",
+    "webpageUrl": {
+      "url": "https://ashwinsathian.com",
+      "wellKnown": ""
+    }
+  },
+  "projects": [
+    {
+      "guid": "wayfarer",
+      "name": "Wayfarer",
+      "description": "Wayfarer is an API client that opens in a browser tab: no install, no account and no server of ours. Collections, history and an encrypted secrets vault stay in the browser's IndexedDB, and the only network traffic is the request you send. It imports Postman, Insomnia, OpenAPI, HAR and cURL, runs Postman-style scripts in a QuickJS sandbox, and handles REST, GraphQL, WebSockets and event streams. It ships wayfarer-cli (runs a collection in CI) and wayfarer-bridge (a local relay for what a browser blocks) on npm. Each of its 94 public claims has a test in CI, run in Chromium, Firefox and WebKit where the claim is about the page. It launched on 10 November 2026 and is young: one maintainer, version 3.4.0.",
+      "webpageUrl": {
+        "url": "https://wayfarer.ashwinsathian.com",
+        "wellKnown": ""
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/AshwinSathian/wayfarer",
+        "wellKnown": ""
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["developer-tools", "api", "privacy", "security", "web-development", "networking", "productivity"]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "indian-bank",
+        "type": "bank",
+        "address": "",
+        "description": "A bank account in India in the maintainer's name. Details are given to the funder on request."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "security-review",
+        "status": "active",
+        "name": "Independent security review",
+        "description": "A paid, independent review of the encrypted vault, the QuickJS script sandbox, the Local Bridge and the share-link codec, with the report published and every finding tracked in the public issue tracker. The project's claims say these parts are safe, and today only the maintainer and automated tests have checked them.",
+        "amount": 150000,
+        "currency": "INR",
+        "frequency": "one-time",
+        "channels": ["indian-bank"]
+      },
+      {
+        "guid": "git-collections",
+        "status": "active",
+        "name": "Git-backed collections",
+        "description": "Maintainer time to build the next roadmap item: keep a collection as plain files in a Git repository, with each change and its diff visible before it is taken. Rivals such as Bruno and Yaak have this and Wayfarer does not; it is the most common reason a team cannot choose it.",
+        "amount": 300000,
+        "currency": "INR",
+        "frequency": "one-time",
+        "channels": ["indian-bank"]
+      },
+      {
+        "guid": "accessibility-audit",
+        "status": "active",
+        "name": "Accessibility audit",
+        "description": "An expert accessibility audit with assistive technology on real devices, and the fixes it finds. Automated checks (axe, WCAG 2.2 A and AA) already run in CI, but they do not replace a person using a screen reader.",
+        "amount": 50000,
+        "currency": "INR",
+        "frequency": "one-time",
+        "channels": ["indian-bank"]
+      }
+    ]
+  }
+}

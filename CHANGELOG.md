@@ -11,6 +11,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - The README shows the project's OpenSSF Scorecard, which the weekly scorecard workflow already publishes.
 
+### Changed
+
+- The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.
+
 ## [3.4.0] - 2026-11-10
 
 New faces, a shell drawn from the first frame, and some seventy fixes from a review of the whole codebase: the send road, secrets, scripts, storage, imports and exports, the Local Bridge and the command line, the website, and the gates that deploy it. With it, `wayfarer-bridge` 3.0.2 and `wayfarer-cli` 2.2.0.

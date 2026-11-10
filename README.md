@@ -20,6 +20,7 @@
 [![wayfarer-bridge on npm](https://img.shields.io/npm/v/wayfarer-bridge?label=wayfarer-bridge)](https://www.npmjs.com/package/wayfarer-bridge)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/AshwinSathian/wayfarer/badge)](https://scorecard.dev/viewer/?uri=github.com/AshwinSathian/wayfarer)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16536/badge)](https://www.bestpractices.dev/projects/16536)
 
 </div>
 

@@ -39,6 +39,15 @@
 - **When the browser says no,** `npx wayfarer-bridge` sends the request from your machine, past CORS, forbidden headers and mixed content.
 - **Every claim is tested.** Each line under [All tested claims](#all-tested-claims) has a test in CI, run in Chromium, Firefox and WebKit where it is about the page.
 
+## Why not Bruno, Yaak or Hurl?
+
+Each of these is a good tool, and each is a better pick for some work. The sources for every line are on the [comparison pages](https://wayfarer.ashwinsathian.com/compare/), read in November 2026.
+
+- **[Bruno](https://www.usebruno.com/)** is a desktop app whose collections are plain-text files in a folder, for a Git repository. If your team reviews requests as files in Git, pick Bruno. Wayfarer's collections live in the browser and leave it as an export.
+- **[Yaak](https://yaak.app/)** is a fast desktop app with gRPC, and it syncs a workspace to a folder you can keep in Git. It is free for personal use and needs a licence at work. Wayfarer has no gRPC and no Git sync, and is MIT with nothing to buy.
+- **[Hurl](https://hurl.dev/)** runs requests written in plain-text files from the command line. If your tests live in a repository and run in CI as files, Hurl fits that directly. `wayfarer-cli` runs a Wayfarer or Postman collection with the app's engine, and the files are JSON.
+- **Wayfarer** is the one that needs nothing installed: open a tab, import your Postman, Insomnia, OpenAPI, HAR or cURL work, and send. The vault's key is made from your passphrase and held in memory only. Scripts from an imported file do not run until you have read them.
+
 ## Start
 
 - **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/app/). It installs as an app and loads offline after the first visit. The hosted copy is the latest release; `main` may be ahead of it.
@@ -208,6 +217,10 @@ Also in the app, documented but not ledger claims: collection runs with data fil
 
 ## Known limitations
 
+- **Protocols.** REST, GraphQL, WebSocket and server-sent events. There is no gRPC, MQTT or Socket.IO, and no MCP server.
+- **No Git-backed collections yet.** Collections are stored in the browser's IndexedDB and leave as a file or an encrypted link. Keeping them in a Git repository is next on the [roadmap](docs/roadmap.md).
+- **No sync and no shared workspace.** A collection reaches a teammate as a copy. Two people cannot edit one together.
+- **Browser limits.** CORS, forbidden headers, mixed content and the rest of [what the browser can't do](#what-the-browser-cant-do) apply to the hosted app. The Local Bridge lifts them for a request, and needs Node on your machine.
 - A browser can delete a site's data; Safari does after seven days without a visit, unless the app is installed. Wayfarer asks the browser to keep it and reminds you to back up, but it cannot make the browser promise.
 
 ## Contributing

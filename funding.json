@@ -44,8 +44,8 @@
         "guid": "security-review",
         "status": "active",
         "name": "Independent security review",
-        "description": "A paid, independent review of the encrypted vault, the QuickJS script sandbox, the Local Bridge and the share-link codec, with the report published and every finding tracked in the public issue tracker. The project's claims say these parts are safe, and today only the maintainer and automated tests have checked them.",
-        "amount": 150000,
+        "description": "A paid, manual review by an independent firm or freelancer of the encrypted vault, the QuickJS script sandbox, the Local Bridge and the share-link codec, with a retest of the fixes. The report is published and each finding is tracked in the public issue tracker. The project's claims say these parts are safe, and so far only the maintainer and automated tests have checked them. The amount is the upper end of what Indian vendors list for a manual web application test (about 50,000 to 75,000 INR), because the scope is wider than one form-and-login app.",
+        "amount": 75000,
         "currency": "INR",
         "frequency": "one-time",
         "channels": ["indian-bank"]
@@ -54,8 +54,8 @@
         "guid": "git-collections",
         "status": "active",
         "name": "Git-backed collections",
-        "description": "Maintainer time to build the next roadmap item: keep a collection as plain files in a Git repository, with each change and its diff visible before it is taken. Rivals such as Bruno and Yaak have this and Wayfarer does not; it is the most common reason a team cannot choose it.",
-        "amount": 300000,
+        "description": "A stipend for three months of part-time work (25,000 INR a month) on the next roadmap item: keep a collection as plain files in a Git repository, with each change and its diff visible before it is taken. Bruno and Yaak have this and Wayfarer does not.",
+        "amount": 75000,
         "currency": "INR",
         "frequency": "one-time",
         "channels": ["indian-bank"]
@@ -64,8 +64,18 @@
         "guid": "accessibility-audit",
         "status": "active",
         "name": "Accessibility audit",
-        "description": "An expert accessibility audit with assistive technology on real devices, and the fixes it finds. Automated checks (axe, WCAG 2.2 A and AA) already run in CI, but they do not replace a person using a screen reader.",
-        "amount": 50000,
+        "description": "A manual accessibility audit with a screen reader and keyboard on real devices, from a freelancer, plus a retest of the fixes. Automated checks (axe, WCAG 2.2 A and AA) already run in CI. Freelance quotes in India for this are typically 10,000 to 35,000 INR.",
+        "amount": 25000,
+        "currency": "INR",
+        "frequency": "one-time",
+        "channels": ["indian-bank"]
+      },
+      {
+        "guid": "hosting-domain",
+        "status": "active",
+        "name": "Hosting and domain for a year",
+        "description": "Running costs for 12 months: a Cloudflare plan and Workers usage for the site and app (about 26,000 INR a year at Cloudflare's published Pro and Workers Paid prices, converted at a rough rate), and a domain of its own so the site no longer shares a zone with the maintainer's personal site. Continuous integration runs on GitHub Actions, which is free for public repositories. If Cloudflare's Project Alexandria credits are granted, this plan is reduced or withdrawn so the same cost is not funded twice.",
+        "amount": 25000,
         "currency": "INR",
         "frequency": "one-time",
         "channels": ["indian-bank"]

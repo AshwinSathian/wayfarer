@@ -404,6 +404,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   },
   "import-curl": async (page) => {
     await page.goto("/app/");
+    await untilBooted(page);
     // An empty tree has no Import menu (L-16): the empty response offers the paste. On a phone it is under the
     // Response tab.
     const responseTab = page.getByRole("tab", { name: "Response", exact: true });

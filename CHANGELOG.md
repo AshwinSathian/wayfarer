@@ -18,6 +18,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.
 - The Local Bridge's test for claim C-041 ("relays only for an allowed origin that presents its token") now sends a wrong token, and one a byte longer or shorter than the right one, and expects each to be refused; before, it sent none. No change in behaviour.
 
+### Fixed
+
+- **On a phone, a choice's options keep their words inside them.** In Settings, "By the room it has", "Beside the request" and "Under the request" ran into each other at 390 px; each option's words now wrap within it, and the options share the row equally.
+
 ## [3.4.0] - 2026-11-10
 
 New faces, a shell drawn from the first frame, and some seventy fixes from a review of the whole codebase: the send road, secrets, scripts, storage, imports and exports, the Local Bridge and the command line, the website, and the gates that deploy it. With it, `wayfarer-bridge` 3.0.2 and `wayfarer-cli` 2.2.0.

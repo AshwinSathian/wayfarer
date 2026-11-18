@@ -280,7 +280,9 @@
         <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
         <!-- What can wait floats at the corner instead of pushing the page down (loupe, 3.5.0: the backup reminder moved the
              composer 86 px at the first save). Urgent states stay in the flow below. -->
-        <div class="shell-notices">
+        <div
+          [class]="!sidebarOverlay() && drawerVisible() && !isMobile() ? 'shell-notices shell-notices-floating' : 'shell-notices'"
+        >
           @if (swUpdate.updateAvailable()) {
           <div
             class="shell-notice flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-fill-secondary border border-separator"

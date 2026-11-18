@@ -39,9 +39,12 @@
     }}</button
   >
   }
-  <p class="type-footnote text-label-primary m-0" role="alert"
-    >@if (folderRefused()) {<app-icon name="warning" /> {{ folderRefused() }}}</p
+  <p class="sr-only" role="alert">{{ folderRefused() }}</p>
+  @if (folderRefused()) {
+  <p class="type-footnote text-label-primary m-0" aria-hidden="true"
+    ><app-icon name="warning" /> {{ folderRefused() }}</p
   >
+  }
 
   <input
     #fileInput

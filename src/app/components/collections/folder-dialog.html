@@ -5,9 +5,10 @@
   width="560px"
 >
   <div class="flex flex-col gap-5">
-    <p class="type-footnote text-label-primary" role="alert"
-      >@if (refused()) {<app-icon name="warning" /> {{ refused() }}}</p
-    >
+    <p class="sr-only" role="alert">{{ refused() }}</p>
+    @if (refused()) {
+    <p class="type-footnote text-label-primary" aria-hidden="true"><app-icon name="warning" /> {{ refused() }}</p>
+    }
     <p class="sr-only" role="status">{{ announcement() }}</p>
     @if (!folders.supported) {
     <p class="type-callout text-label-primary"

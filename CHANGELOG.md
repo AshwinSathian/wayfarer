@@ -15,6 +15,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The roadmap is now monthly.** A major release each month with one headline, small ones between, and the next month's item checked again before it starts. The roadmap lists November (collections as files in a Git repository, Chromium first) through April, and says the later months can change.
 - The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.
 - The Local Bridge's test for claim C-041 ("relays only for an allowed origin that presents its token") now sends a wrong token, and one a byte longer or shorter than the right one, and expects each to be refused; before, it sent none. No change in behaviour.
 

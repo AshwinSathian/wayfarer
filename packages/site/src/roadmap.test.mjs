@@ -29,7 +29,7 @@ test("docs/roadmap.md gives the four lists: sharing shipped since 3.0, Git next"
   const sections = roadmapOf(ROADMAP);
   assert.deepEqual(
     sections.map((s) => s.title),
-    ["Shipped in 3.0", "Shipped since 3.0", "Next", "Later"],
+    ["Shipped in 3.0", "Shipped since 3.0", "Next", "After that", "Later"],
   );
   assert.ok(sections[1].items.some((i) => /link/.test(i.text)));
   assert.ok(sections[2].items.some((i) => /Git/.test(i.text)));

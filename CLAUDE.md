@@ -1114,7 +1114,11 @@ code errors.
 ## Dependencies and the bundle
 
 - `npm audit` reports 0 and must stay there. Fix the dependency (or its
-  override); do not run `npm audit fix --force`.
+  override); do not run `npm audit fix --force`. The one way past it is
+  `ALLOWED` in `scripts/check-audit.mjs` (CI runs that script, not
+  `npm audit`): an advisory no release fixes, with its reason and a day it
+  stops being allowed, by the maintainer's word (2026-11-18: picomatch's
+  GHSA-fc5q-39xc-vjpf until 2027-01-31). Remove the entry when a fix ships.
 - The size budgets (`angular.json`, `bundle:report` in `package.json`) are
   the measured baseline times 1.10. When a change moves the baseline, reset
   them in the same PR and say why in the changelog.

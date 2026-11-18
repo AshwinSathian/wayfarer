@@ -130,6 +130,31 @@ test.describe("Settings surface", () => {
     await expect(list.getByRole("button", { name: "History", exact: true })).toBeFocused();
   });
 
+  // At 390 px the three options of a choice share the row: on one line each, "By the room it has", "Beside the
+  // request" and "Under the request" ran into each other. Each option's words now wrap inside it.
+  test("on a phone each option of a choice keeps its words inside it", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/app/");
+    const dialog = await openSettings(page, "General");
+    const group = dialog.getByRole("radiogroup", { name: "Response" });
+    await expect(group).toBeVisible();
+    const boxes = await group.locator(".segment").evaluateAll((segments) =>
+      segments.map((segment) => {
+        const range = document.createRange();
+        range.selectNodeContents(segment.querySelector(".segment-label") as HTMLElement);
+        const words = range.getBoundingClientRect();
+        const box = segment.getBoundingClientRect();
+        return { left: box.left, right: box.right, wordsLeft: words.left, wordsRight: words.right };
+      }),
+    );
+    expect(boxes).toHaveLength(3);
+    for (const box of boxes) {
+      expect(box.wordsLeft).toBeGreaterThanOrEqual(box.left - 1);
+      expect(box.wordsRight).toBeLessThanOrEqual(box.right + 1);
+    }
+    for (let i = 1; i < boxes.length; i++) expect(boxes[i].left).toBeGreaterThanOrEqual(boxes[i - 1].right - 1);
+  });
+
   test("@claim:C-030 opens from the command palette", async ({ page }) => {
     await page.goto("/app/");
     await untilBooted(page);

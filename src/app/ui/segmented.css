@@ -77,19 +77,24 @@
 
 /* Below 480 px a dialog is the window's width, and three options at their
    own width did not fit in one: the track takes the row, and the options
-   their room less padding. */
+   their room less padding, and an option's words wrap inside it: on one line,
+   Settings' "By the room it has", "Beside the request" and "Under the
+   request" ran into each other at 390 px. */
 @media (width < 30em) {
   .segmented {
     display: flex;
     width: 100%;
+    white-space: normal;
   }
 
   .segment {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-width: 0;
     padding-inline: 2px;
   }
 
   .segment-label {
+    height: 100%;
     padding-inline: 0.25rem;
   }
 }

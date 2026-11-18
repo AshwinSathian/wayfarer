@@ -1,5 +1,6 @@
 // What changed in a folder since the app last wrote or took it (T2.4): the files that differ, and for each the
 // lines that went and the lines that came, so a person sees a change before it is taken.
+import { parseJson } from "../safe-json";
 import { isFolderPath } from "./folder";
 
 /** The most cells of the table a line diff may fill (4 MB of it). */
@@ -61,4 +62,19 @@ export function changedFiles(base: Record<string, string>, now: Record<string, s
     });
   }
   return changes;
+}
+
+/** What a changed file is, for a person: its kind and its name (a request's, a folder's, the collection's), not its path. */
+export function describeChange(change: FileChange): { kind: "Collection" | "Folder" | "Request"; name: string } {
+  const kind =
+    change.path === "collection.json" ? "Collection" : change.path.endsWith("/folder.json") ? "Folder" : "Request";
+  // The file's own "name", from the side that has it: what stays or comes, else what goes. Its key is at the top level.
+  for (const sides of [["same", "added"], ["removed"]]) {
+    for (const line of change.lines) {
+      const match = sides.includes(line.kind) ? /^ {2}"name": ("(?:[^"\\]|\\.)*"),?$/.exec(line.text) : null;
+      const name = match ? parseJson(match[1]) : null;
+      if (name?.ok && typeof name.value === "string" && name.value) return { kind, name: name.value };
+    }
+  }
+  return { kind, name: change.path };
 }

@@ -334,12 +334,15 @@ code errors.
   not make a tab from a draft alone: unbound, its scripts would run.
 - A tab's `bound` is a copy of its saved request. `TabsStorage.rebind`
   binds each tab again when the tree changes (a rename, a move, a delete, a
-  save from another browser tab), by the request's id, as a reload does; a
-  request that is gone leaves its tab unbound. It takes the digests of the
-  scripts that may run before it changes the binding and holds the others:
-  an unbound tab is "typed here", and without that a deleted request's
-  unreviewed scripts would run. It never lifts a hold, and it does not
-  touch the draft.
+  save from another browser tab, a folder taken, an import), by the request's
+  id, as a reload does; a request that is gone leaves its tab unbound. It
+  takes the digests of the scripts that may run before it changes the
+  binding and holds the others: an unbound tab is "typed here", and without
+  that a deleted request's unreviewed scripts would run. It never lifts a
+  hold. It does not touch a draft with an edit of its own; a tab that is not
+  unsaved (`!dirty()`) takes the request as it is saved now, so that it does
+  not show and send the old one (loupe, 3.5.0), and the scripts of what it
+  took wait for a review as any unapproved scripts do.
 - `TabsStorage` (`src/app/state/tabs-storage.ts`) keeps the tabs in the
   `tabs` store: what a saved request holds, never a response, and with each
   tab the digests of its scripts that `ScriptTrust.check` allowed when it

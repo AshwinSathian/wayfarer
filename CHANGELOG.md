@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A tab that has no edits of its own shows the request as it is saved now.** After a folder's changes were taken (or an import replaced a request, or another browser tab saved it), an open tab kept showing the old address, headers and body, and sending it sent the old request. A tab with an edit of its own still keeps it. The scripts of the request it takes wait for a review as any unapproved scripts do.
+- **The folder dialog says what is so.** Once a collection is kept in a folder its title says so ("Billing API is kept in repo"), its main button is Done (before, the only button was "Stop keeping in a folder"), and each changed file is named by what it is ("Request · List invoices") with its path beside it, not by a file name with an id in it. "The folder must be empty of collections" now reads "Choose a folder that holds no collection yet."
+- **"Keep in a folder…" is no longer in the collection menu where the browser cannot do it** (Firefox, Safari): it led to a dialog that only said no, and Import › Folder… was already hidden there.
+- The roadmap's intro says what comes month by month; the folders guide's second heading no longer repeats its title.
+
 ## [3.5.0] - 2026-11-18
 
 The first monthly release: a collection can be kept as plain files in a folder of your repository, and the roadmap is now a month-by-month plan that is checked again before each month starts.

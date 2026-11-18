@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { changedFiles, diffLines } from "./diff";
+import { changedFiles, describeChange, diffLines } from "./diff";
 
 describe("diffLines", () => {
   it("lists the lines that stayed, went and came", () => {
@@ -36,5 +36,24 @@ describe("changedFiles", () => {
   });
   it("finds nothing when nothing differs", () => {
     expect(changedFiles({ "collection.json": "1" }, { "collection.json": "1" })).toEqual([]);
+  });
+});
+
+describe("describeChange", () => {
+  const file = (name: string) => `{\n  "method": "GET",\n  "name": ${JSON.stringify(name)},\n  "url": "x"\n}\n`;
+  it("names a request, a folder and the collection by what they are called, not by their path", () => {
+    const [changed] = changedFiles(
+      { "a.r1.request.json": file('List "all" invoices') },
+      { "a.r1.request.json": file('List "all" invoices').replace('"x"', '"y"') },
+    );
+    expect(describeChange(changed)).toEqual({ kind: "Request", name: 'List "all" invoices' });
+    const [gone] = changedFiles({ "f.f1/folder.json": file("Auth") }, {});
+    expect(describeChange(gone)).toEqual({ kind: "Folder", name: "Auth" });
+    const [made] = changedFiles({}, { "collection.json": file("Billing") });
+    expect(describeChange(made)).toEqual({ kind: "Collection", name: "Billing" });
+  });
+  it("falls back to the path when the file has no name on a line of its own", () => {
+    const [change] = changedFiles({}, { "a.r1.request.json": "{}" });
+    expect(describeChange(change)).toEqual({ kind: "Request", name: "a.r1.request.json" });
   });
 });

@@ -79,10 +79,11 @@ async function keepInFolder(page: Page, collection = "Billing"): Promise<void> {
   await page.getByRole("tree").getByText(collection, { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Keep in a folder…", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: `Keep ${collection} in a folder` });
+  const kept = page.getByRole("dialog", { name: new RegExp(`^${collection} is kept in `) });
   await dialog.getByRole("button", { name: "Choose a folder" }).click();
-  await expect(dialog.getByText("Kept in")).toBeVisible();
-  await dialog.getByRole("button", { name: "Close", exact: true }).click();
-  await expect(dialog).toHaveCount(0);
+  await expect(kept).toBeVisible();
+  await kept.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(kept).toHaveCount(0);
 }
 
 const requestPath = (all: Record<string, string>) =>
@@ -121,8 +122,10 @@ test("@claim:C-096 a change made in the folder from outside is shown with its di
   const waiting = page.getByRole("button", { name: "Changes in the folder of Billing" });
   await expect(waiting).toBeVisible();
   await waiting.click();
-  const dialog = page.getByRole("dialog", { name: "Keep Billing in a folder" });
+  const dialog = page.getByRole("dialog", { name: /^Billing is kept in / });
   await expect(dialog.getByRole("status")).toHaveText(/the folder changed outside Wayfarer/);
+  // A person reads what changed by name, with the file's path beside it.
+  await expect(dialog.getByText("Request · Ping")).toBeVisible();
   await dialog.getByText(path, { exact: false }).click();
   await expect(dialog.getByRole("group").locator("pre")).toContainText(`+ ${"  "}"url": "${ECHO}/pulled"`);
 
@@ -135,6 +138,8 @@ test("@claim:C-096 a change made in the folder from outside is shown with its di
   await expect(report).toHaveCount(0);
 
   await expect.poll(() => storedUrls(page)).toEqual([`${ECHO}/pulled`]);
+  // The open tab was not unsaved, so it shows the request as taken, not the old one (loupe, 3.5.0).
+  await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/pulled`);
   await expect(waiting).toHaveCount(0);
 });
 
@@ -169,7 +174,7 @@ test("a folder whose collection file names another collection is not taken as th
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
 
   await page.getByRole("button", { name: "Changes in the folder of Billing" }).click();
-  const dialog = page.getByRole("dialog", { name: "Keep Billing in a folder" });
+  const dialog = page.getByRole("dialog", { name: /^Billing is kept in / });
   await dialog.getByRole("button", { name: "Review and take" }).click();
   await expect(dialog.getByRole("alert")).toContainText("holds a different collection");
   expect(await storedUrls(page)).toEqual([`${ECHO}/echo`]);

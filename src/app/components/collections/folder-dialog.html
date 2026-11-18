@@ -1,5 +1,5 @@
 <ui-dialog
-  [header]="'Keep ' + (collection()?.name ?? '') + ' in a folder'"
+  [header]="title()"
   [visible]="collection() !== null"
   (visibleChange)="$event ? null : closed.emit()"
   width="560px"
@@ -30,13 +30,10 @@
 
     @if (!status()) {
     <div class="flex flex-col gap-1.5">
-      <p class="type-footnote text-label-secondary">The folder must be empty of collections.</p>
+      <p class="type-footnote text-label-secondary">Choose a folder that holds no collection yet.</p>
     </div>
     } @else {
     <div class="flex flex-col gap-3">
-      <p class="type-callout text-label-primary"
-        ><app-icon name="folder_open" /> Kept in <span class="font-mono">{{ status()?.folderName }}</span>.</p
-      >
       @switch (status()?.state) { @case ("in-step") {
       <p class="type-footnote text-label-secondary"><app-icon name="check" /> The folder and this collection match.</p>
       } @case ("permission") {
@@ -58,7 +55,8 @@
       @for (change of status()?.changes; track change.path) {
       <details class="flex flex-col gap-1.5">
         <summary class="type-footnote text-label-primary"
-          >{{ changeLabel(change.status) }}: <span class="font-mono">{{ change.path }}</span></summary
+          >{{ changeLabel(change.status) }}: {{ describe(change) }}
+          <span class="font-mono text-label-secondary">{{ change.path }}</span></summary
         >
         <pre class="folder-diff type-mono-body" tabindex="0" [attr.aria-label]="'Changes in ' + change.path"><!--
           -->@for (line of change.lines; track $index) {<span [class]="'folder-diff-' + line.kind">{{ sign[line.kind] }} {{ line.text }}
@@ -71,8 +69,11 @@
   <div uiDialogFooter>
     <div class="flex flex-wrap justify-end gap-2">
       @if (status()) {
-      <button uiButton="outlined" class="btn-secondary" type="button" (click)="stop()">Stop keeping in a folder</button>
-      @if (status()?.state === "outside" || status()?.state === "both") {
+      <button uiButton class="btn-secondary" type="button" (click)="stop()">Stop keeping in a folder</button>
+      <button [uiButton]="waiting() ? 'outlined' : 'filled'" class="btn-secondary" type="button" (click)="closed.emit()"
+        >Done</button
+      >
+      @if (waiting()) {
       <button uiButton="filled" type="button" (click)="take()"><app-icon name="download" /> Review and take</button>
       } } @else if (folders.supported) {
       <button uiButton="filled" type="button" (click)="choose()"

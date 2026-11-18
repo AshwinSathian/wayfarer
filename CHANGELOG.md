@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-18
+
+The first monthly release: a collection can be kept as plain files in a folder of your repository, and the roadmap is now a month-by-month plan that is checked again before each month starts.
+
+Your data carries over: the database goes from version 2 to version 3, which only adds three empty stores (`shares`, `bases`, `changes`) and keeps every record. A tab still running 3.4 says "Wayfarer was updated in another tab" and asks for a reload.
+
 ### Added
 
 - **Keep a collection as files in a folder.** In Chrome, Edge and other Chromium browsers, a collection's menu has **Keep in a folder…**: Wayfarer writes the collection as plain JSON files (one for the collection, one for each folder and one for each request, with no timestamps and a credential you typed written as `***`) in a folder you choose, for example inside your repository, and writes it again when you change the collection. When the folder changes from outside, say after a `git pull`, the sidebar says so, and the dialog shows each file that is new, gone or changed with its lines before and after; nothing changes here until you choose **Review and take**, which opens the usual import report. **Import › Folder…** opens a folder that holds a collection, such as a clone of a teammate's repository. Wayfarer runs no Git command. Firefox and Safari have no folder picker and are next on the [roadmap](docs/roadmap.md). See [Keep a collection in a folder](docs/folders.md).

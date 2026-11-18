@@ -437,12 +437,19 @@ code errors.
   utilities need: `box-sizing: border-box` on everything. Do not remove it.
 - `border` draws a border (Tailwind 4 sets the style). Add it only where a
   line should show.
-- No focus ring anywhere, in the app or on the site, from a pointer or
+- No focus ring (an outline), in the app or on the site, from a pointer or
   the keyboard (maintainer, 2026-11-09): `:focus, :focus-visible { outline:
-  none !important }` in `src/styles.css` and the site's `global.css`. A
-  field keeps its own focus edge (`input.css`, `select.css`) and a menu's
-  or tree's row its fill. Do not add a ring back; `keyboard-flow.spec.ts`
-  checks every Tab stop.
+  none !important }` in `src/styles.css` and the site's `global.css`. But
+  what is focused must show (WCAG 2.4.7; loupe's review of 3.5.0 found 14
+  of 43 Tab stops of the first-run screen unchanged, by pixels): a field
+  keeps its own focus edge (`input.css`, `select.css`), a menu's or tree's
+  row its fill, and every other control (a button, a link, a tab, a
+  splitter) an inset 2 px edge of ink, `box-shadow: inset 0 0 0 2px
+  var(--ink)` in `src/styles.css` (a filled button's takes its label's
+  colour), inside the box so that nothing moves or is cut. Do not add an
+  outline back. A new kind of control draws its own focus or is in that
+  rule; `e2e/focus-visible.spec.ts` (C-097) holds every control the keyboard
+  reaches, in three engines.
 - A status or method colour used as text is its `-text` token
   (`--status-success-text`, `--method-get-text`): the plain token is for
   fills, borders and icons, and as small text on its own tint it is as low

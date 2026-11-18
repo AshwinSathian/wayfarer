@@ -76,8 +76,8 @@
           <div class="min-w-0">
             <label for="request-timeout" class="settings-title type-callout text-label-primary">Request timeout</label>
             <p class="type-footnote text-label-secondary"
-              >How long to wait for a response before stopping. 0 waits without a limit; through the Local Bridge, 10
-              minutes at most.</p
+              >How long to wait for a response before stopping. Empty, or 0, waits without a limit; through the Local
+              Bridge, 10 minutes at most.</p
             >
           </div>
           <div class="settings-number">
@@ -90,7 +90,8 @@
               step="1000"
               inputmode="numeric"
               aria-describedby="request-timeout-unit"
-              [value]="requestSettings.timeoutMs()"
+              placeholder="No limit"
+              [value]="requestSettings.timeoutMs() || ''"
               (change)="requestSettings.setTimeoutMs(+$any($event.target).value)"
             />
             <span id="request-timeout-unit" class="type-footnote text-label-secondary">ms</span>

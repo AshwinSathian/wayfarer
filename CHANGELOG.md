@@ -7,6 +7,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **The comparison table can be read on a phone, and says when it scrolls.** On a phone it showed only Wayfarer's column with 170 px of blank under each row, so two products could not be compared; below 48 em it is now one block for each question with a line for each product. On a wide window a shadow shows the edge that has more behind it (Insomnia's column was cut off with nothing to say so), and a line says it scrolls.
+- **The numbers that link to a recording on the comparison pages are 24 px targets.** They were 9 to 83 px wide and 19 px tall with no room between them.
+
 ## [3.5.0] - 2026-11-18
 
 The first monthly release: a collection can be kept as plain files in a folder of your repository, and the roadmap is now a month-by-month plan that is checked again before each month starts.

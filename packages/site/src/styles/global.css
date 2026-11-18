@@ -629,6 +629,13 @@
 .compare-scroll {
   max-width: 100%;
   overflow-x: auto;
+  /* A shadow at the edge that has more behind it, so a table that scrolls says so (loupe, 3.5.0: Insomnia's column was
+     cut at the edge with nothing to show there was more). The covers scroll with the content, the shadows do not. */
+  background:
+    linear-gradient(to right, var(--canvas-app) 30%, transparent) 0 0 / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--canvas-app) 30%, transparent) 100% 0 / 2.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 0 0 / 0.9rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 100% 0 / 0.9rem 100% no-repeat scroll;
 }
 .compare-table {
   font-size: var(--type-site-small-size);
@@ -653,6 +660,69 @@
 }
 .compare-table td p + p {
   margin-top: 0.4em;
+}
+
+/* The first column does not stay: a sticky one hid links focused under it (WCAG 2.4.11, measured). */
+
+/* A link that stands by itself, beside another, is a target of 24 px at least (WCAG 2.5.8). */
+.tap-24 {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}
+/* A number that links to its recording is too. */
+.wayfarer-measured a.link {
+  display: inline-block;
+  min-width: 24px;
+  min-height: 24px;
+  line-height: 24px;
+  text-align: center;
+}
+
+/* Below 48 em: one block for each question, a line for each product, named by its own label. */
+@media (width < 48em) {
+  .compare-hint {
+    display: none;
+  }
+  .compare-stack {
+    min-width: 0;
+    width: 100%;
+  }
+  .compare-stack,
+  .compare-stack tbody,
+  .compare-stack tr,
+  .compare-stack th,
+  .compare-stack td {
+    display: block;
+  }
+  .compare-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .compare-stack tbody tr {
+    padding: 0.5rem 0 0.75rem;
+    border-top: 1px solid var(--separator);
+  }
+  .compare-stack tbody th {
+    background: none !important;
+    min-width: 0;
+    padding-bottom: 0.25em;
+    font-size: 1rem;
+  }
+  .compare-stack td {
+    min-width: 0 !important;
+    padding-top: 0.35em;
+    padding-bottom: 0.35em;
+  }
+  .compare-stack td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    color: var(--label-secondary);
+  }
 }
 
 /* --- The key, as sent and as history keeps it ----------------------------------------------------------------- */

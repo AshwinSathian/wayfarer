@@ -104,6 +104,17 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
     }
   });
 
+  // loupe 3.5.1: a request row is hovered or selected, and its method is drawn over that fill, over the sidebar.
+  test(`method text reads on a hovered or selected row, on every surface`, () => {
+    for (const kind of ["get", "post", "put", "patch", "delete", "head", "options"])
+      for (const surface of SURFACES)
+        for (const fill of ["--fill-hover", "--fill-selected"]) {
+          const ground = over(colour(fill), colour(surface));
+          const ratio = contrast(colour(`--method-${kind}-text`), ground);
+          assert.ok(ratio >= 4.5, `--method-${kind}-text on ${fill} over ${surface}: ${ratio.toFixed(2)}:1`);
+        }
+  });
+
   test(`every text token reads on every surface, placeholders included`, () => {
     for (const text of ["--label-primary", "--label-secondary", "--label-tertiary"]) {
       for (const surface of SURFACES) {

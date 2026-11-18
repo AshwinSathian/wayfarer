@@ -25,8 +25,10 @@
   display: flex;
   flex: none;
   align-items: center;
-  gap: 16px;
-  height: 30px;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  /* A minimum, so that with larger text the items wrap instead of being cut (WCAG 1.4.4). */
+  min-height: 30px;
   padding: 0 16px 0 12px;
   border-top: 1px solid var(--separator);
   background: var(--canvas-sidebar);
@@ -54,7 +56,7 @@
    short of room; on a phone it is its icon. */
 .palette-trigger {
   display: inline-flex;
-  flex: 0 1 280px;
+  flex: 0 1 17.5rem;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -124,4 +126,27 @@
 .drawer-row {
   justify-content: flex-start;
   width: 100%;
+}
+
+/* Notices that can wait (a new version, a backup reminder) float at the bottom corner, above the status bar, so one
+   arriving does not move the composer (loupe, 3.5.0). The box takes no pointer; each notice does. */
+.shell-notices {
+  position: fixed;
+  right: 16px;
+  bottom: 42px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(26rem, calc(100vw - 32px));
+  pointer-events: none;
+}
+.shell-notice {
+  pointer-events: auto;
+  box-shadow: var(--shadow-overlay, 0 4px 16px rgb(0 0 0 / 0.12));
+}
+@media (max-width: 47.99em) {
+  .shell-notices {
+    bottom: 12px;
+  }
 }

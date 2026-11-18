@@ -278,34 +278,43 @@
         <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
         <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
         <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
-        @if (swUpdate.updateAvailable()) {
-        <div class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-fill-secondary border border-separator">
-          <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
-          <button
-            uiButton="filled"
-            class="btn-secondary btn-sm"
-            type="button"
-            aria-label="Reload"
-            (click)="swUpdate.applyUpdate()"
-            >Reload</button
+        <!-- What can wait floats at the corner instead of pushing the page down (loupe, 3.5.0: the backup reminder moved the
+             composer 86 px at the first save). Urgent states stay in the flow below. -->
+        <div class="shell-notices">
+          @if (swUpdate.updateAvailable()) {
+          <div
+            class="shell-notice flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-fill-secondary border border-separator"
           >
+            <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
+            <button
+              uiButton="filled"
+              class="btn-secondary btn-sm"
+              type="button"
+              aria-label="Reload"
+              (click)="swUpdate.applyUpdate()"
+              >Reload</button
+            >
+          </div>
+          } @if (backup.reminderDue()) {
+          <div
+            class="shell-notice flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-canvas-elevated border border-separator"
+          >
+            <p class="type-callout text-label-secondary" aria-hidden="true">{{ backupWords() }}</p>
+            <button
+              uiButton="filled"
+              class="btn-secondary btn-sm"
+              type="button"
+              aria-label="Back up now"
+              (click)="openSettings('data')"
+              >Back up now</button
+            >
+            <button uiButton class="btn-secondary btn-sm" type="button" (click)="backup.dismissReminder()"
+              >Not now</button
+            >
+          </div>
+          }
         </div>
-        } @if (backup.reminderDue()) {
-        <div class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-canvas-elevated border border-separator">
-          <p class="type-callout text-label-secondary" aria-hidden="true">{{ backupWords() }}</p>
-          <button
-            uiButton="filled"
-            class="btn-secondary btn-sm"
-            type="button"
-            aria-label="Back up now"
-            (click)="openSettings('data')"
-            >Back up now</button
-          >
-          <button uiButton class="btn-secondary btn-sm" type="button" (click)="backup.dismissReminder()"
-            >Not now</button
-          >
-        </div>
-        } @if (dataResetElsewhere()) {
+        @if (dataResetElsewhere()) {
         <div
           class="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
         >

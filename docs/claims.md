@@ -129,3 +129,4 @@ back gets reworded until one can, or removed.
 | C-094 | The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. | docs/getting-started.md | e2e/tabs.spec.ts |
 | C-095 | A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. | docs/folders.md | e2e/folder-sync.spec.ts |
 | C-096 | A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. | docs/folders.md | e2e/folder-sync.spec.ts |
+| C-097 | Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn. | README.md | e2e/focus-visible.spec.ts |

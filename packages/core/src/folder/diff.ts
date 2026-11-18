@@ -2,6 +2,9 @@
 // lines that went and the lines that came, so a person sees a change before it is taken.
 import { isFolderPath } from "./folder";
 
+/** The most cells of the table a line diff may fill (4 MB of it). */
+const MAX_DIFF_CELLS = 1_000_000;
+
 export interface LineChange {
   kind: "same" | "removed" | "added";
   text: string;
@@ -17,6 +20,12 @@ export interface FileChange {
 export function diffLines(before: string, after: string): LineChange[] {
   const a = before.split("\n");
   const b = after.split("\n");
+  // The table is a.length x b.length: two long files are shown whole, as gone and as come, not compared.
+  if (a.length * b.length > MAX_DIFF_CELLS)
+    return [
+      ...a.map((text) => ({ kind: "removed" as const, text })),
+      ...b.map((text) => ({ kind: "added" as const, text })),
+    ];
   const common = Array.from({ length: a.length + 1 }, () => new Uint32Array(b.length + 1));
   for (let i = a.length - 1; i >= 0; i--)
     for (let j = b.length - 1; j >= 0; j--)

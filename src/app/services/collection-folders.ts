@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal } from "@angular/core";
 import {
   FolderError,
   MAX_FOLDER_DEPTH,
+  MAX_FOLDER_FILE_CHARS,
   MAX_FOLDER_FILES,
   changedFiles,
   isFolderPath,
@@ -125,6 +126,8 @@ export class CollectionFolders {
     const files = await this.read(share.folder);
     const taken = this.parse(files);
     if (typeof taken === "string") return taken;
+    // A folder whose collection file names another collection would replace that one: it is not this collection's.
+    if (taken.collection.meta.id !== collectionId) return "The folder holds a different collection than this one.";
     const here = await this.localExport(collectionId);
     const payload = here ? keepCredentialsHere(taken, here) : taken;
     await this.imports.stage(share.folder.name, serializeDeterministic(payload), async () => {
@@ -250,7 +253,10 @@ export class CollectionFolders {
         if (handle.kind === "directory") {
           if (depth < MAX_FOLDER_DEPTH) await walk(handle as FileSystemDirectoryHandle, `${path}/`, depth + 1);
         } else if (isFolderPath(path)) {
-          files[path] = await (await (handle as FileSystemFileHandle).getFile()).text();
+          const file = await (handle as FileSystemFileHandle).getFile();
+          // Read nothing a file of the format cannot be: the diff and the reader hold its text.
+          if (file.size > MAX_FOLDER_FILE_CHARS) throw new Error(`${path} is larger than the format allows.`);
+          files[path] = await file.text();
         }
       }
     };

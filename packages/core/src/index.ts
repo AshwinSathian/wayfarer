@@ -204,6 +204,7 @@ export { receiverLines, receiverLineText, type ReceiverLine, type VaultSecretNam
 export {
   FolderError,
   MAX_FOLDER_DEPTH,
+  MAX_FOLDER_FILE_CHARS,
   MAX_FOLDER_FILES,
   isFolderPath,
   readFolder,

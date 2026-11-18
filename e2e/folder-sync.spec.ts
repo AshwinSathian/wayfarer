@@ -158,3 +158,19 @@ test("a change made here is written to the folder, and a file the format does no
   expect(Object.keys(after).some((p) => p.startsWith("ping."))).toBe(false);
   expect(after["README.md"]).toBe("notes\n");
 });
+
+test("a folder whose collection file names another collection is not taken as this one", async ({ page }) => {
+  await withFolder(page);
+  await makeCollection(page);
+  await keepInFolder(page);
+  await expect.poll(async () => Object.keys(await files(page)).includes("collection.json")).toBe(true);
+  const other = (await files(page))["collection.json"].replace(/"id": "[^"]+"/, '"id": "another-collection"');
+  await writeFromOutside(page, "collection.json", other);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+
+  await page.getByRole("button", { name: "Changes in the folder of Billing" }).click();
+  const dialog = page.getByRole("dialog", { name: "Keep Billing in a folder" });
+  await dialog.getByRole("button", { name: "Review and take" }).click();
+  await expect(dialog.getByRole("alert")).toContainText("holds a different collection");
+  expect(await storedUrls(page)).toEqual([`${ECHO}/echo`]);
+});

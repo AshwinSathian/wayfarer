@@ -15,6 +15,15 @@ describe("diffLines", () => {
   });
 });
 
+describe("diffLines, large files", () => {
+  it("shows two files too long to compare as all gone and all come, without filling a table", () => {
+    const long = Array.from({ length: 3000 }, (_, i) => `line ${i}`).join("\n");
+    const out = diffLines(long, `${long}\nx`);
+    expect(out.filter((l) => l.kind === "same")).toEqual([]);
+    expect(out).toHaveLength(3000 + 3001);
+  });
+});
+
 describe("changedFiles", () => {
   it("names the added, removed and changed files of the format, in path order, and nothing else", () => {
     const base = { "collection.json": "1", "a.r1.request.json": "x", "b.r2.request.json": "y" };

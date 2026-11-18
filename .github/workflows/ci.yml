@@ -32,8 +32,8 @@ jobs:
       - run: npm ci
       # P1.14: registry signatures of every installed package.
       - run: npm audit signatures
-      # No known advisory in the dependency tree (CLAUDE.md: npm audit reports 0).
-      - run: npm audit
+      # No known advisory in the dependency tree but the ones scripts/check-audit.mjs allows, each until a day.
+      - run: node scripts/check-audit.mjs
       - run: npm run lint
       - run: npm run format:check
       # P1.2: e2e targets the local echo-server only, never the internet.

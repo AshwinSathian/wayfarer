@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **On a phone, and wherever the sidebar is a drawer, the backup and update notices stand in the page again.** Floating over the page's foot they covered the control below the fold (found by a browser test at 390 px); they float only beside the pinned sidebar, over its empty foot.
+
 ## [3.5.1] - 2026-11-18
 
 A review of 3.5.0 with the loupe skill, against Apple's Human Interface Guidelines and WCAG 2.2, in the app and on the website: every control the keyboard reaches now shows focus, two measured contrast and target-size failures are fixed, and the folder feature and the comparison table say and show more. Nothing about your data changes.

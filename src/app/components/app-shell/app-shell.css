@@ -128,10 +128,15 @@
   width: 100%;
 }
 
-/* Notices that can wait (a new version, a backup reminder) float at the bottom corner, above the status bar, so one
-   arriving does not move the composer (loupe, 3.5.0). At the left, over the pinned sidebar's empty foot: at the right it
-   covered the response (seen in the first try). The box takes no pointer; each notice does. */
+/* Notices that can wait (a new version, a backup reminder). With the sidebar pinned they float at the bottom left,
+   above the status bar and over the sidebar's empty foot, so one arriving does not move the composer (loupe, 3.5.0).
+   Anywhere else (a phone, a window where the sidebar is a drawer) they stand in the page as they did: floating there
+   covered the control below the fold, which e2e/environments.spec.ts found. The floating box takes no pointer; each
+   notice does. */
 .shell-notices {
+  display: contents;
+}
+.shell-notices-floating {
   position: fixed;
   left: 12px;
   bottom: 42px;
@@ -143,14 +148,9 @@
   width: min(20.5rem, calc(100vw - 24px));
   pointer-events: none;
 }
-.shell-notice {
+.shell-notices-floating .shell-notice {
   pointer-events: auto;
   box-shadow: var(--shadow-overlay, 0 4px 16px rgb(0 0 0 / 0.12));
-}
-@media (max-width: 47.99em) {
-  .shell-notices {
-    bottom: 12px;
-  }
 }
 
 /* No preflight: a paragraph has the browser's margin, which put a gap above and below the words in a notice. */

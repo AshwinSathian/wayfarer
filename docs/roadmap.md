@@ -27,9 +27,23 @@ is made from this file.
 
 ## Next
 
-- Keep collections in a Git repository, and see each change and its diff before you take it.
+- 3.5, November 2026: keep a collection as plain files in a folder of your Git repository, and see what changed in them from outside, with each request's diff, before you take it. Chromium browsers first; you commit, pull and branch with the Git you already use.
+
+## After that
+
+These are the plan, not a promise: each month the next item is checked again against what people ask for and what other tools and browsers have done, and it can change or go.
+
+- December: the same folders in Firefox and Safari, through the Local Bridge, and a clear message when Chrome blocks the Bridge as a local-network request.
+- January: an MCP client, to try a server's tools, resources and prompts.
+- February: gRPC, and client certificates and proxies through the Local Bridge.
+- March: keep a collection in step with its OpenAPI file, and run a sequence of calls from an OpenAPI workflow.
+- April: compare two responses, save example responses, and read a collection's docs in the app.
 
 ## Later
 
 - Work on the same collection as your team in real time, end-to-end encrypted, with no server of ours in between.
 - Run a Wayfarer server of your own for your team, from one Docker image.
+
+## How this roadmap is kept
+
+A major release (3.N.0) ships each month with one headline; fixes and small gaps ship in between. Only the next month is fixed. At the start of each month the items below it are re-examined and the order may change: this page is rewritten then, and the changelog says what shipped.

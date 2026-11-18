@@ -48,7 +48,7 @@ async function seed(page: Page): Promise<void> {
   await page.goto("/app/");
   await expect(address(page)).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2),
+    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 3),
   );
   const digest = await page.evaluate(async (text) => {
     const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));

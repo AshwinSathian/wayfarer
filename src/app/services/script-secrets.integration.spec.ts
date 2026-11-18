@@ -118,6 +118,8 @@ describe("a script sets a protected variable (P3.12)", () => {
     );
     db.close();
     expect(names.sort()).toEqual([
+      "bases",
+      "changes",
       "collections",
       "cookies",
       "environments",
@@ -127,6 +129,7 @@ describe("a script sets a protected variable (P3.12)", () => {
       "meta",
       "requests",
       "secrets",
+      "shares",
       "tabs",
     ]);
     return JSON.stringify(stores);

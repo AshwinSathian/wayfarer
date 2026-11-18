@@ -1174,17 +1174,16 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`).
 - There is one version of Wayfarer and one shape of its data (maintainer,
-  2026-10-19). The database is `wayfarer` at `DB_VERSION` 2 (not 1: a versionless
-  `indexedDB.open` makes an empty 1), and
-  `createStores` (`idb-stores.ts`) makes its stores on a browser's first
-  open. There is no upgrade yet, and no word in the app about an earlier
-  version. A later one is said: a tab whose code finds the database at a
-  later version (`VersionError`), or whose connection a later version's
-  open closes (`blocking` with a new version), stops using it and asks for
-  a reload (`IdbCore.closedForUpdate`), so the code already in browsers
-  says so when the first upgrade comes. That upgrade is T2.0's
-  (`DB_VERSION` 3, TQ9, decided in PLAN-design row 1.77): it makes only
-  the stores that are missing and moves no data. IndexedDB makes stores
+  2026-10-19). The database is `wayfarer` at `DB_VERSION` 3 (not 1: a versionless
+  `indexedDB.open` makes an empty 1), and `createStores` (`idb-stores.ts`)
+  makes its stores: all of them on a browser's first open, and on a database
+  at version 2 only the three that version 3 added (`shares`, `bases`,
+  `changes`; T2.0, TQ9, PLAN-design row 1.77), moving no data. That is the one
+  upgrade there is: `idb-upgrade.spec.ts` and `e2e/db-upgrade.spec.ts` upgrade
+  a version 2 database that holds records and find every one. A tab whose code
+  finds the database at a later version (`VersionError`), or whose connection a
+  later version's open closes (`blocking` with a new version), stops using it
+  and asks for a reload (`IdbCore.closedForUpdate`). IndexedDB makes stores
   and indexes only in an upgrade, so a change to them would not reach a
   browser that has the database: ask the maintainer before making one.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).

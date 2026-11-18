@@ -15,6 +15,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The database is at version 3.** It gains three empty stores, `shares`, `bases` and `changes`, for keeping a collection as files in a folder (coming in 3.5). Opening a database from 3.4 or earlier makes them and keeps every record; a tab still running an earlier version says "Wayfarer was updated in another tab" and asks for a reload.
 - **The roadmap is now monthly.** A major release each month with one headline, small ones between, and the next month's item checked again before it starts. The roadmap lists November (collections as files in a Git repository, Chromium first) through April, and says the later months can change.
 - CI's audit step allows one advisory, picomatch's ReDoS (GHSA-fc5q-39xc-vjpf), until 2027-01-31: it covers every picomatch version, no fix exists, and only build and test tooling reaches it. Any other advisory still fails the build.
 - The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.

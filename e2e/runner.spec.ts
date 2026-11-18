@@ -60,7 +60,7 @@ async function seedCollection(
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2),
+    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 3),
   );
   await page.evaluate(
     async ({ requests, vars, trusted }) => {

@@ -81,7 +81,7 @@ export async function seedAndOpen(
   await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2),
+    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 3),
   );
   await page.evaluate(
     async ({ vars, request }) => {

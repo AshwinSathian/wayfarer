@@ -124,7 +124,7 @@ export class IdbCore {
 
     try {
       this.dbPromise = openDB<WayfarerDB>(DB_NAME, DB_VERSION, {
-        upgrade: (db) => createStores(db),
+        upgrade: (db, oldVersion) => createStores(db, oldVersion),
         // Another tab is deleting the database (Reset all data, no new version) or opening it at a later
         // version (a later Wayfarer): holding the connection would block either.
         blocking: (_current, newVersion) => void this.closeForOtherTab(newVersion !== null),

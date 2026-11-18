@@ -33,6 +33,9 @@ export type StoreName =
   | "files"
   | "tabs"
   | "cookies"
+  | "shares"
+  | "bases"
+  | "changes"
   | "meta";
 
 export type StoreCollection = ArrayLike<StoreName>;
@@ -74,6 +77,24 @@ export interface StoredTab {
  * whose value holds a vault secret is never written here.
  */
 export type StoredCookie = Cookie & { key: string };
+
+/** A collection kept as files in a folder of the user's disk (T2.2): the folder the browser let the page open. */
+export interface Share {
+  collectionId: string;
+  folder: FileSystemDirectoryHandle;
+}
+
+/** What a collection's folder held when the app last wrote or took it: path to file text, to tell an outside change from a local one. */
+export interface Base {
+  collectionId: string;
+  files: Record<string, string>;
+}
+
+/** A change to a shared collection, by id. Nothing writes one yet: it is made by the upgrade so a second one is not needed. */
+export interface Change {
+  id: string;
+  collectionId: string;
+}
 
 export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY };
 
@@ -157,6 +178,22 @@ export interface WayfarerDB extends DBSchema {
     key: string;
     value: StoredCookie;
   };
+  /** The folder each shared collection is kept in, by collection. */
+  shares: {
+    key: string;
+    value: Share;
+  };
+  bases: {
+    key: string;
+    value: Base;
+  };
+  changes: {
+    key: string;
+    value: Change;
+    indexes: {
+      "by-collection": string;
+    };
+  };
   meta: {
     key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY | typeof META_VAULT_KEY;
     value: MetaState | GlobalsRecord | VaultRecordDoc;
@@ -165,8 +202,9 @@ export interface WayfarerDB extends DBSchema {
 
 export const DB_NAME = "wayfarer";
 /**
- * IndexedDB needs a number; there is one shape of the database. Not 1: 1 is
- * what `indexedDB.open(name)` makes when it is given no number, an empty
- * database the app would then open as its own, with no stores.
+ * IndexedDB needs a number. 1 is what `indexedDB.open(name)` makes when it is
+ * given no number, an empty database with no stores: the app never uses it.
+ * 3 added `shares`, `bases` and `changes` (3.5.0); `createStores` makes only the
+ * stores a database lacks and moves no data.
  */
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;

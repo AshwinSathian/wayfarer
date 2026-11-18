@@ -15,6 +15,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The database is at version 3.** It gains three empty stores, `shares`, `bases` and `changes`, for keeping a collection as files in a folder (coming in 3.5). Opening a database from 3.4 or earlier makes them and keeps every record; a tab still running an earlier version says "Wayfarer was updated in another tab" and asks for a reload.
 - The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.
 - The Local Bridge's test for claim C-041 ("relays only for an allowed origin that presents its token") now sends a wrong token, and one a byte longer or shorter than the right one, and expects each to be refused; before, it sent none. No change in behaviour.
 

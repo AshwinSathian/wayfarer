@@ -37,11 +37,13 @@ describe("IdbCore", () => {
     expect(db?.objectStoreNames.contains("collections")).toBe(true);
   });
 
-  it("makes every store on a browser's first open, in a database named wayfarer at version 2", async () => {
+  it("makes every store on a browser's first open, in a database named wayfarer at version 3", async () => {
     await service.init();
     const db = (await service.getDatabase())!;
-    expect([db.name, db.version]).toEqual(["wayfarer", 2]);
+    expect([db.name, db.version]).toEqual(["wayfarer", 3]);
     expect(Array.from(db.objectStoreNames).sort()).toEqual([
+      "bases",
+      "changes",
       "collections",
       "cookies",
       "environments",
@@ -51,6 +53,7 @@ describe("IdbCore", () => {
       "meta",
       "requests",
       "secrets",
+      "shares",
       "tabs",
     ]);
   });
@@ -236,7 +239,7 @@ describe("IdbCore", () => {
     }, 15_000);
 
     it("an open that finds the database at a later version says Wayfarer was updated in another tab, not that storage is refused (TQ9)", async () => {
-      const newer = await openAt(3);
+      const newer = await openAt(4);
       newer.close();
 
       await service.init();
@@ -247,7 +250,7 @@ describe("IdbCore", () => {
     });
 
     it("a first call that waits on an open finding a later version is refused, not handed no database", async () => {
-      const newer = await openAt(3);
+      const newer = await openAt(4);
       newer.close();
 
       await expect(service.getDatabase()).rejects.toThrow(/updated in another tab/);
@@ -268,7 +271,7 @@ describe("IdbCore", () => {
     it("a later version's upgrade in another tab closes this tab's connection and says why, and is not held up (TQ9)", async () => {
       await service.init();
 
-      const newer = await openAt(3);
+      const newer = await openAt(4);
       newer.close();
 
       expect(service.closedForUpdate()).toBe(true);

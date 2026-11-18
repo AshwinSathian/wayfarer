@@ -1,8 +1,22 @@
 import { IDBPDatabase } from "idb";
 import { WayfarerDB } from "./idb-schema";
 
-/** The `openDB(...).upgrade` handler: it runs once, on a browser that has no database of this number yet, and makes the stores. */
-export function createStores(db: IDBPDatabase<WayfarerDB>): void {
+/**
+ * The `openDB(...).upgrade` handler: it runs on a browser that has no database of this number yet, and makes the
+ * stores that database lacks (`oldVersion` 0: all of them; 2: the three T2.0 added). It moves no data.
+ */
+export function createStores(db: IDBPDatabase<WayfarerDB>, oldVersion = 0): void {
+  if (oldVersion < 2) createVersion2Stores(db);
+  if (oldVersion < 3) createVersion3Stores(db);
+}
+
+function createVersion3Stores(db: IDBPDatabase<WayfarerDB>): void {
+  db.createObjectStore("shares", { keyPath: "collectionId" });
+  db.createObjectStore("bases", { keyPath: "collectionId" });
+  db.createObjectStore("changes", { keyPath: "id" }).createIndex("by-collection", "collectionId");
+}
+
+function createVersion2Stores(db: IDBPDatabase<WayfarerDB>): void {
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
 
   const collections = db.createObjectStore("collections", { keyPath: "meta.id" });

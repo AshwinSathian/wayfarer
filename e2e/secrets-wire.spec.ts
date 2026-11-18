@@ -272,6 +272,8 @@ test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its p
   };
   // All nine stores were read, the composer's tabs among them (P5.1), and the exports are the real thing.
   expect(Object.keys(stores).sort()).toEqual([
+    "bases",
+    "changes",
     "collections",
     "cookies",
     "environments",
@@ -281,6 +283,7 @@ test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its p
     "meta",
     "requests",
     "secrets",
+    "shares",
     "tabs",
   ]);
   // The open tab is stored as the saved request is: the variable by its name, nothing of its value.
@@ -339,6 +342,8 @@ test("@claim:C-007 a script sets a protected variable: the new value goes into t
   const stores = await dumpIdb(page);
   const web = await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }]));
   expect(Object.keys(stores).sort()).toEqual([
+    "bases",
+    "changes",
     "collections",
     "cookies",
     "environments",
@@ -348,6 +353,7 @@ test("@claim:C-007 a script sets a protected variable: the new value goes into t
     "meta",
     "requests",
     "secrets",
+    "shares",
     "tabs",
   ]);
   const searched = {
@@ -505,6 +511,8 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
     "what the script wrote on the page": await page.locator(".script-console").innerText(),
   };
   expect(Object.keys(stores).sort()).toEqual([
+    "bases",
+    "changes",
     "collections",
     "cookies",
     "environments",
@@ -514,6 +522,7 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
     "meta",
     "requests",
     "secrets",
+    "shares",
     "tabs",
   ]);
   expect(copied).toHaveLength(9);

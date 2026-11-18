@@ -85,7 +85,7 @@ test("a later Wayfarer's database upgrade in another tab closes this tab's and s
   const opened = await page.evaluate(
     () =>
       new Promise<boolean>((resolve) => {
-        const open = indexedDB.open("wayfarer", 3);
+        const open = indexedDB.open("wayfarer", 4);
         open.onsuccess = () => {
           open.result.close();
           resolve(true);

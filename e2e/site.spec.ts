@@ -716,8 +716,9 @@ test("the changelog folds each version under an index, and the roadmap is said i
   // What shipped after 3.0 (sharing by link) is its own list; what is not done yet is Next, then Later.
   const since = page.locator("section", { has: page.getByRole("heading", { name: "Shipped since 3.0" }) });
   await expect(since.getByText(/as a link/)).toBeVisible();
+  await expect(since.getByText(/folder of your Git repository/)).toBeVisible();
   const next = page.locator("section", { has: page.getByRole("heading", { name: "Next" }) });
-  await expect(next.getByText(/Git repository/)).toBeVisible();
+  await expect(next.getByText(/Firefox and Safari/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Later" })).toBeVisible();
   await expect(page.locator("main")).not.toContainText(/\b[DWT]\d+\.\d+\b/);
 });

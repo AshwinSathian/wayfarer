@@ -129,16 +129,18 @@
 }
 
 /* Notices that can wait (a new version, a backup reminder) float at the bottom corner, above the status bar, so one
-   arriving does not move the composer (loupe, 3.5.0). The box takes no pointer; each notice does. */
+   arriving does not move the composer (loupe, 3.5.0). At the left, over the pinned sidebar's empty foot: at the right it
+   covered the response (seen in the first try). The box takes no pointer; each notice does. */
 .shell-notices {
   position: fixed;
-  right: 16px;
+  left: 12px;
   bottom: 42px;
-  z-index: 30;
+  /* Above the pinned sidebar (40), under the toolbar (50). */
+  z-index: 45;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: min(26rem, calc(100vw - 32px));
+  width: min(20.5rem, calc(100vw - 24px));
   pointer-events: none;
 }
 .shell-notice {
@@ -149,4 +151,9 @@
   .shell-notices {
     bottom: 12px;
   }
+}
+
+/* No preflight: a paragraph has the browser's margin, which put a gap above and below the words in a notice. */
+.shell-notice p {
+  margin: 0;
 }

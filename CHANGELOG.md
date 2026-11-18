@@ -15,6 +15,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- CI's audit step allows one advisory, picomatch's ReDoS (GHSA-fc5q-39xc-vjpf), until 2027-01-31: it covers every picomatch version, no fix exists, and only build and test tooling reaches it. Any other advisory still fails the build.
 - The README now says when to pick Bruno, Yaak or Hurl instead of Wayfarer, and its limitations list says what is missing: gRPC, MQTT, Socket.IO, an MCP server, Git-backed collections and shared workspaces. Before, it listed only the browser's own limits.
 - The Local Bridge's test for claim C-041 ("relays only for an allowed origin that presents its token") now sends a wrong token, and one a byte longer or shorter than the right one, and expects each to be refused; before, it sent none. No change in behaviour.
 

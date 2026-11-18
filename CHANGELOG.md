@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.5.1] - 2026-11-18
+
+A review of 3.5.0 with the loupe skill, against Apple's Human Interface Guidelines and WCAG 2.2, in the app and on the website: every control the keyboard reaches now shows focus, two measured contrast and target-size failures are fixed, and the folder feature and the comparison table say and show more. Nothing about your data changes.
+
 ### Fixed
 
 - **The comparison table can be read on a phone, and says when it scrolls.** On a phone it showed only Wayfarer's column with 170 px of blank under each row, so two products could not be compared; below 48 em it is now one block for each question with a line for each product. On a wide window a shadow shows the edge that has more behind it (Insomnia's column was cut off with nothing to say so), and a line says it scrolls.

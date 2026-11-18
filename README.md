@@ -183,6 +183,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. <!-- claim:C-094 -->
 - A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. <!-- claim:C-095 -->
 - A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. <!-- claim:C-096 -->
+- Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn. <!-- claim:C-097 -->
 <!-- features:end -->
 
 </details>

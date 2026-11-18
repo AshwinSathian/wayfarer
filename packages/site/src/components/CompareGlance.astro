@@ -14,31 +14,34 @@ const { rivals, label } = Astro.props;
 const many = rivals.length > 1;
 ---
 
+{many && <p class="compare-hint col-wide mt-6 text-ink-muted type-site-caption">The table scrolls sideways.</p>}
 <div class="compare-scroll col-wide mt-8" role="region" aria-label={label} tabindex="0">
-  <table class:list={["compare-table", many ? "[&_td]:min-w-44" : "w-full max-w-5xl"]}>
-    <thead>
-      <tr>
-        <th scope="col"><span class="sr-only">Question</span></th>
-        <th scope="col">Wayfarer</th>
-        {rivals.map((rival) => <th scope="col">{rival.name}</th>)}
+  <!-- Below 48 em a wide table is one block for each question, a line for each product (loupe, 3.5.0: on a phone only the
+       first product showed, with 170 px of blank under it). The roles keep a table a table where display: block drops it. -->
+  <table role="table" class:list={["compare-table", many ? "compare-stack [&_td]:min-w-44" : "w-full max-w-5xl"]}>
+    <thead role="rowgroup">
+      <tr role="row">
+        <th role="columnheader" scope="col"><span class="sr-only">Question</span></th>
+        <th role="columnheader" scope="col">Wayfarer</th>
+        {rivals.map((rival) => <th role="columnheader" scope="col">{rival.name}</th>)}
       </tr>
     </thead>
-    <tbody>
+    <tbody role="rowgroup">
       {
         GLANCE_ROWS.map(([row, question]) => (
-          <tr>
-            <th scope="row">{question}</th>
-            <td>
+          <tr role="row">
+            <th role="rowheader" scope="row">{question}</th>
+            <td role="cell" data-label="Wayfarer">
               <Rich parts={WAYFARER_GLANCE[row]} />
             </td>
             {rivals.map((rival) => {
               const fact = rival.glance[row];
               return fact ? (
-                <td>
+                <td role="cell" data-label={rival.name}>
                   {fact.text} <Cite source={fact.source} />
                 </td>
               ) : (
-                <td class="text-ink-muted">Not documented</td>
+                <td role="cell" data-label={rival.name} class="text-ink-muted">Not documented</td>
               );
             })}
           </tr>

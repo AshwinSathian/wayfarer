@@ -1,0 +1,24 @@
+/* The browser gives a paragraph 1 em above and below (no preflight): the gaps here are the layout's. */
+p {
+  margin: 0;
+}
+
+.folder-diff {
+  max-height: 16rem;
+  overflow: auto;
+  margin: 0;
+  background: var(--fill-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.folder-diff-same {
+  color: var(--label-secondary);
+}
+
+.folder-diff-removed,
+.folder-diff-added {
+  background: var(--fill-selected);
+}

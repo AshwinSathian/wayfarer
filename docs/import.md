@@ -6,7 +6,9 @@ Moving a whole workspace from Postman? [Moving from Postman](https://wayfarer.as
 has the steps from export to a run in CI.
 
 A collection someone shared as a link opens the same way: open the link,
-or choose **Import › Link…** and paste it ([Sharing](sharing.md)).
+or choose **Import › Link…** and paste it ([Sharing](sharing.md)). A folder that
+holds a collection, such as a clone of a teammate's repository, opens with
+**Import › Folder…** in a Chromium browser ([Keep a collection in a folder](folders.md)).
 
 Every file reaches the app by one road, whichever Import button you press
 (the Collections panel, Environments, or Settings):

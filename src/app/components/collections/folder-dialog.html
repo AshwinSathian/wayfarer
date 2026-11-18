@@ -1,0 +1,83 @@
+<ui-dialog
+  [header]="'Keep ' + (collection()?.name ?? '') + ' in a folder'"
+  [visible]="collection() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  width="560px"
+>
+  <div class="flex flex-col gap-5">
+    <p class="type-footnote text-label-primary" role="alert"
+      >@if (refused()) {<app-icon name="warning" /> {{ refused() }}}</p
+    >
+    <p class="sr-only" role="status">{{ announcement() }}</p>
+    @if (!folders.supported) {
+    <p class="type-callout text-label-primary"
+      >This browser cannot keep a collection in a folder. Chrome, Edge and other Chromium browsers can. Export… and
+      Share… work everywhere.</p
+    >
+    } @else {
+    <div class="flex flex-col gap-1.5 type-callout text-label-primary">
+      <p
+        >Wayfarer writes this collection as plain files in a folder you choose, for example in your repository, and
+        shows you what changed there before it takes it.</p
+      >
+      <p class="type-footnote text-label-secondary"
+        >It runs no Git command: commit, pull and branch with the Git you already use. Credentials you typed are written
+        as ***, and a vault secret is never written. Scripts that come from the folder do not run until you have read
+        them.</p
+      >
+    </div>
+
+    @if (!status()) {
+    <div class="flex flex-col gap-1.5">
+      <p class="type-footnote text-label-secondary">The folder must be empty of collections.</p>
+    </div>
+    } @else {
+    <div class="flex flex-col gap-3">
+      <p class="type-callout text-label-primary"
+        ><app-icon name="folder_open" /> Kept in <span class="font-mono">{{ status()?.folderName }}</span>.</p
+      >
+      @switch (status()?.state) { @case ("in-step") {
+      <p class="type-footnote text-label-secondary"><app-icon name="check" /> The folder and this collection match.</p>
+      } @case ("permission") {
+      <p class="type-footnote text-label-secondary"
+        >The browser asks again before it lets Wayfarer into the folder after a restart.</p
+      >
+      <div><button uiButton="outlined" class="btn-secondary" type="button" (click)="allow()">Allow access</button></div>
+      } @case ("problem") {
+      <p class="type-footnote text-label-primary"
+        ><app-icon name="warning" /> The folder could not be read: {{ status()?.problem }}</p
+      >
+      } @default {
+      <p class="type-footnote text-label-primary">
+        <app-icon name="warning" />
+        @if (status()?.state === "both") { The folder changed, and so did this collection since the last time they
+        matched. Taking the folder's version replaces your changes; Undo puts them back. } @else { The folder changed
+        outside Wayfarer. Nothing here has changed yet. }
+      </p>
+      @for (change of status()?.changes; track change.path) {
+      <details class="flex flex-col gap-1.5">
+        <summary class="type-footnote text-label-primary"
+          >{{ changeLabel(change.status) }}: <span class="font-mono">{{ change.path }}</span></summary
+        >
+        <pre class="folder-diff type-mono-body" tabindex="0" [attr.aria-label]="'Changes in ' + change.path"><!--
+          -->@for (line of change.lines; track $index) {<span [class]="'folder-diff-' + line.kind">{{ sign[line.kind] }} {{ line.text }}
+</span>}</pre>
+      </details>
+      } } }
+    </div>
+    } }
+  </div>
+  <div uiDialogFooter>
+    <div class="flex flex-wrap justify-end gap-2">
+      @if (status()) {
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="stop()">Stop keeping in a folder</button>
+      @if (status()?.state === "outside" || status()?.state === "both") {
+      <button uiButton="filled" type="button" (click)="take()"><app-icon name="download" /> Review and take</button>
+      } } @else if (folders.supported) {
+      <button uiButton="filled" type="button" (click)="choose()"
+        ><app-icon name="folder_open" /> Choose a folder</button
+      >
+      }
+    </div>
+  </div>
+</ui-dialog>

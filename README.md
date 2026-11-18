@@ -45,8 +45,8 @@
 
 Each of these is a good tool, and each is a better pick for some work. The sources for every line are on the [comparison pages](https://wayfarer.ashwinsathian.com/compare/), read in November 2026.
 
-- **[Bruno](https://www.usebruno.com/)** is a desktop app whose collections are plain-text files in a folder, for a Git repository. If your team reviews requests as files in Git, pick Bruno. Wayfarer's collections live in the browser and leave it as an export.
-- **[Yaak](https://yaak.app/)** is a fast desktop app with gRPC, and it syncs a workspace to a folder you can keep in Git. It is free for personal use and needs a licence at work. Wayfarer has no gRPC and no Git sync, and is MIT with nothing to buy.
+- **[Bruno](https://www.usebruno.com/)** is a desktop app whose collections are plain-text files in a folder, for a Git repository. If your team reviews requests as files in Git, pick Bruno. Wayfarer's collections live in the browser, and in Chromium browsers can also be kept as files in a folder of your repository, with each outside change shown before you take it.
+- **[Yaak](https://yaak.app/)** is a fast desktop app with gRPC, and it syncs a workspace to a folder you can keep in Git. It is free for personal use and needs a licence at work. Wayfarer has no gRPC, keeps a collection in a folder only in Chromium browsers and runs no Git command, and is MIT with nothing to buy.
 - **[Hurl](https://hurl.dev/)** runs requests written in plain-text files from the command line. If your tests live in a repository and run in CI as files, Hurl fits that directly. `wayfarer-cli` runs a Wayfarer or Postman collection with the app's engine, and the files are JSON.
 - **Wayfarer** is the one that needs nothing installed: open a tab, import your Postman, Insomnia, OpenAPI, HAR or cURL work, and send. The vault's key is made from your passphrase and held in memory only. Scripts from an imported file do not run until you have read them.
 
@@ -181,6 +181,8 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A response of type `text/event-stream` is shown event by event as it arrives, each with its id, name and data; Stop ends it, and Reconnect sends `Last-Event-ID`, the last id the stream gave. <!-- claim:C-092 -->
 - A GraphQL body can fetch the server's schema by introspection; with it, a field the schema does not have is marked in the query's editor. <!-- claim:C-093 -->
 - The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. <!-- claim:C-094 -->
+- A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. <!-- claim:C-095 -->
+- A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. <!-- claim:C-096 -->
 <!-- features:end -->
 
 </details>
@@ -199,6 +201,7 @@ Also in the app, documented but not ledger claims: collection runs with data fil
 - [Import](docs/import.md): every format, and the report before anything is stored
 - [Export](docs/export.md): cURL, code, HAR and Postman files
 - [Sharing](docs/sharing.md): a collection as a file or an encrypted link, and what the receiver sees before anything is stored
+- [Keep a collection in a folder](docs/folders.md): plain files in your Git repository, and each outside change shown with its diff before you take it
 - [Collections schema](docs/collections-schema.md): the collection and environments files
 - [Secrets](docs/secrets.md): the vault, its crypto and its file
 - [Storage](docs/storage.md): what is kept in the browser, and what an update does to it
@@ -220,7 +223,7 @@ Also in the app, documented but not ledger claims: collection runs with data fil
 ## Known limitations
 
 - **Protocols.** REST, GraphQL, WebSocket and server-sent events. There is no gRPC, MQTT or Socket.IO, and no MCP server.
-- **No Git-backed collections yet.** Collections are stored in the browser's IndexedDB and leave as a file or an encrypted link. Keeping them in a Git repository is next on the [roadmap](docs/roadmap.md).
+- **Folders are Chromium only, and no Git commands.** A collection can be [kept as files in a folder](docs/folders.md) in Chrome, Edge and other Chromium browsers; Firefox and Safari cannot yet. Wayfarer runs no Git command: you commit and pull with your own, and two changed versions of a request are not merged.
 - **No sync and no shared workspace.** A collection reaches a teammate as a copy. Two people cannot edit one together.
 - **Browser limits.** CORS, forbidden headers, mixed content and the rest of [what the browser can't do](#what-the-browser-cant-do) apply to the hosted app. The Local Bridge lifts them for a request, and needs Node on your machine.
 - A browser can delete a site's data; Safari does after seven days without a visit, unless the app is installed. Wayfarer asks the browser to keep it and reminds you to back up, but it cannot make the browser promise.

@@ -29,6 +29,20 @@
     }
   </div>
 
+  @for (waiting of folders.waiting(); track waiting.collectionId) {
+  <button
+    type="button"
+    uiButton="outlined"
+    class="btn-secondary btn-sm folder-waiting"
+    (click)="folderOf.set({ id: waiting.collectionId, name: collectionName(waiting.collectionId) })"
+    ><app-icon name="folder_open" class="icon-xs" />Changes in the folder of {{ collectionName(waiting.collectionId)
+    }}</button
+  >
+  }
+  <p class="type-footnote text-label-primary m-0" role="alert"
+    >@if (folderRefused()) {<app-icon name="warning" /> {{ folderRefused() }}}</p
+  >
+
   <input
     #fileInput
     type="file"
@@ -151,3 +165,4 @@
 
 <app-export-dialog [collection]="exportOf()" (closed)="exportOf.set(null)" />
 <app-share-dialog [collection]="shareOf()" (closed)="shareOf.set(null)" />
+<app-folder-dialog [collection]="folderOf()" (closed)="folderOf.set(null)" />

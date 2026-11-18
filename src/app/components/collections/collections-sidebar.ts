@@ -41,6 +41,8 @@ import { Icon } from "../../shared/icon/icon";
 import type { HolderTarget } from "../../state/tab-state";
 import { ExportDialog } from "./export-dialog";
 import { ShareDialog } from "./share-dialog";
+import { FolderDialog } from "./folder-dialog";
+import { CollectionFolders } from "../../services/collection-folders";
 import { Tabs } from "../../state/tabs";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
@@ -60,6 +62,7 @@ export interface PaletteAction {
 @Component({
   selector: "app-collections-sidebar",
   imports: [
+    FolderDialog,
     UiButton,
     UiInput,
     Icon,
@@ -136,6 +139,9 @@ export class CollectionsSidebar implements OnInit {
   readonly exportOf = signal<{ id: string; name: string } | null>(null);
   /** The collection the Share dialog is open for (T1.2). */
   readonly shareOf = signal<{ id: string; name: string } | null>(null);
+  /** The collection the Keep in a folder dialog is open for (T2.2). */
+  readonly folderOf = signal<{ id: string; name: string } | null>(null);
+  protected readonly folders = inject(CollectionFolders);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -247,6 +253,11 @@ export class CollectionsSidebar implements OnInit {
           run: () => this.exportCollection(node),
         },
         {
+          id: "folder-collection",
+          label: `Keep ${data.ref.name} in a folder…`,
+          run: () => this.folderOf.set({ id: data.ref.meta.id, name: data.ref.name }),
+        },
+        {
           id: "share-collection",
           label: `Share ${data.ref.name}…`,
           run: () => this.shareOf.set({ id: data.ref.meta.id, name: data.ref.name }),
@@ -329,6 +340,11 @@ export class CollectionsSidebar implements OnInit {
       this.exportCollection(node);
       return;
     }
+    if (action === "folder") {
+      const data = node.data as NodeData;
+      if (data.type === "collection") this.folderOf.set({ id: data.ref.meta.id, name: data.ref.name });
+      return;
+    }
     if (action === "share") {
       const data = node.data as NodeData;
       if (data.type === "collection") this.shareOf.set({ id: data.ref.meta.id, name: data.ref.name });
@@ -385,7 +401,20 @@ export class CollectionsSidebar implements OnInit {
     { label: "File…", icon: "upload_file", command: () => this.fileInput()?.nativeElement.click() },
     { label: "cURL command…", icon: "terminal", command: () => this.importPipeline.openPaste() },
     { label: "Link…", icon: "link", command: () => this.importPipeline.openPaste("link") },
+    ...(this.folders.supported
+      ? [{ label: "Folder…", icon: "folder_open" as const, command: () => void this.openFolder() }]
+      : []),
   ];
+
+  protected collectionName(id: string): string {
+    return this.collectionsService.tree().find(({ collection }) => collection.meta.id === id)?.collection.name ?? "";
+  }
+
+  /** Import › Folder…: a folder that holds a collection, opened in the import report. */
+  private async openFolder(): Promise<void> {
+    this.folderRefused.set((await this.folders.openFolder()) ?? "");
+  }
+  protected readonly folderRefused = signal("");
 
   /** The header's New menu (U-010, U-102): a collection, and a request or a folder where the selected row is. */
   protected readonly newItems = computed<UiMenuItem[]>(() => {

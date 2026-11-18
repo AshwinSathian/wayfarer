@@ -65,6 +65,7 @@ export class ImportPipeline {
   readonly addedFromLink = signal<{ id: string } | null>(null);
 
   private text = "";
+  private afterConfirm: ((ids: string[]) => Promise<void>) | undefined;
   /** Counts each `close`: an open, a read or a store that began before one does not show its result after it. */
   private opened = 0;
 
@@ -144,9 +145,13 @@ export class ImportPipeline {
     this.dialogVisible.set(true);
   }
 
-  /** Maps and checks a file's text, and opens the report. */
-  async stage(fileName: string, text: string): Promise<void> {
+  /**
+   * Maps and checks a file's text, and opens the report. `afterConfirm` runs once the collections are stored, with their
+   * ids, unless the import was made a copy under new ids: a folder takes its base there (T2.4).
+   */
+  async stage(fileName: string, text: string, afterConfirm?: (ids: string[]) => Promise<void>): Promise<void> {
     this.pasting.set(null);
+    this.afterConfirm = afterConfirm;
     this.text = text;
     this.fileName.set(fileName);
     this.duplicateAsNew.set(false);
@@ -183,6 +188,7 @@ export class ImportPipeline {
     const name = this.fileName();
     const duplicateAsNew = this.duplicateAsNew();
     const entries = this.environmentEntries();
+    const afterConfirm = this.afterConfirm;
     this.storing.set(true);
     // What the import adds, and what it replaced as it was: its Undo, as a delete in the tree has (U-161).
     const added: string[] = [];
@@ -214,6 +220,7 @@ export class ImportPipeline {
     } finally {
       this.storing.set(false);
     }
+    if (afterConfirm && added.length && !duplicateAsNew) await afterConfirm(added);
     // A link holds one collection: it is said by its name, as receive.md's "Added {collection}." has it.
     const fromLink = name === SHARED_LINK && added.length === 1;
     // Its environments replace the ones of the same name here, or are added as new ones: an Undo of the collections alone
@@ -238,6 +245,7 @@ export class ImportPipeline {
     this.duplicateAsNew.set(false);
     this.fileName.set("");
     this.text = "";
+    this.afterConfirm = undefined;
   }
 
   private async read(): Promise<void> {

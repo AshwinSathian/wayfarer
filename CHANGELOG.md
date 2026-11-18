@@ -9,6 +9,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Keep a collection as files in a folder.** In Chrome, Edge and other Chromium browsers, a collection's menu has **Keep in a folder…**: Wayfarer writes the collection as plain JSON files (one for the collection, one for each folder and one for each request, with no timestamps and a credential you typed written as `***`) in a folder you choose, for example inside your repository, and writes it again when you change the collection. When the folder changes from outside, say after a `git pull`, the sidebar says so, and the dialog shows each file that is new, gone or changed with its lines before and after; nothing changes here until you choose **Review and take**, which opens the usual import report. **Import › Folder…** opens a folder that holds a collection, such as a clone of a teammate's repository. Wayfarer runs no Git command. Firefox and Safari have no folder picker and are next on the [roadmap](docs/roadmap.md). See [Keep a collection in a folder](docs/folders.md).
 - A `funding.json` manifest at the repository root, which says what funding would pay for (an independent security review, Git-backed collections, an accessibility audit and a year of hosting and a domain), 2,00,000 INR in all.
 - The project has earned the OpenSSF Best Practices "passing" badge, and the README shows it.
 - The README shows the project's OpenSSF Scorecard, which the weekly scorecard workflow already publishes.

@@ -97,10 +97,8 @@ export const WAYFARER_GLANCE: Record<GlanceRow, Rich> = {
   collections: ["In your browser, on your device. ", C("C-002")],
   secrets: ["Only ciphertext is stored; the key is in memory and a reload locks it. ", C("C-003", "C-005")],
   git: [
-    "None yet: a collection leaves as a file or a link; Git is ",
-    a("next", "/roadmap/"),
-    ". ",
-    C("C-057", "C-084"),
+    "Files in a folder of your repository, in Chromium browsers; you commit with your own Git. ",
+    C("C-095", "C-096"),
   ],
   team: [
     "A copy, as a file or an encrypted link that reaches no server; no workspace in step yet. ",
@@ -369,7 +367,7 @@ export const RIVALS: Rival[] = [
     ],
     ahead: [
       {
-        text: "Its collections are files for Git; Wayfarer's live in the browser and leave it as an export.",
+        text: "Its collections are files for Git in every desktop build; Wayfarer keeps them as files only in Chromium browsers, and runs no Git command.",
         source: BRUNO_HOME,
       },
       { text: "It says it has 4 million users and an independent SOC 2 Type II audit.", source: BRUNO_HOME },
@@ -706,11 +704,11 @@ export const BEHIND: { title: string; text: Rich; sources: Source[] }[] = [
     sources: [POSTMAN_CLIENT, YAAK_DOCS],
   },
   {
-    title: "Collections are not files in Git",
+    title: "Files in a folder only in Chromium browsers, and no Git commands",
     text: [
-      "They live in your browser and leave it as an export or a backup. ",
-      C("C-002", "C-046"),
-      " Bruno and Yaak keep them as files for Git; Postman (Native Git, after you sign in) and Insomnia (Git Sync) sync with a repository.",
+      "A collection can be kept as files in a folder, but Firefox and Safari have no folder picker, and Wayfarer runs no Git command: you commit and pull with your own. ",
+      C("C-095", "C-096"),
+      " Bruno and Yaak keep collections as files for Git in their desktop apps; Postman (Native Git, after you sign in) and Insomnia (Git Sync) sync with a repository.",
     ],
     sources: [BRUNO_HOME, YAAK_SYNC, POSTMAN_GIT, INSOMNIA_PRICING],
   },
@@ -719,8 +717,8 @@ export const BEHIND: { title: string; text: Rich; sources: Source[] }[] = [
     text: [
       "A team shares a collection as a copy, by file or by an encrypted link that reaches no server, and no copy follows the other's changes. ",
       C("C-084"),
-      " Collections in Git are ",
-      a("next", "/roadmap/"),
+      " Files in a folder of your repository are the way to keep one in step, in ",
+      a("Chromium browsers", "/docs/folders/"),
       ". Postman shares on its Team plan, Hoppscotch on Business, Scalar in team workspaces after sign-in, and Insomnia through its cloud or Git Sync, which is free for up to 3 users.",
     ],
     sources: [POSTMAN_PLANS, HOPP_PRICING, SCALAR_CHANGELOG, INSOMNIA_PRICING],

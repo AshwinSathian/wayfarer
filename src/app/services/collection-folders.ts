@@ -152,7 +152,13 @@ export class CollectionFolders {
   }
 
   private async load(): Promise<void> {
-    this.shares = await this.repository.shares();
+    try {
+      this.shares = await this.repository.shares();
+    } catch (error) {
+      // No database (memory only, or reset elsewhere): nothing is kept in a folder; the shell's banners say why.
+      recordDiagnostic(error, "folder: could not read the kept folders");
+      this.shares = [];
+    }
     await this.check();
   }
 

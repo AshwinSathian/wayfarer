@@ -39,14 +39,17 @@ export function isFolderPath(path: string): boolean {
 }
 
 function slug(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40)
-      .replace(/-+$/g, "") || "untitled"
-  );
+  // Split and join, not a regular expression over the name: a name is the user's, and long.
+  const words = name
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .join("-")
+    .slice(0, 40)
+    .split("-")
+    .filter(Boolean)
+    .join("-");
+  return words || "untitled";
 }
 
 function named(name: string, id: string): string {

@@ -25,14 +25,15 @@ test("each heading is a list of its items, with the claims each names; a Shipped
   ]);
 });
 
-test("docs/roadmap.md gives the four lists: sharing shipped since 3.0, Git next", () => {
+test("docs/roadmap.md gives the four lists: sharing and folders shipped since 3.0, Firefox and Safari next", () => {
   const sections = roadmapOf(ROADMAP);
   assert.deepEqual(
     sections.map((s) => s.title),
     ["Shipped in 3.0", "Shipped since 3.0", "Next", "After that", "Later"],
   );
   assert.ok(sections[1].items.some((i) => /link/.test(i.text)));
-  assert.ok(sections[2].items.some((i) => /Git/.test(i.text)));
+  assert.ok(sections[1].items.some((i) => /folder/.test(i.text)));
+  assert.ok(sections[2].items.some((i) => /Firefox and Safari/.test(i.text)));
   // A sentence of the page is for a reader: no plan IDs, finding numbers or claim IDs in it.
   for (const item of sections.flatMap((s) => s.items))
     assert.doesNotMatch(item.text, /\b([DWT]\d|U-\d|C-\d)/, item.text);

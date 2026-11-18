@@ -23,17 +23,17 @@ is made from this file.
 ## Shipped since 3.0
 
 - Fixes for the rough edges found in the last review before 3.0.
+- Keep a collection as plain files in a folder of your Git repository, and see what changed in them from outside, with each file's diff, before you take it. Chromium browsers first; you commit, pull and branch with the Git you already use. <!-- claims C-095 C-096 -->
 - Share a collection with your team as a file, or as a link whose encrypted contents never reach a server, and see every host it sends to before you import it. <!-- claims C-084 C-086 C-090 -->
 
 ## Next
 
-- 3.5, November 2026: keep a collection as plain files in a folder of your Git repository, and see what changed in them from outside, with each request's diff, before you take it. Chromium browsers first; you commit, pull and branch with the Git you already use.
+- December: the same folders in Firefox and Safari, through the Local Bridge, and a clear message when Chrome blocks the Bridge as a local-network request.
 
 ## After that
 
 These are the plan, not a promise: each month the next item is checked again against what people ask for and what other tools and browsers have done, and it can change or go.
 
-- December: the same folders in Firefox and Safari, through the Local Bridge, and a clear message when Chrome blocks the Bridge as a local-network request.
 - January: an MCP client, to try a server's tools, resources and prompts.
 - February: gRPC, and client certificates and proxies through the Local Bridge.
 - March: keep a collection in step with its OpenAPI file, and run a sequence of calls from an OpenAPI workflow.

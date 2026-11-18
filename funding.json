@@ -17,7 +17,7 @@
     {
       "guid": "wayfarer",
       "name": "Wayfarer",
-      "description": "Wayfarer is an API client that opens in a browser tab: no install, no account and no server of ours. Collections, history and an encrypted secrets vault stay in the browser's IndexedDB, and the only network traffic is the request you send. It imports Postman, Insomnia, OpenAPI, HAR and cURL, runs Postman-style scripts in a QuickJS sandbox, and handles REST, GraphQL, WebSockets and event streams. It ships wayfarer-cli (runs a collection in CI) and wayfarer-bridge (a local relay for what a browser blocks) on npm. Each of its 94 public claims has a test in CI, run in Chromium, Firefox and WebKit where the claim is about the page. It launched on 10 November 2026 and is young: one maintainer, version 3.4.0.",
+      "description": "Wayfarer is an API client that opens in a browser tab: no install, no account and no server of ours. Collections, history and an encrypted secrets vault stay in the browser's IndexedDB, and the only network traffic is the request you send. It imports Postman, Insomnia, OpenAPI, HAR and cURL, runs Postman-style scripts in a QuickJS sandbox, and handles REST, GraphQL, WebSockets and event streams. It ships wayfarer-cli (runs a collection in CI) and wayfarer-bridge (a local relay for what a browser blocks) on npm. Each of its 96 public claims has a test in CI, run in Chromium, Firefox and WebKit where the claim is about the page. It launched on 10 November 2026 and is young: one maintainer, version 3.5.0.",
       "webpageUrl": {
         "url": "https://wayfarer.ashwinsathian.com",
         "wellKnown": ""
@@ -53,8 +53,8 @@
       {
         "guid": "git-collections",
         "status": "active",
-        "name": "Git-backed collections",
-        "description": "A stipend for three months of part-time work (25,000 INR a month) on the next roadmap item: keep a collection as plain files in a Git repository, with each change and its diff visible before it is taken. Bruno and Yaak have this and Wayfarer does not.",
+        "name": "Collections as files in every browser",
+        "description": "A stipend for three months of part-time work (25,000 INR a month) on the roadmap items after 3.5.0, which keeps a collection as plain files in a Git repository in Chromium browsers, with each outside change and its diff visible before it is taken: the same in Firefox and Safari, and merging two changed versions of a request.",
         "amount": 75000,
         "currency": "INR",
         "frequency": "one-time",

@@ -10,6 +10,7 @@ import { recordDiagnostic } from "../services/diagnostics";
 import { ScriptTrust } from "../services/script-trust";
 import { TabState, blankRow, contentOf } from "./tab-state";
 import { Tabs } from "./tabs";
+import { parseParamsFromUrl } from "../shared/http/request-url";
 
 /** Which tab is open is this browser tab's own: two of them share the tabs, not the place in them. */
 const OPEN_TAB_KEY = "wayfarer:open-tab";
@@ -235,7 +236,8 @@ export class TabsStorage {
   /**
    * Binds each tab to its saved request as the tree has it now, as a reload
    * would: by the request's id. A request that is gone leaves its tab a
-   * request that is not saved. What the tab holds is not touched.
+   * request that is not saved. What the tab holds is not touched when it
+   * holds an edit of its own; a tab that is not unsaved takes what is saved.
    *
    * The scripts keep their standing: the digests of those that may run are
    * taken before the binding changes, and scripts that are not among them
@@ -248,6 +250,17 @@ export class TabsStorage {
       if (!was) continue;
       const now = this.requestOf(was.meta.id);
       if (now && JSON.stringify(now) === JSON.stringify(was)) continue;
+      // A tab that holds exactly what it was opened with shows what is saved now: another change (a folder taken, an
+      // import, a save from another browser tab) would otherwise leave it showing, and sending, the old request. A tab
+      // with an edit of its own keeps it. The scripts of what is saved now are checked below, as any are.
+      if (now && !tab.dirty()) {
+        tab.draft.set({
+          ...structuredClone(now),
+          params: parseParamsFromUrl(now.url, now.params),
+          responseId: tab.draft().responseId,
+        });
+        tab.markClean();
+      }
       const draft = contentOf(tab.draft());
       const scripts = (await this.digests(draft, tab)) ?? [];
       // A save, or a later change of the tree, was faster: that one binds the tab.

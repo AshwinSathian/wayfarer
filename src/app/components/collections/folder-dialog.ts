@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
+import { describeChange, type FileChange } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
 import { CollectionFolders } from "../../services/collection-folders";
 import { UiButton } from "../../ui/button";
@@ -78,4 +79,21 @@ export class FolderDialog {
   protected changeLabel(status: "added" | "removed" | "changed"): string {
     return status === "added" ? "New in the folder" : status === "removed" ? "Gone from the folder" : "Changed";
   }
+
+  /** What a changed file is called, for a person: "Request · List invoices", the path being the machine's. */
+  protected describe(change: FileChange): string {
+    const { kind, name } = describeChange(change);
+    return `${kind} · ${name}`;
+  }
+
+  /** The dialog's title: what is asked before a folder is chosen, what is so after. */
+  protected readonly title = computed(() => {
+    const name = this.collection()?.name ?? "";
+    const status = this.status();
+    return status ? `${name} is kept in ${status.folderName}` : `Keep ${name} in a folder`;
+  });
+  protected readonly waiting = computed(() => {
+    const state = this.status()?.state;
+    return state === "outside" || state === "both";
+  });
 }

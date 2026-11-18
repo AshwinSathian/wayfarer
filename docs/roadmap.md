@@ -1,7 +1,7 @@
 # Roadmap
 
-What shipped in 3.0 and since, what is next, and the work for teams after
-that. Each line is what you get; [the changelog](../CHANGELOG.md) says
+What shipped in 3.0 and since, what comes next month by month, and the work
+for teams after that. Each line is what you get; [the changelog](../CHANGELOG.md) says
 what each release changed. The site's [roadmap page](https://wayfarer.ashwinsathian.com/roadmap/)
 is made from this file.
 

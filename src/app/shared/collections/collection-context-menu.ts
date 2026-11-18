@@ -17,6 +17,8 @@ export type CollectionNodeAction =
 export function buildContextItems(
   node: UiTreeNode<CollectionNodeData>,
   dispatch: (action: CollectionNodeAction, node: UiTreeNode<CollectionNodeData>) => void,
+  /** Whether this browser can keep a collection in a folder: only Chromium's can, and Import › Folder… is hidden elsewhere too. */
+  canKeepInFolder = false,
 ): UiMenuItem[] {
   const data = node.data as CollectionNodeData;
 
@@ -31,7 +33,9 @@ export function buildContextItems(
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Export…", icon: "download", command: () => dispatch("export", node) },
       { label: "Share…", icon: "upload", command: () => dispatch("share", node) },
-      { label: "Keep in a folder…", icon: "folder_open", command: () => dispatch("folder", node) },
+      ...(canKeepInFolder
+        ? [{ label: "Keep in a folder…", icon: "folder_open" as const, command: () => dispatch("folder", node) }]
+        : []),
       { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
     ];
   }

@@ -370,10 +370,12 @@ test("folders and requests are reordered by drag and drop among each other: a re
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await createCollection(page, "Drag Col");
-  await createUnder(page, "Drag Col", 10, "New folder", "Drag Folder A");
-  await createUnder(page, "Drag Col", 10, "New folder", "Drag Folder B");
-  await createUnder(page, "Drag Col", 10, "New request", "Drag Req 1");
-  await createUnder(page, "Drag Col", 10, "New request", "Drag Req 2");
+  // The collection menu has Keep in a folder… where the browser has a folder picker (Chromium).
+  const menuSize = (await page.evaluate(() => typeof window.showDirectoryPicker === "function")) ? 10 : 9;
+  await createUnder(page, "Drag Col", menuSize, "New folder", "Drag Folder A");
+  await createUnder(page, "Drag Col", menuSize, "New folder", "Drag Folder B");
+  await createUnder(page, "Drag Col", menuSize, "New request", "Drag Req 1");
+  await createUnder(page, "Drag Col", menuSize, "New request", "Drag Req 2");
   const order = treeOrder(page, "Drag ");
   await expect.poll(order).toEqual(["Drag Col", "Drag Folder A", "Drag Folder B", "Drag Req 1", "Drag Req 2"]);
 

@@ -12,12 +12,12 @@ Edge and other Chromium browsers can. Firefox and Safari cannot yet, and the
 Export and Share choices work in every browser. A collection kept in a folder
 is also kept in the browser, as every collection is.
 
-## Keep a collection in a folder
+## Choose the folder
 
 Open a collection's menu in the sidebar (right-click, or Shift+F10 on its
 row) and choose **Keep in a folder…**, then **Choose a folder**. The browser
-asks you to pick the folder and to let Wayfarer change it. The folder must hold
-no collection already: to open one that does, a clone of a teammate's
+asks you to pick the folder and to let Wayfarer change it. Choose a folder that holds
+no collection yet: to open one that does, a clone of a teammate's
 repository for example, use **Import › Folder…**, which shows the usual
 [import report](import.md) first and keeps the collection in that folder when
 you import it.

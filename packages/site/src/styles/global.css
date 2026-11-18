@@ -645,8 +645,10 @@
   background:
     linear-gradient(to right, var(--canvas-app) 30%, transparent) 0 0 / 2.5rem 100% no-repeat local,
     linear-gradient(to left, var(--canvas-app) 30%, transparent) 100% 0 / 2.5rem 100% no-repeat local,
-    radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 0 0 / 0.9rem 100% no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 100% 0 / 0.9rem 100% no-repeat scroll;
+    radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 0 0 / 0.9rem
+      100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--ink) 16%, transparent), transparent) 100% 0 /
+      0.9rem 100% no-repeat scroll;
 }
 .compare-table {
   font-size: var(--type-site-small-size);

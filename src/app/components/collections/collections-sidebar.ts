@@ -252,11 +252,15 @@ export class CollectionsSidebar implements OnInit {
           label: `Export ${data.ref.name}…`,
           run: () => this.exportCollection(node),
         },
-        {
-          id: "folder-collection",
-          label: `Keep ${data.ref.name} in a folder…`,
-          run: () => this.folderOf.set({ id: data.ref.meta.id, name: data.ref.name }),
-        },
+        ...(this.folders.supported
+          ? [
+              {
+                id: "folder-collection",
+                label: `Keep ${data.ref.name} in a folder…`,
+                run: () => this.folderOf.set({ id: data.ref.meta.id, name: data.ref.name }),
+              },
+            ]
+          : []),
         {
           id: "share-collection",
           label: `Share ${data.ref.name}…`,
@@ -332,7 +336,9 @@ export class CollectionsSidebar implements OnInit {
 
   handleNodeSelect(node: UiTreeNode<NodeData>): void {
     this.selectedNode.set(node);
-    this.contextItems.set(buildContextItems(node, (action, target) => this.dispatchContextAction(action, target)));
+    this.contextItems.set(
+      buildContextItems(node, (action, target) => this.dispatchContextAction(action, target), this.folders.supported),
+    );
   }
 
   private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {

@@ -328,11 +328,35 @@ describe("TabsStorage", () => {
       ]);
       await settle();
       expect(tab.bound()?.scripts.pre).toBe("replaced()");
-      // The tab still holds and would run its own script, which was allowed; the stored one is not what runs.
-      expect(tab.draft().scripts.pre).toBe("mine()");
+      // The tab was not unsaved, so it shows what is saved now (loupe, 3.5.0). Its script is the saved request's, which the
+      // collection's list does not approve: nothing of this tab runs until that is reviewed.
+      expect(tab.draft().scripts.pre).toBe("replaced()");
+      expect(tab.dirty()).toBe(false);
       expect(tab.heldScripts()).toBeNull();
-      // The collection's list says no to what is stored for the request now, so nothing of this tab runs until that is reviewed.
       expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(false);
+    });
+
+    it("a tab that is not unsaved shows the request as it is saved now; a tab with an edit of its own keeps it", async () => {
+      const doc = makeRequestDoc({ id: "r-1", url: "https://before.test/x" });
+      harness.collectionsService.setTree([{ collection: collection(), folders: [], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+
+      harness.collectionsService.setTree([
+        { collection: collection(), folders: [], requests: [{ ...doc, url: "https://after.test/x" }] },
+      ]);
+      await settle();
+      expect(tab.draft().url).toBe("https://after.test/x");
+      expect(tab.dirty()).toBe(false);
+
+      tab.draft.set({ ...tab.draft(), url: "https://typed.test/x" });
+      expect(tab.dirty()).toBe(true);
+      harness.collectionsService.setTree([
+        { collection: collection(), folders: [], requests: [{ ...doc, url: "https://again.test/x" }] },
+      ]);
+      await settle();
+      expect(tab.draft().url).toBe("https://typed.test/x");
+      expect(tab.bound()?.url).toBe("https://again.test/x");
     });
   });
 

@@ -210,5 +210,5 @@ export {
   readFolder,
   writeFolder,
 } from "./folder/folder";
-export { changedFiles, type FileChange } from "./folder/diff";
+export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";

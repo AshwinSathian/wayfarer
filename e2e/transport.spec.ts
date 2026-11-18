@@ -97,7 +97,8 @@ test.describe("Transport on fetch (P2.3)", () => {
     await open(page);
     await openSettings(page, "General");
     const timeout = page.getByLabel("Request timeout");
-    await expect(timeout).toHaveValue("0");
+    await expect(timeout).toHaveValue("");
+    await expect(timeout).toHaveAttribute("placeholder", "No limit");
     await timeout.fill("1000");
     await timeout.blur();
     expect(await page.evaluate(() => localStorage.getItem("wayfarer:request-timeout-ms"))).toBe("1000");

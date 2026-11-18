@@ -11,6 +11,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The comparison table can be read on a phone, and says when it scrolls.** On a phone it showed only Wayfarer's column with 170 px of blank under each row, so two products could not be compared; below 48 em it is now one block for each question with a line for each product. On a wide window a shadow shows the edge that has more behind it (Insomnia's column was cut off with nothing to say so), and a line says it scrolls.
 - **The numbers that link to a recording on the comparison pages are 24 px targets.** They were 9 to 83 px wide and 19 px tall with no room between them.
+- **Every control the keyboard reaches now shows that it has focus.** 14 of the 43 Tab stops of the first-run screen (New collection, Import…, the command bar, Environments, the request and response tabs, Common methods, the parameter buttons, the splitter, Paste a cURL command, Try an example) looked the same focused and not, so a keyboard user could not see where they were. A focused button, tab or splitter has an edge of ink inside its box; the header's logo link on the website has one too. Fields, selects, menu and tree rows keep their own. There is still no focus ring. A test now holds every control, in three engines (it came from a review with the loupe skill).
+- **The backup reminder no longer pushes the page down.** After the first save it appeared above the tabs and moved the whole composer 86 px; it, and the "new version" notice, now float at the bottom corner above the status bar. Warnings about storage and other tabs still stand in the page.
+- **A method's colour reads on a hovered or selected row.** GET in the sidebar was 4.49:1 on a selected row's fill (4.5:1 is the least); the method colours are now checked on those fills in both themes and a few of them are a little darker (light) or lighter (dark).
+- **With larger text, the toolbar and status bar grow a row instead of cutting words.** "No environment" and "Search or run a command" were cut at 200%.
+- **Request timeout says "No limit" when it has none.** It showed "0".
 
 ## [3.5.0] - 2026-11-18
 

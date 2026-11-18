@@ -176,11 +176,11 @@
   --method-options: #4FB0C6;
   --method-options-fill: rgba(79, 176, 198, 0.12);
   --method-get-text: #7FD39D;
-  --method-post-text: #F0B45A;
-  --method-put-text: #8DB4EF;
-  --method-patch-text: #D0A6F0;
-  --method-delete-text: #F08A80;
-  --method-head-text: #B0ABA2;
+  --method-post-text: #EEB561;
+  --method-put-text: #99C1FD;
+  --method-patch-text: #DAAFFA;
+  --method-delete-text: #FEA99F;
+  --method-head-text: #C3BEB5;
   --method-options-text: #7FCDDE;
 
   /* scrollbar */
@@ -275,13 +275,13 @@
   --method-head-fill: rgba(140, 135, 128, 0.1);
   --method-options: #1F8BA3;
   --method-options-fill: rgba(31, 139, 163, 0.1);
-  --method-get-text: #1F6B3E;
-  --method-post-text: #7D4D00;
-  --method-put-text: #2453A6;
+  --method-get-text: #116135;
+  --method-post-text: #774A04;
+  --method-put-text: #2150A3;
   --method-patch-text: #6E2F9E;
-  --method-delete-text: #A8322B;
+  --method-delete-text: #91352E;
   --method-head-text: #57534C;
-  --method-options-text: #0F5E70;
+  --method-options-text: #095B6D;
 
   /* scrollbar */
   --scrollbar-thumb: rgba(38, 35, 30, 0.235);

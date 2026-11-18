@@ -442,35 +442,35 @@
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.808311, 0.127406, 75.2685]
+        "components": [0.808311, 0.121036, 75.2685]
       }
     },
     "method-put-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.763874, 0.095282, 258.4836]
+        "components": [0.803874, 0.095282, 258.4836]
       }
     },
     "method-patch-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.788744, 0.111627, 309.8759]
+        "components": [0.818744, 0.111627, 309.8759]
       }
     },
     "method-delete-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.74034, 0.126046, 26.4545]
+        "components": [0.81534, 0.102666, 26.4545]
       }
     },
     "method-head-text": {
       "$type": "color",
       "$value": {
         "colorSpace": "oklch",
-        "components": [0.74277, 0.01395, 82.3983]
+        "components": [0.80277, 0.01395, 82.3983]
       }
     },
     "method-options-text": {

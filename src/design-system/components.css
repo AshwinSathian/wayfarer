@@ -265,7 +265,9 @@ pre,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  height: 56px;
+  /* A minimum, and it wraps: with larger text the toolbar grows a row instead of cutting its words (WCAG 1.4.4). */
+  min-height: 56px;
+  flex-wrap: wrap;
   padding: 0 20px;
   white-space: nowrap;
   background: var(--surface-toolbar);

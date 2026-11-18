@@ -130,8 +130,8 @@
   dd {
     text-wrap: pretty;
   }
-  /* No focus ring, from a pointer or the keyboard (maintainer, 2026-11-09), as in the app. A link's underline and a
-     button's fill say where focus is instead. */
+  /* No focus ring (an outline), from a pointer or the keyboard (maintainer, 2026-11-09), as in the app. A link's
+     underline, a button's fill and the header mark's inset edge say where focus is instead (WCAG 2.4.7). */
   :focus,
   :focus-visible {
     outline: none !important;
@@ -194,6 +194,17 @@
 .link:focus-visible {
   text-decoration-thickness: 2px;
 }
+/* The mark and name in the header: a link with no underline and no fill, so focus is an edge inside its box (WCAG 2.4.7),
+   with room around the mark for it. */
+.brand {
+  margin: -0.25rem -0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+.brand:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
 /* A quiet link: underlined only when pointed at or focused. */
 .link-quiet {
   text-decoration: none;

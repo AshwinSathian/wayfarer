@@ -127,3 +127,5 @@ back gets reworded until one can, or removed.
 | C-092 | A response of type `text/event-stream` is shown event by event as it arrives, each with its id, name and data; Stop ends it, and Reconnect sends `Last-Event-ID`, the last id the stream gave. | docs/browser-limits.md | e2e/sse.spec.ts |
 | C-093 | A GraphQL body can fetch the server's schema by introspection; with it, a field the schema does not have is marked in the query's editor. | docs/graphql.md | e2e/graphql.spec.ts |
 | C-094 | The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. | docs/getting-started.md | e2e/tabs.spec.ts |
+| C-095 | A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. | docs/folders.md | e2e/folder-sync.spec.ts |
+| C-096 | A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. | docs/folders.md | e2e/folder-sync.spec.ts |

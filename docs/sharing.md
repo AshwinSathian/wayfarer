@@ -4,8 +4,9 @@
 
 A collection can be sent to someone else as a copy: a file, or a link. A
 copy is not kept in step: a change made later on either side stays there.
-Sharing that keeps a collection in step (a folder in Git, peer to peer, a
-team server) is on the [roadmap](https://wayfarer.ashwinsathian.com/roadmap/).
+To keep a collection in step through a folder in your Git repository, see
+[keep a collection in a folder](folders.md). Peer to peer and a team server
+are on the [roadmap](https://wayfarer.ashwinsathian.com/roadmap/).
 
 ## Share a collection
 

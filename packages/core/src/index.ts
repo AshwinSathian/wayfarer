@@ -201,3 +201,13 @@ export {
 export { ImportError } from "./import/import-error";
 export { collectionHosts } from "./import/hosts";
 export { receiverLines, receiverLineText, type ReceiverLine, type VaultSecretName } from "./import/receiver-lines";
+export {
+  FolderError,
+  MAX_FOLDER_DEPTH,
+  MAX_FOLDER_FILES,
+  isFolderPath,
+  readFolder,
+  writeFolder,
+} from "./folder/folder";
+export { changedFiles, type FileChange } from "./folder/diff";
+export { keepCredentialsHere } from "./folder/restore";

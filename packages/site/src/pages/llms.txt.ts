@@ -78,8 +78,8 @@ ${DOES.map(line).join("\n")}
 ## What it does not do (version ${version})
 
 - No gRPC, MQTT or Socket.IO requests
-- Collections are not files in a Git repository; they leave the browser as an export or a backup
-- No shared workspace for a team: a collection is shared as a copy, by file or by an encrypted link (${SITE}/docs/sharing/); collections in Git are next (${SITE}/roadmap/)
+- Collections can be kept as files in a folder of a Git repository only in Chromium browsers (${SITE}/docs/folders/); Wayfarer runs no Git command. Elsewhere they leave the browser as an export or a backup
+- No shared workspace for a team: a collection is shared as a copy, by file or by an encrypted link (${SITE}/docs/sharing/); keeping one in step is by a folder in Git (${SITE}/docs/folders/)
 - No MCP server
 - A browser's limits apply (CORS, headers a page cannot set, TLS it cannot relax) unless the Local Bridge is running
 

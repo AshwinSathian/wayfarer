@@ -4,7 +4,7 @@ import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
 export type CollectionNodeAction =
-  "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "share" | "settings" | "run";
+  "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "share" | "folder" | "settings" | "run";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
@@ -31,6 +31,7 @@ export function buildContextItems(
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Export…", icon: "download", command: () => dispatch("export", node) },
       { label: "Share…", icon: "upload", command: () => dispatch("share", node) },
+      { label: "Keep in a folder…", icon: "folder_open", command: () => dispatch("folder", node) },
       { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
     ];
   }

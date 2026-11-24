@@ -14,6 +14,9 @@ import type { TabMarkValue } from "./tab-mark";
 /** The rows a send takes: switched on and named. */
 const sent = (rows: Row[]): number | null => rows.filter((row) => row.enabled && row.key.trim()).length || null;
 
+/** How many of the parts are in use (not empty, not false, not 0), or nothing. */
+const count = (parts: (string | number | boolean | undefined)[]): number | null => parts.filter(Boolean).length || null;
+
 /**
  * What the composer shows of its draft, shared by its panels: the open tab
  * and whether the password is shown. Loading or clearing a request goes
@@ -41,21 +44,22 @@ export class ComposerView {
   readonly showAuthPassword = signal(false);
 
   /**
-   * What each request tab holds, beside its name (U-170): Params and Headers count the rows that are sent; Body, Auth,
-   * Scripts and Network are marked when not at their default. Scripts that are held back are marked so (U-158).
+   * What each request tab holds, beside its name (U-170): a count of what is in use, or nothing. Params and Headers
+   * count the rows that are sent; Body and Auth are 1 when set; Scripts counts the scripts and the tests set; Network
+   * the settings not at their default. Scripts that are held back are marked so (U-158).
    */
   readonly tabMarks = computed(
     (): Record<"params" | "headers" | "body" | "auth" | "scripts" | "settings", TabMarkValue> => {
       const { params, headers, body, auth, scripts, tests, settings } = this.store.draft();
-      const hasScripts = !!(scripts.pre.trim() || scripts.post.trim() || tests.length);
       return {
         params: sent(params),
         headers: sent(headers),
-        body: body.mode === "none" ? null : "set",
-        auth: auth.type === "none" || auth.type === "inherit" ? null : "set",
-        scripts: this.store.scriptsHeld() ? "held" : hasScripts ? "set" : null,
-        settings:
-          settings.route !== undefined || settings.followRedirects === false || settings.tlsInsecure ? "changed" : null,
+        body: body.mode === "none" ? null : 1,
+        auth: auth.type === "none" || auth.type === "inherit" ? null : 1,
+        scripts: this.store.scriptsHeld()
+          ? "held"
+          : (scripts.pre.trim() ? 1 : 0) + (scripts.post.trim() ? 1 : 0) + tests.length || null,
+        settings: count([settings.route !== undefined, settings.followRedirects === false, settings.tlsInsecure]),
       };
     },
   );

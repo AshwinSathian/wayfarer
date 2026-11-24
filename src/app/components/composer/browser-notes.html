@@ -1,6 +1,6 @@
 @let limits = store.browserLimits();
-<div class="request-route flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
-  <span id="request-route-label">Route</span>
+<div class="request-route type-footnote text-label-secondary">
+  <span id="request-route-label" class="ds-form-label">Route</span>
   <ui-select
     class="w-48"
     aria-labelledby="request-route-label"
@@ -8,9 +8,9 @@
     [value]="store.draft().settings.route ?? null"
     (valueChange)="store.setRoute($event)"
   />
-  <span class="min-w-0"
+  <p class="mt-1.5 min-w-0"
     >Auto sends from the page, and through the Local Bridge when the page gets no response. Inherit uses the
-    collection's route, else this device's (Settings › Local Bridge).</span
+    collection's route, else this device's (Settings › Local Bridge).</p
   >
 </div>
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">

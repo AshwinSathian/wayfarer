@@ -283,7 +283,7 @@ test("@claim:C-039 the Body tab is there for every method, offers none, raw, for
     "GraphQL",
   ]);
   await page.getByRole("option", { name: "Raw", exact: true }).click();
-  await page.getByRole("combobox", { name: "Raw body language" }).click();
+  await page.getByRole("combobox", { name: "Body format" }).click();
   await expect(page.getByRole("option")).toHaveText(["JSON", "Text", "XML", "HTML", "JavaScript"]);
   await page.keyboard.press("Escape");
 

@@ -15,8 +15,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **A new mark, and the display face is used where a title is.** The mark is now a path from a dot, a solid block struck across its middle (what Wayfarer keeps off the wire) and a dot where it arrives, replacing the switchback W; the favicon, the installed app's icons and the social images are redrawn. Dialog titles, settings pane titles, the name of a collection or run, the sidebar's name and the empty Environments headline are set in Bricolage Grotesque at 18 px or larger (they were Figtree at 15 px, and the name Bricolage at 15 px).
 
+- **A choice of a few shows its selection at a glance.** The chosen option is a filled segment (it was a thin outline), a choice of two is as wide as its options and no longer stretches across a dialog (Share's "File" and "Link"), and Theme and Response in Settings are the same kind of control.
+- **The request's tabs show one kind of mark, and do not move as you edit.** Each tab shows a count of what it holds, or nothing: rows sent in Params and Headers, 1 for a body or an auth, the scripts and tests set, the settings changed from their default (a dot and a triangle were the other two marks). The count has its place whether it is there or not, so Headers no longer jumps when its first row is typed. Scripts that have not been reviewed show the warning glyph in that place.
+- **The Body, Network and Auth tabs label a field the same way: above it.** Body has two labelled choices in a row, "Body type" and "Body format" (the second had no label), and Network's Route sits above its note.
+- **A WebSocket tab keeps its form to 45 rem, and says its state as a shape and words.** "Connected" was grey text beside the button; a filled dot, a half-filled one and a ring now stand for connected, connecting and not connected, in ink.
+- Send and Save stay dark (light theme) and light (dark theme) when you point at or press them; in the dark theme they fell to a pale grey after a click and read as disabled.
+
 ### Fixed
 
+- **The address field's focus edge follows the bar's rounded corner.** At its right end it was cut square, leaving a heavy stub beside the curve.
 - **On a phone, and wherever the sidebar is a drawer, the backup and update notices stand in the page again.** Floating over the page's foot they covered the control below the fold (found by a browser test at 390 px); they float only beside the pinned sidebar, over its empty foot.
 
 ## [3.5.1] - 2026-11-18

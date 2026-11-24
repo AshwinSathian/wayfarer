@@ -198,6 +198,9 @@ code errors.
 - WebKit ends a WebSocket to a port it refuses with an `error` event alone:
   no `close`, and `readyState` still 0 when the event fires. `SocketClient`
   looks at the socket again 500 ms after an error. Do not rely on `close`.
+  Its state beside Connect is a dot and words in ink (`.socket-dot`: a ring
+  is not connected, half filled is connecting, filled is connected), not
+  green, which is for a status; the WebSocket form is at most 45 rem wide.
 - Redirects (P5.4): a browser follows a direct request's unseen. Through
   the Local Bridge, which follows none, `BridgeTransport` makes each hop a
   relay of its own when the caller asks (`TransportOptions.redirects`, at
@@ -633,7 +636,15 @@ code errors.
   group's radios have a name of their own: with one name, two groups were
   one. The arrows are the group's: WebKit's stopped at the ends, and took
   the focus ring off the option they moved to. A test reaches an option
-  by `getByRole("radio", { name })`.
+  by `getByRole("radio", { name })`. The chosen option is a filled ink
+  segment with its label in `--on-ink` (audit 10: a thin outline did not
+  read at a glance), and its keyboard focus is an inside 2 px edge, in
+  `--on-ink` on the ink (`.segment:has(> .segment-input:focus-visible)`: a
+  radio is in no global focus rule). The track is as wide as its options,
+  never stretched by a flex column or a grid (`align-self`, `justify-self`,
+  `fit-content`): two options across a dialog left the second an empty box.
+  Only a choice of three or more fills the row below 30 em (a phone), where
+  their words wrap.
 - Dialogs and drawers are the platform's modal `<dialog>`: `<dialog
   uiModal [open]="…" (closeRequest)="…">` (`UiModal`,
   `src/app/ui/modal.ts`), shown with `showModal()`, in the top layer, the
@@ -754,6 +765,10 @@ code errors.
   in a toolbar or a panel's header is `uiButton="icon" class="btn-plain"`
   (34 px, grey until hovered; its icon keeps its own size class). Colours
   are the `--btn-*` variables each variant and tone sets in `button.css`.
+  Send's and Save's fill stays ink when hovered and pressed, in both themes
+  (`--ink-hover`, `--ink-press`, the `ink-hover` and `ink-press` targets of
+  `base.tokens.json`: 13 and 11, 15 and 13 at more contrast): at 11 and 8 the
+  dark ink fell to a pale grey after a click and read as disabled (audit 22).
   Only `<button>` and `<a>` can be one: a file picker is a button that
   clicks a hidden `<input type="file">`. The role, focus, Enter and Space
   and `disabled` are the element's own; the directive only names the
@@ -770,12 +785,17 @@ code errors.
   `type-*` class or `font-mono` on it wins. The label is a `<label for>`
   beside it, or an `aria-label`. `field-inline` is a tree row's rename;
   `method-field` and `address-field` are the halves of the address bar,
-  which draws their box; the half with focus is ringed inside it. Focus
+  which draws their box; the half with focus is ringed inside it, and the
+  half at each end takes the bar's inner radius so that the bar's clip does
+  not cut the edge at the corner (audit 23). Focus
   is a 2 px ink edge, no ring, and in forced colours an outline. Disabled,
   it looks it (a quiet fill, the secondary label, `not-allowed`);
   read-only, its edge is dashed; `aria-invalid` makes its edge the error
   colour. A search field has no clear button, as
-  Material's had none. Tested in `input.spec.ts` and the catalogue's e2e.
+  Material's had none. A form field's label is one pattern: the label above
+  it in `ds-form-label` (12 px), in the Body, Network and Auth tabs alike
+  (audit 8); two controls in a row each carry their own ("Body type", "Body
+  format"). Tested in `input.spec.ts` and the catalogue's e2e.
 - Checkbox: `<input type="checkbox" uiCheckbox>` (`UiCheckbox`,
   `src/app/ui/checkbox.ts`, styles in `checkbox.css`, imported by
   `src/styles.css`), a 16 px box in a 22 px slot with Material's tick, drawn in
@@ -885,8 +905,16 @@ code errors.
   hidden pane is `inert` (Aria) and `display: none` (ours); a shown pane is
   a Tab stop only while nothing in it can take focus (WAI-ARIA's pattern):
   Aria gives every pane `tabindex="0"`, and `uiTabList` sets `-1` on one
-  that holds a control (U-090). The
-  composer's request tabs are one `ngTabs` on `app-composer` (a host
+  that holds a control (U-090). A tab that holds a count says it in one
+  grammar, `<app-tab-mark [mark]="…" />` (`tab-mark.ts`): a number or
+  nothing, in a `.tab-badge` slot that is there empty and is as wide as the
+  count (one digit, `0.875rem`), so a tab does not change its width as a
+  header is added or a body chosen (audit 9; `e2e/tab-badges.spec.ts`
+  measures it). Scripts held back for review put the warning glyph in that
+  slot, with its words for a screen reader. No dot, no second shape: a new
+  state is a count, or this glyph's place. The slot takes the place of the
+  tab's end padding (`composer.css`), so six tabs are about as wide as six words were.
+  The composer's request tabs are one `ngTabs` on `app-composer` (a host
   directive): the open tab's panel is the composer, and the strip gives each
   other tab an empty one, so that every tab controls a panel. A pane whose
   tab is not there is shown (Aria hides a panel only when its tab is not

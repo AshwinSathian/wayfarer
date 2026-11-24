@@ -1,25 +1,26 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { Icon } from "../../shared/icon/icon";
 
-/** What a request tab holds (U-170): how many rows are sent, or that it is not at its default, and in which way. */
-export type TabMarkValue = number | "set" | "changed" | "held" | null;
+/** What a request tab holds (U-170): how many of its parts are in use, or that scripts are held back, or nothing. */
+export type TabMarkValue = number | "held" | null;
 
 /**
- * Drawn after a request tab's name, on the desktop's tab and the phone's section header. A count is text; a dot is
- * drawn and its words are for a screen reader, after the name ("Body (set)"), so the name starts with what is shown.
- * Scripts held back (U-158) carry the panel's warning glyph instead of the dot.
+ * Drawn after a request tab's name, on the desktop's tab and the phone's section header: one grammar, a count or
+ * nothing, in a slot of a fixed width that is there when it is empty (audit 9), so a tab does not change its width
+ * as a header is added or a body chosen. Scripts held back (U-158) put the panel's warning glyph in the same slot,
+ * and say so after the name for a screen reader ("Scripts (not reviewed)").
  */
 @Component({
   selector: "app-tab-mark",
   imports: [Icon],
   template: `@let m = mark();
-    @if (typeof m === "number") {
-      <span class="tab-count text-label-secondary">{{ m }}</span>
-    } @else if (m === "held") {
-      <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only">(not reviewed)</span>
-    } @else if (m) {
-      <span class="tab-dot" aria-hidden="true"></span><span class="sr-only">({{ m }})</span>
-    }`,
+    <span class="tab-badge">
+      @if (typeof m === "number") {
+        <span class="tab-count text-label-secondary">{{ m }}</span>
+      } @else if (m === "held") {
+        <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only">(not reviewed)</span>
+      }
+    </span>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabMark {

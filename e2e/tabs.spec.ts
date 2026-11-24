@@ -64,15 +64,15 @@ test("a tab says what it holds: the method and the address, or the saved request
   await expect(tabs(page).nth(1)).toContainText("items");
 });
 
-// Audit 14: a title cut at the host said the least ("jsonplaceholder.typicode.com/todo…"). It is the end of the path,
+// Audit 14: a title cut at the host said the least ("api.example.test/todo…"). It is the end of the path,
 // and the whole address, the host with it, is what hovering says.
 test("an unsaved tab is titled by the end of its path, and its tooltip has the whole address", async ({ page }) => {
   await page.goto("/app/");
-  await address(page).fill("https://jsonplaceholder.typicode.com/todos/1?x=2");
+  await address(page).fill("https://api.example.test/todos/1?x=2");
   const tab = tabs(page).first();
   await expect(tab).toContainText("todos/1");
-  await expect(tab).not.toContainText("jsonplaceholder");
-  await expect(tab).toHaveAccessibleDescription("GET https://jsonplaceholder.typicode.com/todos/1?x=2");
+  await expect(tab).not.toContainText("api.example");
+  await expect(tab).toHaveAccessibleDescription("GET https://api.example.test/todos/1?x=2");
   // With no path there is nothing to cut: the host is the title.
   await address(page).fill("https://api.example.test");
   await expect(tab).toContainText("api.example.test");

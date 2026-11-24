@@ -10,6 +10,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { UiModal } from "../../ui/modal";
+import { UiMethodGlyph } from "../../ui/method-glyph";
 import { ariaKeysOf, keysOf, Shortcut } from "../../shared/shortcuts";
 
 /** One thing the palette finds: a command, or a request, collection, folder, environment or past request to open. */
@@ -39,7 +40,7 @@ const PER_GROUP = 6;
  */
 @Component({
   selector: "app-palette",
-  imports: [UiModal],
+  imports: [UiModal, UiMethodGlyph],
   templateUrl: "./palette.html",
   styleUrl: "./palette.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

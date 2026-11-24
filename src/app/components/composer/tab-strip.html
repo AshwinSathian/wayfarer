@@ -22,7 +22,8 @@
       <span class="sr-only">{{ holder.folderId ? "Folder settings" : "Collection settings" }}</span>
       } @else {
       <span class="request-tab-method"
-        >{{ tab.environments ? "Env" : tab.run ? "Run" : isSocket(tab) ? "WS" : tab.draft().method }}</span
+        >@if (!tab.environments && !tab.run && !isSocket(tab)) {<ui-method-glyph [method]="tab.draft().method" />}{{
+        tab.environments ? "Env" : tab.run ? "Run" : isSocket(tab) ? "WS" : tab.draft().method }}</span
       >
       }
       <span class="request-tab-name">{{ label(tab) }}</span>

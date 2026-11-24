@@ -48,6 +48,7 @@ import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
 import { UiTooltip } from "../../ui/tooltip";
+import { UiMethodGlyph } from "../../ui/method-glyph";
 
 type NodeData = CollectionNodeData;
 
@@ -72,6 +73,7 @@ export interface PaletteAction {
     MenuTrigger,
     Dialog,
     UiTooltip,
+    UiMethodGlyph,
     UiSelect,
     ExportDialog,
     ShareDialog,

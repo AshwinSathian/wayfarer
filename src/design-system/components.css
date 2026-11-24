@@ -101,6 +101,7 @@ pre,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   font-family: var(--font-mono);
   font-variant-ligatures: none;
   /* No mono role under 13 px (U-151, U-181). */
@@ -153,15 +154,27 @@ pre,
 /* A method as text alone, where a list names many (the collections tree).
    A method of the user's own (any token) keeps the label colour. */
 .method-tag {
-  /* Room for PATCH at the mono size: the wire's face is never under 13 px (U-151). */
-  flex: 0 0 2.75rem;
+  /* A fixed column: its glyph and PATCH at the mono size (the wire's face is never under 13 px, U-151), so no method
+     touches the title; DELETE and OPTIONS are shortened and a method of the user's own is cut with an ellipsis. */
+  display: inline-flex;
+  flex: 0 0 4.25rem;
+  align-items: center;
+  gap: 5px;
   overflow: hidden;
-  text-overflow: ellipsis;
   font-family: var(--font-mono);
   font-variant-ligatures: none;
   font-size: var(--type-mono-body-size);
   font-weight: 600;
   color: var(--label-secondary);
+}
+/* A request's name in the collections tree: stepped in by the depth the tree sets on its row. */
+.tree-request-name {
+  margin-inline-start: calc(var(--tree-depth, 0) * 16px);
+}
+.method-tag-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .method-tag.method-get {
   color: var(--method-get-text);

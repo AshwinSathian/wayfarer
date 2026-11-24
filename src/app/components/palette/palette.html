@@ -42,7 +42,9 @@
         (pointermove)="point(item)"
       >
         @if (item.method) {
-        <span class="palette-method method-badge method-{{ item.method.toLowerCase() }}">{{ item.method }}</span>
+        <span class="palette-method method-badge method-{{ item.method.toLowerCase() }}"
+          ><ui-method-glyph [method]="item.method" />{{ item.method }}</span
+        >
         }
         <span class="palette-label">{{ item.label }}</span>
         @if (item.detail) {

@@ -1,3 +1,4 @@
+import { Icon } from "../../shared/icon/icon";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import type { PreviewVariable } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -18,7 +19,7 @@ import { DOCS } from "../../shared/docs";
  */
 @Component({
   selector: "app-variable-chips",
-  imports: [UiTooltip, UiMenu],
+  imports: [Icon, UiTooltip, UiMenu],
   templateUrl: "./variable-chips.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block space-y-2" },

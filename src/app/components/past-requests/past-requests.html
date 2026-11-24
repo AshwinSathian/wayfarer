@@ -129,7 +129,7 @@
             }
             <span class="history-line">
               <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0"
-                >{{ request.sent.method }}</span
+                ><ui-method-glyph [method]="request.sent.method" />{{ request.sent.method }}</span
               >
               <span class="history-address type-mono-body">{{ request.sent.url }}</span>
             </span>

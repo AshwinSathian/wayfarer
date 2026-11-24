@@ -8,6 +8,7 @@ import { UiFile } from "../ui/file";
 import { UiInput } from "../ui/input";
 import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
+import { UiMethodGlyph } from "../ui/method-glyph";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { Confirm } from "../ui/confirm";
 import { Dialog } from "../ui/dialog";
@@ -55,6 +56,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     UiInput,
     UiSpinner,
     UiTooltip,
+    UiMethodGlyph,
     MenuTrigger,
     Tab,
     TabContent,
@@ -91,7 +93,8 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         >
           <ng-template let-node>
             @if (node.data.method; as method) {
-              <span [class]="'method-tag method-' + method.toLowerCase()">{{ method }}</span
+              <span [class]="'method-tag method-' + method.toLowerCase()"
+                ><ui-method-glyph [method]="method" /><span class="method-tag-text">{{ method }}</span></span
               >&ngsp;
             }
             <span class="type-body">{{ node.label }}</span>
@@ -402,7 +405,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           >
             @for (open of openRequests; track open.id) {
               <button ngTab type="button" [value]="open.id">
-                <span class="request-tab-method">{{ open.method }}</span>
+                <span class="request-tab-method"><ui-method-glyph [method]="open.method" />{{ open.method }}</span>
                 <span class="request-tab-name">{{ open.name }}</span>
                 @if (open.unsaved) {
                   <span class="request-tab-unsaved" role="img" aria-label="Unsaved changes"></span>

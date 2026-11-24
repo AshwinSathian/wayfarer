@@ -1,4 +1,5 @@
-/* The rows of <ui-tree>. A group is the rows under a row, one step in. */
+/* The rows of <ui-tree>. A group is the rows under a row; each row takes its own step in (--tree-depth, set by the
+   tree) so that a row can choose what to keep at the edge: a request's method is at the same x at every depth. */
 .ui-tree,
 .ui-tree-group {
   display: flex;
@@ -8,10 +9,6 @@
 
 .ui-tree {
   padding-top: 2px;
-}
-
-.ui-tree-group {
-  padding-inline-start: 16px;
 }
 
 /* A collapsed group holds no rows: no gap for it either. */
@@ -26,6 +23,7 @@
   /* 32 px, the pitch a tool's sidebar keeps (V18); a finger gets 36 px below. */
   min-height: var(--ctl-height-md);
   padding: 0 8px;
+  padding-inline-start: calc(8px + var(--tree-depth, 0) * 16px);
   border-radius: var(--radius-sm);
   color: var(--label-primary);
   font-size: var(--type-callout-size);
@@ -38,6 +36,14 @@
   .ui-tree-row {
     min-height: var(--ctl-height-lg);
   }
+}
+
+/* A request has no children: no toggle slot, its method in the column at the edge and its name (.tree-request-name, components.css: this sheet does not reach projected rows) stepped in by depth. */
+.ui-tree-row:has(.method-tag) {
+  padding-inline-start: 8px;
+}
+.ui-tree-row:has(.method-tag) .ui-tree-toggle {
+  display: none;
 }
 
 .ui-tree-row:hover,
@@ -71,17 +77,21 @@
 @media (forced-colors: active) {
   .ui-tree-row--selected {
     border-inline-start: 4px solid Highlight;
-    padding-inline-start: 4px;
+    padding-inline-start: calc(4px + var(--tree-depth, 0) * 16px);
   }
 
   /* No ring anywhere and no fill here: the row the keys are on gets a dashed bar, the selected one's is solid. */
   .ui-tree-row:focus-visible {
     border-inline-start: 4px dashed CanvasText;
-    padding-inline-start: 4px;
+    padding-inline-start: calc(4px + var(--tree-depth, 0) * 16px);
   }
 
   .ui-tree-row--selected:focus-visible {
     border-inline-start-color: Highlight;
+  }
+
+  .ui-tree-row:has(.method-tag) {
+    padding-inline-start: 4px;
   }
 
   /* A shadow is taken away too: the drop line is a border (U-116). */

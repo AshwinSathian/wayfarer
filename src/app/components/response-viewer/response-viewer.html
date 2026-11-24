@@ -30,7 +30,9 @@
     <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
       @if (statusCode === undefined) {
       <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
-      <span class="status-none type-callout font-semibold text-status-error">No response</span>
+      <span class="status-none type-callout inline-flex items-center gap-1.5 font-semibold text-status-error"
+        ><app-icon name="warning" class="icon-xs" />No response</span
+      >
       } @else {
       <span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span>
       }

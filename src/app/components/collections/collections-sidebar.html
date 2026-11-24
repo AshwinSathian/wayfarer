@@ -104,9 +104,14 @@
         <app-icon name="folder" class="icon-sm text-label-tertiary shrink-0" />
         } @if (node.data.type === 'request') {
         <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [uiTooltip]="node.data.ref.method"
-          >{{ methodLabel(node.data.ref.method) }}</span
+          ><ui-method-glyph [method]="node.data.ref.method" /><span class="method-tag-text"
+            >{{ methodLabel(node.data.ref.method) }}</span
+          ></span
         >&ngsp; }
-        <span class="type-body text-label-primary truncate">{{ node.label }}</span>
+        <span
+          [class]="node.data.type === 'request' ? 'type-body text-label-primary truncate tree-request-name' : 'type-body text-label-primary truncate font-semibold'"
+          >{{ node.label }}</span
+        >
         }
       </div>
     </ng-template>

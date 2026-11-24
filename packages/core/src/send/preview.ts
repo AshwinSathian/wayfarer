@@ -9,7 +9,7 @@ import {
   type VariableSource,
   type VariableToken,
 } from "../variables/resolver";
-import { normalizeUrl } from "./build";
+import { normalizeUrl, validateUrl } from "./build";
 
 /** One variable of a request before it is sent, as the preview shows it (D4.12, DQ8). */
 export interface PreviewVariable {
@@ -86,6 +86,16 @@ export function previewVariables(
     });
   }
   return out;
+}
+
+/** The address, with its variables replaced, is one a request can go to (what a send checks first). Circular variables: no. */
+export function previewValid(url: string, scopes: ScopeStack): boolean {
+  try {
+    return validateUrl(new VariableResolver(scopes).resolve(url.trim()));
+  } catch (error) {
+    if (!(error instanceof VariableNestingError)) throw error;
+    return false;
+  }
 }
 
 /**

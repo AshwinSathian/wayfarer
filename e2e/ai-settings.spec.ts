@@ -92,7 +92,7 @@ test("@claim:C-071 Test the provider previews the call, and the model receives e
   await settings.getByRole("button", { name: "Save", exact: true }).click();
   await settings.getByRole("button", { name: "Test the provider…" }).click();
   const preview = settings.getByRole("region", { name: "Test the provider" });
-  await expect(preview).toContainText("Sends to http://127.0.0.1:4300/model/v1/chat/completions");
+  await expect(preview).toContainText("Goes to http://127.0.0.1:4300/model/v1/chat/completions");
   await expect(preview).toContainText("No key is sent.");
   const shown = (await preview.getByLabel(/^What is sent/).textContent()) ?? "";
   // Shown, not sent.

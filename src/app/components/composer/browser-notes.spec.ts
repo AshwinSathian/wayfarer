@@ -62,7 +62,7 @@ describe("BrowserNotes (P2.14)", () => {
     expect(await shown()).toBe("Inherit: Auto");
 
     settings.set({ route: "direct" });
-    expect(await shown()).toBe("Direct");
+    expect(await shown()).toBe("From this page");
   });
 
   it("offers Follow redirects, on unless the request says no, and says what each route does with it (P5.4)", () => {

@@ -23,8 +23,8 @@ import { ExchangeRecordView } from "../exchange-record/exchange-record";
 let previews = 0;
 
 const ROUTE_WORDS = {
-  auto: "Route: auto. From this page; the Local Bridge only if the page gets no response and you agree.",
-  direct: "Route: direct. From this page.",
+  auto: "Route: Auto. From this page; the Local Bridge only if the page gets no response and you agree.",
+  direct: "Route: From this page.",
   bridge: "Route: Local Bridge. Through the Local Bridge on this machine.",
 } as const;
 

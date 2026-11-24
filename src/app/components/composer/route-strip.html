@@ -1,0 +1,95 @@
+@let v = view();
+<!-- One string to a screen reader: the path is drawn for the eye. The words in it are the strings' (`strip`, `sent`). -->
+@if (compact()) {
+<div class="route-compact">
+  <span class="route-stop" aria-hidden="true">
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="7" />
+    </svg>
+    <span class="route-host">{{ v.host }}</span>
+  </span>
+  <span class="route-rail" aria-hidden="true"></span>
+  <button
+    type="button"
+    class="route-toggle"
+    [attr.aria-expanded]="open()"
+    aria-controls="route-strip-full"
+    (click)="open.set(!open())"
+  >
+    <span class="sr-only">{{ v.text }}</span>
+    <span aria-hidden="true">{{ v.summary }}</span>
+    <app-icon [name]="open() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs" />
+  </button>
+</div>
+@if (open()) {
+<ol id="route-strip-full" class="route-stack" aria-hidden="true">
+  <li class="route-stop route-stop-route">
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="5" />
+    </svg>
+    <span class="route-label route-label-route">{{ v.route }}</span>
+  </li>
+  @if (v.secrets) {
+  <li class="route-stop">
+    <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <rect x="1" y="4" width="18" height="12" rx="2" />
+    </svg>
+    <span class="route-label">{{ v.secrets }}</span>
+  </li>
+  }
+  <li class="route-stop">
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="7" />
+    </svg>
+    <span class="route-label"
+      ><span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span></span
+    >
+  </li>
+  @if (v.facts) {
+  <li class="route-stop">
+    <span class="route-node"></span>
+    <span class="route-label">{{ v.facts }}</span>
+  </li>
+  }
+</ol>
+} } @else {
+<div class="route-wide" role="group" [attr.aria-label]="v.text">
+  <div class="route-track" aria-hidden="true">
+    <span class="route-rail"></span>
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="5" />
+    </svg>
+    @if (v.secrets) {
+    <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <rect x="1" y="4" width="18" height="12" rx="2" />
+    </svg>
+    }
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="7" />
+    </svg>
+  </div>
+  <div class="route-labels" [class.has-block]="!!v.secrets" aria-hidden="true">
+    <p class="route-label route-label-route">{{ v.route }}</p>
+    @if (v.secrets) {
+    <p class="route-label route-label-block">{{ v.secrets }}</p>
+    }
+    <p class="route-label route-label-host">
+      <span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span>
+    </p>
+  </div>
+</div>
+}
+<!-- Always there, so that a problem moves nothing: the fault, or else what the request also has. -->
+<div class="route-problem">
+  @if (problem(); as p) {
+  <app-icon
+    [name]="p.kind === 'empty' ? 'info' : p.kind === 'missing' ? 'warning' : 'error'"
+    [class]="'icon-xs route-problem-glyph ' + (p.kind === 'empty' ? 'text-label-secondary' : p.kind === 'missing' ? 'text-status-warning' : 'text-status-error')"
+  />
+  <p class="route-problem-text" aria-hidden="true">{{ p.text }}</p>
+  @if (blocked().length) {
+  <button uiButton class="btn-sm" type="button" (click)="sendAnyway.emit()">{{ sendAnywayLabel }}</button>
+  } } @else if (v.facts && !compact()) {
+  <p class="route-facts" aria-hidden="true">{{ v.facts }}</p>
+  }
+</div>

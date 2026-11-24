@@ -32,7 +32,7 @@ test("a failed send with no bridge paired sets the bridge up in place, and Send 
     await page.locator("input.address-url").fill(`${ECHO}/cors/none?id=${randomUUID()}`);
     await send(page);
     await expect(page.locator(".response-announcement")).toHaveText(
-      "The request got no response. Direct to 127.0.0.1:4300, no bridge paired.",
+      "The request got no response. Sent from this page to 127.0.0.1:4300, no bridge paired.",
     );
     const record = page.getByRole("region", { name: "Exchange record" });
     await expect(record.locator(".record-route")).toHaveText(
@@ -59,7 +59,7 @@ test("a failed send with no bridge paired sets the bridge up in place, and Send 
 
     await record.getByRole("button", { name: "Send again" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-    await expect(page.locator(".record-toggle")).toHaveText("Local Bridge to 127.0.0.1:4300");
+    await expect(page.locator(".record-toggle")).toHaveText("Sent through the Local Bridge to 127.0.0.1:4300");
   } finally {
     bridge.stop();
   }

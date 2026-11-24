@@ -1,8 +1,5 @@
 <!-- First: it draws nothing here (display: contents), and last it would give the chips the stack's margin. -->
 <ui-menu #placeMenu [items]="placeItems()" />
-<p class="preview-address type-footnote text-label-secondary min-w-0 break-all"
-  >Sends to <span class="font-mono text-label-primary">{{ store.previewAddress() }}</span></p
->
 @if (authLine(); as auth) {
 <p class="preview-auth type-footnote text-label-secondary">{{ auth }}</p>
 }

@@ -7,33 +7,46 @@
 
 export const ROUTE_NAMES = { auto: "Auto", page: "From this page", bridge: "Local Bridge" } as const;
 
+/** The route setting's choices, in the order every list draws them. The stored value of "From this page" stays `direct`. */
+export const ROUTE_OPTIONS = [
+  { value: "auto", label: ROUTE_NAMES.auto },
+  { value: "direct", label: ROUTE_NAMES.page },
+  { value: "bridge", label: ROUTE_NAMES.bridge },
+] as const;
+
 /** The route strip, before a send. The whole strip is one accessible string. */
 export const strip = {
-  autoWithBridge: (host: string) => `From this page, then the Local Bridge if the page gets no answer. ${host}`,
-  fromPage: (host: string) => `From this page. ${host}`,
-  throughBridge: (host: string) => `Through the Local Bridge. ${host}`,
+  // Where the request will leave from, one line per route setting. The host has a stop of its own.
+  autoWithBridge: "From this page, then the Local Bridge if it fails",
+  fromPage: "From this page",
+  throughBridge: "Through the Local Bridge",
   secrets: (names: readonly string[]) => `${names.length === 1 ? "Uses secret" : "Uses secrets"}: ${names.join(", ")}`,
   scriptsHeld: (n: number) => `${n} ${n === 1 ? "script" : "scripts"} held`,
   scriptsTrusted: (n: number) => `${n} ${n === 1 ? "script" : "scripts"} trusted`,
   variables: (n: number) => `${n} ${n === 1 ? "variable" : "variables"}`,
   missingVariable: (name: string, environment: string) =>
     `{{${name}}} has no value in environment "${environment}". Set a value.`,
+  missingVariableNoEnvironment: (name: string) => `{{${name}}} has no value. Set a value.`,
   badAddress: "Not an address. Write it as https://host/path.",
   typedCurl: "This looks like a cURL command. Import it.",
   typedCurlAction: "Import as request",
   typedMethodAndAddress: (method: string, address: string) => `Use ${method} for ${address}?`,
   typedMethodAction: "Use it",
   needsAddress: "Enter an address to send.",
+  noHost: "No address yet",
+  sendAnyway: "Send anyway",
+  // The collapsed strip: one button, named by the whole strip.
+  showAll: "Show the whole route",
 } as const;
 
 /** After a send, from the record. */
 export const sent = {
-  fromPage: (status: string, ms: number) => `Sent from this page. ${status}, ${ms} ms.`,
-  throughBridge: (status: string, ms: number) => `Sent through the Local Bridge. ${status}, ${ms} ms.`,
-  afterNoAnswer: "Sent through the Local Bridge after the page got no answer.",
+  fromPage: "Sent from this page",
+  throughBridge: "Sent through the Local Bridge",
+  afterNoAnswer: "Sent through the Local Bridge after the page got no answer",
   // Never "not sent": C-007's wording is that a secret is masked where it is kept.
-  secrets: (n: number) => `${n} ${n === 1 ? "secret" : "secrets"} sent, masked in history and exports.`,
-  inFlight: "Sending...",
+  secrets: (n: number) => `${n} ${n === 1 ? "secret" : "secrets"} sent, masked in history and exports`,
+  inFlight: "Sending…",
   historyKept: "History kept this request. No response came.",
 } as const;
 

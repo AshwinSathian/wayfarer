@@ -30,11 +30,11 @@ describe("formatDuration", () => {
 
 describe("the record's first line", () => {
   it("is the status, the time and the route to the host", () => {
-    expect(recordHeadline(record())).toBe("200 OK, 16 ms, Direct to api.example.com");
+    expect(recordHeadline(record())).toBe("200 OK, 16 ms, sent from this page to api.example.com");
     expect(recordHeadline(record({ route: "bridge", durationMs: 0, status: { code: 204, text: "" } }))).toBe(
-      "204, Local Bridge to api.example.com",
+      "204, sent through the Local Bridge to api.example.com",
     );
-    expect(recordRoute(record({ route: "bridge" }))).toBe("Local Bridge to api.example.com");
+    expect(recordRoute(record({ route: "bridge" }))).toBe("Sent through the Local Bridge to api.example.com");
   });
 
   it("with no response, is the app's first sentence and the route", () => {
@@ -45,10 +45,10 @@ describe("the record's first line", () => {
           failure: { kind: "network", reported: "Failed to fetch", summary: "The request got no response." },
         }),
       ),
-    ).toBe("The request got no response. Direct to api.example.com.");
-    expect(recordHeadline(record({ status: undefined }))).toBe("No response. Direct to api.example.com.");
+    ).toBe("The request got no response. Sent from this page to api.example.com.");
+    expect(recordHeadline(record({ status: undefined }))).toBe("No response. Sent from this page to api.example.com.");
     expect(recordHeadline(record({ status: undefined, unpaired: true }))).toBe(
-      "No response. Direct to api.example.com, no bridge paired.",
+      "No response. Sent from this page to api.example.com, no bridge paired.",
     );
   });
 });

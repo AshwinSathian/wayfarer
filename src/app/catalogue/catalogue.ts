@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
+import { ROUTE_OPTIONS, strip } from "@wayfarer/core";
+import { RouteStrip, type StripPreset } from "../components/composer/route-strip";
 import { UiButton } from "../ui/button";
 import { UiCheckbox } from "../ui/checkbox";
 import { UiFile } from "../ui/file";
@@ -72,6 +74,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     UiTabList,
     TabMark,
     Splitter,
+    RouteStrip,
   ],
   template: `
     <main class="catalogue">
@@ -233,6 +236,20 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             >A link</a
           >
         </div>
+      </section>
+
+      <section aria-labelledby="catalogue-strip">
+        <h2 id="catalogue-strip" class="type-title-3">Route strip</h2>
+        <p class="type-callout text-label-secondary"
+          >Under the address: where the request leaves from, a block for a secret it names, the host, and a line that is
+          always there for a problem. Wide, and folded when the composer is narrow.</p
+        >
+        @for (state of strips; track state.name) {
+          <div class="catalogue-strip-state" [attr.data-state]="state.name">
+            <p class="type-footnote text-label-secondary">{{ state.name }}</p>
+            <app-route-strip [preset]="state.preset" [compact]="!!state.compact" />
+          </div>
+        }
       </section>
 
       <section aria-labelledby="catalogue-spinner">
@@ -622,6 +639,12 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     .catalogue-split {
       height: 120px;
     }
+    .catalogue-strip-state {
+      margin-top: 12px;
+    }
+    .catalogue-strip-state[data-state="Folded"] {
+      max-width: 340px;
+    }
     .catalogue-split-stacked {
       height: 240px;
       margin-top: 16px;
@@ -694,18 +717,58 @@ export class Catalogue {
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },
   ];
+  protected readonly strips: { name: string; preset: StripPreset; compact?: true }[] = (() => {
+    const base = {
+      route: "direct" as const,
+      paired: false,
+      socket: false,
+      method: "GET",
+      host: "api.example.com",
+      secrets: [] as string[],
+      variables: 0,
+      scripts: { count: 0, held: false },
+    };
+    const record = {
+      status: { code: 200, text: "OK" },
+      durationMs: 340,
+      route: "direct" as const,
+      host: "api.example.com",
+      secrets: [{ name: "API key" }, { name: "Stripe key" }],
+      masked: { headers: ["Authorization"], responseHeaders: [] },
+      kept: { response: true, body: true },
+    };
+    return [
+      { name: "Auto, a bridge paired, no secret", preset: { input: { ...base, route: "auto", paired: true } } },
+      {
+        name: "A secret named, variables, a script held",
+        preset: {
+          input: { ...base, method: "POST", secrets: ["API key"], variables: 2, scripts: { count: 1, held: true } },
+        },
+      },
+      { name: "Sent, secrets masked", preset: { input: { ...base, record } } },
+      { name: "In flight", preset: { input: base, running: true } },
+      {
+        name: "Missing variable",
+        preset: { input: base, problem: { kind: "missing", text: strip.missingVariable("token", "Staging") } },
+      },
+      {
+        name: "Bad address",
+        preset: { input: { ...base, host: "" }, problem: { kind: "address", text: strip.badAddress } },
+      },
+      {
+        name: "No address",
+        preset: { input: { ...base, host: "" }, problem: { kind: "empty", text: strip.needsAddress } },
+      },
+      { name: "Folded", compact: true, preset: { input: { ...base, secrets: ["API key"], variables: 2 } } },
+    ];
+  })();
+
   protected readonly route = signal("auto");
-  protected readonly routes: UiSegment<string>[] = [
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
-  ];
+  protected readonly routes: UiSegment<string>[] = [...ROUTE_OPTIONS];
   protected readonly requestRoute = signal<string | null>(null);
   protected readonly requestRoutes: UiSelectOption<string | null>[] = [
     { value: null, label: "Inherit: Auto" },
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
+    ...ROUTE_OPTIONS,
   ];
   protected readonly environment = signal<string | null>(null);
   protected readonly environments: UiSelectOption<string>[] = [

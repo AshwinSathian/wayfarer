@@ -33,7 +33,7 @@ name, the route and which actions are offered; it holds no key. **Remove
 provider…** deletes the key from the vault and turns AI off again.
 
 The route is a request's route ([`browser-limits.md`](browser-limits.md#routes)):
-**Direct**, **Local Bridge** or **Auto**. A model on your machine that
+**From this page**, **Local Bridge** or **Auto**. A model on your machine that
 sends no CORS headers is reached through the Local Bridge, as any such
 server is.
 

@@ -46,6 +46,9 @@ export class SocketClient {
     return !tab.document && /^wss?:/i.test(this.resolved(tab.draft().url.trim()) ?? "");
   });
 
+  /** The host (and port) of the open tab's address, once its variables are replaced; "" when it is no address. */
+  readonly host = computed(() => URL.parse(this.resolved(this.tabs.active().draft().url.trim()) ?? "")?.host ?? "");
+
   /** `text` with the open tab's variables replaced, or undefined when they refer to each other in a circle. */
   private resolved(text: string): string | undefined {
     try {

@@ -14,6 +14,7 @@ import {
   normalizeUrl,
   oauthOf,
   previewAddress,
+  previewValid,
   previewVariables,
   scriptsOf,
   sentAuth,
@@ -229,6 +230,8 @@ export class WorkspaceStore {
     }),
   );
   readonly previewAddress = computed(() => previewAddress(this.draft().url, this.scopes()));
+  /** The address, once its variables are replaced, is one a request can go to: the check a send makes first. */
+  readonly addressValid = computed(() => previewValid(this.draft().url, this.scopes()));
   /** The auth the draft is sent with, and who sets it: its own, or its collection's or a folder's. */
   readonly sentAuthSource = computed(() => effectiveAuth(this.draft().auth, this.saved.ancestors()));
   /** Where the values of the auth's variables come from, said on the Auth tab (U-130). */
@@ -558,6 +561,9 @@ export class WorkspaceStore {
   readonly inheritedRoute = computed(() =>
     routeOf(undefined, this.collectionRoute(this.tabs.active()), this.router.route()),
   );
+
+  /** The route the open tab's request is sent by: its own, else its collection's, else the device's (the strip says it). */
+  readonly route = computed(() => this.routeOf(this.tabs.active()));
 
   /** Where the open tab's request goes first, for what the composer says of it. */
   readonly firstRoute = computed(() => this.router.first(this.routeOf(this.tabs.active())));

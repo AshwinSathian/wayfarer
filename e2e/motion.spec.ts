@@ -1,7 +1,8 @@
 // D3.4, docs/design/motion.md: with reduced motion nothing moves for longer
 // than --dur-none (0.001 ms, a length so the end events Material waits for are
 // still sent), nothing waits to start and nothing loops; without it, nothing
-// loops but what loads.
+// loops but what loads: a loading skeleton, and the route strip's segment while a send that has lasted 150 ms is out
+// (S4a, e2e/route-strip.spec.ts).
 import { expect, test, type Page } from "@playwright/test";
 import { openSettings, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
@@ -52,6 +53,18 @@ test("with reduced motion nothing lasts, waits or loops: a response, Settings, a
 
   await openSettings(page);
   expect(await motion(page), "Settings").toEqual([]);
+});
+
+test("with reduced motion a send that is out moves nothing: the route strip's line stands still", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/delay/1500`);
+  await send(page);
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeVisible();
+  await page.waitForTimeout(400);
+  await expect(page.locator("app-route-strip")).toHaveClass(/is-running/);
+  expect(await motion(page), "a send in flight").toEqual([]);
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 5000 });
 });
 
 test("without reduced motion the missing variable's pulse stops: twice, then still", async ({ page }) => {

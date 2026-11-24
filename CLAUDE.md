@@ -293,6 +293,31 @@ code errors.
   request. `ComposerView` holds what they share that is not the request:
   the open tab, whether the password shows. A file there stays under 400 lines and a
   template under 250.
+- The route strip (`route-strip.ts`, S4a) is under the address row and is the
+  one place the app says where a request leaves from: no "Sends to", no
+  route badge, no "Editing ..." row (the tab's tooltip has its words). What
+  it says is `stripView` and `addressProblem` (`packages/core/src/send/strip.ts`),
+  in the words of `strip` and `sent` (`strings.ts`): before a send the route
+  setting (`ROUTE_NAMES`; the stored value `direct` is shown "From this page"),
+  the host, and the vault secrets the request names, by the variable that
+  holds them: the vault is read after the pre-request scripts, so the strip
+  never reads it and never counts it. After a send it is the record: the
+  road taken and "N secrets sent, masked in history and exports" (never
+  "not sent", C-007). The line under it is always there (the fault, or what
+  else the request has), so a problem moves nothing; its height and the
+  words' two lines are fixed, not what they say. Below 34 em of the
+  composer's own width (`Composer.compact`, from the `ResizeObserver` that
+  stacks the response, not a window breakpoint) it is the host and one
+  `button` with `aria-expanded` whose text is the whole strip. It is drawn
+  after the mark: an origin, a block on the line when a secret is named, the
+  host; its colours are `--route` and `--route-text`. The strip is not drawn
+  for a run, Environments or a collection's settings. A new thing a request
+  says about itself goes into `StripInput`, not into a row of its own.
+- A route is said in three words wherever it is a choice: Auto, From this
+  page, Local Bridge (`ROUTE_OPTIONS`); what a send did is "Sent from this
+  page" or "Sent through the Local Bridge". The stored `Route` value stays
+  `direct`, and `ExchangeRecord` stores the route as a value: the headline
+  (`recordHeadline`) is said, never stored.
 - The composer has tabs (P5.1). `Tabs` (`src/app/state/tabs.ts`) holds one
   `TabState` per tab and which is open. `WorkspaceStore`'s draft and
   response, `RequestSave.loadedCollectionRequest` and the scripts
@@ -431,7 +456,11 @@ code errors.
   one run; do not give a transition `!important` on a class, or it beats
   that rule. A script that moves something (`scrollIntoView` with
   `smooth`) asks `prefers-reduced-motion` itself. Nothing loops but a
-  loading skeleton. `e2e/motion.spec.ts` checks all of it.
+  loading skeleton and the route strip's segment: that runs along the strip's
+  line only while a send that has lasted 150 ms is out, and stops when the
+  send ends or at the request's timeout; with reduced motion the line
+  stands still, and a reply sooner than 150 ms moves nothing.
+  `e2e/motion.spec.ts` and `e2e/route-strip.spec.ts` check all of it.
 - Tailwind CSS 4. Its configuration is the `@theme` block in
   `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
   Tailwind names onto the tokens. A token whose name is Tailwind's own

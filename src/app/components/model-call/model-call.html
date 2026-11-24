@@ -4,7 +4,7 @@
 <app-exchange-record [record]="record" />
 } @else {
 <p class="type-footnote text-label-secondary break-all"
-  >Sends to <span class="font-mono text-label-primary">{{ call().url }}</span></p
+  >Goes to <span class="font-mono text-label-primary">{{ call().url }}</span></p
 >
 <p class="type-footnote text-label-secondary">
   Provider: {{ ai.provider()?.kind === "anthropic" ? "Anthropic" : "OpenAI-compatible" }}, model

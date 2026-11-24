@@ -63,7 +63,7 @@ plain http does not have; there the send is refused with a message.
 **The clock matters.** AWS refuses a signature whose time is more than a
 few minutes from its own. The app signs with this computer's clock.
 
-**In a browser, AWS must allow the request.** Sent directly, the request
+**In a browser, AWS must allow the request.** Sent from this page, the request
 is a cross-origin one with headers of its own, so the browser asks the
 server first (CORS, [`browser-limits.md`](browser-limits.md)). An S3 bucket
 or an API Gateway stage without a CORS rule for this origin refuses that

@@ -16,7 +16,7 @@ test("the response pane's status region says Sending… during a send and then t
   await page.locator("input.address-url").fill(`${ECHO}/delay/800`);
   await send(page);
   await expect(region).toHaveText("Sending…");
-  await expect(region).toHaveText(/^200 OK, [\d.]+ ms, Direct to 127\.0\.0\.1:4300$/);
+  await expect(region).toHaveText(/^200 OK, [\d.]+ ms, sent from this page to 127\.0\.0\.1:4300$/);
 });
 
 test("a send that got no response is said by its first sentence and the route", async ({ page }) => {
@@ -25,7 +25,7 @@ test("a send that got no response is said by its first sentence and the route", 
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
   // The failure's first sentence, not the paragraph the pane shows, then where it went (D4.12).
-  await expect(region).toHaveText("The request got no response. Direct to 127.0.0.1:9, no bridge paired.");
+  await expect(region).toHaveText("The request got no response. Sent from this page to 127.0.0.1:9, no bridge paired.");
 });
 
 test("the address's error is an alert there from the first render, and the field points to it", async ({ page }) => {

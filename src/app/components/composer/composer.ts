@@ -48,6 +48,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { ScriptsPanel } from "./scripts-panel";
 import { TabMark } from "./tab-mark";
 import { TabStrip } from "./tab-strip";
+import { RouteStrip } from "./route-strip";
 import { VariableChips } from "./variable-chips";
 
 import { AiDrafted } from "../ai-draft/ai-drafted";
@@ -61,6 +62,11 @@ import type { HolderTarget } from "../../state/tab-state";
  * window leaves it 960 px, and stacks.
  */
 const STACK_BELOW_EM = 62;
+/**
+ * Below this width of the composer the route strip is its host and one button (S4a). Its own box decides, as the
+ * stacking does: beside the pinned sidebar a 1,200 px window leaves it 391 px.
+ */
+const COMPACT_BELOW_EM = 34;
 const STACKED_SIZES: readonly [number, number] = [40, 60];
 const STACKED_MIN: readonly [number, number] = [20, 30];
 const BESIDE_MIN: readonly [number, number] = [28, 22];
@@ -91,6 +97,7 @@ const EXAMPLE_URL = "https://jsonplaceholder.typicode.com/todos/1";
     AddressRow,
     BrowserNotes,
     RequestWarnings,
+    RouteStrip,
     VariableChips,
     ParamsPanel,
     HeadersPanel,
@@ -134,6 +141,8 @@ export class Composer {
   private readonly layout = inject(PaneLayout);
   /** The composer's own box is narrower than `STACK_BELOW_EM`: the window's width does not say it (L-6, L-7). */
   private readonly narrow = signal(false);
+  /** The composer's own box is narrower than `COMPACT_BELOW_EM`: the route strip folds. */
+  protected readonly compact = signal(false);
   /** The response under the request: chosen in Settings, or by the room the two have. */
   protected readonly stacked = computed(() => {
     const choice = this.layout.choice();
@@ -163,8 +172,6 @@ export class Composer {
   }
   private readonly tabStrip = viewChild.required(TabStrip);
 
-  protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
-  protected readonly breadcrumb = this.requestSave.breadcrumb;
   /** What the live regions above the request say (U-075). */
   protected readonly warningsText = computed(() => warningsText(this.store.browserLimits()));
   /** "Sending…", then the record's first line (D4.11, D4.12). */
@@ -195,8 +202,10 @@ export class Composer {
       if (!entry.contentRect.width) return;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
       const narrow = entry.contentRect.width < STACK_BELOW_EM * rem;
-      if (narrow === this.narrow()) return;
+      const compact = entry.contentRect.width < COMPACT_BELOW_EM * rem;
+      if (narrow === this.narrow() && compact === this.compact()) return;
       this.narrow.set(narrow);
+      this.compact.set(compact);
       // Drawn before this frame is painted: at the next render the first frame showed the other layout.
       appRef.tick();
     });

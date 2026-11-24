@@ -370,7 +370,7 @@ export const FINDINGS = {
   },
   "U-131": {
     was: '"Route: Auto" in the status bar described a setting, not what would happen, on a device with no bridge paired.',
-    now: 'The status bar says what the app will do ("Route: direct"), and a failed send says "Direct to {host}, no bridge paired".',
+    now: 'The status bar names the route setting ("Route: From this page"), and a failed send says "Sent from this page to {host}, no bridge paired".',
     claims: ["C-064"],
   },
   "U-132": {

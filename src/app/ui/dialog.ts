@@ -44,7 +44,7 @@ let nextId = 0;
     >
       @if (visible()) {
         <div class="dialog-header">
-          <span class="dialog-title type-title-3" [id]="titleId">{{ header() }}</span>
+          <span class="dialog-title type-title-2" [id]="titleId">{{ header() }}</span>
           <button
             uiButton="icon"
             type="button"

@@ -3,7 +3,7 @@
 <section class="flex flex-col gap-4" [attr.aria-label]="title() + ': ' + node.name" (focusout)="commit()">
   <header class="flex min-w-0 items-center gap-2">
     <app-icon [name]="kind() === 'folder' ? 'folder' : 'folder_open'" class="icon-sm text-label-tertiary shrink-0" />
-    <h2 class="type-headline m-0 min-w-0 truncate">{{ node.name }}</h2>
+    <h2 class="type-title-2 m-0 min-w-0 truncate">{{ node.name }}</h2>
     <span class="type-footnote text-label-secondary shrink-0">{{ title() }}</span>
   </header>
   @if (path()) {

@@ -199,7 +199,7 @@
     }
   },
   "type": {
-    "$description": "The app's type scale (D3.2), in rem so that it follows the reader's text size (U-073). Nothing is under 12 px at the default size; no stylesheet writes a font size in px (packages/tokens/tokens.test.mjs). The compact density (U-111): working text (values, rows, tabs, the response) is callout or mono-body, 13 px; captions footnote, 12 px; prose and dialogs body, 14 px.",
+    "$description": "The app's type scale (D3.2), in rem so that it follows the reader's text size (U-073). Nothing is under 12 px at the default size; no stylesheet writes a font size in px (packages/tokens/tokens.test.mjs). The compact density (U-111): working text (values, rows, tabs, the response) is callout or mono-body, 13 px; captions footnote, 12 px; prose and dialogs body, 14 px. Bricolage Grotesque (font-display) is set at 18 px or more only (overhaul S1b): type-title-2 for a dialog's, a pane's and a run's title, type-empty-title (20 px) for an empty state's headline, type-wordmark for the name beside the mark. Never use it for working text.",
     "type-title-2": {
       "$type": "typography",
       "$value": {
@@ -214,6 +214,38 @@
           "unit": "em"
         },
         "lineHeight": 1.3333
+      }
+    },
+    "type-wordmark": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-display}",
+        "fontSize": {
+          "value": 1.125,
+          "unit": "rem"
+        },
+        "fontWeight": 700,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.1
+      }
+    },
+    "type-empty-title": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-display}",
+        "fontSize": {
+          "value": 1.25,
+          "unit": "rem"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "em"
+        },
+        "lineHeight": 1.3
       }
     },
     "type-title-3": {

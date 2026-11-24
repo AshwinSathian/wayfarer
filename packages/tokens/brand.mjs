@@ -10,18 +10,29 @@ export function markColours(name) {
   return { tile: colours.ink, glyph: colours["on-ink"] };
 }
 
-// The glyph on a 26-unit tile (direction C, "Switchback W", chosen 2026-11-04): the name's W walked as one
-// trail, its last leg running into the host it reaches. Stroked 2.4 units (1.5 px at 16 px), the host wider
-// than the stroke so that it still reads as a dot at 16 px, and the whole centred on the tile.
-export const TRAIL = "M5.1 9.2L8.3 18.3L11.9 11.2L15.5 18.3L18.1 12.4";
-export const HOST = { cx: 19.1, cy: 9.4, r: 3 };
+// The glyph on a 26-unit tile (overhaul S1b, "c-block", chosen 2026-11-24): a path from an origin dot, up and
+// along, its middle struck out by a solid block (the redaction: what the app keeps off the wire), running into the
+// host dot. The line is stroked 2.4 units (1.5 px at 16 px), the host wider than the stroke so that it still reads
+// as a dot at 16 px, and the whole's box is centred on the tile.
+export const MARK = {
+  line: "M5.7 17.85V8.45H16.5",
+  origin: { cx: 5.7, cy: 17.85, r: 2.3 },
+  block: { x: 8.5, y: 5.85, width: 6.2, height: 5.2, rx: 0.8 },
+  host: { cx: 19.5, cy: 8.45, r: 3.1 },
+};
 const TILE_RADIUS = 6;
+
+export const circleAttrs = ({ cx, cy, r }) => `cx="${cx}" cy="${cy}" r="${r}"`;
+export const blockAttrs = ({ x, y, width, height, rx }) =>
+  `x="${x}" y="${y}" width="${width}" height="${height}" rx="${rx}"`;
 
 /** The glyph, in `colour`, on a 26-unit grid. */
 export function glyph(colour) {
   return (
-    `<path d="${TRAIL}" fill="none" stroke="${colour}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` +
-    `<circle cx="${HOST.cx}" cy="${HOST.cy}" r="${HOST.r}" fill="${colour}"/>`
+    `<path d="${MARK.line}" fill="none" stroke="${colour}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<circle ${circleAttrs(MARK.origin)} fill="${colour}"/>` +
+    `<rect ${blockAttrs(MARK.block)} fill="${colour}"/>` +
+    `<circle ${circleAttrs(MARK.host)} fill="${colour}"/>`
   );
 }
 
@@ -47,12 +58,12 @@ export function favicon() {
 
 /**
  * The installed app's maskable icon (U-101): the tile fills the square, for the platform to cut, and the
- * glyph is drawn at 0.74 of its size about the centre, so that it reaches 7.5 units from it as the first
+ * glyph is drawn at 0.67 of its size about the centre, so that it reaches 7.5 units from it as the first
  * mark's did: at 512 px, 148 of the 205 px that the safe zone (a circle of 40% of the size about the
- * centre) allows. At full size the host would be 0.3 units from the zone's edge, cramped in a circle. The
+ * centre) allows. At full size the origin dot would reach 11 units, past the zone's 10.4. The
  * `any` icons are the mark itself.
  */
-export const MASKABLE_SCALE = 0.74;
+export const MASKABLE_SCALE = 0.67;
 export function maskableIcon() {
   const { tile, glyph: colour } = markColours("light");
   return svg(

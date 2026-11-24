@@ -7,22 +7,25 @@ import { brandSvgs, markColours } from "./brand.mjs";
 import { ico } from "./brand-png.mjs";
 import { hexColours } from "./tokens.mjs";
 
-test("the maskable icon's glyph is inside the safe zone, a circle of 40% of the size about the centre", () => {
+test("the maskable icon's glyph is inside the safe zone, a circle of 40% of the size about the centre", async () => {
   const svg = brandSvgs()["maskable.svg"];
   assert.match(svg, /viewBox="0 0 26 26"><rect width="26" height="26" fill="#[0-9A-F]{6}"\/>/, "the tile fills it");
-  const path = /<path d="([^"]+)"[^>]*stroke-width="([\d.]+)"/.exec(svg);
-  // Every point and control point of the path (a curve stays inside its control points), plus half the stroke.
-  const points = [];
-  for (let i = 0, x = 0, y = 0, commands = path[1].match(/[A-Z][^A-Z]*/g); i < commands.length; i++) {
-    const [command, ...args] = [commands[i][0], ...(commands[i].slice(1).match(/-?[\d.]+/g) ?? []).map(Number)];
-    if (command === "H") [x] = args;
-    else if (command === "V") [y] = args;
-    else for (let j = 0; j < args.length; j += 2) [x, y] = [args[j], args[j + 1]];
-    if (command === "C") for (let j = 0; j < 4; j += 2) points.push([args[j], args[j + 1], Number(path[2]) / 2]);
-    points.push([x, y, Number(path[2]) / 2]);
-  }
-  const dot = /<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/.exec(svg).slice(1).map(Number);
-  points.push(dot);
+  const { MARK } = await import("./brand.mjs");
+  // The farthest corner of each shape from the centre, plus the stroke's half width for the line's points.
+  const { origin, host, block } = MARK;
+  const corners = [
+    [block.x, block.y],
+    [block.x + block.width, block.y],
+    [block.x, block.y + block.height],
+    [block.x + block.width, block.y + block.height],
+  ].map(([x, y]) => [x, y, 0]);
+  const points = [
+    [5.7, 8.45, 1.2],
+    [16.5, 8.45, 1.2],
+    [origin.cx, origin.cy, origin.r],
+    [host.cx, host.cy, host.r],
+    ...corners,
+  ];
   // The glyph may be drawn smaller about the centre (translate(13 13) scale(s) translate(-13 -13)).
   const scale = Number(/scale\(([\d.]+)\)/.exec(svg)?.[1] ?? 1);
   const reach = scale * Math.max(...points.map(([x, y, r]) => Math.hypot(x - 13, y - 13) + r));

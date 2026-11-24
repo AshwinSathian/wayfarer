@@ -61,7 +61,7 @@ const MARGIN = 8;
       } @else {
         <!-- The question, what it does, and two buttons that say so: no glyph, no template (U-056). -->
         <div class="flex flex-col gap-2 p-6 bg-canvas-overlay max-w-md">
-          <span class="type-title-3 text-label-primary" [id]="id + '-title'">{{ options.title }}</span>
+          <span class="type-title-2 text-label-primary" [id]="id + '-title'">{{ options.title }}</span>
           <p class="type-body text-label-secondary m-0" [id]="id + '-message'">{{ options.message }}</p>
           <div class="flex items-center justify-end gap-2 mt-4">
             <button uiButton type="button" class="btn-secondary" cdkFocusInitial (click)="answer(false)">

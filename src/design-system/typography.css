@@ -9,6 +9,22 @@
   letter-spacing: var(--type-title-2-tracking);
 }
 
+.type-wordmark {
+  font-family: var(--font-display);
+  font-size: var(--type-wordmark-size);
+  line-height: var(--type-wordmark-line);
+  font-weight: var(--type-wordmark-weight);
+  letter-spacing: var(--type-wordmark-tracking);
+}
+
+.type-empty-title {
+  font-family: var(--font-display);
+  font-size: var(--type-empty-title-size);
+  line-height: var(--type-empty-title-line);
+  font-weight: var(--type-empty-title-weight);
+  letter-spacing: var(--type-empty-title-tracking);
+}
+
 .type-title-3 {
   font-size: var(--type-title-3-size);
   line-height: var(--type-title-3-line);

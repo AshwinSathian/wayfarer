@@ -42,9 +42,6 @@
   --default-transition-duration: var(--dur-quick);
   --default-transition-timing-function: var(--ease-standard);
 
-  /* The headline face as a utility (`font-headline`): the name, beside the mark. */
-  --font-headline: var(--font-display);
-
   --color-canvas-app: var(--canvas-app);
   --color-canvas-sidebar: var(--canvas-sidebar);
   --color-canvas-panel: var(--canvas-panel);

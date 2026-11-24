@@ -39,6 +39,14 @@
   --type-title-2-line: 1.5rem;
   --type-title-2-weight: 600;
   --type-title-2-tracking: 0;
+  --type-wordmark-size: 1.125rem;
+  --type-wordmark-line: 1.25rem;
+  --type-wordmark-weight: 700;
+  --type-wordmark-tracking: 0;
+  --type-empty-title-size: 1.25rem;
+  --type-empty-title-line: 1.625rem;
+  --type-empty-title-weight: 600;
+  --type-empty-title-tracking: 0;
   --type-title-3-size: 0.9375rem;
   --type-title-3-line: 1.25rem;
   --type-title-3-weight: 600;

@@ -405,8 +405,11 @@ code errors.
 - Wayfarer's faces are ChatterMeter's pair (maintainer, 2026-11-09), in
   the app and on the site: Figtree (`font-sans`) for every label, row,
   control and paragraph, and Bricolage Grotesque (`font-display`) for a
-  headline (the app's `type-title-2`, a dialog's title; the name beside
-  the mark, `font-headline`; the site's titles). Inter is the per-glyph
+  headline, at 18 px or more and never below (overhaul S1b, kept after
+  a specimen of six candidates showed none a gain): `type-title-2` for a
+  dialog's, a settings pane's, a collection's and a run's title,
+  `type-empty-title` for an empty state's headline, `type-wordmark` for the
+  name beside the mark, and the site's titles. Working text is never set in it. Inter is the per-glyph
   fallback for Greek, Cyrillic and Vietnamese. Neither face keeps I, l and
   1 or 0 and O apart at 13 px (U-150), so the rule below carries more
   weight: the wire's face is JetBrains Mono, never under 13 px

@@ -13,6 +13,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The size budgets are reset to the first download as it is (1,201,089 B raw, 338,831 B gzipped; warn at 1.05 times, fail at 1.10 times).** They were last set at 1,113,075 B on 3 November; the build had warned for weeks that the first download was 28.59 kB over (main, before this change). This change adds about 2.5 kB of it (the tokens' colours, solved for both contrast levels).
 - The words the app says now have one list, `packages/core/src/strings.ts`, and a test (`scripts/glossary.test.mjs`) keeps banned words and internal IDs out of the pages, templates and docs. Nothing a user reads is reworded yet.
 
+- **A new mark, and the display face is used where a title is.** The mark is now a path from a dot, a solid block struck across its middle (what Wayfarer keeps off the wire) and a dot where it arrives, replacing the switchback W; the favicon, the installed app's icons and the social images are redrawn. Dialog titles, settings pane titles, the name of a collection or run, the sidebar's name and the empty Environments headline are set in Bricolage Grotesque at 18 px or larger (they were Figtree at 15 px, and the name Bricolage at 15 px).
+
 ### Fixed
 
 - **On a phone, and wherever the sidebar is a drawer, the backup and update notices stand in the page again.** Floating over the page's foot they covered the control below the fold (found by a browser test at 390 px); they float only beside the pinned sidebar, over its empty foot.

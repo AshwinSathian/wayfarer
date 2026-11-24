@@ -10,14 +10,16 @@ import { ChangeDetectionStrategy, Component } from "@angular/core";
     <rect class="brand-mark-tile" width="26" height="26" rx="6" />
     <g class="brand-mark-glyph">
       <path
-        d="M5.1 9.2L8.3 18.3L11.9 11.2L15.5 18.3L18.1 12.4"
+        d="M5.7 17.85V8.45H16.5"
         fill="none"
         stroke="currentColor"
         stroke-width="2.4"
         stroke-linecap="round"
         stroke-linejoin="round"
       />
-      <circle cx="19.1" cy="9.4" r="3" fill="currentColor" />
+      <circle cx="5.7" cy="17.85" r="2.3" fill="currentColor" />
+      <rect x="8.5" y="5.85" width="6.2" height="5.2" rx="0.8" fill="currentColor" />
+      <circle cx="19.5" cy="8.45" r="3.1" fill="currentColor" />
     </g>
   </svg>`,
   host: { class: "brand-mark", "aria-hidden": "true" },

@@ -45,11 +45,12 @@
   background: var(--fill-hover);
 }
 
-/* The selected row: a fill, and an ink mark at its start that contrast.test.mjs holds to 3:1 (U-117). The fill
-   alone was 1.14:1, and hover replaced it; hovered, the selected row is a step stronger and keeps its mark. */
+/* The selected row: a fill, and a mark at its start in the route's hue (the brand's, rationed to this, the strip's
+   line and the mark) that contrast.test.mjs holds to 3:1 (U-117). The fill alone was 1.14:1, and hover replaced it;
+   hovered, the selected row is a step stronger and keeps its mark. */
 .ui-tree-row--selected {
   background: var(--fill-selected);
-  box-shadow: inset 3px 0 0 var(--ink);
+  box-shadow: inset 3px 0 0 var(--route);
 }
 
 .ui-tree-row--selected:hover,

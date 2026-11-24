@@ -460,17 +460,41 @@ code errors.
   `scripts/contrast.test.mjs` computes every such pair in both themes and
   at both contrast levels; the e2e sweep in `accessibility.spec.ts` scans
   every view in both themes.
-- Chrome and actions are ink; hue means protocol (DQ11). The ink
-  (`--ink`, the primary label) is Send's fill, the
-  selected row's mark and a checked box; only a `method` or `status`
-  token carries a hue (the token test fails on chroma above 0.015
-  elsewhere). Information is the secondary label with a glyph, not blue.
-  Success's green is a status (a code, a test that passed), never the
-  app's own state ("Connected", "Saved"), and a status's tint is not a
-  card: a test is a row whose glyph carries the hue, a warning a line
-  with its glyph (the token test lists the files that may name green).
-  A status code is `.status-code` with `statusTone(code)`
-  (`src/app/shared/http/status-tone.ts`) wherever it is drawn.
+- Chrome and actions are ink; hue means protocol, plus the brand's route hue,
+  rationed (DQ11, overturned in part by the overhaul's S1a: the maintainer
+  approved "chrome is ink" on 2026-10-19, and it now has one exception). The
+  ink (`--ink`, the primary label) is Send's fill, a checked box and every
+  action; Send stays ink. A `method` or `status` token carries a hue, and so
+  do the `--route`, `--route-text` and `--route-fill` tokens (hue 200), which
+  are drawn only on the route strip's line, the mark and the selected row's
+  mark (`tokens.test.mjs` lists the files that may name them). Links stay ink
+  and underlined; no button, tab, field or fill takes the route hue; hues 245
+  and 290 (OPTIONS, PUT) are never a brand fill (loupe: a brand colour
+  everywhere is a tell, and indigo and violet fills are another). The token
+  test fails on chroma above 0.015 anywhere else. Information is the
+  secondary label with a glyph, not blue. Success's green is a status (a
+  code, a test that passed), never the app's own state ("Connected",
+  "Saved"), and a status's tint is not a card: a test is a row whose glyph
+  carries the hue, a warning a line with its glyph (the token test lists the
+  files that may name green). A status code is `.status-code` with
+  `statusTone(code)` (`src/app/shared/http/status-tone.ts`) wherever it is
+  drawn.
+- Hues are 40 degrees or more apart in OKLCH (`tokens.test.mjs`), for every
+  method, status and the route, in their plain, `-text` and `-fill` tokens,
+  both themes, both contrast levels. The three pairs of one meaning are
+  exempt and near on purpose: GET and success (about 150), POST and warning
+  (72), DELETE and error (27). The map: route 200, GET 153, POST 74, DELETE
+  27, OPTIONS 245, PUT 290, PATCH 335, HEAD none. These tokens are not
+  hand-set: each has a `com.wayfarer.derive` with its `hue` and `chroma`
+  (cut to what sRGB holds), solved to 3:1 as plain (`hue`) and to 4.5:1 as
+  text (`hue-text`) on every surface and on the hover, selected and own
+  tints (`over`). Colour alone does not carry 40 degrees for a reader who
+  cannot tell hues apart: the label does, and the glyph (S2b).
+- The words the app says are `packages/core/src/strings.ts`, and the glossary
+  in `scripts/glossary.test.mjs` bans the words it names (Verdict, Depart,
+  Retry, Wire, Direct to, Postman outside import, export and the compare
+  pages, internal IDs) in templates, docs and the site. Its list of files
+  that still offend (until the copy sweep, S5d) only shrinks.
 - The labels, `--ctl-boundary`, the state fills (`--fill-*`), the
   separators and the ink's hover and press are not hand-set: each has a
   `com.wayfarer.derive` extension and `packages/tokens/tokens.mjs` solves

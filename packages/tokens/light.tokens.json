@@ -1,5 +1,5 @@
 {
-  "$description": "Wayfarer's light theme: warm graphite, ink for chrome and actions, hue for protocol only (DQ11). DTCG 2025.10; colours in OKLCH. The tokens with a com.wayfarer.derive extension have no hand-set value: packages/tokens/tokens.mjs solves them from this file's inputs and base's contrast targets.",
+  "$description": "Wayfarer's light theme: warm graphite, ink for chrome and actions, hue for protocol (methods, statuses) and the route (the brand hue, rationed). DTCG 2025.10; colours in OKLCH. The tokens with a com.wayfarer.derive extension have no hand-set value: packages/tokens/tokens.mjs solves them from this file's inputs and base's contrast targets.",
   "$extensions": {
     "com.wayfarer.inputs": {
       "hue": 84,
@@ -217,76 +217,7 @@
     }
   },
   "status": {
-    "$description": "Success, warning and error, the product's own (U-036). The plain colour is for fills, borders and icons; -text is for words. Information has no hue: it is the secondary label with a glyph, which leaves blue to PUT (DQ11).",
-    "status-success": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.13, 150]
-      }
-    },
-    "status-success-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.13, 150],
-        "alpha": 0.1
-      }
-    },
-    "status-success-border": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.13, 150],
-        "alpha": 0.28
-      }
-    },
-    "status-warning": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.68, 0.15, 65]
-      }
-    },
-    "status-warning-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.68, 0.15, 65],
-        "alpha": 0.1
-      }
-    },
-    "status-warning-border": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.68, 0.15, 65],
-        "alpha": 0.28
-      }
-    },
-    "status-error": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.19, 27]
-      }
-    },
-    "status-error-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.19, 27],
-        "alpha": 0.1
-      }
-    },
-    "status-error-border": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.55, 0.19, 27],
-        "alpha": 0.28
-      }
-    },
+    "$description": "Success, warning and error, the product's own (U-036). The plain colour is for fills, borders and icons; -text is for words. Information has no hue: it is the secondary label with a glyph (in each theme).",
     "status-info-fill": {
       "$type": "color",
       "$value": "{fill.fill-secondary}"
@@ -295,109 +226,130 @@
       "$type": "color",
       "$value": "{border.border-strong}"
     },
+    "status-info-text": {
+      "$type": "color",
+      "$value": "{label.label-secondary}"
+    },
+    "status-success": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 150,
+          "chroma": 0.14
+        }
+      }
+    },
+    "status-success-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-success",
+          "alpha": 0.1
+        }
+      }
+    },
+    "status-success-border": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-success",
+          "alpha": 0.28
+        }
+      }
+    },
+    "status-warning": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 72,
+          "chroma": 0.14
+        }
+      }
+    },
+    "status-warning-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-warning",
+          "alpha": 0.1
+        }
+      }
+    },
+    "status-warning-border": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-warning",
+          "alpha": 0.28
+        }
+      }
+    },
+    "status-error": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 27,
+          "chroma": 0.14
+        }
+      }
+    },
+    "status-error-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-error",
+          "alpha": 0.1
+        }
+      }
+    },
+    "status-error-border": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "status-error",
+          "alpha": 0.28
+        }
+      }
+    },
     "status-success-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.44, 0.1, 150]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 150,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "status-success-fill"]
+        }
       }
     },
     "status-warning-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.45, 0.1, 65]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 72,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "status-warning-fill"]
+        }
       }
     },
     "status-error-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.47, 0.17, 27]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 27,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "status-error-fill"]
+        }
       }
-    },
-    "status-info-text": {
-      "$type": "color",
-      "$value": "{label.label-secondary}"
     }
   },
   "method": {
-    "$description": "HTTP methods as Postman colours them: GET green, POST amber, PUT blue, PATCH purple, DELETE red. -text is for words.",
-    "method-get": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.579258, 0.125967, 153.0839]
-      }
-    },
-    "method-get-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.579258, 0.125967, 153.0839],
-        "alpha": 0.1
-      }
-    },
-    "method-post": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.680251, 0.135584, 74.403]
-      }
-    },
-    "method-post-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.680251, 0.135584, 74.403],
-        "alpha": 0.1
-      }
-    },
-    "method-put": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.528505, 0.165263, 260.8201]
-      }
-    },
-    "method-put-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.528505, 0.165263, 260.8201],
-        "alpha": 0.1
-      }
-    },
-    "method-patch": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.551623, 0.179885, 307.0802]
-      }
-    },
-    "method-patch-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.551623, 0.179885, 307.0802],
-        "alpha": 0.1
-      }
-    },
-    "method-delete": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.553871, 0.182226, 27.9192]
-      }
-    },
-    "method-delete-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.553871, 0.182226, 27.9192],
-        "alpha": 0.1
-      }
-    },
+    "$description": "HTTP methods: a hue each, 40 degrees or more from every other family's (the hue-gap test), GET, POST and DELETE kept near their statuses' on purpose. Solved from the hue against the contrast targets: nothing here is hand-set. -text is for words. HEAD is in each theme: it has no hue.",
     "method-head": {
       "$type": "color",
       "$value": {
@@ -413,56 +365,6 @@
         "alpha": 0.1
       }
     },
-    "method-options": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.589836, 0.097737, 217.0647]
-      }
-    },
-    "method-options-fill": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.589836, 0.097737, 217.0647],
-        "alpha": 0.1
-      }
-    },
-    "method-get-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.434667, 0.103447, 153.2924]
-      }
-    },
-    "method-post-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.449473, 0.096079, 69.1807]
-      }
-    },
-    "method-put-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.44815, 0.143575, 260.8074]
-      }
-    },
-    "method-patch-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.448692, 0.17323, 306.6236]
-      }
-    },
-    "method-delete-text": {
-      "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.459289, 0.126512, 27.6727]
-      }
-    },
     "method-head-text": {
       "$type": "color",
       "$value": {
@@ -470,11 +372,184 @@
         "components": [0.443799, 0.012362, 81.7676]
       }
     },
+    "method-get": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 153,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-get-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-get",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-post": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 74,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-post-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-post",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-put": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 290,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-put-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-put",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-patch": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 335,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-patch-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-patch",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-delete": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 27,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-delete-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-delete",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-options": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 245,
+          "chroma": 0.14
+        }
+      }
+    },
+    "method-options-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "method-options",
+          "alpha": 0.1
+        }
+      }
+    },
+    "method-get-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 153,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-get-fill"]
+        }
+      }
+    },
+    "method-post-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 74,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-post-fill"]
+        }
+      }
+    },
+    "method-put-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 290,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-put-fill"]
+        }
+      }
+    },
+    "method-patch-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 335,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-patch-fill"]
+        }
+      }
+    },
+    "method-delete-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 27,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-delete-fill"]
+        }
+      }
+    },
     "method-options-text": {
       "$type": "color",
-      "$value": {
-        "colorSpace": "oklch",
-        "components": [0.436408, 0.075513, 217.9896]
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 245,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "method-options-fill"]
+        }
       }
     }
   },
@@ -628,6 +703,40 @@
         "colorSpace": "oklch",
         "components": [0.2, 0.01, 84],
         "alpha": 0.45
+      }
+    }
+  },
+  "route": {
+    "$description": "The brand hue, for where a request goes: the route strip's line, the mark and the selected row's mark. Never a fill of a control, never a link, never Send (which is ink). 40 degrees or more from every method and status hue.",
+    "route": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue",
+          "hue": 200,
+          "chroma": 0.14,
+          "over": ["fill-selected", "fill-active"]
+        }
+      }
+    },
+    "route-fill": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "copy": "route",
+          "alpha": 0.1
+        }
+      }
+    },
+    "route-text": {
+      "$type": "color",
+      "$extensions": {
+        "com.wayfarer.derive": {
+          "contrast": "hue-text",
+          "hue": 200,
+          "chroma": 0.11,
+          "over": ["fill-hover", "fill-selected", "fill-active", "route-fill"]
+        }
       }
     }
   }

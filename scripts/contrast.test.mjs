@@ -72,6 +72,7 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
 
   test(`status and method text reads on its own fill, on every surface`, () => {
     const kinds = [
+      [`--route-text`, `--route-fill`],
       ...["success", "warning", "error", "info"].map((k) => [`--status-${k}-text`, `--status-${k}-fill`]),
       ...["get", "post", "put", "patch", "delete", "head", "options"].map((k) => [
         `--method-${k}-text`,
@@ -93,6 +94,26 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
         assert.ok(ratio >= 4.5, `--status-${kind}-text on ${surface}: ${ratio.toFixed(2)}:1`);
       }
     }
+  });
+
+  test(`the route's text reads on every surface, and its line and the selected row's mark stand out (3:1)`, () => {
+    for (const surface of SURFACES) {
+      const text = contrast(colour("--route-text"), colour(surface));
+      assert.ok(text >= 4.5, `--route-text on ${surface}: ${text.toFixed(2)}:1`);
+      const line = contrast(colour("--route"), colour(surface));
+      assert.ok(line >= 3, `--route on ${surface}: ${line.toFixed(2)}:1`);
+    }
+  });
+
+  test(`every method and status colour for a fill, a border or an icon stands out from every surface (3:1)`, () => {
+    for (const token of [
+      ...["success", "warning", "error"].map((k) => `--status-${k}`),
+      ...["get", "post", "put", "patch", "delete", "options"].map((k) => `--method-${k}`),
+    ])
+      for (const surface of SURFACES) {
+        const ratio = contrast(colour(token), colour(surface));
+        assert.ok(ratio >= 3, `${token} on ${surface}: ${ratio.toFixed(2)}:1`);
+      }
   });
 
   test(`method text reads on every surface without a fill`, () => {
@@ -161,8 +182,8 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
   test(`the selected row's mark stands out from the selected row, hovered or not (3:1)`, () => {
     for (const surface of SURFACES)
       for (const fill of ["--fill-selected", "--fill-active"]) {
-        const ratio = contrast(colour("--ink"), over(colour(fill), colour(surface)));
-        assert.ok(ratio >= 3, `--ink on ${fill} over ${surface}: ${ratio.toFixed(2)}:1`);
+        const ratio = contrast(colour("--route"), over(colour(fill), colour(surface)));
+        assert.ok(ratio >= 3, `--route on ${fill} over ${surface}: ${ratio.toFixed(2)}:1`);
       }
   });
 

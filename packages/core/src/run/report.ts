@@ -101,7 +101,7 @@ const REPORT_COLOURS = {
     secondary: "#55524D",
     tertiary: "#726F69",
     line: "#DEDAD3",
-    error: "#A51F1E",
+    error: "#904039",
   },
   dark: {
     canvas: "#161513",
@@ -110,7 +110,7 @@ const REPORT_COLOURS = {
     secondary: "#C0BDB6",
     tertiary: "#9A9790",
     line: "#423F39",
-    error: "#F7958A",
+    error: "#FBA196",
   },
 } as const;
 

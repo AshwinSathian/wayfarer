@@ -67,8 +67,19 @@ function derive(tokens, inputs, targets, name) {
   for (const [key, token] of tokens) {
     const spec = token.$extensions?.["com.wayfarer.derive"];
     if (!spec) continue;
+    if (spec.copy) {
+      // A tint or a border of another colour: its components at an alpha.
+      token.$value = { colorSpace: "oklch", components: resolved(spec.copy).components, alpha: spec.alpha };
+      continue;
+    }
     const target = targets[spec.contrast] ?? fail(`${key}: no contrast target ${spec.contrast}`);
     const against = (spec.against ?? surfaces).map((k) => luminanceOf(resolved(k)));
+    // `over`: tints (the hover and selected fills, the colour's own fill) the colour is also drawn on, over each surface.
+    for (const tint of spec.over ?? []) {
+      const { components, alpha } = resolved(tint);
+      for (const k of spec.against ?? surfaces)
+        against.push(luminanceOfRgb(blend(toSrgbFloat(components), alpha, toSrgbFloat(resolved(k).components))));
+    }
     const meets = (lum) => against.every((other) => ratio(lum, other) >= target);
     if (spec.alpha) {
       // The ink at the least opacity that meets the target over each surface.
@@ -83,10 +94,12 @@ function derive(tokens, inputs, targets, name) {
     } else {
       // The lightness nearest the surfaces that still meets the target.
       // The chroma tapers to none at the ends of the lightness range, where sRGB has no room for it.
+      // A hued token (a method, a status, the route) has its own hue and chroma, cut to what sRGB holds at that lightness.
+      const [hue, chroma] = spec.hue === undefined ? [inputs.hue, inputs.chroma] : [spec.hue, spec.chroma];
       const at = (l) => [
         l,
-        Math.round(inputs.chroma * Math.min(1, l / 0.1, (1 - l) / 0.1) * 10000) / 10000,
-        inputs.hue,
+        Math.round(fitChroma(l, chroma * Math.min(1, l / 0.1, (1 - l) / 0.1), hue) * 10000) / 10000,
+        hue,
       ];
       const lum = (l) => luminanceOfRgb(toSrgbFloat(at(l)));
       const far = lighter ? 1 : 0;
@@ -226,19 +239,33 @@ export function hexColours(name) {
   return out;
 }
 
-/** OKLCH to 8-bit sRGB (Björn Ottosson's OKLab). */
-export function toSrgb([l, c, h], key = "colour") {
+/** OKLCH as linear sRGB, which may lie outside 0..1 (Björn Ottosson's OKLab). */
+function linearRgb([l, c, h]) {
   const hue = h === "none" ? 0 : (h * Math.PI) / 180;
   const a = c * Math.cos(hue);
   const b = c * Math.sin(hue);
   const l_ = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3;
   const m_ = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3;
   const s_ = (l - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  const linear = [
+  return [
     4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
     -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
     -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
   ];
+}
+
+/** The most chroma, up to `chroma`, that sRGB holds at this lightness and hue. */
+function fitChroma(l, chroma, hue) {
+  const inside = (c) => linearRgb([l, c, hue]).every((v) => v > -1e-4 && v < 1 + 1e-4);
+  if (inside(chroma)) return chroma;
+  let [lo, hi] = [0, chroma];
+  for (let i = 0; i < 30; i++) [lo, hi] = inside((lo + hi) / 2) ? [(lo + hi) / 2, hi] : [lo, (lo + hi) / 2];
+  return Math.floor(lo * 10000) / 10000;
+}
+
+/** OKLCH to 8-bit sRGB. */
+export function toSrgb(components, key = "colour") {
+  const linear = linearRgb(components);
   return linear.map((v) => {
     if (v < -1e-4 || v > 1 + 1e-4) throw new Error(`${key} is outside sRGB`);
     const clamped = Math.min(1, Math.max(0, v));

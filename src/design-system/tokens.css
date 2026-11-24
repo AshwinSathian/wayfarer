@@ -144,44 +144,44 @@
   --border-strong: rgba(235, 233, 228, 0.098);
 
   /* status */
-  --status-success: #5BBD74;
-  --status-success-fill: rgba(91, 189, 116, 0.14);
-  --status-success-border: rgba(91, 189, 116, 0.32);
-  --status-warning: #F4A437;
-  --status-warning-fill: rgba(244, 164, 55, 0.14);
-  --status-warning-border: rgba(244, 164, 55, 0.32);
-  --status-error: #EC5C52;
-  --status-error-fill: rgba(236, 92, 82, 0.14);
-  --status-error-border: rgba(236, 92, 82, 0.32);
   --status-info-fill: var(--fill-secondary);
   --status-info-border: var(--border-strong);
-  --status-success-text: #86D797;
-  --status-warning-text: #F8BF6C;
-  --status-error-text: #F7958A;
   --status-info-text: var(--label-secondary);
+  --status-success: #228B45;
+  --status-success-fill: rgba(34, 139, 69, 0.1);
+  --status-success-border: rgba(34, 139, 69, 0.28);
+  --status-warning: #A86C00;
+  --status-warning-fill: rgba(168, 108, 0, 0.1);
+  --status-warning-border: rgba(168, 108, 0, 0.28);
+  --status-error: #C3574E;
+  --status-error-fill: rgba(195, 87, 78, 0.1);
+  --status-error-border: rgba(195, 87, 78, 0.28);
+  --status-success-text: #80C98F;
+  --status-warning-text: #E6AE67;
+  --status-error-text: #FBA196;
 
   /* method */
-  --method-get: #4FB477;
-  --method-get-fill: rgba(79, 180, 119, 0.12);
-  --method-post: #E0A33B;
-  --method-post-fill: rgba(224, 163, 59, 0.12);
-  --method-put: #5B8DEF;
-  --method-put-fill: rgba(91, 141, 239, 0.12);
-  --method-patch: #B57EDC;
-  --method-patch-fill: rgba(181, 126, 220, 0.12);
-  --method-delete: #E5534B;
-  --method-delete-fill: rgba(229, 83, 75, 0.12);
   --method-head: #8C8780;
   --method-head-fill: rgba(140, 135, 128, 0.12);
-  --method-options: #4FB0C6;
-  --method-options-fill: rgba(79, 176, 198, 0.12);
-  --method-get-text: #7FD39D;
-  --method-post-text: #EEB561;
-  --method-put-text: #99C1FD;
-  --method-patch-text: #DAAFFA;
-  --method-delete-text: #FEA99F;
   --method-head-text: #C3BEB5;
-  --method-options-text: #7FCDDE;
+  --method-get: #0E8B4A;
+  --method-get-fill: rgba(14, 139, 74, 0.1);
+  --method-post: #A66E00;
+  --method-post-fill: rgba(166, 110, 0, 0.1);
+  --method-put: #7C6BC8;
+  --method-put-fill: rgba(124, 107, 200, 0.1);
+  --method-patch: #B05B9F;
+  --method-patch-fill: rgba(176, 91, 159, 0.1);
+  --method-delete: #C3574E;
+  --method-delete-fill: rgba(195, 87, 78, 0.1);
+  --method-options: #0E7EC4;
+  --method-options-fill: rgba(14, 126, 196, 0.1);
+  --method-get-text: #7BC993;
+  --method-post-text: #E4AF66;
+  --method-put-text: #BAAFFD;
+  --method-patch-text: #E9A2D9;
+  --method-delete-text: #FBA196;
+  --method-options-text: #78BFF9;
 
   /* scrollbar */
   --scrollbar-thumb: rgba(235, 233, 228, 0.179);
@@ -197,6 +197,11 @@
 
   /* scrim */
   --scrim: rgba(0, 0, 0, 0.55);
+
+  /* route */
+  --route: #00A7AE;
+  --route-fill: rgba(0, 167, 174, 0.1);
+  --route-text: #4BCAD0;
 }
 
 [data-theme="light"] {
@@ -244,44 +249,44 @@
   --border-strong: rgba(38, 35, 30, 0.117);
 
   /* status */
-  --status-success: #298646;
-  --status-success-fill: rgba(41, 134, 70, 0.1);
-  --status-success-border: rgba(41, 134, 70, 0.28);
-  --status-warning: #D6810C;
-  --status-warning-fill: rgba(214, 129, 12, 0.1);
-  --status-warning-border: rgba(214, 129, 12, 0.28);
-  --status-error: #C9302D;
-  --status-error-fill: rgba(201, 48, 45, 0.1);
-  --status-error-border: rgba(201, 48, 45, 0.28);
   --status-info-fill: var(--fill-secondary);
   --status-info-border: var(--border-strong);
-  --status-success-text: #206133;
-  --status-warning-text: #7A4702;
-  --status-error-text: #A51F1E;
   --status-info-text: var(--label-secondary);
+  --status-success: #3C9F59;
+  --status-success-fill: rgba(60, 159, 89, 0.1);
+  --status-success-border: rgba(60, 159, 89, 0.28);
+  --status-warning: #C27E00;
+  --status-warning-fill: rgba(194, 126, 0, 0.1);
+  --status-warning-border: rgba(194, 126, 0, 0.28);
+  --status-error: #DA6C62;
+  --status-error-fill: rgba(218, 108, 98, 0.1);
+  --status-error-border: rgba(218, 108, 98, 0.28);
+  --status-success-text: #1A6633;
+  --status-warning-text: #7C4F00;
+  --status-error-text: #904039;
 
   /* method */
-  --method-get: #2F8F55;
-  --method-get-fill: rgba(47, 143, 85, 0.1);
-  --method-post: #C98A1E;
-  --method-post-fill: rgba(201, 138, 30, 0.1);
-  --method-put: #2E66C9;
-  --method-put-fill: rgba(46, 102, 201, 0.1);
-  --method-patch: #8E4DC2;
-  --method-patch-fill: rgba(142, 77, 194, 0.1);
-  --method-delete: #C7372F;
-  --method-delete-fill: rgba(199, 55, 47, 0.1);
   --method-head: #8C8780;
   --method-head-fill: rgba(140, 135, 128, 0.1);
-  --method-options: #1F8BA3;
-  --method-options-fill: rgba(31, 139, 163, 0.1);
-  --method-get-text: #116135;
-  --method-post-text: #774A04;
-  --method-put-text: #2150A3;
-  --method-patch-text: #6E2F9E;
-  --method-delete-text: #91352E;
   --method-head-text: #57534C;
-  --method-options-text: #095B6D;
+  --method-get: #309F5D;
+  --method-get-fill: rgba(48, 159, 93, 0.1);
+  --method-post: #BF8000;
+  --method-post-fill: rgba(191, 128, 0, 0.1);
+  --method-put: #907FDF;
+  --method-put-fill: rgba(144, 127, 223, 0.1);
+  --method-patch: #C66EB4;
+  --method-patch-fill: rgba(198, 110, 180, 0.1);
+  --method-delete: #DA6C62;
+  --method-delete-fill: rgba(218, 108, 98, 0.1);
+  --method-options: #2F92DA;
+  --method-options-fill: rgba(47, 146, 218, 0.1);
+  --method-get-text: #0E6636;
+  --method-post-text: #7B5000;
+  --method-put-text: #5B4F94;
+  --method-patch-text: #824275;
+  --method-delete-text: #904039;
+  --method-options-text: #0F5D92;
 
   /* scrollbar */
   --scrollbar-thumb: rgba(38, 35, 30, 0.235);
@@ -297,6 +302,11 @@
 
   /* scrim */
   --scrim: rgba(24, 22, 17, 0.45);
+
+  /* route */
+  --route: #008187;
+  --route-fill: rgba(0, 129, 135, 0.1);
+  --route-text: #006368;
 }
 
 @media (prefers-contrast: more) {
@@ -317,9 +327,42 @@
     --separator-opaque: #4D4B45;
     --border-subtle: rgba(251, 250, 249, 0.091);
     --border-strong: rgba(251, 250, 249, 0.147);
+    --status-success: #47AA62;
+    --status-success-fill: rgba(71, 170, 98, 0.1);
+    --status-success-border: rgba(71, 170, 98, 0.28);
+    --status-warning: #CE8919;
+    --status-warning-fill: rgba(206, 137, 25, 0.1);
+    --status-warning-border: rgba(206, 137, 25, 0.28);
+    --status-error: #E6776C;
+    --status-error-fill: rgba(230, 119, 108, 0.1);
+    --status-error-border: rgba(230, 119, 108, 0.28);
+    --status-success-text: #DBFAE0;
+    --status-warning-text: #FFF0DE;
+    --status-error-text: #FFEFED;
+    --method-get: #3EAB68;
+    --method-get-fill: rgba(62, 171, 104, 0.1);
+    --method-post: #CB8A14;
+    --method-post-fill: rgba(203, 138, 20, 0.1);
+    --method-put: #9A8AEA;
+    --method-put-fill: rgba(154, 138, 234, 0.1);
+    --method-patch: #D179BE;
+    --method-patch-fill: rgba(209, 121, 190, 0.1);
+    --method-delete: #E6776C;
+    --method-delete-fill: rgba(230, 119, 108, 0.1);
+    --method-options: #3D9EE6;
+    --method-options-fill: rgba(61, 158, 230, 0.1);
+    --method-get-text: #D9FBE1;
+    --method-post-text: #FFF0DC;
+    --method-put-text: #F2F1FF;
+    --method-patch-text: #FFEDFA;
+    --method-delete-text: #FFEFED;
+    --method-options-text: #E7F4FF;
     --scrollbar-thumb: rgba(251, 250, 249, 0.254);
     --scrollbar-thumb-hover: rgba(251, 250, 249, 0.381);
     --selection-bg: rgba(251, 250, 249, 0.228);
+    --route: #00DAE3;
+    --route-fill: rgba(0, 218, 227, 0.1);
+    --route-text: #CCFBFD;
   }
 
   [data-theme="light"] {
@@ -338,8 +381,41 @@
     --separator-opaque: #CCC8C2;
     --border-subtle: rgba(23, 20, 16, 0.109);
     --border-strong: rgba(23, 20, 16, 0.191);
+    --status-success: #0F803C;
+    --status-success-fill: rgba(15, 128, 60, 0.1);
+    --status-success-border: rgba(15, 128, 60, 0.28);
+    --status-warning: #9A6400;
+    --status-warning-fill: rgba(154, 100, 0, 0.1);
+    --status-warning-border: rgba(154, 100, 0, 0.28);
+    --status-error: #B84D45;
+    --status-error-fill: rgba(184, 77, 69, 0.1);
+    --status-error-border: rgba(184, 77, 69, 0.28);
+    --status-success-text: #003D18;
+    --status-warning-text: #4A2E00;
+    --status-error-text: #641815;
+    --method-get: #008043;
+    --method-get-fill: rgba(0, 128, 67, 0.1);
+    --method-post: #986500;
+    --method-post-fill: rgba(152, 101, 0, 0.1);
+    --method-put: #7361BE;
+    --method-put-fill: rgba(115, 97, 190, 0.1);
+    --method-patch: #A55095;
+    --method-patch-fill: rgba(165, 80, 149, 0.1);
+    --method-delete: #B84D45;
+    --method-delete-fill: rgba(184, 77, 69, 0.1);
+    --method-options: #0074B8;
+    --method-options-fill: rgba(0, 116, 184, 0.1);
+    --method-get-text: #003D1D;
+    --method-post-text: #4A2E00;
+    --method-put-text: #38286A;
+    --method-patch-text: #581B4D;
+    --method-delete-text: #641815;
+    --method-options-text: #00365A;
     --scrollbar-thumb: rgba(23, 20, 16, 0.347);
     --scrollbar-thumb-hover: rgba(23, 20, 16, 0.482);
     --selection-bg: rgba(23, 20, 16, 0.311);
+    --route: #005A5E;
+    --route-fill: rgba(0, 90, 94, 0.1);
+    --route-text: #003A3D;
   }
 }

@@ -58,7 +58,10 @@ test("the app or the site uses every token", () => {
     token.$type === "typography"
       ? new RegExp(`(?<![\\w-])${key}(?![\\w-])|--${key}-`).test(files)
       : new RegExp(`--${key}(?![\\w-])`).test(files);
-  const unused = [...theme("dark")].filter(([key, token]) => !used(key, token)).map(([key]) => key);
+  // The route strip (S4a) is the only reader of its text and its tint: until it lands they are defined and held to
+  // their contrast, and read by nothing. Delete this line in S4a.
+  const strip = new Set(["route-text", "route-fill"]);
+  const unused = [...theme("dark")].filter(([key, token]) => !strip.has(key) && !used(key, token)).map(([key]) => key);
   assert.deepEqual(unused, [], "tokens nothing reads: delete them");
 });
 
@@ -136,12 +139,13 @@ test("no stylesheet in src/design-system or src/app/ui writes a colour or a shad
   assert.deepEqual(own, []);
 });
 
-// DQ11 (U-147): chrome and actions are ink; only a method or a status carries a hue.
-test("no colour token outside method and status carries a hue", () => {
+// DQ11 (U-147, overturned by overhaul S1a): chrome and actions are ink; only a method, a status or the route (the
+// brand hue: the strip's line, the mark, the selected row's mark) carries a hue.
+test("no colour token outside method, status and route carries a hue", () => {
   for (const name of THEMES)
     for (const level of LEVELS)
       for (const [key, token] of theme(name, level)) {
-        if (token.group === "method" || token.group === "status") continue;
+        if (["method", "status", "route"].includes(token.group)) continue;
         const colours =
           token.$type === "color" && typeof token.$value === "object"
             ? [token.$value]
@@ -314,7 +318,7 @@ test("every rule that sets the mono face turns its ligatures off", () => {
   assert.deepEqual(found, []);
 });
 
-// U-197 (DQ11): hue means a method or a status. The device's own state (the route chosen, the vault open, the
+// U-197 (DQ11): hue means a method, a status or the route. The device's own state (the route chosen, the vault open, the
 // environment in use) is not drawn in success's green.
 test("the shell's device state is not drawn in a status colour", () => {
   const [[, shell]] = sources(/^app\/components\/app-shell\/app-shell\.html$/);
@@ -365,4 +369,75 @@ test("no template draws a dashed box", () => {
   for (const [file, text] of sources(/\.(html|ts)$/))
     for (const m of text.matchAll(/(?<![\w-])border-dashed(?![\w-])/g)) found.push(`${file}: ${m[0]}`);
   assert.deepEqual(found, []);
+});
+
+// Overhaul S1a: the brand hue is rationed. It is on the route strip's line, the mark and the selected row's mark; a
+// link, a button, a fill of a control and Send stay ink (loupe: a brand colour everywhere is a tell).
+test("the route tokens are named only where the brand hue is drawn", () => {
+  const allowed = new Set([
+    "app/ui/tree.css", // the selected row's mark
+  ]);
+  const found = sources(/\.(html|ts|css)$/, (file) => /\.spec\.ts$|^design-system\/tokens\./.test(file))
+    .filter(([file, text]) => !allowed.has(file) && /--route(?![\w-]*-)|--route-(text|fill)/.test(text))
+    .map(([file]) => file);
+  assert.deepEqual(found, []);
+});
+
+// Overhaul S1a: hues 40 degrees apart, so that two methods or a method and a status are not told apart by hue alone
+// at a glance (the glyph and the label carry the rest). GET/success, POST/warning and DELETE/error are one meaning
+// each, near on purpose. The -text and -fill tokens and the route (brand) are held to it too, in both themes and at
+// both contrast levels.
+const FAMILIES = [
+  "method-get",
+  "method-post",
+  "method-put",
+  "method-patch",
+  "method-delete",
+  "method-options",
+  "status-success",
+  "status-warning",
+  "status-error",
+  "route",
+];
+const SAME_MEANING = new Set(["method-get|status-success", "method-post|status-warning", "method-delete|status-error"]);
+
+/** OKLCH hue of a colour token, in degrees. */
+const hueOf = (token) => token.$value.components[2];
+const gap = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+
+test("every hue is 40 degrees or more from every other, but the three pairs that mean the same", () => {
+  for (const name of THEMES)
+    for (const level of LEVELS) {
+      const tokens = theme(name, level);
+      const hues = (family) => ["", "-fill", "-text"].map((suffix) => hueOf(tokens.get(family + suffix)));
+      for (const [i, a] of FAMILIES.entries())
+        for (const b of FAMILIES.slice(i + 1)) {
+          if (SAME_MEANING.has(`${a}|${b}`)) continue;
+          const closest = Math.min(...hues(a).flatMap((x) => hues(b).map((y) => gap(x, y))));
+          assert.ok(closest >= 40, `${name} ${level}: ${a} and ${b} are ${closest.toFixed(1)} degrees apart`);
+        }
+    }
+});
+
+test("a hued fill, border and icon colour is 3:1 on every surface, in both themes at both levels", () => {
+  for (const name of THEMES)
+    for (const level of LEVELS) {
+      const tokens = theme(name, level);
+      const lum = ([l, c, h]) => {
+        const [r, g, b] = toSrgb([l, c, h]).map((v) => v / 255);
+        const f = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      const surfaces = [...tokens].filter(([, t]) => t.group === "canvas" || t.group === "surface");
+      const value = (token) =>
+        typeof token.$value === "string" ? value(tokens.get(token.$value.slice(1, -1).split(".").pop())) : token.$value;
+      for (const family of FAMILIES) {
+        const mine = lum(value(tokens.get(family)).components);
+        for (const [key, surface] of surfaces) {
+          const other = lum(value(surface).components);
+          const ratio = (Math.max(mine, other) + 0.05) / (Math.min(mine, other) + 0.05);
+          assert.ok(ratio >= 3, `${name} ${level}: ${family} on ${key} is ${ratio.toFixed(2)}:1`);
+        }
+      }
+    }
 });

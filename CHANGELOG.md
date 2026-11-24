@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **Method and status colours moved, and every one now has the contrast it is held to.** OPTIONS is blue (was teal), PUT is violet (was blue), PATCH is magenta (was purple); GET, POST and DELETE keep their hues, and warning moved from orange-red to amber so that it no longer sits next to DELETE and error. Each is at least 40 degrees of hue from every other except the pairs that mean the same (GET and success, POST and warning, DELETE and error), so two methods are less likely to be mistaken for each other by colour alone (the label still says which). Colours for fills, borders and icons are now at least 3:1 on every surface and text colours 4.5:1, solved by the token build instead of set by hand; light-theme warning, error and POST are a little darker or lighter than before as a result. The selected row in the sidebar has a teal mark (was ink).
+- **The size budgets are reset to the first download as it is (1,201,089 B raw, 338,831 B gzipped; warn at 1.05 times, fail at 1.10 times).** They were last set at 1,113,075 B on 3 November; the build had warned for weeks that the first download was 28.59 kB over (main, before this change). This change adds about 2.5 kB of it (the tokens' colours, solved for both contrast levels).
+- The words the app says now have one list, `packages/core/src/strings.ts`, and a test (`scripts/glossary.test.mjs`) keeps banned words and internal IDs out of the pages, templates and docs. Nothing a user reads is reworded yet.
+
 ### Fixed
 
 - **On a phone, and wherever the sidebar is a drawer, the backup and update notices stand in the page again.** Floating over the page's foot they covered the control below the fold (found by a browser test at 390 px); they float only beside the pinned sidebar, over its empty foot.

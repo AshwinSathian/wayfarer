@@ -184,6 +184,8 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. <!-- claim:C-095 -->
 - A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. <!-- claim:C-096 -->
 - Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn. <!-- claim:C-097 -->
+- The status bar says "Not backed up" until a backup was made and then how long ago it was; the only thing kept for it is that time, in `localStorage`. <!-- claim:C-098 -->
+- The command palette lists a few commands in each group with what you ran last on top, and finds a saved request by its name, address or method; choosing one opens it and sends nothing. <!-- claim:C-099 -->
 <!-- features:end -->
 
 </details>

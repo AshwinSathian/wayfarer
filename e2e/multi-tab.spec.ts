@@ -31,7 +31,7 @@ test("what one tab saves appears in the other within a second: a collection, an 
   const pageB = await context.newPage();
   await pageA.goto("/app/");
   await pageB.goto("/app/");
-  await expect(pageB.getByText("Requests you save are kept here, in collections.")).toBeVisible();
+  await expect(pageB.getByText("No collections yet.")).toBeVisible();
 
   await pageA.getByRole("button", { name: "New collection" }).first().click();
   await pageA.locator("#creation-name-input").fill("Made in tab A");

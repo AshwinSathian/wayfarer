@@ -61,7 +61,41 @@ test("a tab says what it holds: the method and the address, or the saved request
   await expect(crumbs).toHaveCount(0);
   await expect(tabs(page).nth(1)).toContainText("New request");
   await address(page).fill("https://api.example.test/items");
-  await expect(tabs(page).nth(1)).toContainText("api.example.test/items");
+  await expect(tabs(page).nth(1)).toContainText("items");
+});
+
+// Audit 14: a title cut at the host said the least ("jsonplaceholder.typicode.com/todo…"). It is the end of the path,
+// and the whole address, the host with it, is what hovering says.
+test("an unsaved tab is titled by the end of its path, and its tooltip has the whole address", async ({ page }) => {
+  await page.goto("/app/");
+  await address(page).fill("https://jsonplaceholder.typicode.com/todos/1?x=2");
+  const tab = tabs(page).first();
+  await expect(tab).toContainText("todos/1");
+  await expect(tab).not.toContainText("jsonplaceholder");
+  await expect(tab).toHaveAccessibleDescription("GET https://jsonplaceholder.typicode.com/todos/1?x=2");
+  // With no path there is nothing to cut: the host is the title.
+  await address(page).fill("https://api.example.test");
+  await expect(tab).toContainText("api.example.test");
+});
+
+test("a saved request's tab says where it is kept and that Save writes back, for a pointer and a screen reader", async ({
+  page,
+}) => {
+  await seedAndOpen(page, {}, { method: "POST", url: `${ECHO}/echo`, folder: {} });
+  await expect(tabs(page).first()).toHaveAccessibleDescription(
+    `Tripwire collection / Tripwire folder / Tripwire request. Save writes back to it. POST ${ECHO}/echo`,
+  );
+});
+
+// Audit 14: the unsaved dot sat against the close mark.
+test("the unsaved dot has room before the close mark", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  await address(page).fill(`${ECHO}/echo?edited=1`);
+  const tab = tabs(page).first();
+  const dot = await unsaved(tab).boundingBox();
+  const close = await tab.locator(".request-tab-close").boundingBox();
+  // The close box is 24 px and its mark is centred in it: the glyph's own gap is that less the padding.
+  expect(close!.x - (dot!.x + dot!.width)).toBeGreaterThanOrEqual(6);
 });
 
 test("an edit marks the tab unsaved; a saved request opened again goes to its tab, edits kept", async ({ page }) => {
@@ -203,7 +237,7 @@ test("Alt+T in the same task as the last keystroke opens a tab whose field shows
   await expect(tabs(page)).toHaveCount(2);
   await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
   // The draft beside the field: the tab's name is its draft's address, or "New request".
-  await expect(tabs(page).nth(0)).toContainText("api.example.test/first");
+  await expect(tabs(page).nth(0)).toContainText("first");
   await expect(tabs(page).nth(1)).toContainText("New request");
   await expect(address(page)).toHaveValue("");
   await tabs(page).nth(0).click();
@@ -440,8 +474,8 @@ test("two browser tabs share the composer's tabs: one opened or closed in one is
   await address(one).fill("https://api.example.test/second-from-one");
 
   await expect(tabs(two)).toHaveCount(2);
-  await expect(tabs(two).nth(0)).toContainText("api.example.test/from-one");
-  await expect(tabs(two).nth(1)).toContainText("api.example.test/second-from-one");
+  await expect(tabs(two).nth(0)).toContainText("from-one");
+  await expect(tabs(two).nth(1)).toContainText("second-from-one");
   // Each browser tab is where it was: the second composer tab in one, the first in two.
   await expect(tabs(one).nth(1)).toHaveAttribute("aria-selected", "true");
   await expect(tabs(two).nth(0)).toHaveAttribute("aria-selected", "true");
@@ -449,7 +483,7 @@ test("two browser tabs share the composer's tabs: one opened or closed in one is
 
   // An edit in two reaches one.
   await address(two).fill("https://api.example.test/changed-in-two");
-  await expect(tabs(one).nth(0)).toContainText("api.example.test/changed-in-two");
+  await expect(tabs(one).nth(0)).toContainText("changed-in-two");
 
   // Closed in two, with its question answered: gone in one.
   await tabMenu(two, "Close tab");
@@ -483,7 +517,7 @@ test("a request renamed in the tree is renamed in its tab at once, and one delet
   await expect(tree.getByText("Renamed in the tree", { exact: true })).toHaveCount(0);
   // The tab keeps what it held, as a request of no collection: its name is its address again.
   await expect(address(page)).toHaveValue(`${ECHO}/echo?kept=1`);
-  await expect(strip(page).getByRole("tab", { selected: true })).toContainText("127.0.0.1:4300/echo?kept=1");
+  await expect(strip(page).getByRole("tab", { selected: true })).toContainText("echo");
   await expect(page.locator("app-composer")).not.toContainText("Tripwire collection /");
   // And it is sent like one.
   await send(page);

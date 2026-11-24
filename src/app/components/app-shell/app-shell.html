@@ -134,6 +134,7 @@
         (loadRequest)="handleLoadRequest($event)"
         (deleteRequest)="deleteRequest.emit($event)"
         (clearAll)="confirmClear()"
+        (sendRequest)="closeHistory(); composer().focusUrl()"
       ></app-past-requests>
     </div>
   </div>
@@ -204,7 +205,7 @@
           placeholder="No environment"
           [options]="dropdownOptions()"
           [value]="selectedEnvironmentId()"
-          (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
+          (valueChange)="chooseEnvironment($event)"
         />
         <!-- On a phone, Environments and History are rows of the drawer, by name (U-097). -->
         @if (!isMobile()) {
@@ -229,8 +230,8 @@
           uiButton="icon"
           class="btn-plain"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          [uiTooltip]="secretsUnlocked ? 'Lock vault' : 'Unlock vault'"
-          [attr.aria-label]="secretsUnlocked ? 'Lock vault' : 'Unlock vault'"
+          [uiTooltip]="vaultAction()"
+          [attr.aria-label]="vaultAction()"
         >
           <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
         </button>
@@ -363,37 +364,45 @@
         (click)="openBridgeSettings()"
         uiTooltip="Local Bridge settings"
       >
-        <app-icon name="router" class="icon-xs" />Route: {{ routeNow() }}
+        <app-icon name="router" class="icon-xs" />Route: {{ routeSetting() }}
       </button>
+      <!-- One name, Vault. With none made, the button is the way in: what it is for, then Set up vault (audit 11). The
+           list inside it is Secrets, a button of its own once there is a vault to hold them. -->
+      @if (secretsService.made() === false) {
+      <button type="button" uiButton class="btn-plain status-control" (click)="openLockDialog()">
+        <app-icon name="lock" class="icon-xs" />Set up vault to store secrets
+      </button>
+      } @else {
       <button
         type="button"
         uiButton
         class="btn-plain status-control"
         (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : secretsService.made() === false ? 'Create vault' : 'Unlock the vault'"
+        [uiTooltip]="vaultAction()"
       >
         <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />{{ secretsUnlocked ? "Vault
-        unlocked" : secretsService.made() === false ? "No vault" : "Vault locked" }}
+        unlocked" : "Vault locked" }}
       </button>
       <button
         type="button"
         uiButton
         class="btn-plain status-control"
         (click)="secretsDialogVisible.set(true)"
-        uiTooltip="Manage the vault's secrets"
+        uiTooltip="The secrets in the vault"
       >
         <app-icon name="key" class="icon-xs" />Secrets
       </button>
+      }
       <span class="flex-1"></span>
-      <!-- What the browser answered of keeping the data (U-137); while it has promised nothing, Data and storage says
-           what that means and has the backup. -->
-      @if (persistence.persisted() === false && !storageUnavailable()) {
+      <!-- Whether the data is backed up, then how long ago (overhaul S3, audit 21). The browser's own promise to keep it
+           is Data and storage's to say. -->
+      @if (!storageUnavailable()) {
       <button
         type="button"
         uiButton
         class="btn-plain status-control"
         (click)="openSettings('data')"
-        uiTooltip="Data and storage settings"
+        [uiTooltip]="backupTip()"
         >{{ storageWords() }}</button
       >
       } @else {
@@ -417,7 +426,7 @@
 
 <!-- Unlock / set up the vault -->
 <ui-dialog
-  [header]="isFirstVaultSetup() ? 'Create vault passphrase' : 'Unlock vault'"
+  [header]="isFirstVaultSetup() ? 'Set up vault' : 'Unlock vault'"
   [visible]="lockDialogVisible()"
   (visibleChange)="$event ? lockDialogVisible.set(true) : closeLockDialog()"
   width="400px"
@@ -485,10 +494,10 @@
       <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeLockDialog()">Cancel</button>
       <button
         uiButton="filled"
-        [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock vault'"
+        [attr.aria-label]="isFirstVaultSetup() ? 'Set up vault' : 'Unlock vault'"
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
-        >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button
+        >{{ isFirstVaultSetup() ? 'Set up vault' : 'Unlock' }}</button
       >
     </div>
   </div>
@@ -509,6 +518,7 @@
   (clearHistory)="confirmClear()"
   [paletteActions]="paletteCommands"
   (openSecrets)="secretsDialogVisible.set(true)"
+  (setUpVault)="openLockDialog()"
   (resetAllData)="confirmResetAllData()"
 ></app-settings>
 

@@ -162,7 +162,7 @@ test("at 390 px the vault's form in a row is in the window whole when it opens",
     form.getByLabel("Passphrase", { exact: true }),
     form.getByLabel("Confirm passphrase", { exact: true }),
     form.getByRole("button", { name: "Cancel" }),
-    form.getByRole("button", { name: "Create vault" }),
+    form.getByRole("button", { name: "Set up vault", exact: true }),
   ]) {
     await expect(control).toBeInViewport({ ratio: 1 });
   }
@@ -182,7 +182,7 @@ test("marking a variable secret with no vault makes the vault in the row and sto
   await dialog.getByPlaceholder("Value", { exact: true }).fill("plain-value-123");
   await dialog.getByRole("button", { name: /^Mark .* as secret$/ }).click();
   // In the row, not a second dialog; the keyboard is already in the passphrase.
-  await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Set up vault" })).toHaveCount(0);
   await expect(dialog.getByLabel("Passphrase", { exact: true })).toBeFocused();
   // Leaving the value for the lock wrote nothing of it: the row waits to be the secret's reference.
   await page.waitForTimeout(300);

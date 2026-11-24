@@ -319,7 +319,7 @@ test("a collection's settings open in one tab, and a variable typed there is sto
   await settings.getByRole("button", { name: "Mark apiToken as secret" }).click();
   await settings.getByLabel("Passphrase", { exact: true }).fill("a long passphrase");
   await settings.getByLabel("Confirm passphrase").fill("a long passphrase");
-  await settings.getByRole("button", { name: "Create vault" }).click();
+  await settings.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(settings.getByText("Secret stored")).toBeVisible();
   await expect.poll(async () => (await variables())[0]?.value).toMatch(/^\{\{\$secret\.[a-z0-9-]+\}\}$/);
   expect(JSON.stringify(await dumpIdb(page))).not.toContain("typed-collection-token");

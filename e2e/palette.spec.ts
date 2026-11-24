@@ -77,7 +77,7 @@ test("it finds a collection and selects it in the sidebar", async ({ page }) => 
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, folder: {} });
   await openPalette(page);
   await page.keyboard.type("tripwire folder");
-  await expect(page.getByRole("group", { name: "Collections and folders" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Go to" })).toBeVisible();
   await page.keyboard.press("Enter");
   const row = page.getByRole("tree").getByRole("treeitem", { name: /Tripwire folder/ });
   await expect(row).toHaveAttribute("aria-selected", "true");
@@ -108,4 +108,37 @@ test("the palette runs a collection: type run, choose it, and its run's tab open
   await expect(
     page.getByRole("tablist", { name: "Open requests" }).getByRole("tab", { name: /^Run Tripwire collection/ }),
   ).toBeVisible();
+});
+
+// Overhaul S3 (audit 25): one flat list of every command is a list to read; groups, a few of each, and what was run last on top.
+test("@claim:C-099 the palette shows a few commands in each group, what was run last first, and finds a saved request by name or method without sending", async ({
+  page,
+}) => {
+  await seedAndOpen(page, { host: ECHO }, { method: "POST", url: `${ECHO}/content/json?find=me` });
+  await page.getByRole("button", { name: "New tab" }).click();
+  const sent: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().startsWith(ECHO)) sent.push(request.url());
+  });
+  await openPalette(page);
+  for (const name of ["Requests", "Go to", "Settings", "Vault"])
+    await expect(page.getByRole("group", { name, exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Recent" })).toHaveCount(0);
+  // Not a flat list of every command: a few of each group.
+  expect(await page.getByRole("listbox", { name: "Results" }).getByRole("option").count()).toBeLessThan(21);
+  await page.keyboard.type("history");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "History", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await openPalette(page);
+  const recent = page.getByRole("group", { name: "Recent" });
+  await expect(recent.getByRole("option").first()).toContainText("History");
+  // A saved request, by its method; Enter opens it and nothing is sent.
+  await page.keyboard.type("post tripwire");
+  await expect(
+    page.getByRole("group", { name: "Requests" }).getByRole("option", { name: /Tripwire request/ }),
+  ).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?find=me`);
+  expect(sent).toEqual([]);
 });

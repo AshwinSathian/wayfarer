@@ -621,10 +621,10 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
     .getByRole("textbox", { name: "Value of X-Plain" })
     .fill("{{nowhere}} {{$secret.00000000-0000-4000-8000-00000000d5d5}}");
   await send(page);
-  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Set up vault", exact: true });
   await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
   await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Create vault" }).click();
+  await dialog.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: /have no value|has no value/ })).toBeVisible();
   await page.getByRole("button", { name: "Send anyway" }).click();
   await expect(

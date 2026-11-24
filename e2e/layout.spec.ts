@@ -268,7 +268,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
       await expect(page.getByRole("contentinfo", { name: "Status" })).toHaveCount(0);
-      await expect(page.getByRole("banner").getByRole("button", { name: "Unlock vault", exact: true })).toBeVisible();
+      await expect(page.getByRole("banner").getByRole("button", { name: "Set up vault", exact: true })).toBeVisible();
       for (const name of [/^Secrets$/, /^Route: /, /^Theme: /]) {
         await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
@@ -282,18 +282,18 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // From 768 + 20 px: WebKit takes its scrollbar off the width a media query sees.
   for (const width of [788, 1100, 1440]) {
-    test(`at ${width} px the status bar holds the bridge, the vault, the secrets and the theme, and says each state`, async ({
+    test(`at ${width} px the status bar holds the route, the vault, the backup and the theme, and says each state`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
       const status = page.getByRole("contentinfo", { name: "Status" });
       await expect(status).toBeVisible();
-      await expect(status).toContainText("Route: direct");
-      await expect(status).toContainText("No vault");
-      await expect(status).toContainText(/Saved in this browser|Kept in this browser|Kept by Safari/);
+      await expect(status).toContainText("Route: Auto");
+      await expect(status).toContainText("Set up vault to store secrets");
+      await expect(status).toContainText(/Not backed up|Kept in this browser|Kept by Safari/);
       // Each is one button, named by its words (U-072).
-      for (const name of [/^Secrets$/, /^Route: direct$/, /^Theme: system$/, /^No vault$/]) {
+      for (const name of [/^Route: Auto$/, /^Theme: system$/, /^Set up vault to store secrets$/]) {
         await expect(status.getByRole("button", { name })).toBeVisible();
         await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
       }

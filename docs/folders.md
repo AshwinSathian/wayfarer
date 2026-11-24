@@ -15,7 +15,7 @@ is also kept in the browser, as every collection is.
 ## Choose the folder
 
 Open a collection's menu in the sidebar (right-click, or Shift+F10 on its
-row) and choose **Keep in a folder…**, then **Choose a folder**. The browser
+row) and choose **Save to a folder on disk…**, then **Choose a folder**. The browser
 asks you to pick the folder and to let Wayfarer change it. Choose a folder that holds
 no collection yet: to open one that does, a clone of a teammate's
 repository for example, use **Import › Folder…**, which shows the usual

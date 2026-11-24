@@ -167,6 +167,8 @@
   border-radius: 50%;
   /* Not the ink of the open tab's line (U-027): a mark of state, in the secondary label. */
   background: var(--label-secondary);
+  /* A gap before the close mark, which shows under the pointer and on the open tab (audit 14). */
+  margin-inline-end: 6px;
 }
 
 /* The panes. Aria makes a pane that is not shown inert and leaves hiding it to us. */

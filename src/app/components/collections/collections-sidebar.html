@@ -2,7 +2,7 @@
   <!-- Header: the title and two named menus (U-010, ia.md). The palette is the toolbar's. -->
   <div class="flex items-center justify-between gap-2">
     <h2 class="type-subhead font-semibold text-label-secondary m-0">Collections</h2>
-    <!-- Not while the tree is empty: its own line offers New collection and Import… (L-16). -->
+    <!-- Not while the tree is empty: its own block offers New collection and the same Import menu (L-16). -->
     @if (nodes().length) {
     <div class="flex items-center gap-1">
       <button
@@ -59,14 +59,21 @@
   } @else if (!nodes().length) {
   <!-- Where the first row will be, left-aligned, with no picture (V2). -->
   <div class="flex flex-col items-start gap-3 px-2 pt-1">
-    <p class="type-callout text-label-secondary m-0">Requests you save are kept here, in collections.</p>
+    <h3 class="type-empty-title text-label-primary m-0">{{ empty.collections.headline }}</h3>
+    <p class="type-callout text-label-secondary m-0">{{ empty.collections.body }}</p>
     <div class="flex flex-wrap gap-2">
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="handleCreateCollection()"
-        >New collection</button
-      >
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="fileInput.click()"
-        >Import…</button
-      >
+      <button uiButton="filled" class="btn-sm" type="button" (click)="handleCreateCollection()">New collection</button>
+      <!-- The menu of the header when there are collections: file, cURL command, link (audit 16). -->
+      <button
+        type="button"
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        ngMenuTrigger
+        #emptyImportTrigger="ngMenuTrigger"
+        [menu]="emptyImportMenu.menu()"
+        >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
+      /></button>
+      <ui-menu #emptyImportMenu [trigger]="emptyImportTrigger" [items]="importItems" />
     </div>
   </div>
   } @else {

@@ -4,13 +4,13 @@ test.describe("Secrets vault", () => {
   test("@claim:C-027 first-use flow: create a vault passphrase, then it's usable to lock/unlock", async ({ page }) => {
     await page.goto("/app/");
 
-    await page.getByRole("button", { name: "No vault", exact: true }).click();
-    await expect(page.getByText("Create vault passphrase")).toBeVisible();
+    await page.getByRole("button", { name: "Set up vault to store secrets", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Set up vault", exact: true })).toBeVisible();
 
     const passphraseInputs = page.locator("input[type='password']");
     await passphraseInputs.nth(0).fill("correct horse battery staple");
     await passphraseInputs.nth(1).fill("correct horse battery staple");
-    await page.getByRole("button", { name: "Create vault" }).click();
+    await page.getByRole("button", { name: "Set up vault", exact: true }).click();
 
     // Vault is now unlocked — the toolbar button flips to the "lock" state.
     await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
@@ -28,11 +28,11 @@ test.describe("Secrets vault", () => {
   test("rejects a mismatched passphrase confirmation on first use", async ({ page }) => {
     await page.goto("/app/");
 
-    await page.getByRole("button", { name: "No vault", exact: true }).click();
+    await page.getByRole("button", { name: "Set up vault to store secrets", exact: true }).click();
     const passphraseInputs = page.locator("input[type='password']");
     await passphraseInputs.nth(0).fill("first passphrase here");
     await passphraseInputs.nth(1).fill("a different passphrase");
-    await page.getByRole("button", { name: "Create vault" }).click();
+    await page.getByRole("button", { name: "Set up vault", exact: true }).click();
 
     await expect(page.getByRole("alert").filter({ hasText: /do not match/i })).toBeVisible();
   });

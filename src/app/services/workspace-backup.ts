@@ -46,6 +46,12 @@ export class WorkspaceBackup {
    * also at the first save, and then 5 days after the last backup or Not now
    * (U-137).
    */
+  /** When the last backup was made, in ms, or 0 when none was: the status bar says how long ago. */
+  readonly lastBackup = computed(() => {
+    this.answered();
+    return this.time(LAST_BACKUP_KEY);
+  });
+
   readonly reminderDue = computed(() => {
     this.answered();
     const last = Math.max(this.time(LAST_BACKUP_KEY), this.time(REMINDER_FROM_KEY));

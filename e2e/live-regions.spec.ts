@@ -43,13 +43,13 @@ test("the address's error is an alert there from the first render, and the field
 
 test("a wrong passphrase is an alert, and the field is marked invalid and described by it", async ({ page }) => {
   await page.goto("/app/");
-  await page.getByRole("button", { name: "No vault", exact: true }).click();
-  const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+  await page.getByRole("button", { name: "Set up vault to store secrets", exact: true }).click();
+  const create = page.getByRole("dialog", { name: "Set up vault", exact: true });
   const alert = create.getByRole("alert");
   await expect(alert).toHaveText("");
   await create.getByLabel("Choose a passphrase", { exact: true }).fill("short");
   await create.getByLabel("Confirm passphrase", { exact: true }).fill("short");
-  await create.getByRole("button", { name: "Create vault" }).click();
+  await create.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(alert).toHaveText("A passphrase needs at least 8 characters.");
   const field = create.getByLabel("Choose a passphrase", { exact: true });
   await expect(field).toHaveAttribute("aria-invalid", "true");

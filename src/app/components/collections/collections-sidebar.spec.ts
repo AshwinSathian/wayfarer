@@ -198,9 +198,9 @@ describe("CollectionsSidebar", () => {
     const buttons = () =>
       Array.from((fixture.nativeElement as HTMLElement).querySelectorAll("button")).map((b) => b.textContent?.trim());
 
-    it("are not drawn while there is no collection: the empty tree's New collection and Import… are the one way", async () => {
+    it("are not drawn while there is no collection: the empty tree's New collection and Import are the one way", async () => {
       await fixture.whenStable();
-      expect(buttons()).toEqual(["New collection", "Import…"]);
+      expect(buttons()).toEqual(["New collection", "Import"]);
     });
 
     it("are drawn once a collection exists", async () => {

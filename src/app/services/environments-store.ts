@@ -33,6 +33,8 @@ export class EnvironmentsStore {
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
   /** The global variables: any request can use them, under any environment. */
   readonly globals = this.globalsState.asReadonly();
+  /** The toolbar's "New environment…" asks the Environments tab for its name field; the tab takes the request. */
+  readonly newRequested = signal(false);
 
   async ensureLoaded(): Promise<void> {
     if (!this.environmentsState().length && !this.loadingState()) {

@@ -34,7 +34,13 @@ export function buildContextItems(
       { label: "Export…", icon: "download", command: () => dispatch("export", node) },
       { label: "Share…", icon: "upload", command: () => dispatch("share", node) },
       ...(canKeepInFolder
-        ? [{ label: "Keep in a folder…", icon: "folder_open" as const, command: () => dispatch("folder", node) }]
+        ? [
+            {
+              label: "Save to a folder on disk…",
+              icon: "folder_open" as const,
+              command: () => dispatch("folder", node),
+            },
+          ]
         : []),
       { label: "Delete", icon: "delete", keys: "Delete", command: () => dispatch("delete", node) },
     ];

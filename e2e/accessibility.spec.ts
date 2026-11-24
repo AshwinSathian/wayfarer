@@ -209,7 +209,7 @@ test.describe("Accessibility (primary flows)", () => {
           .click();
         await scan(`response ${tab}`);
       }
-      for (const opener of ["History", "Settings", "Route: direct", "Secrets", "New collection"]) {
+      for (const opener of ["History", "Settings", "Route: Auto", "Set up vault to store secrets", "New collection"]) {
         // The header's button; an empty sidebar has a second "New collection" (U-022).
         await button(opener).first().click();
         await expect(page.getByRole("dialog").first()).toBeVisible();
@@ -217,6 +217,14 @@ test.describe("Accessibility (primary flows)", () => {
         await page.keyboard.press("Escape");
         await expect(page.getByRole("dialog")).toHaveCount(0);
       }
+      // The secrets list with no vault, by the palette: the status bar has a Secrets button only once there is a vault.
+      await page.getByRole("button", { name: "Search or run a command", exact: true }).click();
+      await page.keyboard.type("secrets");
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("dialog").first()).toBeVisible();
+      await scan("secrets, no vault");
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
       // The Environments tab (D4.5).
       await button("Environments").first().click();
       await expect(page.getByRole("region", { name: "Environments", exact: true })).toBeVisible();

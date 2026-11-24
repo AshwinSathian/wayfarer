@@ -370,7 +370,7 @@ test("folders and requests are reordered by drag and drop among each other: a re
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await createCollection(page, "Drag Col");
-  // The collection menu has Keep in a folder… where the browser has a folder picker (Chromium).
+  // The collection menu has Save to a folder on disk… where the browser has a folder picker (Chromium).
   const menuSize = (await page.evaluate(() => typeof window.showDirectoryPicker === "function")) ? 10 : 9;
   await createUnder(page, "Drag Col", menuSize, "New folder", "Drag Folder A");
   await createUnder(page, "Drag Col", menuSize, "New folder", "Drag Folder B");

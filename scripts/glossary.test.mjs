@@ -100,18 +100,13 @@ const BANNED = [
 // Offenders today, by file. Each is a word `S5d` (the copy sweep) takes out, and a line leaves this list when it does:
 // the test fails on an entry that no longer offends, so the list only shrinks. Nothing new goes in.
 const ALLOWED_UNTIL_S5D = {
-  "src/app/components/app-shell/app-shell.html": ["Create vault", "No vault"],
   "src/app/components/exchange-record/exchange-record.html": ["Wire"],
-  "src/app/components/secrets/secrets-manager.html": ["Create vault"],
-  "src/app/components/settings/settings.html": ["Postman", "No vault", "Manage secrets"],
-  "src/app/components/variables/variable-rows.html": ["Create vault"],
   "packages/site/src/pages/index.astro": ["Postman"],
   "docs/auth.md": ["Postman", "No vault", "Manage secrets"],
   "docs/benchmark.md": ["No vault", "internal ID"],
   "docs/cli.md": ["Postman"],
   "docs/collections-schema.md": ["Postman"],
   "docs/deployment.md": ["internal ID"],
-  "docs/getting-started.md": ["Create vault"],
   "docs/graphql.md": ["Postman"],
   "docs/runbook.md": ["Retry", "internal ID"],
   "docs/scripts.md": ["Postman"],

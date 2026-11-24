@@ -157,8 +157,8 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
   for (const opener of [
     "History",
     "Settings",
-    "Route: direct",
-    "Secrets",
+    "Route: Auto",
+    "Set up vault to store secrets",
     "New collection",
     "Search or run a command",
   ]) {
@@ -229,7 +229,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(importButton).toBeFocused();
-  await opens("No vault", page.locator('input[type="password"]').first());
+  await opens("Set up vault to store secrets", page.locator('input[type="password"]').first());
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/echo`);
   await opens("Save to collection…", page.locator("#save-as-name"));

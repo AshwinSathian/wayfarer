@@ -570,12 +570,34 @@ code errors.
   fails on one in px, and `e2e/text-size.spec.ts` sets Firefox's default
   size). An e2e test of a layout "from N px" therefore uses N + 20.
 - The toolbar holds the environment, Environments, History and Settings
-  (S4). From 768 px the status bar under the panes holds the Local Bridge,
-  the vault's lock, the secrets and the theme: each an icon button that
-  keeps its name ("Unlock vault"), with its state beside it as text. On a
-  phone there is no status bar: the lock stays in the toolbar and the rest
-  is in Settings. A new control of that kind goes into the status bar and
-  has a home in Settings.
+  (S4). The environment select ends in "New environment…", the way to the
+  first one (it opens Environments at a name field: `EnvironmentsStore.newRequested`).
+  From 768 px the status bar under the panes holds, each a button named by
+  the words it shows (WCAG 2.5.3): the route as set (`Route: Auto`, `From this
+  page`, `Local Bridge`: the setting, never what one send did, which is the
+  response's), the vault, the backup and the theme. One name for the vault:
+  with none made the button reads "Set up vault to store secrets" and there
+  is no Secrets button; once made it reads "Vault locked" or "Vault
+  unlocked" and Secrets, the list inside it, is a button beside it. The
+  backup item reads "Not backed up" until `WorkspaceBackup.lastBackup()`
+  has a time, then "Backed up 3 days ago" (C-098): it is the time of
+  `wayfarer:last-backup` and nothing else (no store), and Safari's seven days
+  and a browser's promise to keep the data come after it. On a phone there is
+  no status bar: the lock stays in the toolbar and the rest is in Settings.
+  A new control of that kind goes into the status bar and has a home in
+  Settings. The words are `statusBar` in `packages/core/src/strings.ts`.
+- The palette (`app-palette`) is grouped: Recent (what was run last, by item
+  id, `wayfarer:palette-recent`, five, shown only with nothing typed),
+  Requests, Go to, Environments, Settings, Vault, History. Nothing typed
+  shows four commands of each group and no saved request: a request, a
+  collection or a past request has `findOnly` and is found by typing its
+  name, address or method (C-099). Choosing a request opens it and sends
+  nothing. A new command takes its group in `paletteGroupOf`
+  (`app-shell.ts`).
+- A tab is titled by what it holds: a saved request by its name, an
+  unsaved one by the end of its path (`tabTitle`: "todos/1"; the host when
+  there is no path), with the whole address and, for a saved one, where it
+  is kept as the tab's tooltip, which is also its accessible description.
 - Settings (`src/app/components/settings/`) is a dialog with a list of
   sections and one section's pane, drawn only while it is the open one
   (`@switch`). A new setting goes into the pane it belongs to, as a

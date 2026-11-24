@@ -45,7 +45,7 @@ import { FolderDialog } from "./folder-dialog";
 import { CollectionFolders } from "../../services/collection-folders";
 import { Tabs } from "../../state/tabs";
 import type { RunTarget } from "../../state/run-state";
-import { folderChain } from "@wayfarer/core";
+import { empty, folderChain } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
 import { UiTooltip } from "../../ui/tooltip";
 import { UiMethodGlyph } from "../../ui/method-glyph";
@@ -258,7 +258,7 @@ export class CollectionsSidebar implements OnInit {
           ? [
               {
                 id: "folder-collection",
-                label: `Keep ${data.ref.name} in a folder…`,
+                label: `Save ${data.ref.name} to a folder on disk…`,
                 run: () => this.folderOf.set({ id: data.ref.meta.id, name: data.ref.name }),
               },
             ]
@@ -405,6 +405,7 @@ export class CollectionsSidebar implements OnInit {
   private readonly undo = inject(UndoNotice);
 
   /** The header's Import menu (U-010): a file, a cURL command pasted, or a shared link pasted (receive.md). */
+  protected readonly empty = empty;
   protected readonly importItems: UiMenuItem[] = [
     { label: "File…", icon: "upload_file", command: () => this.fileInput()?.nativeElement.click() },
     { label: "cURL command…", icon: "terminal", command: () => this.importPipeline.openPaste() },

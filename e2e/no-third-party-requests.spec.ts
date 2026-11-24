@@ -25,7 +25,7 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   };
 
   await snap();
-  for (const button of ["Settings", "History", "Secrets", "Route: direct", "No vault"]) {
+  for (const button of ["Settings", "History", "Route: Auto", "Set up vault to store secrets"]) {
     await open(button);
   }
 

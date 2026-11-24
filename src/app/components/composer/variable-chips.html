@@ -19,6 +19,9 @@
     (keydown.space)="$event.preventDefault(); act(variable, chip, placeMenu)"
   >
     <div class="flex items-center gap-1.5">
+      @if (variable.source === 'missing') {
+      <app-icon name="warning" class="icon-xs shrink-0" />
+      }
       <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>
       <span class="var-chip-source type-footnote text-label-secondary"
         >{{ variable.holder ?? (variable.source === 'dynamic' ? 'Dynamic' : variable.source === 'secret' ? 'Vault' :

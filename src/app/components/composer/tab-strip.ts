@@ -16,6 +16,7 @@ import { UiInput } from "../../ui/input";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
+import { UiMethodGlyph } from "../../ui/method-glyph";
 import { Icon } from "../../shared/icon/icon";
 import { TabState, unsavedName, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
@@ -42,7 +43,7 @@ function writing(target: EventTarget | null): boolean {
  */
 @Component({
   selector: "app-tab-strip",
-  imports: [Icon, UiButton, UiInput, UiMenu, UiTooltip, Tab, TabContent, TabPanel, UiTabList],
+  imports: [UiMethodGlyph, Icon, UiButton, UiInput, UiMenu, UiTooltip, Tab, TabContent, TabPanel, UiTabList],
   templateUrl: "./tab-strip.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(window:keydown)": "onKeydown($event)" },

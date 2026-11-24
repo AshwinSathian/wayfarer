@@ -459,6 +459,17 @@ code errors.
   outline back. A new kind of control draws its own focus or is in that
   rule; `e2e/focus-visible.spec.ts` (C-097) holds every control the keyboard
   reaches, in three engines.
+- A method is its name and one glyph before it (`<ui-method-glyph [method]>`,
+  `src/app/ui/method-glyph.ts`; `methodGlyph` in `shared/http`): a ring for
+  GET, HEAD and OPTIONS, a bar for DELETE, a dot for every other token (a
+  user's own among them), in any case. It is an inline SVG in `currentColor`,
+  which is the method's `-text` token, and `CanvasText` in forced colours (no
+  CSS `fill` hack). Colour is not the only cue: hues close together (PUT,
+  PATCH, OPTIONS) are told apart by the glyph and the word. Only methods get
+  a new glyph; a status keeps its code, and a state that was colour alone (a
+  Missing variable chip, "No response") has the `warning` icon before its
+  words. A tree row's method has a fixed column (`.method-tag`, 4.25 rem), so
+  PATCH never touches the title.
 - A status or method colour used as text is its `-text` token
   (`--status-success-text`, `--method-get-text`): the plain token is for
   fills, borders and icons, and as small text on its own tint it is as low
@@ -964,9 +975,15 @@ code errors.
   the collections list needs and Aria has not: one selected node, opening a
   node on a click, Enter or Space (`opened`), reorder by drag and by
   Alt+Arrow, F2, and Shift+F10 sent on as a `contextmenu` event. Its rows
-  are flat: each group is a `role="none"` box beside its row, which
-  indents the rows under it (Aria writes `aria-level`, and `level()` read
-  in a row's own binding throws at first render). `[wrap]="false"`: Aria
+  are flat: each group is a `role="none"` box beside its row, and the tree
+  gives each row `--tree-depth` (0 at the top), which the row's padding turns
+  into its step in, so that a row may keep something at the edge. A request's
+  method does (`.method-tag`, one column at every depth; its name is stepped
+  in by `.tree-request-name`, in `components.css` since this sheet does not
+  reach projected rows), and a request has no toggle slot. A folder's name is
+  semibold and a request's regular, under one selection style (the fill and
+  the route's mark). Aria writes `aria-level`, and `level()` read in a row's
+  own binding throws at first render. `[wrap]="false"`: Aria
   wraps by default, WAI-ARIA's tree does not. A click on a row with
   children opens or closes it (Aria's). Three things Aria does not do, each
   with a test:
@@ -1436,7 +1453,12 @@ code errors.
   `wayfarer:` key in `localStorage`.
 - A delete in the tree asks nothing: it returns what it removed
   (`Removed`, read in its own transaction) and `UndoNotice` offers it back
-  for 10 s (U-080); `putBack` restores it as it was. A new delete of
+  for 10 s (U-080), in a strip over the status bar's row (`.undo-bar`) that
+  covers no part of the composer, the response or the splitter, and stays
+  while the pointer or focus is on it (audit 21). It is not shortened to 5 s:
+  the strip hides nothing, and 10 s is the time to read the line and reach
+  the button. Where the sidebar is a drawer, a delete made in it leaves the
+  drawer over the strip's start, so its words are at its end. `putBack` restores it as it was. A new delete of
   stored things takes the same road; a confirm is for what cannot be put
   back (Clear history, Reset all data, a vault secret).
 

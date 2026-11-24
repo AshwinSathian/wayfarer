@@ -7,6 +7,7 @@ import { UiButton } from "../../ui/button";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
+import { UiMethodGlyph } from "../../ui/method-glyph";
 import { MODEL_ACTION_WORDS, formatDuration, type ExchangeRecord, type PastRequest } from "@wayfarer/core";
 import { statusTone } from "../../shared/http/status-tone";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
@@ -57,7 +58,18 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [UiButton, UiInput, DatePipe, Icon, UiTooltip, UiCheckbox, HarExportDialog, UiSegmented, ExchangeRecordView],
+  imports: [
+    UiMethodGlyph,
+    UiButton,
+    UiInput,
+    DatePipe,
+    Icon,
+    UiTooltip,
+    UiCheckbox,
+    HarExportDialog,
+    UiSegmented,
+    ExchangeRecordView,
+  ],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

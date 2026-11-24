@@ -94,26 +94,41 @@
   }
 }
 
-/* Undo (U-080): over the page's foot, centred; nothing is drawn while there is nothing to undo. */
+/* Undo (U-080): a strip over the status bar's own row, so it covers no part of the composer, the response or the
+   splitter (audit 21); the bar's buttons are back when it goes. It has no row of its own on a phone, where there is no
+   status bar: it is the page's foot, full width. Nothing is drawn while there is nothing to undo. */
 .undo-bar {
   position: fixed;
-  bottom: 48px;
-  left: 50%;
-  z-index: 20;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: calc(100vw - 32px);
-  transform: translateX(-50%);
 }
 
 .undo-bar:has(> *) {
-  padding: 6px 6px 6px 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--surface-overlay);
+  min-height: 34px;
+  padding: 2px 12px;
+  border-top: 1px solid var(--separator);
+  background: var(--canvas-sidebar);
   box-shadow: var(--shadow-overlay);
   color: var(--label-primary);
+}
+
+/* Where the sidebar is a drawer, a delete made in it leaves the drawer (a top-layer dialog) over the strip's start:
+   the words go to its end, beside the Undo. */
+@media (width < 75em) {
+  .undo-bar:has(> *) {
+    justify-content: flex-end;
+  }
+}
+
+@media (width < 48em) {
+  .undo-bar:has(> *) {
+    padding: 6px 8px 6px 16px;
+  }
 }
 
 /* The drawer's rows on a phone (U-097): each a full-width button, its name beside its icon. */

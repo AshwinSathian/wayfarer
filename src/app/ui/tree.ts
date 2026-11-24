@@ -74,10 +74,10 @@ interface Row<T> {
       [value]="selectedValue()"
       (valueChange)="onValue($event)"
     >
-      <ng-container *ngTemplateOutlet="rows; context: { $implicit: nodes(), parent: tree }" />
+      <ng-container *ngTemplateOutlet="rows; context: { $implicit: nodes(), parent: tree, depth: 0 }" />
     </div>
 
-    <ng-template #rows let-nodes let-parent="parent">
+    <ng-template #rows let-nodes let-parent="parent" let-depth="depth">
       @for (node of nodes; track node.key) {
         <div
           ngTreeItem
@@ -91,6 +91,7 @@ interface Row<T> {
           [expanded]="isExpanded(node)"
           (expandedChange)="setExpanded(node, $event)"
           [attr.data-key]="node.key"
+          [style.--tree-depth]="depth"
           [attr.aria-label]="node.ariaLabel ?? node.label"
           [class.ui-tree-row--selected]="node.key === selectedKey()"
           [class.ui-tree-row--drop-before]="dropTarget()?.key === node.key && dropTarget()?.before"
@@ -115,7 +116,9 @@ interface Row<T> {
         @if (node.children?.length) {
           <div role="none" class="ui-tree-group">
             <ng-template ngTreeItemGroup [ownedBy]="item" #group="ngTreeItemGroup">
-              <ng-container *ngTemplateOutlet="rows; context: { $implicit: node.children, parent: group }" />
+              <ng-container
+                *ngTemplateOutlet="rows; context: { $implicit: node.children, parent: group, depth: depth + 1 }"
+              />
             </ng-template>
           </div>
         }

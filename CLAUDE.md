@@ -310,7 +310,11 @@ code errors.
   stacks the response, not a window breakpoint) it is the host and one
   `button` with `aria-expanded` whose text is the whole strip. It is drawn
   after the mark: an origin, a block on the line when a secret is named, the
-  host; its colours are `--route` and `--route-text`. The strip is not drawn
+  host, in one shape at most 24 rem wide at the left (the same drawing at every
+  width, so a 400 px crop holds all of it; variables and scripts sit beside it
+  from a 70 em window, else under it); its colours are `--route` and
+  `--route-text`. Do not give the strip `container-type`: in Firefox it left
+  a select's list "not stable" for good (accessibility.spec). The strip is not drawn
   for a run, Environments or a collection's settings. A new thing a request
   says about itself goes into `StripInput`, not into a row of its own.
 - A route is said in three words wherever it is a choice: Auto, From this

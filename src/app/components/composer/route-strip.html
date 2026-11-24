@@ -4,7 +4,7 @@
 <div class="route-compact">
   <span class="route-stop" aria-hidden="true">
     <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="7" />
+      <circle cx="10" cy="10" r="8" />
     </svg>
     <span class="route-host">{{ v.host }}</span>
   </span>
@@ -25,21 +25,21 @@
 <ol id="route-strip-full" class="route-stack" aria-hidden="true">
   <li class="route-stop route-stop-route">
     <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="5" />
+      <circle cx="10" cy="10" r="6" />
     </svg>
     <span class="route-label route-label-route">{{ v.route }}</span>
   </li>
   @if (v.secrets) {
   <li class="route-stop">
     <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <rect x="1" y="4" width="18" height="12" rx="2" />
+      <rect x="0" y="4" width="20" height="12" rx="2" />
     </svg>
     <span class="route-label">{{ v.secrets }}</span>
   </li>
   }
   <li class="route-stop">
     <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="7" />
+      <circle cx="10" cy="10" r="8" />
     </svg>
     <span class="route-label"
       ><span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span></span
@@ -53,30 +53,35 @@
   }
 </ol>
 } } @else {
-<div class="route-wide" role="group" [attr.aria-label]="v.text">
-  <div class="route-track" aria-hidden="true">
-    <span class="route-rail"></span>
-    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="5" />
-    </svg>
-    @if (v.secrets) {
-    <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <rect x="1" y="4" width="18" height="12" rx="2" />
-    </svg>
-    }
-    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="7" />
-    </svg>
+<div class="route-wide-row">
+  <div class="route-wide" role="group" [attr.aria-label]="v.text">
+    <div class="route-track" aria-hidden="true">
+      <span class="route-rail"></span>
+      <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+        <circle cx="10" cy="10" r="6" />
+      </svg>
+      @if (v.secrets) {
+      <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+        <rect x="0" y="4" width="20" height="12" rx="2" />
+      </svg>
+      }
+      <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+        <circle cx="10" cy="10" r="8" />
+      </svg>
+    </div>
+    <div class="route-labels" [class.has-block]="!!v.secrets" aria-hidden="true">
+      <p class="route-label route-label-route">{{ v.route }}</p>
+      @if (v.secrets) {
+      <p class="route-label route-label-block">{{ v.secrets }}</p>
+      }
+      <p class="route-label route-label-host">
+        <span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span>
+      </p>
+    </div>
   </div>
-  <div class="route-labels" [class.has-block]="!!v.secrets" aria-hidden="true">
-    <p class="route-label route-label-route">{{ v.route }}</p>
-    @if (v.secrets) {
-    <p class="route-label route-label-block">{{ v.secrets }}</p>
-    }
-    <p class="route-label route-label-host">
-      <span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span>
-    </p>
-  </div>
+  @if (v.facts) {
+  <p class="route-facts route-facts-side" aria-hidden="true">{{ v.facts }}</p>
+  }
 </div>
 }
 <!-- Always there, so that a problem moves nothing: the fault, or else what the request also has. -->
@@ -90,6 +95,6 @@
   @if (blocked().length) {
   <button uiButton class="btn-sm" type="button" (click)="sendAnyway.emit()">{{ sendAnywayLabel }}</button>
   } } @else if (v.facts && !compact()) {
-  <p class="route-facts" aria-hidden="true">{{ v.facts }}</p>
+  <p class="route-facts route-facts-under" aria-hidden="true">{{ v.facts }}</p>
   }
 </div>

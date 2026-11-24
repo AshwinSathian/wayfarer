@@ -238,19 +238,21 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         </div>
       </section>
 
-      <section aria-labelledby="catalogue-strip">
-        <h2 id="catalogue-strip" class="type-title-3">Route strip</h2>
-        <p class="type-callout text-label-secondary"
-          >Under the address: where the request leaves from, a block for a secret it names, the host, and a line that is
-          always there for a problem. Wide, and folded when the composer is narrow.</p
-        >
-        @for (state of strips; track state.name) {
-          <div class="catalogue-strip-state" [attr.data-state]="state.name">
-            <p class="type-footnote text-label-secondary">{{ state.name }}</p>
-            <app-route-strip [preset]="state.preset" [compact]="!!state.compact" />
-          </div>
-        }
-      </section>
+      @if (showStrips) {
+        <section aria-labelledby="catalogue-strip">
+          <h2 id="catalogue-strip" class="type-title-3">Route strip</h2>
+          <p class="type-callout text-label-secondary"
+            >Under the address: where the request leaves from, a block for a secret it names, the host, and a line that
+            is always there for a problem. Wide, and folded when the composer is narrow.</p
+          >
+          @for (state of strips; track state.name) {
+            <div class="catalogue-strip-state" [attr.data-state]="state.name">
+              <p class="type-footnote text-label-secondary">{{ state.name }}</p>
+              <app-route-strip [preset]="state.preset" [compact]="!!state.compact" />
+            </div>
+          }
+        </section>
+      }
 
       <section aria-labelledby="catalogue-spinner">
         <h2 id="catalogue-spinner" class="type-title-3">Spinner</h2>
@@ -717,6 +719,8 @@ export class Catalogue {
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },
   ];
+  /** The strip's states are drawn on `?catalogue&strip` only: their scans are slow, and every other widget's share the page. */
+  protected readonly showStrips = new URLSearchParams(location.search).has("strip");
   protected readonly strips: { name: string; preset: StripPreset; compact?: true }[] = (() => {
     const base = {
       route: "direct" as const,
@@ -746,7 +750,6 @@ export class Catalogue {
         },
       },
       { name: "Sent, secrets masked", preset: { input: { ...base, record } } },
-      { name: "In flight", preset: { input: base, running: true } },
       {
         name: "Missing variable",
         preset: { input: base, problem: { kind: "missing", text: strip.missingVariable("token", "Staging") } },

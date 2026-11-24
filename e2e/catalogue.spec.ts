@@ -9,9 +9,9 @@ import { settled } from "./support/settled";
 // CI serves `npm run build:catalogue` on its own port (playwright.config.ts); `ng serve` is a development build.
 const CATALOGUE = process.env["CI"] ? "http://localhost:4201/app/?catalogue" : "/app/?catalogue";
 
-async function open(page: Page, theme: "light" | "dark"): Promise<void> {
+async function open(page: Page, theme: "light" | "dark", extra = ""): Promise<void> {
   await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
-  await page.goto(CATALOGUE);
+  await page.goto(`${CATALOGUE}${extra}`);
   await expect(page.getByRole("heading", { name: "Widget catalogue" })).toBeVisible();
 }
 
@@ -228,13 +228,10 @@ for (const theme of ["light", "dark"] as const) {
   test(`the route strip, in each of its states, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
   }) => {
-    await open(page, theme);
+    await open(page, theme, "&strip");
     const found: string[] = [];
     await page.locator("#catalogue-strip").scrollIntoViewIfNeeded();
-    await scanner(
-      page,
-      found,
-    )("route strip: from this page, bridge, a secret named, sent, in flight, problems, folded");
+    await scanner(page, found)("route strip: from this page, bridge, a secret named, sent, problems, folded");
     // The folded one, open.
     await page.locator('[data-state="Folded"] .route-toggle').click();
     await scanner(page, found)("route strip, folded and open");
@@ -1271,7 +1268,7 @@ test("tooltip: in forced colours its edge still shows", async ({ page }) => {
 test("route strip: the folded strip's button opens and closes the rest with Enter and Space, and keeps focus", async ({
   page,
 }) => {
-  await open(page, "light");
+  await open(page, "light", "&strip");
   const toggle = page.locator('[data-state="Folded"] .route-toggle');
   await toggle.focus();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");

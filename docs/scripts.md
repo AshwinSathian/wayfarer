@@ -149,7 +149,7 @@ replaced. The response has what `pm.response` has.
 
 - **The script does not make the request: it asks the app.** The engine has
   no network. The request goes out as your own does: by the same route
-  (direct, or the Local Bridge), with no cookies, no cache and no
+  (from this page, or the Local Bridge), with no cookies, no cache and no
   `Referer`, under your request timeout, and it ends when you cancel.
 - **`pm.sendRequest` does not read the vault.** A request that holds a
   `{{$secret.…}}` reference is refused with `WayfarerUnsupportedError` and

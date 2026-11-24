@@ -36,7 +36,7 @@ async function addProvider(page: Page, model: string): Promise<void> {
   await expect(page.getByRole("dialog", { name: "Settings" })).toHaveCount(0);
 }
 
-/** Sends to `/status/422` and asks the model for tests, the response body ticked. */
+/** Posts to `/status/422` and asks the model for tests, the response body ticked. */
 async function writeTests(page: Page): Promise<void> {
   await page.locator("input.address-url").fill(`${ECHO}/status/422`);
   await send(page);

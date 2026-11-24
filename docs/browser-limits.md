@@ -14,20 +14,35 @@ applies to it, except where the bridge's own row says so.
 
 ## Routes
 
-Every request has a route: **Direct**, from the page; **Local Bridge**; or
+Every request has a route: **From this page**; **Local Bridge**; or
 **Auto**. A request may name its own (the composer's **Route**), a
 collection may name one for its requests (its settings, **Route**), and
 otherwise the device's applies (Settings, Local Bridge, **Route**). Auto is
 the default.
 
 Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request needed a preflight (the browser may have stopped it there) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again, also one that broke off after its headers. <!-- claim:C-064 --> Without a bridge token in the tab or the
-vault, Auto is Direct: nothing is asked and the page's failure is shown.
+vault, Auto is From this page: nothing is asked and the page's failure is shown.
 
 Why: when the browser gets no answer, the page cannot tell why. A request
 that needed a preflight (see below) was never sent if the preflight failed.
 A request that needed none may have reached the server, which answered
 without the header the browser needs; sent again, it would be received
-twice. Each response says where it came from, **Direct** or **Local Bridge**.
+twice. Each response says where it was sent from: "Sent from this page" or "Sent through the Local Bridge".
+
+### The route strip
+
+Under the address a strip draws the request as a path: where it will leave
+from, a block on the line when it names a vault secret, and the host.
+<!-- claim:C-100 --> Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge.
+
+The strip names a secret by the variable that holds it ("Uses secret: API key")
+and never opens the vault to do so: the vault is read after the pre-request
+scripts, so before a send there is no count to give. <!-- claim:C-101 --> The strip names the vault secrets a request uses without reading the vault, and after a send says how many were sent, masked in history and exports.
+
+A missing variable or an address that is not one is said in a line under the
+strip that is always there, so that it moves nothing. When the room beside the
+request is narrow, the strip folds to the host and one button that opens the
+rest.
 
 What Auto cannot know: a server that allows the preflight and then answers
 without `Access-Control-Allow-Origin` has received the request, and the
@@ -74,7 +89,7 @@ Node sets `Host` and `Connection` for its own connection.
 Wayfarer sends your request with no `Referer` and no cookies
 (`referrerPolicy: "no-referrer"`, `credentials: "omit"`): an API client
 should not add its own address or your browser's cookies for the target
-site to a request. Sent directly, a `Set-Cookie` in a response is not
+site to a request. Sent from this page, a `Set-Cookie` in a response is not
 stored: the browser keeps none of it for the app, and a page cannot read it.
 Through the Local Bridge the app has a cookie jar of its own: see
 "Cookies" below.
@@ -154,7 +169,7 @@ Of a response from another origin, a page can read only `Cache-Control`,
 `Access-Control-Expose-Headers`. `Set-Cookie` is never readable. The
 Headers tab says so above the list, unless the server exposes every header
 (`Access-Control-Expose-Headers: *`, which holds for a request without
-credentials, as every direct one is). Through the bridge every header is
+credentials, as every one sent from this page is). Through the bridge every header is
 shown, each as it was received: two `Set-Cookie` headers are two lines.
 
 ## Cookies
@@ -206,7 +221,7 @@ ended. A page cannot ask it not to follow and still read the answer: a
 redirect that was not followed is hidden from it altogether. So what the
 app can show depends on the route.
 
-- **Sent directly**, a request is always followed, whatever **Follow
+- **Sent from this page**, a request is always followed, whatever **Follow
   redirects** says. The response is the last one, and the status bar says
   "Redirected to" with its address. The hops between are not known.
 - **Through the Local Bridge**, the app makes each hop as a request of its

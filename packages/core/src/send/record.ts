@@ -63,25 +63,26 @@ export function formatDuration(ms: number | undefined | null): string {
   return `${(ms / 1000).toFixed(1)} s`;
 }
 
-const ROUTE_WORDS = { direct: "Direct", bridge: "Local Bridge" } as const;
+const WENT = { direct: "from this page", bridge: "through the Local Bridge" } as const;
 
-/** "Direct to api.example.com": the route the record took and where to. */
+/** "Sent from this page to api.example.com": the route the record took and where to. */
 export function recordRoute(record: ExchangeRecord): string {
-  return `${ROUTE_WORDS[record.route]} to ${record.host}`;
+  return `Sent ${WENT[record.route]} to ${record.host}`;
 }
 
 /**
  * The record's first line: what the status line and the status region say
- * when a send ends. "200 OK, 16 ms, Direct to api.example.com"; with no
- * response, the app's first sentence and the route: "The request got no
- * response. Direct to 127.0.0.1:9."
+ * when a send ends. "200 OK, 16 ms, sent from this page to api.example.com"; with
+ * no response, the app's first sentence and the route: "The request got no
+ * response. Sent from this page to 127.0.0.1:9." It is said, never stored: the
+ * record keeps the route as a value.
  */
 export function recordHeadline(record: ExchangeRecord): string {
   if (!record.status)
     return `${record.failure?.summary ?? "No response."} ${recordRoute(record)}${record.unpaired ? ", no bridge paired" : ""}.`;
   const parts = [[record.status.code, record.status.text].filter(Boolean).join(" ")];
   if (record.durationMs > 0) parts.push(formatDuration(record.durationMs));
-  parts.push(recordRoute(record));
+  parts.push(recordRoute(record).replace(/^Sent/, "sent"));
   return parts.join(", ");
 }
 

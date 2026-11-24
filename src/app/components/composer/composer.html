@@ -31,16 +31,7 @@
        544 px. The bar asks for 20rem; when the buttons do not fit beside that, they go on the next line. -->
     <app-address-row class="flex flex-wrap items-start gap-3" (send)="sendRequest()" />
 
-    @if (loadedCollectionRequest(); as bound) {
-    <div class="type-footnote text-label-tertiary flex flex-wrap items-center gap-1.5 -mt-2">
-      <app-icon name="folder" class="icon-xs" />
-      Editing
-      <nav aria-label="Saved request" class="text-label-secondary min-w-0 break-words">
-        @for (holder of breadcrumb(); track $index) {{{ holder }} / }<span>{{ bound.name }}</span>.
-      </nav>
-      Save writes back to it.
-    </div>
-    }
+    <app-route-strip class="-mt-2" [compact]="compact()" (sendAnyway)="sendRequest({ allowUnresolved: true })" />
     <!-- The address's error and the paste's notes are said by regions there from the first render (U-062, U-075);
          what is drawn under the address is what the eye reads. Out of the flow, they take no gap of the column. -->
     <p id="address-error" class="sr-only" role="alert"
@@ -57,16 +48,6 @@
       <app-icon name="error" class="icon-xs" />
       <p>{{ store.saveError() }}</p>
     </div>
-    } @if (store.endpointError() !== '') {
-    <div class="type-footnote text-status-error flex flex-wrap items-center gap-x-1.5 gap-y-1 -mt-2">
-      <app-icon name="error" class="icon-xs" />
-      <p aria-hidden="true">{{ store.endpointError() }}</p>
-      @if (store.unresolvedBlocked().length) {
-      <button uiButton class="btn-sm" type="button" (click)="sendRequest({ allowUnresolved: true })"
-        >Send anyway</button
-      >
-      }
-    </div>
     } @if (store.pasteNotes().length) {
     <div class="paste-notes type-footnote text-status-warning -mt-2" aria-hidden="true">
       <p class="flex items-center gap-1.5"><app-icon name="warning" class="icon-xs" /> From the pasted cURL command:</p>
@@ -81,7 +62,7 @@
     <app-ai-drafted (undone)="focusUrl()" />
     <app-request-warnings class="block space-y-2 empty:hidden" />
 
-    <!-- The preview before Send (D4.12): while the address, a header, the body or the auth holds a variable, or auth. -->
+    <!-- The variables and the auth before Send (D4.12): while the address, a header, the body or the auth holds one, or auth. -->
     @if (store.variableTokens().length || store.sentAuthSource().auth.type !== 'none') {
     <app-variable-chips />
     } @if (socket.isSocket()) {

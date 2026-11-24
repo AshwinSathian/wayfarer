@@ -4,6 +4,7 @@ import { UiButton } from "../../ui/button";
 import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import type { Route } from "@wayfarer/core";
+import { ROUTE_OPTIONS } from "@wayfarer/core";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Icon } from "../../shared/icon/icon";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
@@ -23,11 +24,7 @@ import { UiSegmented, type UiSegment } from "../../ui/segmented";
 export class BridgePane {
   private readonly bridge = inject(BridgeSettings);
 
-  protected readonly routes: UiSegment<Route>[] = [
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
-  ];
+  protected readonly routes: UiSegment<Route>[] = [...ROUTE_OPTIONS];
   /** What the chosen route does, in a line under the choice (V8). */
   protected readonly routeNotes: Record<Route, string> = {
     auto: "From the page, then through the bridge when the page gets no response. A request the server may have received is sent again only if you agree.",

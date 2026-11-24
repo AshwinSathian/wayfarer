@@ -299,7 +299,7 @@ test.describe("Settings surface", () => {
     await page.goto("/app/");
     await page.getByRole("button", { name: /^Route: / }).click();
     const auto = page.getByRole("radio", { name: "Auto" });
-    const direct = page.getByRole("radio", { name: "Direct" });
+    const direct = page.getByRole("radio", { name: "From this page" });
     await expect(page.getByRole("radiogroup", { name: "Route" })).toBeVisible();
     await expect(auto).toBeChecked();
 

@@ -37,8 +37,10 @@ test("direct: the first line names the route and the host, and the record stays 
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await send(page);
-  await expect(page.locator(".response-announcement")).toHaveText(/^200 OK, [\d.]+ ms, Direct to 127\.0\.0\.1:4300$/);
-  await expect(page.locator(".record-toggle")).toHaveText(`Direct to ${HOST}`);
+  await expect(page.locator(".response-announcement")).toHaveText(
+    /^200 OK, [\d.]+ ms, sent from this page to 127\.0\.0\.1:4300$/,
+  );
+  await expect(page.locator(".record-toggle")).toHaveText(`Sent from this page to ${HOST}`);
   await expect(page.getByRole("region", { name: "Exchange record" })).toHaveCount(0);
   expect(await openRecord(page)).toEqual({
     route: `Sent from this page to ${HOST}.`,
@@ -56,7 +58,7 @@ test("through the Local Bridge: the record says the bridge sent it", async ({ pa
     await page.locator("input.address-url").fill(`${ECHO}/echo`);
     await send(page);
     await expect(page.locator(".response-announcement")).toHaveText(
-      /^200 OK, [\d.]+ ms, Local Bridge to 127\.0\.0\.1:4300$/,
+      /^200 OK, [\d.]+ ms, sent through the Local Bridge to 127\.0\.0\.1:4300$/,
     );
     expect((await openRecord(page)).route).toBe(`Sent through the Local Bridge to ${HOST}.`);
   } finally {
@@ -105,7 +107,7 @@ test("a failed send opens the record with what the browser reported and what to 
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
   await expect(page.locator(".response-announcement")).toHaveText(
-    "The request got no response. Direct to 127.0.0.1:9, no bridge paired.",
+    "The request got no response. Sent from this page to 127.0.0.1:9, no bridge paired.",
   );
   await expect(page.locator(".record-toggle")).toHaveAttribute("aria-expanded", "true");
   const record = await readRecord(page);
@@ -164,7 +166,7 @@ test("before Send, the preview names the environment's secret that hides the col
   );
   await protectVariable(page, "token", plaintext);
   const preview = page.locator("app-variable-chips");
-  await expect(preview.locator(".preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+  await expect(page.locator("app-route-strip .route-host").first()).toHaveText("127.0.0.1:4300");
   await expect(preview.locator(".preview-auth")).toHaveText(
     'Auth: Bearer token, from collection "Tripwire collection". {{token}} comes from the environment Tripwire env, as a vault secret.',
   );
@@ -187,7 +189,10 @@ test("the preview's chip for a variable with no value adds it to the environment
   page,
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/{{nowhere}}` });
-  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/{{nowhere}}`);
+  await expect(page.locator("app-route-strip .route-host").first()).toHaveText("127.0.0.1:4300");
+  await expect(page.locator("app-route-strip .route-problem")).toHaveText(
+    '{{nowhere}} has no value in environment "Tripwire env". Set a value.',
+  );
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
   await expect(chip).toContainText("No value");
   // The request is in a collection: the chip asks where the variable goes (D4.5).
@@ -198,7 +203,7 @@ test("the preview's chip for a variable with no value adds it to the environment
   await expect(dialog.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
   await dialog.getByPlaceholder("Value", { exact: true }).last().fill("echo");
   await closeEnvironments(page);
-  await expect(page.locator("app-variable-chips .preview-address")).toHaveText("Sends to http://127.0.0.1:4300/echo");
+  await expect(page.locator("app-route-strip .route-problem-text")).toHaveCount(0);
 });
 
 /** Each violation with the nodes it found and why, so that a failure says which element. */
@@ -261,7 +266,7 @@ test("a history entry keeps its record: loaded from History it opens into it, an
 
   // A reload shows the tab's response from history again, its record with it, closed.
   await page.reload();
-  await expect(page.locator(".record-toggle")).toHaveText(`Direct to ${HOST}`);
+  await expect(page.locator(".record-toggle")).toHaveText(`Sent from this page to ${HOST}`);
   expect(await openRecord(page)).toEqual(sent);
   await expect(page.getByRole("region", { name: "Exchange record" })).not.toContainText(plaintext);
 });
@@ -298,7 +303,7 @@ test("with no environment, the chip for a variable with no value makes one with 
   await expect(region.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
   await region.getByPlaceholder("Value", { exact: true }).last().fill("echo");
   await closeEnvironments(page);
-  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+  await expect(page.locator("app-route-strip .route-problem-text")).toHaveCount(0);
 });
 
 // D4.5: a missing variable of a request in a collection can go into the collection, in its settings' Variables.
@@ -317,7 +322,7 @@ test("the chip for a variable with no value can add it to the request's collecti
   await settings.getByPlaceholder("Value", { exact: true }).last().fill("echo");
   // No Save: closing the tab writes what was typed.
   await closeHolderSettings(page, "Tripwire collection");
-  await expect(page.locator("app-variable-chips .preview-address")).toHaveText(`Sends to ${ECHO}/echo`);
+  await expect(page.locator("app-route-strip .route-problem-text")).toHaveCount(0);
 });
 
 // U-152: when the bridge cannot reach the server, the 502 it answers is its own: no status badge, no "502", and

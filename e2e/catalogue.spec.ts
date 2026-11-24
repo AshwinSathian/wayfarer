@@ -9,9 +9,9 @@ import { settled } from "./support/settled";
 // CI serves `npm run build:catalogue` on its own port (playwright.config.ts); `ng serve` is a development build.
 const CATALOGUE = process.env["CI"] ? "http://localhost:4201/app/?catalogue" : "/app/?catalogue";
 
-async function open(page: Page, theme: "light" | "dark"): Promise<void> {
+async function open(page: Page, theme: "light" | "dark", extra = ""): Promise<void> {
   await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
-  await page.goto(CATALOGUE);
+  await page.goto(`${CATALOGUE}${extra}`);
   await expect(page.getByRole("heading", { name: "Widget catalogue" })).toBeVisible();
 }
 
@@ -61,10 +61,10 @@ for (const theme of ["light", "dark"] as const) {
     await route.click();
     await expect(page.getByRole("listbox", { name: "Request route" })).toBeVisible();
     await scan("select, open");
-    await page.getByRole("option", { name: "Direct" }).hover();
+    await page.getByRole("option", { name: "From this page" }).hover();
     await scan("select, an option under the pointer");
-    await page.getByRole("option", { name: "Direct" }).click();
-    await expect(route).toHaveText("Direct");
+    await page.getByRole("option", { name: "From this page" }).click();
+    await expect(route).toHaveText("From this page");
     await expect(page.getByRole("listbox")).toHaveCount(0);
     await scan("select, an option chosen");
     const environment = page.getByRole("combobox", { name: "Environment" });
@@ -222,6 +222,19 @@ for (const theme of ["light", "dark"] as const) {
     const found: string[] = [];
     await page.getByRole("progressbar", { name: "Loading secrets" }).scrollIntoViewIfNeeded();
     await scanner(page, found)("spinner, in buttons and on its own");
+    expect(found).toEqual([]);
+  });
+
+  test(`the route strip, in each of its states, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
+    await open(page, theme, "&strip");
+    const found: string[] = [];
+    await page.locator("#catalogue-strip").scrollIntoViewIfNeeded();
+    await scanner(page, found)("route strip: from this page, bridge, a secret named, sent, problems, folded");
+    // The folded one, open.
+    await page.locator('[data-state="Folded"] .route-toggle').click();
+    await scanner(page, found)("route strip, folded and open");
     expect(found).toEqual([]);
   });
 
@@ -1005,10 +1018,10 @@ test("segmented: the keys of WAI-ARIA's radio group, one tab stop, and a choice 
   await expect(option(route, "Local Bridge")).toBeFocused();
 
   // A click on an option's text chooses it: the text lets the pointer through to its radio button.
-  const text = await route.getByText("Direct", { exact: true }).boundingBox();
+  const text = await route.getByText("From this page", { exact: true }).boundingBox();
   if (!text) throw new Error("Direct is not drawn");
   await page.mouse.click(text.x + text.width / 2, text.y + text.height / 2);
-  await expect(option(route, "Direct")).toBeChecked();
+  await expect(option(route, "From this page")).toBeChecked();
 });
 
 test("select: closed keys choose, the list's keys, and focus kept on the select", async ({ page }) => {
@@ -1026,14 +1039,14 @@ test("select: closed keys choose, the list's keys, and focus kept on the select"
   await expect(route).toHaveText("Local Bridge");
   await page.keyboard.press("Home");
   await expect(route).toHaveText("Inherit: Auto");
-  await page.keyboard.press("d");
-  await expect(route).toHaveText("Direct");
+  await page.keyboard.press("f");
+  await expect(route).toHaveText("From this page");
   await expect(listbox).toHaveCount(0);
   await expect(route).toHaveAttribute("aria-expanded", "false");
 
   // Enter opens it on the chosen option; focus stays on the select, which points at the option the keys are on.
   await page.keyboard.press("Enter");
-  await expect(option("Direct")).toHaveAttribute("aria-selected", "true");
+  await expect(option("From this page")).toHaveAttribute("aria-selected", "true");
   await expect(route).toHaveAttribute("aria-expanded", "true");
   await expect(route).toBeFocused();
   await page.keyboard.press("ArrowDown");
@@ -1092,13 +1105,13 @@ test("select: closed keys choose, the list's keys, and focus kept on the select"
 
   // A press in the list, held as a person holds it, keeps focus on the select, and its release chooses.
   await route.click();
-  const direct = await option("Direct").boundingBox();
+  const direct = await option("From this page").boundingBox();
   if (!direct) throw new Error("Direct is not drawn");
   await page.mouse.move(direct.x + direct.width / 2, direct.y + direct.height / 2);
   await page.mouse.down();
   await page.waitForTimeout(150);
   await page.mouse.up();
-  await expect(route).toHaveText("Direct");
+  await expect(route).toHaveText("From this page");
   await expect(listbox).toHaveCount(0);
   await expect(route).toBeFocused();
 
@@ -1107,7 +1120,7 @@ test("select: closed keys choose, the list's keys, and focus kept on the select"
   await expect(listbox).toBeVisible();
   await page.getByRole("heading", { name: "Widget catalogue" }).click();
   await expect(listbox).toHaveCount(0);
-  await expect(route).toHaveText("Direct");
+  await expect(route).toHaveText("From this page");
 });
 
 test("select: in forced colours the option the keys are on and the chosen one are still marked", async ({ page }) => {
@@ -1250,6 +1263,25 @@ test("tooltip: in forced colours its edge still shows", async ({ page }) => {
   expect(
     await tip.evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`),
   ).toBe("solid 1px");
+});
+
+test("route strip: the folded strip's button opens and closes the rest with Enter and Space, and keeps focus", async ({
+  page,
+}) => {
+  await open(page, "light", "&strip");
+  const toggle = page.locator('[data-state="Folded"] .route-toggle');
+  await toggle.focus();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await page.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator('[data-state="Folded"] .route-stack')).toBeVisible();
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(toggle).toBeFocused();
+  // Every state is one string to a screen reader.
+  expect(await page.locator('[data-state="Sent, secrets masked"] [role="group"]').getAttribute("aria-label")).toBe(
+    "Sent from this page. 200 OK, 340 ms. GET api.example.com. 2 secrets sent, masked in history and exports.",
+  );
 });
 
 test("spinner: named only on its own, takes no focus, and is a ring in forced colours and with reduced motion", async ({

@@ -64,11 +64,10 @@ test.describe("Collections", () => {
     await saveDialog.getByRole("button", { name: "Save", exact: true }).click();
 
     // The composer now shows it's bound to the request that was just
-    // created: its editing line names it (the tree and the tab do too).
+    // created: its tab names it and says that Save writes back to it (the tree does too).
     await expect(
-      page.getByRole("navigation", { name: "Saved request" }).getByText("My Saved Request", { exact: true }),
-    ).toBeVisible();
-    await expect(page.locator("app-composer").getByText(/Save writes back to it/)).toBeVisible();
+      page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first(),
+    ).toHaveAccessibleDescription(/My Saved Request\. Save writes back to it\./);
 
     // Editing and hitting the now-"Save" (in-place) button writes the
     // change onto the same stored request rather than creating a duplicate.
@@ -163,7 +162,9 @@ test("the first save, with no collection yet, is one press: the tab's name, a co
   const tree = page.getByRole("tree");
   await expect(tree.getByText("My collection", { exact: true })).toBeVisible();
   await expect(tree.getByText("Typed name", { exact: true })).toBeVisible();
-  await expect(page.locator("app-composer").getByText(/Save writes back to it/)).toBeVisible();
+  await expect(
+    page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first(),
+  ).toHaveAccessibleDescription(/Save writes back to it\./);
 
   // With a collection, the name is the tab's and Save is enabled at once.
   await page.getByRole("button", { name: "New tab" }).click();

@@ -58,10 +58,7 @@ test("the app or the site uses every token", () => {
     token.$type === "typography"
       ? new RegExp(`(?<![\\w-])${key}(?![\\w-])|--${key}-`).test(files)
       : new RegExp(`--${key}(?![\\w-])`).test(files);
-  // The route strip (S4a) is the only reader of its text and its tint: until it lands they are defined and held to
-  // their contrast, and read by nothing. Delete this line in S4a.
-  const strip = new Set(["route-text", "route-fill"]);
-  const unused = [...theme("dark")].filter(([key, token]) => !strip.has(key) && !used(key, token)).map(([key]) => key);
+  const unused = [...theme("dark")].filter(([key, token]) => !used(key, token)).map(([key]) => key);
   assert.deepEqual(unused, [], "tokens nothing reads: delete them");
 });
 
@@ -376,6 +373,7 @@ test("no template draws a dashed box", () => {
 test("the route tokens are named only where the brand hue is drawn", () => {
   const allowed = new Set([
     "app/ui/tree.css", // the selected row's mark
+    "app/components/composer/route-strip.css", // the strip's line, its nodes and its route words
   ]);
   const found = sources(/\.(html|ts|css)$/, (file) => /\.spec\.ts$|^design-system\/tokens\./.test(file))
     .filter(([file, text]) => !allowed.has(file) && /--route(?![\w-]*-)|--route-(text|fill)/.test(text))

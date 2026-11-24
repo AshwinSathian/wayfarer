@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import type { Route } from "@wayfarer/core";
+import { ROUTE_OPTIONS } from "@wayfarer/core";
 import type { AiProviderKind } from "@wayfarer/core/ai";
 import type { ModelCallOutcome } from "@wayfarer/core/ai";
 import { AiSettings, type AiActions } from "../../services/ai-settings";
@@ -36,11 +37,7 @@ export class AiPane {
     { value: "openai", label: "OpenAI-compatible" },
     { value: "anthropic", label: "Anthropic" },
   ];
-  protected readonly routes: UiSegment<Route>[] = [
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
-  ];
+  protected readonly routes: UiSegment<Route>[] = [...ROUTE_OPTIONS];
 
   /** The form is drawn: a provider is saved, or Add a provider was chosen. */
   protected readonly editing = signal(!!this.ai.provider());

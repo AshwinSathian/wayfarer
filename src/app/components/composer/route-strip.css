@@ -1,0 +1,275 @@
+/* The route strip (overhaul S4a): a path of nodes on one line, in the shape of the mark: an origin, a block on the line
+   when a secret is named, the host. The line is the brand hue (`--route`); the words are the labels'. The height of the
+   rows is fixed by their contents' line count, not by what they say, so that a send or a typed address moves nothing. */
+:host {
+  --route-node: 20px;
+  color: var(--label-primary);
+}
+
+.route-node {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  fill: var(--route);
+  color: var(--route);
+}
+
+.route-node-block {
+  fill: var(--ink);
+}
+
+/* The line: a border, so that forced colours keep it. In flight a segment of the line moves along it. */
+.route-rail {
+  position: absolute;
+  inset-inline: calc(var(--route-node) / 2);
+  top: 50%;
+  height: 0;
+  border-top: 2px solid var(--route);
+  overflow: hidden;
+  transform: translateY(-1px);
+}
+
+:host(.is-running) .route-rail {
+  border-top-color: var(--route-fill);
+}
+
+:host(.is-running) .route-rail::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 30%;
+  height: 2px;
+  background: var(--route);
+  transform: translateX(-100%);
+  animation: route-run var(--dur-shimmer) var(--ease-in-out) infinite;
+  forced-color-adjust: none;
+}
+
+@keyframes route-run {
+  to {
+    transform: translateX(333%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* A static line: the segment is not drawn. */
+  :host(.is-running) .route-rail::after {
+    display: none;
+  }
+
+  :host(.is-running) .route-rail {
+    border-top-color: var(--route);
+  }
+}
+
+@media (forced-colors: active) {
+  .route-node,
+  .route-node-block {
+    fill: CanvasText;
+  }
+
+  :host(.is-running) .route-rail::after {
+    background: Highlight;
+  }
+}
+
+/* ── Wide: the nodes on the line, the words under them ─────────── */
+/* The path is one compact shape, the mark's size, at the left: the same drawing at every width. */
+.route-wide-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.route-wide {
+  flex: 0 1 24rem;
+  min-width: 0;
+}
+
+.route-facts-side {
+  display: none;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding-top: 0.125rem;
+  text-align: end;
+}
+
+@media (min-width: 70rem) {
+  .route-facts-side {
+    display: block;
+  }
+
+  .route-facts-under {
+    display: none;
+  }
+}
+
+.route-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--route-node);
+}
+
+.route-track .route-rail {
+  top: 50%;
+}
+
+.route-labels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.75rem;
+  /* Three lines of the words: a longer route does not make the strip taller than a short one. */
+  min-height: calc(3 * var(--type-callout-line));
+  margin-top: 0.25rem;
+}
+
+.route-labels.has-block {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+}
+
+.route-label {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--type-callout-size);
+  line-height: var(--type-callout-line);
+  color: var(--label-primary);
+  overflow-wrap: anywhere;
+}
+
+.route-label-route {
+  color: var(--route-text);
+}
+
+.route-label-block {
+  text-align: center;
+  color: var(--label-secondary);
+  /* The tail is what gives way: the names are in the strip's one string. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.route-label-host {
+  text-align: end;
+}
+
+.route-method {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-size: var(--type-mono-body-size);
+  color: var(--label-secondary);
+}
+
+/* The host is never truncated: it wraps where it must. */
+.route-host {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-size: var(--type-mono-body-size);
+  overflow-wrap: anywhere;
+}
+
+/* ── Compact: the host, a line, and one button that opens the rest ─────────── */
+.route-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+}
+
+/* The host keeps its room first, whole where it fits; the button takes what is left and wraps. */
+.route-compact .route-stop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  max-width: 70%;
+  min-width: 0;
+  padding-top: 0.125rem;
+}
+
+.route-compact .route-rail {
+  position: relative;
+  inset: auto;
+  flex: 1 1 0.5rem;
+  min-width: 0.5rem;
+  align-self: flex-start;
+  margin-top: 0.875rem;
+}
+
+.route-toggle {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--ctl-boundary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--label-secondary);
+  font: inherit;
+  font-size: var(--type-callout-size);
+  line-height: var(--type-callout-line);
+  text-align: start;
+  cursor: pointer;
+}
+
+.route-toggle:hover {
+  color: var(--label-primary);
+}
+
+.route-stack {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route-stack .route-stop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.route-stack .route-node {
+  margin-top: 0.0625rem;
+}
+
+/* ── The problem line: its height is always there ─────────── */
+.route-problem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-height: calc(var(--type-callout-line) + 0.25rem);
+  padding-top: 0.125rem;
+}
+
+.route-problem-text,
+.route-facts {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--type-callout-size);
+  line-height: var(--type-callout-line);
+  overflow-wrap: anywhere;
+}
+
+.route-facts {
+  color: var(--label-secondary);
+}
+
+.route-problem-text {
+  color: var(--label-primary);
+}
+
+.route-problem-glyph {
+  flex: none;
+}

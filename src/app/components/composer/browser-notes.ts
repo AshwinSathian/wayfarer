@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import type { Route } from "@wayfarer/core";
+import { ROUTE_NAMES, ROUTE_OPTIONS } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiSelect, type UiSelectOption } from "../../ui/select";
@@ -18,12 +19,14 @@ import { UiSelect, type UiSelectOption } from "../../ui/select";
 })
 export class BrowserNotes {
   protected readonly store = inject(WorkspaceStore);
-  private readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
+  private readonly routeNames = {
+    auto: ROUTE_NAMES.auto,
+    direct: ROUTE_NAMES.page,
+    bridge: ROUTE_NAMES.bridge,
+  } as const;
   protected readonly routes = computed<UiSelectOption<Route | null>[]>(() => [
     { value: null, label: `Inherit: ${this.routeNames[this.store.inheritedRoute()]}` },
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
+    ...ROUTE_OPTIONS,
   ]);
   protected readonly docs = "https://github.com/AshwinSathian/wayfarer/blob/main/docs/browser-limits.md";
 }

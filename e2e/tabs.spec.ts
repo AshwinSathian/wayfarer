@@ -54,11 +54,12 @@ test("a tab says what it holds: the method and the address, or the saved request
   await expect(tabs(page).first()).toContainText("POST");
   await expect(tabs(page).first()).toContainText("Tripwire request");
   await expect(unsaved(tabs(page).first())).toHaveCount(0);
-  const crumbs = page.getByRole("navigation", { name: "Saved request" });
-  await expect(crumbs).toHaveText(/Tripwire collection\s*\/\s*Tripwire folder\s*\/\s*Tripwire request/);
+  await expect(tabs(page).first()).toHaveAccessibleDescription(
+    /Tripwire collection \/ Tripwire folder \/ Tripwire request\. Save writes back to it\./,
+  );
 
   await page.getByRole("button", { name: "New tab" }).click();
-  await expect(crumbs).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Saved request" })).toHaveCount(0);
   await expect(tabs(page).nth(1)).toContainText("New request");
   await address(page).fill("https://api.example.test/items");
   await expect(tabs(page).nth(1)).toContainText("items");
@@ -377,7 +378,7 @@ test("a restored tab shows the response of its last send, as history kept it, an
 
   await expect(tabs(page)).toHaveCount(1);
   await expect(tabs(page).first()).toContainText("Tripwire request");
-  await expect(page.getByRole("navigation", { name: "Saved request" })).toContainText("Tripwire collection");
+  await expect(tabs(page).first()).toHaveAccessibleDescription(/^Tripwire collection \/ /);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await expect(unsaved(tabs(page).first())).toHaveCount(0);
   // Save still writes back to the request: the tab is bound, not a copy.
@@ -507,7 +508,9 @@ test("a request renamed in the tree is renamed in its tab at once, and one delet
   await tree.getByRole("textbox").press("Enter");
   // Without a reload: the tab's name, and the line that says where the request is kept.
   await expect(strip(page).getByRole("tab", { selected: true })).toContainText("Renamed in the tree");
-  await expect(page.locator("app-composer")).toContainText("Tripwire collection / Renamed in the tree");
+  await expect(strip(page).getByRole("tab", { selected: true })).toHaveAccessibleDescription(
+    /Tripwire collection \/ Renamed in the tree\. Save writes back to it\./,
+  );
   // A rename is not an edit of the request.
   await expect(strip(page).getByRole("tab", { selected: true })).not.toContainText("unsaved");
 

@@ -226,7 +226,7 @@ const TASKS: Task[] = [
       await user.click(send(user.page));
       await pairInPlace(user);
       await expect(user.page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-      await expect(user.page.locator(".record-toggle")).toHaveText(/^Local Bridge to /);
+      await expect(user.page.locator(".record-toggle")).toHaveText(/^Sent through the Local Bridge to /);
     },
     after: () => bridge?.stop(),
   },

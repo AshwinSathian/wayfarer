@@ -13,6 +13,7 @@ import { FormsModule } from "@angular/forms";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import {
+  ROUTE_OPTIONS,
   ancestorsOf,
   effectiveAuth,
   emptyAuth,
@@ -82,9 +83,7 @@ export class HolderSettings implements OnDestroy {
   protected readonly saveError = signal("");
   protected readonly routes: UiSelectOption<Route | null>[] = [
     { value: null, label: "The device's (Settings › Local Bridge)" },
-    { value: "auto", label: "Auto" },
-    { value: "direct", label: "Direct" },
-    { value: "bridge", label: "Local Bridge" },
+    ...ROUTE_OPTIONS,
   ];
 
   private readonly tree = computed(() => this.collections.getCollectionTree(this.holder().collectionId));

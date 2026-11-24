@@ -170,7 +170,8 @@ export {
   type RunSend,
 } from "./send/build";
 export { runOutcome } from "./send/run";
-export { previewAddress, previewVariables, type PreviewVariable } from "./send/preview";
+export { previewAddress, previewValid, previewVariables, type PreviewVariable } from "./send/preview";
+export { addressProblem, stripView, type AddressProblem, type StripInput } from "./send/strip";
 export {
   formatDuration,
   recordHeadline,
@@ -212,4 +213,4 @@ export {
 } from "./folder/folder";
 export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";
-export { ROUTE_NAMES, empty, statusBar, vaultSetup } from "./strings";
+export { ROUTE_NAMES, ROUTE_OPTIONS, empty, statusBar, strip, vaultSetup } from "./strings";

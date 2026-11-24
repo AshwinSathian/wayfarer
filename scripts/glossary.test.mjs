@@ -13,9 +13,16 @@ const read = (dir, pattern) =>
     .filter((file) => pattern.test(file))
     .map((file) => `${dir}/${file}`);
 
+/** A text without its `<!-- -->` comments: cut where each opens and resumes after where it closes. */
+const noComments = (text) =>
+  text
+    .split("<!--")
+    .map((part, i) => (i === 0 ? part : part.slice(part.indexOf("-->") + 3)))
+    .join("");
+
 /** What a person reads of an Angular or Astro template: text nodes and the words in a label, a placeholder or a tooltip. */
 function templateText(source) {
-  const markup = source.replace(/^---[\s\S]*?---/, "").replace(/<!--[\s\S]*?-->/g, "");
+  const markup = noComments(source.replace(/^---[\s\S]*?---/, ""));
   const out = [];
   for (const m of markup.matchAll(/>([^<>]+)</g)) out.push(m[1]);
   const named = "(?:aria-label|aria-description|placeholder|title|header|label|alt|acceptLabel|uiTooltip|text)";
@@ -27,11 +34,10 @@ function templateText(source) {
 
 /** What a person reads of a Markdown file: the prose, not the code or the link targets. */
 const markdownText = (source) =>
-  source
+  noComments(source)
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`[^`\n]*`/g, "")
-    .replace(/\]\([^)]*\)/g, "]")
-    .replace(/<!--[\s\S]*?-->/g, "");
+    .replace(/\]\([^)]*\)/g, "]");
 
 /** The strings file's values, all of them. */
 function stringsText() {

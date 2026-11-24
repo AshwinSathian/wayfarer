@@ -513,14 +513,13 @@ pre,
   font-variant-numeric: tabular-nums;
 }
 
-/* A request tab that holds something not at its default (U-170): a dot in the tab's own colour. A border, not a
-   background: forced colours keep it. Its words are the screen reader's, beside it. */
-.tab-dot {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  border: 0.1875rem solid currentColor;
-  border-radius: var(--radius-full);
+/* The slot after a request tab's name (audit 9): one width whether it holds a count, the held-scripts glyph or
+   nothing, so the tabs do not move as a request is edited. One digit fits; the glyph is as wide as one. */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.875rem;
   vertical-align: middle;
 }
 
@@ -706,9 +705,38 @@ pre,
 
 /* Its state, beside Connect and Disconnect (U-048). */
 .socket-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   align-self: center;
-  color: var(--label-secondary);
+  color: var(--label-primary);
   white-space: nowrap;
+}
+
+/* The state is a shape as well as words, in ink: a ring is not connected, a half-filled one is connecting, a
+   filled one is connected. Green is for a status (a code, a test), not the app's own state. */
+.socket-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: var(--radius-full);
+}
+
+.socket-dot[data-state="connecting"] {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.socket-dot[data-state="open"] {
+  background: currentColor;
+}
+
+@media (forced-colors: active) {
+  .socket-dot {
+    forced-color-adjust: none;
+    color: CanvasText;
+  }
 }
 
 .socket-message .socket-format {

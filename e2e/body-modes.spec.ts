@@ -97,7 +97,7 @@ test("raw: the text is sent as written, typed by its language; a root-level JSON
     ["HTML", "text/html"],
     ["JavaScript", "application/javascript"],
   ]) {
-    await choose(page, "Raw body language", language);
+    await choose(page, "Body format", language);
     const echo = await sendAndEcho(page);
     expect(echo.body, language).toBe(text);
     expect(header(echo, "content-type"), language).toBe(type);

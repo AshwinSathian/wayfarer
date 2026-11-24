@@ -17,8 +17,8 @@
         "thumb": 1.6,
         "thumb-hover": 2.4,
         "selection": 1.7,
-        "ink-hover": 11,
-        "ink-press": 8,
+        "ink-hover": 13,
+        "ink-press": 11,
         "hue": 3,
         "hue-text": 4.5
       },
@@ -37,8 +37,8 @@
         "thumb": 2.2,
         "thumb-hover": 3.2,
         "selection": 2,
-        "ink-hover": 13,
-        "ink-press": 10,
+        "ink-hover": 15,
+        "ink-press": 13,
         "hue": 4.5,
         "hue-text": 7
       }

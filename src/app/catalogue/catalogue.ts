@@ -17,6 +17,7 @@ import { UiMenuItem } from "../ui/menu-item";
 import { UiSegmented, type UiSegment } from "../ui/segmented";
 import { UiSelect, type UiSelectOption } from "../ui/select";
 import { UiTabList } from "../ui/tabs";
+import { TabMark } from "../components/composer/tab-mark";
 import { Tree, UiTreeNode } from "../ui/tree";
 import { Splitter } from "../ui/splitter";
 import { Icon } from "../shared/icon/icon";
@@ -67,6 +68,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     UiSegmented,
     UiSelect,
     UiTabList,
+    TabMark,
     Splitter,
   ],
   template: `
@@ -367,9 +369,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <button ngTab type="button" value="params">Params</button>
             <button ngTab type="button" value="headers">Headers</button>
             <button ngTab type="button" value="body">Body</button>
-            <button ngTab type="button" value="tests"
-              >Tests <span class="catalogue-count type-footnote tabular-nums">2</span></button
-            >
+            <button ngTab type="button" value="tests">Tests <app-tab-mark [mark]="2" /></button>
           </div>
           <div class="tab-panes">
             <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"
@@ -632,9 +632,6 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     }
     .catalogue-narrow {
       max-width: 240px;
-    }
-    .catalogue-count {
-      margin-inline-start: 4px;
     }
     .catalogue-row {
       display: flex;

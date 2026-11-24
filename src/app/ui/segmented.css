@@ -1,9 +1,14 @@
-/* <ui-segmented>: the track, and the chosen option raised on it. Each
+/* <ui-segmented>: the track, and the chosen option filled in ink on it. Each
    option's radio button covers it; the text is above it and lets the
    pointer through. Not encapsulated: Settings lays the options
    out on a phone. */
 .segmented {
   display: inline-flex;
+  /* As wide as its options, never stretched by a flex column or a grid around it (a two-option choice across a
+     dialog left the second as an empty box). */
+  align-self: flex-start;
+  justify-self: start;
+  width: fit-content;
   gap: 1px;
   max-width: 100%;
   padding: 3px;
@@ -33,16 +38,20 @@
     box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-.segment + .segment {
-  border-inline-start: 1px solid var(--border-strong);
+/* The chosen option is a filled ink segment, as Send is and a checked box: it reads at a glance, in both themes
+   (audit 10); it is painted here only (U-129). */
+.segment:has(> .segment-input:checked) {
+  background: var(--ink);
+  color: var(--on-ink);
 }
 
-/* The chosen option is raised above its track in both themes and edged in the control's boundary, 3:1 on the
-   track (U-117); it is painted here only (U-129). */
-.segment:has(> .segment-input:checked) {
-  background: var(--surface-overlay);
-  box-shadow: inset 0 0 0 1px var(--ctl-boundary);
-  color: var(--label-primary);
+/* The keyboard's place: an inside edge in ink, and in the on-ink colour on the chosen option's ink fill. */
+.segment:has(> .segment-input:focus-visible) {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.segment:has(> .segment-input:checked:focus-visible) {
+  box-shadow: inset 0 0 0 2px var(--on-ink);
 }
 
 .segment:hover:not(:has(> .segment-input:checked)) {
@@ -79,21 +88,21 @@
    own width did not fit in one: the track takes the row, and the options
    their room less padding, and an option's words wrap inside it: on one line,
    Settings' "By the room it has", "Beside the request" and "Under the
-   request" ran into each other at 390 px. */
+   request" ran into each other at 390 px. Two options keep their own width. */
 @media (width < 30em) {
-  .segmented {
+  .segmented:has(> .segment:nth-child(3)) {
     display: flex;
     width: 100%;
     white-space: normal;
   }
 
-  .segment {
+  .segmented:has(> .segment:nth-child(3)) > .segment {
     flex: 1 1 0;
     min-width: 0;
     padding-inline: 2px;
   }
 
-  .segment-label {
+  .segmented:has(> .segment:nth-child(3)) .segment-label {
     height: 100%;
     padding-inline: 0.25rem;
   }

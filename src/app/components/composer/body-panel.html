@@ -1,21 +1,26 @@
 @let current = body();
-<div class="flex flex-wrap items-center gap-3 pb-3">
-  <span id="body-mode-label" class="ds-form-label">Body type</span>
-  <ui-select
-    class="w-56"
-    aria-labelledby="body-mode-label"
-    [options]="modes"
-    [value]="current.mode"
-    (valueChange)="setMode($event)"
-  />
+<div class="flex flex-wrap items-end gap-x-3 gap-y-2 pb-3">
+  <div>
+    <span id="body-mode-label" class="ds-form-label">Body type</span>
+    <ui-select
+      class="w-56"
+      aria-labelledby="body-mode-label"
+      [options]="modes"
+      [value]="current.mode"
+      (valueChange)="setMode($event)"
+    />
+  </div>
   @if (current.mode === 'raw') {
-  <ui-select
-    class="w-36"
-    aria-label="Raw body language"
-    [options]="languages"
-    [value]="current.raw?.language ?? 'json'"
-    (valueChange)="setRaw({ language: $event })"
-  />
+  <div>
+    <span id="body-format-label" class="ds-form-label">Body format</span>
+    <ui-select
+      class="w-36"
+      aria-labelledby="body-format-label"
+      [options]="languages"
+      [value]="current.raw?.language ?? 'json'"
+      (valueChange)="setRaw({ language: $event })"
+    />
+  </div>
   }
 </div>
 

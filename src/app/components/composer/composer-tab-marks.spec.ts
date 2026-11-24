@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupComposer } from "../../../testing/composer-setup";
 
 // U-170: the request's tabs were bare words, so a request with headers, a body and a script looked from Params like an
-// empty one. Params and Headers count the rows that are sent; the others are marked when not at their default, in
-// words a screen reader says after the tab's name (the dot alone is drawn, not spoken).
+// empty one. Each tab shows a count of what it holds, or nothing (audit 9): rows sent, a body, an auth, scripts and
+// tests set, settings changed. Scripts held back show a glyph in the same slot, and say so in words.
 describe("the request's tabs say what they hold (U-170)", () => {
   /** Each tab's name as the DOM gives it: its text, the screen reader's words included, the drawn dot not. */
   function names(host: HTMLElement, selector: string): string[] {
@@ -44,17 +44,17 @@ describe("the request's tabs say what they hold (U-170)", () => {
     ]);
   });
 
-  it("count the rows sent and mark the parts that are set", async () => {
+  it("count what each tab holds", async () => {
     const { fixture, store } = await setupComposer();
     store.patch(full);
     await fixture.whenStable();
     expect(names(fixture.nativeElement as HTMLElement, ".composer-pane [role='tab']")).toEqual([
       "Params 2",
       "Headers 1",
-      "Body (set)",
-      "Auth (set)",
-      "Scripts (set)",
-      "Network (changed)",
+      "Body 1",
+      "Auth 1",
+      "Scripts 1",
+      "Network 1",
     ]);
   });
 
@@ -67,7 +67,7 @@ describe("the request's tabs say what they hold (U-170)", () => {
     await fixture.whenStable();
     expect(names(fixture.nativeElement as HTMLElement, ".composer-pane [role='tab']").slice(3, 5)).toEqual([
       "Auth",
-      "Scripts (set)",
+      "Scripts 1",
     ]);
   });
 
@@ -79,10 +79,10 @@ describe("the request's tabs say what they hold (U-170)", () => {
     expect(names(fixture.nativeElement as HTMLElement, "button.section-header")).toEqual([
       "Params 2",
       "Headers 1",
-      "Body (set)",
-      "Auth (set)",
-      "Scripts (set)",
-      "Network (changed)",
+      "Body 1",
+      "Auth 1",
+      "Scripts 1",
+      "Network 1",
     ]);
   });
 });

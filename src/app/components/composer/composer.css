@@ -32,9 +32,11 @@
   padding-left: 16px;
 }
 
-/* Six tabs beside the response: a little less room each, so that all of them fit at 820 px. */
+/* Six tabs beside the response: a little less room each, so that all of them fit at 820 px. Each ends in its badge's
+   slot (audit 9), which is always there: the slot takes the place of the end padding, so that six tabs with their
+   slots are about as wide as six words were. */
 .composer-pane [role="tab"] {
-  padding-inline: 12px;
+  padding-inline: 10px 4px;
 }
 
 /* The response under the request (L-6, L-7): the line is across, and each pane keeps its room from it above and

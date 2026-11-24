@@ -187,18 +187,22 @@ for (const [name, level] of ["dark", "light"].flatMap((name) => LEVELS.map((leve
       }
   });
 
-  test(`the chosen segment's edge stands out from it and from the track's surface (3:1)`, () => {
+  test(`the chosen segment is the ink, which stands out from the track's surface (3:1), its label on it (4.5:1)`, () => {
     const css = stylesheet("ui/segmented.css");
-    const chosen = declared(css, ".segment:has(> .segment-input:checked)", "background");
+    assert.equal(declared(css, ".segment:has(> .segment-input:checked)", "background"), "--ink");
+    assert.equal(declared(css, ".segment:has(> .segment-input:checked)", "color"), "--on-ink");
     assert.equal(
       /\n\s*background:\s*transparent;/.test(css.slice(css.indexOf(".segmented {"))),
       true,
       "the track has a fill",
     );
-    for (const surface of [...SURFACES, chosen]) {
-      const ratio = contrast(colour("--ctl-boundary"), colour(surface));
-      assert.ok(ratio >= 3, `--ctl-boundary on ${surface}: ${ratio.toFixed(2)}:1`);
+    for (const surface of SURFACES) {
+      const ratio = contrast(colour("--ink"), colour(surface));
+      assert.ok(ratio >= 3, `--ink on ${surface}: ${ratio.toFixed(2)}:1`);
+      const edge = contrast(colour("--ctl-boundary"), colour(surface));
+      assert.ok(edge >= 3, `--ctl-boundary on ${surface}: ${edge.toFixed(2)}:1`);
     }
+    assert.ok(contrast(colour("--on-ink"), colour("--ink")) >= 4.5);
   });
 
   test(`what is written on the ink reads on it, at rest, hovered and pressed`, () => {

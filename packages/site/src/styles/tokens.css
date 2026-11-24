@@ -130,8 +130,8 @@
   /* ink */
   --ink: var(--label-primary);
   --on-ink: var(--canvas-app);
-  --ink-hover: #CCC9C2;
-  --ink-press: #AFACA5;
+  --ink-hover: #DDDAD3;
+  --ink-press: #CCC9C2;
 
   /* control */
   --ctl-boundary: #7C7973;
@@ -235,8 +235,8 @@
   /* ink */
   --ink: var(--label-primary);
   --on-ink: var(--canvas-panel);
-  --ink-hover: #3E3B36;
-  --ink-press: #53504B;
+  --ink-hover: #33312B;
+  --ink-press: #3E3B36;
 
   /* control */
   --ctl-boundary: #908C86;
@@ -323,8 +323,8 @@
     --label-primary: #FBFAF9;
     --label-secondary: #E4E1DA;
     --label-tertiary: #C0BDB6;
-    --ink-hover: #DDDAD3;
-    --ink-press: #C3C0B9;
+    --ink-hover: #EBE9E4;
+    --ink-press: #DDDAD3;
     --ctl-boundary: #9A9790;
     --fill-secondary: rgba(251, 250, 249, 0.052);
     --fill-primary: rgba(251, 250, 249, 0.091);
@@ -377,8 +377,8 @@
     --label-primary: #171410;
     --label-secondary: #3E3B36;
     --label-tertiary: #55524D;
-    --ink-hover: #33312B;
-    --ink-press: #45423D;
+    --ink-hover: #292621;
+    --ink-press: #33312B;
     --ctl-boundary: #726F69;
     --fill-secondary: rgba(23, 20, 16, 0.057);
     --fill-primary: rgba(23, 20, 16, 0.109);

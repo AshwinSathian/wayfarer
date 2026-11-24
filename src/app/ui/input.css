@@ -132,6 +132,16 @@ textarea.ui-input {
   box-shadow: inset 0 0 0 2px var(--ink);
 }
 
+/* The bar clips to its rounded corners, so an edge drawn square ended at the corner and left a heavy stub beside the
+   bar's curve (audit 23): the half at each end takes the bar's inner radius, and the edge follows the curve. */
+.ui-input.address-field {
+  border-radius: 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0;
+}
+
+.ui-input.method-field {
+  border-radius: calc(var(--radius-lg) - 1px) 0 0 calc(var(--radius-lg) - 1px);
+}
+
 .ui-input.address-field {
   flex: 1;
   /* Never squeezed out of sight between the method and the buttons. */

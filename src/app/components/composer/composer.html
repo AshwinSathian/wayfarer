@@ -85,7 +85,7 @@
     @if (store.variableTokens().length || store.sentAuthSource().auth.type !== 'none') {
     <app-variable-chips />
     } @if (socket.isSocket()) {
-    <app-socket-view class="block space-y-5" />
+    <app-socket-view class="block max-w-[45rem] space-y-5" />
     } @else if (isMobile()) {
     <!-- A phone (U-028): the request and the response are two panes, not one column; a send shows the response. -->
     <div ngTabs class="tabs">

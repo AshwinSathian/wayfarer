@@ -254,17 +254,17 @@
     color: inherit;
   }
 
-  .settings .segmented {
+  .settings .segmented:has(> .segment:nth-child(3)) {
     width: 100%;
   }
 
-  .settings .segment {
+  .settings .segmented:has(> .segment:nth-child(3)) > .segment {
     flex: 1 1 0;
     min-width: 0;
     padding: 5px 2px;
   }
 
-  .settings .segment-label {
+  .settings .segmented:has(> .segment:nth-child(3)) .segment-label {
     padding: 0.25rem 0.25rem;
   }
 

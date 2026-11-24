@@ -82,11 +82,11 @@ test("with the vault unlocked the token is a vault secret: after a reload a send
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
-    await page.getByRole("button", { name: "No vault", exact: true }).click();
-    const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+    await page.getByRole("button", { name: "Set up vault to store secrets", exact: true }).click();
+    const create = page.getByRole("dialog", { name: "Set up vault", exact: true });
     await create.locator("input[type='password']").nth(0).fill(PASSPHRASE);
     await create.locator("input[type='password']").nth(1).fill(PASSPHRASE);
-    await create.getByRole("button", { name: "Create vault" }).click();
+    await create.getByRole("button", { name: "Set up vault", exact: true }).click();
     await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 
     await switchBridgeOn(page, `http://127.0.0.1:${port}`);

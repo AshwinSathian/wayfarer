@@ -103,8 +103,7 @@
               >Hold back a request with a variable that has no value</label
             >
             <p class="type-footnote text-label-secondary"
-              >The composer says which variable and offers "Send anyway". Off: the variable is sent as written, as in
-              Postman.</p
+              >The composer says which variable and offers "Send anyway". Off: the variable is sent as written.</p
             >
           </div>
           <input
@@ -117,8 +116,8 @@
         </div>
       </div>
       <p class="settings-note"
-        >Requests leave from this page unless the
-        <button type="button" class="settings-link" (click)="open('bridge')">Local Bridge</button> is on.</p
+        >Route: {{ route().name }}. {{ route().words }} Change it under
+        <button type="button" class="settings-link" (click)="open('bridge')">Local Bridge</button>.</p
       >
       } @case ('history') {
       <div class="settings-group">
@@ -183,7 +182,7 @@
               >One file with every collection, request, environment, the global variables and the vault (still
               encrypted). It leaves out files attached to request bodies.</p
             >
-            <label class="ui-checkbox-label mt-1.5 -ml-2"
+            <label class="ui-checkbox-label mt-1.5 -ml-[3px]"
               ><input
                 type="checkbox"
                 uiCheckbox
@@ -294,19 +293,29 @@
       </div>
       } @case ('vault') {
       <div class="settings-group">
+        @if (vault.made() === false) {
+        <!-- No vault: what it is and the way in, before a timer for something that is not there (audit 11). -->
+        <div class="settings-row settings-row-stacked">
+          <p class="settings-title type-callout text-label-primary">{{ empty.vault.headline }}</p>
+          <p class="type-footnote text-label-secondary">{{ vaultSetup.lead }}</p>
+          <div>
+            <button uiButton="filled" type="button" (click)="setUpVault.emit()">{{ empty.vault.action }}</button>
+          </div>
+        </div>
+        } @else {
         <div class="settings-row">
           <div class="min-w-0">
             <p class="settings-title type-callout text-label-primary">Secrets</p>
             <p class="type-footnote text-label-secondary"
               >View, reveal, rename and delete the secrets of every environment. {{ vault.isUnlocked() ? 'The vault is
-              unlocked in this tab.' : vault.made() === false ? 'No vault in this browser yet.' : 'The vault is locked.'
-              }}</p
+              unlocked in this tab.' : 'The vault is locked.' }}</p
             >
           </div>
           <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openSecrets.emit(); close()"
-            >Manage secrets…</button
+            >View secrets…</button
           >
         </div>
+        @if (vault.made()) {
         <div class="settings-row">
           <div class="min-w-0">
             <label for="vault-idle-minutes" class="settings-title type-callout text-label-primary"
@@ -334,6 +343,7 @@
             <span id="vault-idle-unit" class="type-footnote text-label-secondary">minutes</span>
           </div>
         </div>
+        } }
       </div>
       } @case ('bridge') {
       <app-bridge-pane />

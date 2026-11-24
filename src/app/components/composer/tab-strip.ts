@@ -10,6 +10,7 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
+import { folderChain } from "@wayfarer/core";
 import { Tab, TabContent, TabPanel } from "@angular/aria/tabs";
 import { UiButton } from "../../ui/button";
 import { UiInput } from "../../ui/input";
@@ -18,7 +19,7 @@ import { UiMenuItem } from "../../ui/menu-item";
 import { UiTooltip } from "../../ui/tooltip";
 import { UiMethodGlyph } from "../../ui/method-glyph";
 import { Icon } from "../../shared/icon/icon";
-import { TabState, unsavedName, type HolderTarget } from "../../state/tab-state";
+import { TabState, tabTitle, type HolderTarget } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { Confirm } from "../../ui/confirm";
 import { UiTabList } from "../../ui/tabs";
@@ -76,12 +77,27 @@ export class TabStrip {
     });
   }
 
-  /** The saved request's name, or else the address, or else that it is new. */
+  /** The saved request's name, or else the end of its address, or else that it is new. */
   protected label(tab: TabState): string {
     if (tab.environments) return "Environments";
     if (tab.holder) return this.holderName(tab.holder);
     if (tab.run) return tab.run.target.name;
-    return tab.bound()?.name ?? unsavedName(tab.draft().url);
+    return tab.bound()?.name ?? tabTitle(tab.draft().url);
+  }
+
+  /**
+   * What hovering a tab says: where a saved request is kept (and that Save writes back to it), and the address the
+   * title cut short, host included (audit 14).
+   */
+  protected tooltip(tab: TabState): string {
+    if (tab.environments || tab.holder || tab.run) return "";
+    const bound = tab.bound();
+    const tree = bound && this.collections.getCollectionTree(bound.collectionId);
+    const where = tree
+      ? `${[tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((f) => f.name), bound.name].join(" / ")}. Save writes back to it. `
+      : "";
+    const url = tab.draft().url.trim();
+    return `${where}${url ? `${tab.draft().method} ${url}` : ""}`.trim();
   }
 
   /** A collection's or a folder's name, for its settings tab. */

@@ -26,7 +26,7 @@ test("a failed send with no bridge paired sets the bridge up in place, and Send 
     }, bridge.url);
     await page.goto("/app/");
     const routeItem = page.getByRole("button", { name: /^Route: / });
-    await expect(routeItem).toHaveText("Route: direct");
+    await expect(routeItem).toHaveText("Route: Auto");
 
     // A server that sends no CORS headers: the browser gives the page no response.
     await page.locator("input.address-url").fill(`${ECHO}/cors/none?id=${randomUUID()}`);
@@ -55,7 +55,7 @@ test("a failed send with no bridge paired sets the bridge up in place, and Send 
     await record.getByLabel("Pairing code", { exact: true }).fill(bridge.pairingCode);
     await record.getByRole("button", { name: "Pair" }).click();
     await expect(record.locator(".bridge-setup-said")).toHaveText("Paired: the token is saved.");
-    await expect(routeItem).toHaveText("Route: auto");
+    await expect(routeItem).toHaveText("Route: Auto");
 
     await record.getByRole("button", { name: "Send again" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -77,7 +77,7 @@ test("with a bridge paired, a failed send offers to send through it and says not
   await settings.getByRole("button", { name: "Save", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(settings).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /^Route: / })).toHaveText("Route: direct");
+  await expect(page.getByRole("button", { name: /^Route: / })).toHaveText("Route: From this page");
 
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);

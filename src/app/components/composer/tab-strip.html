@@ -11,6 +11,7 @@
       ngTab
       type="button"
       [value]="tab.id"
+      [uiTooltip]="tooltip(tab)"
       (contextmenu)="menuFor(tab, $event)"
       (keydown)="tabKey(tab, $event)"
       (dblclick)="rename(tab)"

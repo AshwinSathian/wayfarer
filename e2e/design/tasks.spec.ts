@@ -89,9 +89,10 @@ async function ready(page: Page): Promise<void> {
 /** Imports the Postman collection and trusts its scripts: what task 2 does, and task 7 starts from. */
 async function importAndTrust(user: User): Promise<void> {
   const { page } = user;
-  // The tree is empty: its own line offers Import…, and the header's menu is not there yet (L-16).
+  // The tree is empty: its own block offers the same Import menu as the header's, and File… is in it (overhaul S3).
+  await user.click(button(page.locator("app-collections-sidebar"), "Import"));
   await user.pick(
-    button(page.locator("app-collections-sidebar"), "Import…"),
+    page.getByRole("menuitem", { name: "File…" }),
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });
@@ -204,7 +205,7 @@ const TASKS: Task[] = [
       const create = page.getByRole("region", { name: "Environments", exact: true });
       await user.type(create.getByLabel("Passphrase", { exact: true }), passphrase, false);
       await user.type(create.getByLabel("Confirm passphrase", { exact: true }), passphrase);
-      await user.click(button(create, "Create vault"));
+      await user.click(button(create, "Set up vault"));
       await expect(page.getByText("Secret stored")).toBeVisible();
       // The environments are a tab (D4.5): back to the request's.
       await user.click(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab").first());

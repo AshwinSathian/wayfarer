@@ -68,7 +68,7 @@ test.describe("Collections", () => {
     await expect(
       page.getByRole("navigation", { name: "Saved request" }).getByText("My Saved Request", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText(/Save writes back to it/)).toBeVisible();
+    await expect(page.locator("app-composer").getByText(/Save writes back to it/)).toBeVisible();
 
     // Editing and hitting the now-"Save" (in-place) button writes the
     // change onto the same stored request rather than creating a duplicate.
@@ -163,7 +163,7 @@ test("the first save, with no collection yet, is one press: the tab's name, a co
   const tree = page.getByRole("tree");
   await expect(tree.getByText("My collection", { exact: true })).toBeVisible();
   await expect(tree.getByText("Typed name", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Save writes back to it/)).toBeVisible();
+  await expect(page.locator("app-composer").getByText(/Save writes back to it/)).toBeVisible();
 
   // With a collection, the name is the tab's and Save is enabled at once.
   await page.getByRole("button", { name: "New tab" }).click();
@@ -194,8 +194,8 @@ test("a click on the backdrop keeps Save to collection and the vault's dialog op
   await page.keyboard.press("Escape");
   await expect(save).toHaveCount(0);
 
-  await page.getByRole("button", { name: "No vault", exact: true }).click();
-  const vault = page.getByRole("dialog", { name: /Create vault passphrase|Unlock vault/ });
+  await page.getByRole("button", { name: "Set up vault to store secrets", exact: true }).click();
+  const vault = page.getByRole("dialog", { name: /Set up vault|Unlock vault/ });
   await expect(vault).toBeVisible();
   await vault.locator("input").first().fill("typed");
   await page.mouse.click(5, 5);

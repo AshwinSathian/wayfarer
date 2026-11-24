@@ -2,11 +2,11 @@ import { test, expect } from "@playwright/test";
 import { closeEnvironments, openEnvironments, untilBooted } from "./support/app";
 
 test.describe("Secrets management view", () => {
-  test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
+  // One name for the vault: with none made the status bar offers to set one up, and has no button for its list.
+  test("with no vault the status bar has Set up vault and no Secrets button", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Secrets", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
-    await expect(page.getByText("No vault yet.", { exact: false })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Set up vault to store secrets", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Secrets", exact: true })).toHaveCount(0);
   });
 
   test("opens from the command palette", async ({ page }) => {
@@ -18,6 +18,8 @@ test.describe("Secrets management view", () => {
     await page.getByRole("option", { name: "Secrets", exact: true }).click();
     await expect(page.getByPlaceholder("Search or run a command")).toBeHidden();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
+    // With no secrets and no vault: it says so.
+    await expect(page.getByText("No vault yet.", { exact: false })).toBeVisible();
   });
 
   test("@claim:C-028 lists a protected variable, supports reveal, rename, locate, and delete", async ({ page }) => {
@@ -46,7 +48,7 @@ test.describe("Secrets management view", () => {
     const dialog = page.getByRole("region", { name: "Environments", exact: true });
     await dialog.getByLabel("Passphrase", { exact: true }).fill("correct horse battery staple");
     await dialog.getByLabel("Confirm passphrase", { exact: true }).fill("correct horse battery staple");
-    await dialog.getByRole("button", { name: "Create vault" }).click();
+    await dialog.getByRole("button", { name: "Set up vault", exact: true }).click();
     await expect(page.getByText("Secret stored")).toBeVisible();
     await closeEnvironments(page);
     await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();

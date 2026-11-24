@@ -35,7 +35,7 @@ import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { Confirm } from "../../ui/confirm";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
-import { readImportText, serializeEnvironmentExport } from "@wayfarer/core";
+import { ROUTE_NAMES, empty, readImportText, serializeEnvironmentExport, vaultSetup } from "@wayfarer/core";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { DOCS } from "../../shared/docs";
 import { saveJsonFile } from "../../shared/save-file";
@@ -179,6 +179,22 @@ export class Settings {
   readonly resetAllData = output<void>();
   readonly clearHistory = output<void>();
   readonly openSecrets = output<void>();
+  /** The vault does not exist yet: the shell opens its passphrase dialog. */
+  readonly setUpVault = output<void>();
+  protected readonly empty = empty;
+  /** The device's route, in the glossary's words, and what it means (the note under General). */
+  protected readonly route = computed(() => {
+    const route = this.bridgeService.config().route;
+    if (route === "bridge") return { name: ROUTE_NAMES.bridge, words: "A request goes through the Local Bridge." };
+    if (route === "direct")
+      return { name: ROUTE_NAMES.page, words: "A request leaves from this page, and never through the Local Bridge." };
+    return {
+      name: ROUTE_NAMES.auto,
+      words:
+        "A request leaves from this page, and goes through the Local Bridge only when the page gets no answer and a bridge is paired.",
+    };
+  });
+  protected readonly vaultSetup = vaultSetup;
 
   /** From package.json, so the release bump is the only place it changes. */
   readonly version = version;

@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { UiModal } from "../../ui/modal";
 import { UiMethodGlyph } from "../../ui/method-glyph";
+import { recordDiagnostic } from "../../services/diagnostics";
 import { ariaKeysOf, keysOf, Shortcut } from "../../shared/shortcuts";
 
 /** One thing the palette finds: a command, or a request, collection, folder, environment or past request to open. */
@@ -23,14 +24,32 @@ export interface PaletteItem {
   /** A request's method, drawn as a method badge. */
   method?: string;
   keys?: Shortcut;
+  /** Found by typing only: a saved request or a collection is not in the list shown before anything is typed. */
+  findOnly?: boolean;
   run: () => void | Promise<void>;
 }
 
-export type PaletteGroup = "Commands" | "Requests" | "Collections and folders" | "Environments" | "History";
+export type PaletteGroup = "Recent" | "Requests" | "Go to" | "Environments" | "Settings" | "Vault" | "History";
 
-const GROUPS: PaletteGroup[] = ["Commands", "Requests", "Collections and folders", "Environments", "History"];
-/** Rows per group: enough to choose from, few enough to see every group at once. */
-const PER_GROUP = 6;
+const GROUPS: PaletteGroup[] = ["Recent", "Requests", "Go to", "Environments", "Settings", "Vault", "History"];
+/** Rows per group: enough to choose from, few enough to see every group at once. Nothing typed shows fewer. */
+const PER_GROUP = 8;
+const PER_GROUP_IDLE = 4;
+/** What was run last, by item id: Recent shows it first when nothing is typed. Under `wayfarer:`, so Reset all data takes it. */
+const RECENT_KEY = "wayfarer:palette-recent";
+const RECENT_MAX = 5;
+
+function readRecent(): string[] {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string").slice(0, RECENT_MAX)
+      : [];
+  } catch (error) {
+    recordDiagnostic(error, "palette: could not read what was run last");
+    return [];
+  }
+}
 
 /**
  * The palette (U-011): the shell's, opened by ⌘K anywhere and by the toolbar's search field. It finds commands and
@@ -54,19 +73,36 @@ export class Palette {
   private readonly field = viewChild<ElementRef<HTMLInputElement>>("field");
   private readonly list = viewChild<ElementRef<HTMLElement>>("list");
 
-  /** Every word typed is somewhere in the label or the detail. With nothing typed: the commands and the environments. */
+  private readonly recent = signal<string[]>(readRecent());
+
+  /**
+   * Every word typed is somewhere in the label, the detail or the method. With nothing typed: what was run last, then
+   * a few of each group (never one flat list of every command); the requests are found by typing.
+   */
   protected readonly groups = computed(() => {
     const words = this.query().trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      const recent = this.recent()
+        .map((id) => this.items().find((item) => item.id === id && item.group !== "History"))
+        .filter((item): item is PaletteItem => !!item);
+      const taken = new Set(recent.map((item) => item.id));
+      return [
+        { name: "Recent" as PaletteGroup, items: recent },
+        ...GROUPS.filter((name) => name !== "Recent" && name !== "History").map((name) => ({
+          name,
+          items: this.items()
+            .filter((item) => item.group === name && !taken.has(item.id) && !item.findOnly)
+            .slice(0, PER_GROUP_IDLE),
+        })),
+      ].filter((group) => group.items.length);
+    }
     const found = this.items().filter((item) => {
-      if (!words.length) return item.group === "Commands" || item.group === "Environments";
       const text = `${item.label} ${item.detail ?? ""} ${item.method ?? ""}`.toLowerCase();
       return words.every((word) => text.includes(word));
     });
     return GROUPS.map((name) => ({
       name,
-      items: found
-        .filter((item) => item.group === name)
-        .slice(0, words.length || name !== "Commands" ? PER_GROUP : undefined),
+      items: found.filter((item) => item.group === name).slice(0, PER_GROUP),
     })).filter((group) => group.items.length);
   });
 
@@ -82,6 +118,16 @@ export class Palette {
       this.query.set("");
       this.active.set(0);
     });
+  }
+
+  private remember(id: string): void {
+    const next = [id, ...this.recent().filter((other) => other !== id)].slice(0, RECENT_MAX);
+    this.recent.set(next);
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch (error) {
+      recordDiagnostic(error, "palette: could not save what was run last");
+    }
   }
 
   /** A new search starts at the top. Set here, in the key's own task: an effect ran after the next key, an arrow. */
@@ -110,6 +156,7 @@ export class Palette {
 
   protected async run(item: PaletteItem): Promise<void> {
     this.open.set(false);
+    if (item.group !== "History") this.remember(item.id);
     await Promise.resolve(item.run());
   }
 

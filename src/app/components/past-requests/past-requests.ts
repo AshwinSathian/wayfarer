@@ -8,7 +8,7 @@ import { historyExchange, type HarSource } from "../../shared/inspect/har-export
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
 import { UiMethodGlyph } from "../../ui/method-glyph";
-import { MODEL_ACTION_WORDS, formatDuration, type ExchangeRecord, type PastRequest } from "@wayfarer/core";
+import { MODEL_ACTION_WORDS, empty, formatDuration, type ExchangeRecord, type PastRequest } from "@wayfarer/core";
 import { statusTone } from "../../shared/http/status-tone";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { ExchangeRecordView } from "../exchange-record/exchange-record";
@@ -80,6 +80,9 @@ export class PastRequests {
   readonly pastRequests = input<HistorySummary[]>([]);
   readonly loading = input(false);
   readonly displayHeader = input(true);
+  /** "Send a request", in the empty list: the shell closes History and puts the caret in the address. */
+  readonly sendRequest = output<void>();
+  protected readonly empty = empty;
   readonly loadRequest = output<HistorySummary>();
   readonly deleteRequest = output<number>();
   /** Clear history… was chosen: the shell asks, then clears. */

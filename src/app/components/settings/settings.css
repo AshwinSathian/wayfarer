@@ -4,8 +4,9 @@
 .settings {
   display: grid;
   grid-template-columns: 212px minmax(0, 1fr);
-  /* A height of its own, so the dialog does not change size from one pane to the next. */
-  height: min(640px, calc(90vh - 110px));
+  /* A height of its own, so the dialog does not change size from one pane to the next; tall enough that the Local Bridge
+     pane shows its first four rows without scrolling (overhaul S3, audit 18), and a longer pane scrolls inside it. */
+  height: min(760px, calc(100dvh - 120px));
 }
 
 /* To the dialog's edges: the list's rule runs the whole height. */

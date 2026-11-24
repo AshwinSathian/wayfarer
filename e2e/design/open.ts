@@ -475,7 +475,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     const create = page.getByRole("region", { name: "Environments", exact: true });
     await create.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
     await create.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
-    await button(create, "Create vault").click();
+    await button(create, "Set up vault").click();
     await expect(page.getByText("Secret stored")).toBeVisible();
     // Whether the browser has promised to keep the data is Chromium's own choice, and with it whether the backup
     // banner comes, a moment after the load: from run to run it came or not, and moved the page under the dialog.
@@ -490,13 +490,14 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await page.getByRole("button", { name: /^(Vault locked|Unlock vault)$/ }).click();
     await expect(page.getByRole("dialog", { name: "Unlock vault", exact: true })).toBeVisible();
   },
+  // No vault yet: Settings > Vault offers the list only once there is one, so the palette (⌘K, at any width) opens it.
   "secrets-manager": async (page) => {
-    await settingsPane(page, "Vault");
-    const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
-    await dialog
-      .getByRole("button", { name: /Manage secrets|Open secrets/ })
-      .first()
-      .click();
+    await page.goto("/app/");
+    await expect(address(page)).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+K");
+    await expect(page.getByRole("combobox", { name: /^Search requests/ })).toBeFocused();
+    await page.keyboard.type("secrets");
+    await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog", { name: /secrets/i }).last()).toBeVisible();
   },
   // A delete in the tree asks nothing since U-080: the confirm is the one that cannot be undone, Reset all data.

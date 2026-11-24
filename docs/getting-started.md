@@ -43,7 +43,7 @@ from and the value. <!-- claim:C-025 --> A variable with no value holds the requ
 ## Keep a key in the vault
 
 A variable's value is stored as plain text unless you lock it. Add a variable `apiKey` and press the lock at the end
-of its row. The first time, the row asks you to choose a passphrase for the vault (**Create vault**). The value is
+of its row. The first time, the row asks you to choose a passphrase for the vault (**Set up vault**). The value is
 then encrypted in this browser, and the row says "Secret stored". <!-- claim:C-027 --> <!-- claim:C-003 -->
 
 Use it as `{{apiKey}}`, in a header or in the Auth tab. When you send, the vault fills in the value. A locked vault

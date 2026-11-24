@@ -212,3 +212,4 @@ export {
 } from "./folder/folder";
 export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";
+export { ROUTE_NAMES, empty, statusBar, vaultSetup } from "./strings";

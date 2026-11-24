@@ -233,7 +233,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
 
   await node.click({ button: "right" });
   const items = page.getByRole("menuitem");
-  // Keep in a folder… is there where the browser has a folder picker (Chromium's).
+  // Save to a folder on disk… is there where the browser has a folder picker (Chromium's).
   const folders = await page.evaluate(() => typeof window.showDirectoryPicker === "function");
   await expect(items).toHaveText([
     "Run…",
@@ -244,7 +244,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
     "Duplicate",
     "Export…",
     "Share…",
-    ...(folders ? ["Keep in a folder…"] : []),
+    ...(folders ? ["Save to a folder on disk…"] : []),
     "Delete Delete",
   ]);
   await expect(items.first()).toBeFocused();
@@ -252,7 +252,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
   if (folders) {
-    await expect(page.getByRole("menuitem", { name: "Keep in a folder…" })).toBeFocused();
+    await expect(page.getByRole("menuitem", { name: "Save to a folder on disk…" })).toBeFocused();
     await page.keyboard.press("ArrowUp");
   }
   await expect(page.getByRole("menuitem", { name: "Share…" })).toBeFocused();

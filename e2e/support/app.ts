@@ -274,7 +274,7 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Create vault" }).click();
+  await dialog.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await closeEnvironments(page);
   await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();

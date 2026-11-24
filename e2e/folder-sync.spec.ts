@@ -77,8 +77,8 @@ async function makeCollection(page: Page): Promise<void> {
 
 async function keepInFolder(page: Page, collection = "Billing"): Promise<void> {
   await page.getByRole("tree").getByText(collection, { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Keep in a folder…", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: `Keep ${collection} in a folder` });
+  await page.getByRole("menuitem", { name: "Save to a folder on disk…", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: `Save ${collection} to a folder on disk` });
   const kept = page.getByRole("dialog", { name: new RegExp(`^${collection} is kept in `) });
   await dialog.getByRole("button", { name: "Choose a folder" }).click();
   await expect(kept).toBeVisible();

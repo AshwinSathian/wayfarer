@@ -60,6 +60,21 @@ export function unsavedName(url: string): string {
   return url.trim().replace(/^https?:\/\//, "") || "New request";
 }
 
+/**
+ * What an unsaved request's tab calls it (overhaul S3): the last two parts of the address path ("todos/1"), the host
+ * when there is no path, or that it is new. The method is drawn beside it; the whole address is the tab's tooltip.
+ * Text that is not an address (a cURL command typed into the field) is shown as it is.
+ */
+export function tabTitle(url: string): string {
+  const text = url.trim();
+  if (!text) return "New request";
+  if (/\s/.test(text)) return text;
+  const rest = text.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").split(/[?#]/)[0] ?? "";
+  const [host = "", ...path] = rest.split("/");
+  const tail = path.filter(Boolean).slice(-2);
+  return tail.length ? tail.join("/") : host || text;
+}
+
 export interface HolderTarget {
   collectionId: string;
   folderId?: string;

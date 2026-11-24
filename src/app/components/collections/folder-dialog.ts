@@ -9,7 +9,7 @@ import { Dialog } from "../../ui/dialog";
 const SIGN = { same: " ", removed: "−", added: "+" } as const;
 
 /**
- * "Keep in a folder…" of a collection (T2.2, T2.4; docs/design/git.md): the collection as plain files in a folder of
+ * "Save to a folder on disk…" of a collection (T2.2, T2.4; docs/design/git.md): the collection as plain files in a folder of
  * the user's repository. It says what is written and what is not, shows what changed in the folder from outside with
  * each file's diff, and hands the change to the import report on Take. Chromium's folder picker only.
  */
@@ -90,7 +90,7 @@ export class FolderDialog {
   protected readonly title = computed(() => {
     const name = this.collection()?.name ?? "";
     const status = this.status();
-    return status ? `${name} is kept in ${status.folderName}` : `Keep ${name} in a folder`;
+    return status ? `${name} is kept in ${status.folderName}` : `Save ${name} to a folder on disk`;
   });
   protected readonly waiting = computed(() => {
     const state = this.status()?.state;

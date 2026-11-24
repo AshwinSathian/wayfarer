@@ -54,12 +54,13 @@ What each task ends on, and how it gets there:
 - **1.** The caret starts in the address (D4-c): the address, then Enter.
 - **2.** Since D5-e the import's report offers **Import and review
   scripts…**: the collection is stored with its scripts unapproved, and the
-  review opens on it. With nothing stored, the sidebar's Import… opens the
+  review opens on it. With nothing stored, the sidebar's Import used to open the
   file dialog itself (L-16): Import…, the file, Import and review
   scripts…, Trust these scripts, then right-click, Run…, Run: 7. Before,
-  the review was reached through a request's Scripts tab (11). D5-e
-  counted 8 from the steps, with a File… that an empty sidebar does not
-  ask for; the run of 2026-11-05 counts 7.
+  the review was reached through a request's Scripts tab (11). The run of
+  2026-11-05 counts 7. Since then the empty sidebar has the same Import menu
+  as one with collections (Import, File…), so the steps are 8; the run has not
+  been made again.
 - **3.** An environment made while none is in use is the one in use (a
   first one already was; since D5-e any is), so the toolbar's select is
   not part of the task: Environments, New environment, the name, Enter,

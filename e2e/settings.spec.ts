@@ -85,13 +85,17 @@ test.describe("Settings surface", () => {
     for (const [section, control] of [
       ["General", "Request timeout"],
       ["History", "History size"],
-      ["Vault", "Lock the vault when idle"],
       ["Local Bridge", "Bridge address"],
     ] as const) {
       await list.getByRole("button", { name: section, exact: true }).click();
       await expect(list.getByRole("button", { name: section, exact: true })).toHaveAttribute("aria-current", "page");
       await expect(dialog.getByLabel(control)).toBeVisible();
     }
+    // No vault yet: the pane says what it is and offers Set up vault, and has no idle timer for a vault that is not there.
+    await list.getByRole("button", { name: "Vault", exact: true }).click();
+    await expect(dialog.getByRole("button", { name: "Set up vault", exact: true })).toBeVisible();
+    await expect(dialog.getByLabel("Lock the vault when idle")).toHaveCount(0);
+    await list.getByRole("button", { name: "Local Bridge", exact: true }).click();
     // The pane before is gone, not hidden under the new one.
     await expect(dialog.getByLabel("Request timeout")).toHaveCount(0);
     // The list is walked with the arrow keys.

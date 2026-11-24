@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { closeEnvironments, openEnvironments, openSettings } from "./support/app";
+import { closeEnvironments, openEnvironments, openPalette, openSettings } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.6, vault v2 (F09): one data key wrapped by the passphrase. Each test
@@ -18,15 +18,16 @@ async function watchViolations(page: Page): Promise<void> {
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 
 // Before a vault is made it says so (U-164); after, it is locked until unlocked.
-const unlockButton = (page: Page) => page.getByRole("button", { name: /^(Vault locked|No vault)$/ });
+const unlockButton = (page: Page) =>
+  page.getByRole("button", { name: /^(Vault locked|Set up vault to store secrets)$/ });
 const lockButton = (page: Page) => page.getByRole("button", { name: "Vault unlocked", exact: true });
 
 async function createVault(page: Page, passphrase = PASSPHRASE): Promise<void> {
   await unlockButton(page).click();
-  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Set up vault", exact: true });
   await dialog.locator("input[type='password']").nth(0).fill(passphrase);
   await dialog.locator("input[type='password']").nth(1).fill(passphrase);
-  await dialog.getByRole("button", { name: "Create vault" }).click();
+  await dialog.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(lockButton(page)).toBeVisible();
 }
 
@@ -92,13 +93,13 @@ test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, 
 }) => {
   await page.clock.install();
   await page.goto("/app/");
+  await createVault(page);
   await openSettings(page, "Vault");
   const idle = page.getByLabel("Lock the vault when idle");
   await expect(idle).toHaveValue("15");
   await idle.fill("1");
   await idle.blur();
   await page.keyboard.press("Escape");
-  await createVault(page);
 
   // The idle time is counted from the last key press. Pressing one here starts
   // the minute at a known moment: the clock also runs in real time, and on a
@@ -216,14 +217,17 @@ test("a send with the vault locked asks for the passphrase naming the request's 
 test("before a vault is made, the app says there is none, and offers to make one", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  const status = page.getByRole("button", { name: "No vault", exact: true });
+  const status = page.getByRole("button", { name: "Set up vault to store secrets", exact: true });
   await expect(status).toBeVisible();
   await expect(page.getByRole("button", { name: "Vault locked", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Secrets", exact: true }).click();
+  // The list has no status-bar button until there is a vault: the palette opens it.
+  await openPalette(page);
+  await page.keyboard.type("secrets");
+  await page.keyboard.press("Enter");
   const secrets = page.getByRole("dialog", { name: "Secrets" });
   await expect(secrets.getByText("No vault yet.", { exact: false })).toBeVisible();
   await expect(secrets.getByRole("button", { name: "Change passphrase" })).toHaveCount(0);
   await expect(secrets.getByRole("button", { name: "Export vault" })).toHaveCount(0);
-  await secrets.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toBeVisible();
+  await secrets.getByRole("button", { name: "Set up vault", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Set up vault" })).toBeVisible();
 });

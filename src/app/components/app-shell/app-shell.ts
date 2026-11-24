@@ -1,12 +1,33 @@
 import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
+import { ROUTE_NAMES, statusBar } from "@wayfarer/core";
 import { UndoNotice } from "../../services/undo-notice";
 import { ImportPipeline } from "../../services/import-pipeline";
+
+/** Which palette group a command is in: what it does to requests, where it goes, a setting, or the vault. */
+function paletteGroupOf(id: string): PaletteGroup {
+  if (/^(lock|unlock)-secrets$|^open-secrets-manager$/.test(id)) return "Vault";
+  if (
+    /^(toggle-theme|response-under|response-beside|open-settings|open-local-bridge-settings|reset-all-data)$/.test(id)
+  )
+    return "Settings";
+  if (/^(focus-address-bar|toggle-sidebar|open-history|environments|open-docs)$/.test(id)) return "Go to";
+  return "Requests";
+}
+
+/** The toolbar select's last item, which is not an environment. */
+const NEW_ENVIRONMENT = "\u0000new-environment";
+
+/** "today", "1 day ago", "3 days ago": how long since a backup, for the status bar. */
+function daysAgo(time: number): string {
+  const days = Math.floor((Date.now() - time) / 86_400_000);
+  return days < 1 ? "today" : `${days} ${days === 1 ? "day" : "days"} ago`;
+}
 
 /** Where a key types text, and ⌘Z undoes typing. */
 const typingIn = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   (target.isContentEditable || !!target.closest("input, textarea, select, .monaco-editor"));
-import { Palette, PaletteItem } from "../palette/palette";
+import { Palette, PaletteGroup, PaletteItem } from "../palette/palette";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportDialog } from "../import/import-dialog";
 import { NgTemplateOutlet } from "@angular/common";
@@ -127,14 +148,23 @@ export class AppShell implements OnInit {
   readonly themeService = inject(Theme);
   private readonly paneLayout = inject(PaneLayout);
   readonly bridgeService = inject(BridgeSettings);
-  protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
-  /** What the app will do with a request of no other route, not what is chosen (U-131): Auto with no paired bridge sends from the page. */
-  protected readonly routeNow = computed(() => {
-    const { route, url } = this.bridgeService.config();
-    if (route === "auto" && !this.bridgeService.paired()) return this.routeNames.direct;
-    if (route === "bridge" && !url) return this.routeNames.direct;
-    return this.routeNames[route];
-  });
+  /** The device's route as set, in the glossary's words: the setting, not what one send did (audit 12). */
+  protected readonly routeSetting = computed(
+    () =>
+      ROUTE_NAMES[
+        { auto: "auto", direct: "page", bridge: "bridge" }[
+          this.bridgeService.config().route
+        ] as keyof typeof ROUTE_NAMES
+      ],
+  );
+  /** What the vault button does now: one name for the vault, in each of its states. */
+  protected readonly vaultAction = computed(() =>
+    this.secretsService.isUnlocked()
+      ? statusBar.vault.lock
+      : this.secretsService.made() === false
+        ? statusBar.vault.set
+        : statusBar.vault.unlock,
+  );
   protected readonly themeNames = { system: "system", light: "light", dark: "dark" } as const;
   private static readonly THEME_ORDER = ["system", "light", "dark"] as const;
   /** The choice the status bar's theme button makes next: system, light and dark in turn (U-087). */
@@ -161,6 +191,8 @@ export class AppShell implements OnInit {
     this.dropdownOptions.set([
       ...(envs.length ? [{ label: "No environment", value: null }] : []),
       ...envs.map((env) => ({ label: env.name, value: env.meta.id })),
+      // The way to make the first one, and another (audit 20): the select with nothing in it led nowhere.
+      { label: "New environment…", value: NEW_ENVIRONMENT },
     ]);
     this.selectedEnvironmentId.set(this.environmentsService.activeEnvironment()?.meta.id ?? null);
   });
@@ -331,7 +363,7 @@ export class AppShell implements OnInit {
         label: this.secretsUnlocked
           ? "Lock the vault"
           : this.secretsService.made() === false
-            ? "Create vault"
+            ? "Set up vault"
             : "Unlock the vault",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
@@ -407,21 +439,24 @@ export class AppShell implements OnInit {
   get paletteItems(): PaletteItem[] {
     const commands: PaletteItem[] = [...this.paletteCommands, ...(this.sidebar()?.commands() ?? [])].map((action) => ({
       ...action,
-      group: "Commands",
+      group: paletteGroupOf(action.id),
     }));
     const requests: PaletteItem[] = [];
     const places: PaletteItem[] = [];
     for (const { collection, folders, requests: docs } of this.collections.tree()) {
       places.push({
         id: `collection:${collection.meta.id}`,
-        group: "Collections and folders",
+        group: "Go to",
+        findOnly: true,
         label: collection.name,
+        detail: "Collection",
         run: () => this.revealInSidebar(`collection:${collection.meta.id}`),
       });
       for (const folder of folders)
         places.push({
           id: `folder:${folder.meta.id}`,
-          group: "Collections and folders",
+          group: "Go to",
+          findOnly: true,
           label: folder.name,
           detail: collection.name,
           run: () => this.revealInSidebar(`folder:${folder.meta.id}`),
@@ -430,6 +465,7 @@ export class AppShell implements OnInit {
         requests.push({
           id: doc.meta.id,
           group: "Requests",
+          findOnly: true,
           label: doc.name || doc.url,
           detail: doc.url,
           method: doc.method,
@@ -451,6 +487,7 @@ export class AppShell implements OnInit {
       .map((entry) => ({
         id: String(entry.id ?? entry.createdAt),
         group: "History",
+        findOnly: true,
         label: entry.sent.url,
         method: entry.sent.method,
         run: () => void this.handleLoadRequest(entry),
@@ -613,14 +650,29 @@ export class AppShell implements OnInit {
     void this.persistence.refresh();
   }
 
-  /** What the status bar says of where the data is kept. */
+  /** What the status bar says of the data's safety: a backup once there is one, else that there is none (audit 21). */
   protected readonly storageWords = computed(() => {
     if (this.storageUnavailable()) return "Not saved: this browser refuses storage";
+    const last = this.backup.lastBackup();
+    if (last) return statusBar.backup.done(daysAgo(last));
     if (this.persistence.safariNotInstalled) return "Kept by Safari for 7 days without a visit";
-    if (this.persistence.persisted() === false) return "Saved in this browser, which may delete it";
     if (this.persistence.persisted()) return "Kept in this browser";
-    return "Saved in this browser only";
+    return statusBar.backup.none;
   });
+  protected readonly backupTip = computed(() =>
+    this.backup.lastBackup() ? "Data and storage settings" : statusBar.backup.tip,
+  );
+
+  /** The toolbar select's choice: an environment, or the item that opens Environments at a new one's name. */
+  protected chooseEnvironment(id: string | null): void {
+    if (id === NEW_ENVIRONMENT) {
+      this.environmentsService.newRequested.set(true);
+      this.openEnvironmentsTab();
+      return;
+    }
+    this.selectedEnvironmentId.set(id);
+    void this.handleEnvironmentChange(id);
+  }
 
   async handleEnvironmentChange(id: string | null): Promise<void> {
     await this.environmentsService.setActiveEnvironment(id);

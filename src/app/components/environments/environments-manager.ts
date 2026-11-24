@@ -103,6 +103,14 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     });
 
     effect(() => {
+      if (!this.envService.newRequested()) return;
+      untracked(() => {
+        this.envService.newRequested.set(false);
+        this.openNewEnvironmentDialog();
+      });
+    });
+
+    effect(() => {
       const token = this.variableFocus.pending();
       // A token with a holder is for a collection's or a folder's settings, which the shell opens.
       if (!token || token.holder) return;

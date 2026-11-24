@@ -130,3 +130,5 @@ back gets reworded until one can, or removed.
 | C-095 | A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. | docs/folders.md | e2e/folder-sync.spec.ts |
 | C-096 | A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. | docs/folders.md | e2e/folder-sync.spec.ts |
 | C-097 | Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn. | README.md | e2e/focus-visible.spec.ts |
+| C-098 | The status bar says "Not backed up" until a backup was made and then how long ago it was; the only thing kept for it is that time, in `localStorage`. | README.md, docs/storage.md | e2e/status-bar.spec.ts |
+| C-099 | The command palette lists a few commands in each group with what you ran last on top, and finds a saved request by its name, address or method; choosing one opens it and sends nothing. | README.md | e2e/palette.spec.ts |

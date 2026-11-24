@@ -23,6 +23,7 @@ class EnvironmentsServiceStub {
   readonly activeEnvironment = this.activeState.asReadonly();
   readonly globals = signal([]);
   readonly loading = signal(false);
+  readonly newRequested = signal(false);
 
   readonly createCalls: unknown[] = [];
   readonly updateCalls: { id: string; updates: unknown }[] = [];
@@ -114,6 +115,13 @@ describe("EnvironmentsManager", () => {
     const empties = (fixture.nativeElement as HTMLElement).querySelectorAll(".ds-empty-state");
     expect(empties.length).toBe(1);
     expect(empties[0].closest(".env-list")).not.toBeNull();
+  });
+
+  it("opens the name field when the toolbar asked for a new environment, and takes the request", () => {
+    envService.newRequested.set(true);
+    fixture.detectChanges();
+    expect(envService.newRequested()).toBe(false);
+    expect((fixture.nativeElement as HTMLElement).querySelector('input[placeholder^="Staging"]')).not.toBeNull();
   });
 
   it("with environments and none chosen, the editor pane asks for one", () => {

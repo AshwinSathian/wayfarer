@@ -39,18 +39,24 @@ test("the empty response offers a cURL command, and the empty sidebar a collecti
   await expect(paste).toHaveCount(0);
 
   const sidebar = page.locator("app-collections-sidebar");
-  await expect(sidebar).toContainText("Requests you save are kept here, in collections.");
-  await expect(sidebar.getByRole("button", { name: "Import", exact: true })).toHaveCount(0);
+  await expect(sidebar).toContainText("No collections yet.");
   await expect(sidebar.getByRole("button", { name: "New", exact: true })).toHaveCount(0);
+  // The same Import menu as when collections exist: file, cURL command, link (audit 16).
+  await sidebar.getByRole("button", { name: "Import", exact: true }).click();
+  // File, cURL command and Link in every browser; Folder… besides where it can pick one (Chromium).
+  const items = page.getByRole("menuitem");
+  await expect(items.first()).toContainText("File…");
+  await expect(items.nth(1)).toContainText("cURL command…");
+  await expect(items.nth(2)).toContainText("Link…");
   const chooser = page.waitForEvent("filechooser");
-  await sidebar.getByRole("button", { name: "Import…" }).click();
+  await page.getByRole("menuitem", { name: "File…" }).click();
   await chooser;
 
   await sidebar.getByRole("button", { name: "New collection", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New collection" });
   await dialog.getByLabel("Collection name").fill("First");
   await dialog.getByRole("button", { name: "Create" }).click();
-  // A collection exists: the header's Import and New are there, and the empty line has gone.
+  // A collection exists: the header's Import and New are there, and the empty block has gone.
   await expect(sidebar.getByRole("button", { name: "Import", exact: true })).toBeVisible();
   await expect(sidebar.getByRole("button", { name: "New", exact: true })).toBeVisible();
   await expect(sidebar.getByRole("button", { name: "New collection", exact: true })).toHaveCount(0);

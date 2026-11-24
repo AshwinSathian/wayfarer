@@ -65,7 +65,7 @@ test.describe("Phase 0 tripwires", () => {
 
     // The vault is not open: the app asks for it, and closing the dialog sends nothing (D4).
     await send(page);
-    const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+    const dialog = page.getByRole("dialog", { name: "Set up vault", exact: true });
     await expect(dialog).toBeVisible();
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(
@@ -78,7 +78,7 @@ test.describe("Phase 0 tripwires", () => {
     await send(page);
     await dialog.locator("input[type='password']").nth(0).fill("correct horse battery staple");
     await dialog.locator("input[type='password']").nth(1).fill("correct horse battery staple");
-    await dialog.getByRole("button", { name: "Create vault" }).click();
+    await dialog.getByRole("button", { name: "Set up vault", exact: true }).click();
     await expect(
       page.getByRole("alert").filter({ hasText: /refers to a vault secret that could not be read/ }),
     ).toBeVisible();

@@ -74,6 +74,8 @@ function readable() {
   return files;
 }
 
+// Only templates (.html, .astro), docs and the strings file are scanned: a user string written in a .ts file is not (S5d
+// extends this when it sweeps the copy).
 // A word is matched whole and without regard to case. `where` says the files that may still use it.
 const BANNED = [
   { name: "Verdict", re: /\bverdicts?\b/i },
@@ -86,7 +88,7 @@ const BANNED = [
     name: "Postman",
     re: /\bpostman\b/i,
     where:
-      /^(docs\/(import|export|postman-compatibility|getting-started)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/compare|components\/CompareClose))|import|export/,
+      /^(docs\/(import|export|postman-compatibility|getting-started)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/compare|components\/CompareClose)|src\/app\/components\/(import[\w-]*\/|collections\/export-dialog\.html|environments\/environment-export-dialog\.html))/,
   },
   { name: "Create vault", re: /\bcreate vault\b/i },
   { name: "No vault", re: /\bno vault\b(?! yet\.)/i },

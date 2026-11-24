@@ -461,8 +461,10 @@ code errors.
   at both contrast levels; the e2e sweep in `accessibility.spec.ts` scans
   every view in both themes.
 - Chrome and actions are ink; hue means protocol, plus the brand's route hue,
-  rationed (DQ11, overturned in part by the overhaul's S1a: the maintainer
-  approved "chrome is ink" on 2026-10-19, and it now has one exception). The
+  rationed (DQ11, overturned in part by the overhaul's S1a: "chrome is ink"
+  stood from 2026-10-19; the maintainer's decision of 2026-11-24 in
+  PLAN-overhaul is that styling and layout may be overturned except the
+  accessibility and build gates, and it now has one exception). The
   ink (`--ink`, the primary label) is Send's fill, a checked box and every
   action; Send stays ink. A `method` or `status` token carries a hue, and so
   do the `--route`, `--route-text` and `--route-fill` tokens (hue 200), which

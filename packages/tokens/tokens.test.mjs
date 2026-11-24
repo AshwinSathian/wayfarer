@@ -375,7 +375,6 @@ test("no template draws a dashed box", () => {
 // link, a button, a fill of a control and Send stay ink (loupe: a brand colour everywhere is a tell).
 test("the route tokens are named only where the brand hue is drawn", () => {
   const allowed = new Set([
-    "styles.css", // would carry a utility, if one were wanted
     "app/ui/tree.css", // the selected row's mark
   ]);
   const found = sources(/\.(html|ts|css)$/, (file) => /\.spec\.ts$|^design-system\/tokens\./.test(file))

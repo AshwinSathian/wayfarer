@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-11-25
+
+A redesign around one idea: you can see where a request goes. A route strip under the address draws the path from this page to the host, with a solid block where a secret was sent and masked, and a broken path when nothing arrived. After a send, a Sent part shows what the app built, history can be filtered and compared, and a variable's button says where its value comes from. There is a new mark, new method colours with a shape each, and the same words in every place.
+
+Your data carries over: the database is unchanged. Three small settings (the palette's recent commands, whether the first-run walk is done, and the jump keys switch) are new, and Reset all data removes them.
+
 ### Added
 
 - **A send that got no response draws a broken path, and the status line says what class of status it has.** The route strip showed the same full line and filled end for a refused connection as for a 200. It now stops the line short of the host, puts a cross in the gap and draws the host as a dashed outline, and says "Not delivered: tried from this page" ("No answer" for a timeout, "Stopped" when you stopped it). A 404 or a 500 still draws a whole path, since the request reached the host. A status is drawn with a glyph of its own shape (a tick, an arrow, a circle with a mark, a crossed circle) and a word for a screen reader, so a 200, a 404 and a 500 differ without their colour.

@@ -1,12 +1,10 @@
 <!-- There from the first render, so a screen reader hears it when scripts are held (U-075). -->
 <p class="sr-only" role="status">{{ store.scriptsHeld() ? heldText : '' }}</p>
 @if (store.scriptsHeld()) {
-<div
-  class="scripts-held flex flex-wrap items-center gap-3 rounded-lg px-4 py-3 bg-status-warning-fill border border-status-warning-border"
->
+<div class="scripts-held flex flex-wrap items-center gap-3 py-2">
   <div class="flex flex-1 basis-56 min-w-0 items-start gap-2">
     <app-icon name="warning" class="icon-sm shrink-0 mt-0.5 text-status-warning" />
-    <p class="type-callout text-status-warning" aria-hidden="true">{{ heldText }}</p>
+    <p class="type-callout text-label-primary" aria-hidden="true">{{ heldText }}</p>
   </div>
   <button type="button" uiButton="outlined" class="btn-secondary btn-sm" (click)="reviewing.set(true)"
     >Review scripts…</button

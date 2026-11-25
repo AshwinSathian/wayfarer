@@ -92,6 +92,12 @@ dialog.palette[open] {
   white-space: nowrap;
 }
 
+/* A request's detail is its address, a value: the wire's face. The others ("Collection", "In use") are words. */
+.palette-detail.palette-detail-words {
+  font-family: var(--font-sans);
+  font-size: var(--type-footnote-size);
+}
+
 .palette-keys {
   flex: none;
   margin-inline-start: auto;

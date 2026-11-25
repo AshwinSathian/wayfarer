@@ -26,11 +26,12 @@ test("@claim:C-069 with no provider, Settings › AI says nothing is sent and of
   await page.getByRole("button", { name: "Search or run a command" }).click();
   const palette = page.getByRole("combobox", { name: /^Search requests/ });
   await expect(palette).toBeFocused();
-  // The palette finds what is there: Settings, and no AI command.
+  // The palette finds what is there: Settings, and no AI command. "Settings: AI" is the way to Settings › AI, which the
+  // palette lists for every section (C-124), so it is not an AI command and is the one entry that names AI.
   await palette.fill("Settings");
   await expect(page.getByRole("option", { name: /Settings/ }).first()).toBeVisible();
   await palette.fill("AI");
-  await expect(page.getByRole("option", { name: /AI/ })).toHaveCount(0);
+  await expect(page.getByRole("option", { name: /AI/ })).toHaveText(["Settings: AI"]);
   await page.keyboard.press("Escape");
   const settings = await openSettings(page, "AI");
   await expect(settings).toContainText("Wayfarer sends nothing to a model until you add one here.");

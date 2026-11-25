@@ -4,7 +4,13 @@
   ><app-icon name="warning" class="icon-xs" />No response</span
 >
 } @else {
-<span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span>
+<span class="inline-flex items-center gap-1.5"
+  ><!-- A glyph of its own shape per class: the hue is not the only difference between a 200 and a 500. --><app-icon
+    [name]="statusMark(statusCode).icon"
+    [class]="'icon-xs ' + statusMark(statusCode).tone"
+  /><span class="sr-only">{{ statusMark(statusCode).label }}. </span
+  ><span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span></span
+>
 }
 
 <!-- Status text -->

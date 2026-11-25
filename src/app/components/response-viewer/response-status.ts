@@ -10,7 +10,7 @@ import {
 } from "@wayfarer/core";
 import type { ExchangeView } from "../../state/exchange-view";
 import { NOT_COPIED, writeToClipboard } from "../../shared/http/clipboard";
-import { statusTone } from "../../shared/http/status-tone";
+import { statusMark, statusTone } from "../../shared/http/status-tone";
 import { transientNote } from "../../shared/http/transient-note";
 import { Icon } from "../../shared/icon/icon";
 import { exportRedactor } from "../../shared/inspect/export";
@@ -42,6 +42,7 @@ export class ResponseStatus {
   readonly exportHar = output<HarSource>();
 
   protected readonly statusTone = statusTone;
+  protected readonly statusMark = statusMark;
   protected readonly formatDuration = formatDuration;
   protected readonly formatBytes = formatBytes;
   /** What the last copy did, beside the export button for a few seconds (U-050). */

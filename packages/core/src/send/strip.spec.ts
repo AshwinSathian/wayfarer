@@ -42,7 +42,11 @@ describe("the strip before a send", () => {
     expect(view.text).toBe(
       "From this page, then the Local Bridge if it fails. GET api.example.com. Uses secret: API key. 2 variables, 1 script held.",
     );
-    expect(view.summary).toBe("Uses secret: API key, 2 variables, 1 script held");
+    expect(view.line).toBe(
+      "From this page, then the Local Bridge if it fails · Uses secret: API key · 2 variables, 1 script held",
+    );
+    expect(stripView(input({ variables: 1 })).line).toBe("From this page · 1 variable");
+    expect(view.hasHost).toBe(true);
   });
 
   it("names trusted scripts, and a WebSocket has no bridge", () => {
@@ -52,6 +56,7 @@ describe("the strip before a send", () => {
 
   it("has a stop for a request with no address yet", () => {
     expect(stripView(input({ host: "" })).host).toBe("No address yet");
+    expect(stripView(input({ host: "" })).hasHost).toBe(false);
     expect(stripView(input({ host: "" })).text).toBe("From this page. No address yet.");
   });
 });
@@ -76,17 +81,34 @@ describe("the strip after a send", () => {
     );
   });
 
-  it("with no response says so, and no secrets sentence when none went", () => {
-    const view = stripView(
-      input({
-        record: record({
-          status: undefined,
-          failure: { kind: "network", reported: "Failed to fetch", summary: "The request got no response." },
+  it("@claim:C-100 a send that got no response is a broken path, and says how far it got", () => {
+    const failed = (kind: "network" | "timeout" | "aborted" | "bridge", over: Partial<ExchangeRecord> = {}) =>
+      stripView(
+        input({
+          record: record({
+            status: undefined,
+            failure: { kind, reported: "Failed to fetch", summary: "The request got no response." },
+            ...over,
+          }),
         }),
-      }),
-    );
+      );
+    const view = failed("network");
+    expect(view.broken).toBe(true);
+    expect(view.route).toBe("Not delivered: tried from this page");
     expect(view.secrets).toBe("");
-    expect(view.text).toBe("Sent from this page. The request got no response. GET api.example.com.");
+    expect(view.text).toBe("Not delivered: tried from this page. The request got no response. GET api.example.com.");
+    expect(failed("timeout").route).toBe("No answer: tried from this page");
+    expect(failed("aborted").route).toBe("Stopped: tried from this page");
+    expect(failed("bridge", { route: "bridge" }).route).toBe("Not delivered: tried through the Local Bridge");
+  });
+
+  it("a reply of any status is a whole path: the request reached the host", () => {
+    for (const code of [200, 404, 500]) {
+      const view = stripView(input({ record: record({ status: { code, text: "x" } }) }));
+      expect(view.broken).toBe(false);
+      expect(view.route).toBe("Sent from this page");
+    }
+    expect(stripView(input()).broken).toBe(false);
   });
 });
 

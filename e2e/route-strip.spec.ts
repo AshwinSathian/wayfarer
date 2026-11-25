@@ -14,7 +14,7 @@ const address = (page: Page) => page.locator("input.address-url");
 const spoken = async (page: Page) => {
   const group = strip(page).getByRole("group");
   if (await group.count()) return group.getAttribute("aria-label");
-  return strip(page).locator(".route-toggle .sr-only").textContent();
+  return (await strip(page).locator(".route-toggle .sr-only").textContent())?.trim();
 };
 const answered = (page: Page) => expect(page.locator(".status-badge")).toBeVisible({ timeout: 15_000 });
 
@@ -38,6 +38,61 @@ test("@claim:C-100 the strip says where the request will leave from and to which
   // An edit that goes to another host is not what was sent: the strip says what it will do.
   await address(page).fill("http://localhost:4300/echo");
   await expect(strip(page).locator(".route-label-route")).toHaveText("From this page");
+});
+
+// What a send that got no response looks like is a path that stops short, told from a whole one by its shape.
+test("@claim:C-100 a send that got no response is a broken path, and a 404 or a 500 is a whole one", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  await address(page).fill("http://127.0.0.1:9/nothing-listens");
+  await send(page);
+  await expect(page.locator(".response-status")).toContainText("No response");
+  const track = strip(page).locator(".route-track");
+  await expect(track).toHaveClass(/is-broken/);
+  await expect(track.locator(".route-break")).toBeVisible();
+  await expect(track.locator(".route-node-hollow")).toBeVisible();
+  await expect(strip(page).locator(".route-label-route")).toHaveText("Not delivered: tried from this page");
+  expect(await spoken(page)).toBe("Not delivered: tried from this page. The request got no response. GET 127.0.0.1:9.");
+  // The line stops before the host's node, and does not reach it.
+  const gap = await track.evaluate((el) => {
+    const rail = el.querySelector(".route-rail")!.getBoundingClientRect();
+    const host = el.querySelector(".route-node-hollow")!.getBoundingClientRect();
+    return host.left - rail.right;
+  });
+  expect(gap).toBeGreaterThan(20);
+
+  for (const code of [404, 500]) {
+    await address(page).fill(`${ECHO}/status/${code}`);
+    await send(page);
+    await answered(page);
+    await expect(track).not.toHaveClass(/is-broken/);
+    await expect(track.locator(".route-break, .route-node-hollow")).toHaveCount(0);
+    await expect(strip(page).locator(".route-label-route")).toHaveText("Sent from this page");
+  }
+});
+
+test("at 390 px the folded strip keeps its path, its host and its words, and its fold is a button with words", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/");
+  await address(page).fill(`${ECHO}/echo?a={{x}}`);
+  await expect(strip(page).locator(".route-compact-track .route-track")).toBeVisible();
+  await expect(strip(page).locator(".route-host")).toHaveText("127.0.0.1:4300");
+  await expect(strip(page).locator(".route-compact-text")).toContainText("From this page");
+  const toggle = strip(page).locator(".route-toggle");
+  await expect(toggle).toContainText("Show the whole route");
+  // The path is left of the host, the words under them, the fold after the words: the order of the wide strip.
+  const [track, host, line] = await Promise.all(
+    [".route-track", ".route-host", ".route-compact-text"].map(
+      async (selector) => (await strip(page).locator(selector).first().boundingBox())!,
+    ),
+  );
+  expect(track.x).toBeLessThan(host.x);
+  expect(line.y).toBeGreaterThan(host.y);
+  await expect(toggle).toHaveAccessibleName(/^Show the whole route\s+From this page/);
 });
 
 test.describe("through a Local Bridge", () => {

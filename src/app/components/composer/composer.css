@@ -34,9 +34,10 @@
 
 /* Six tabs beside the response: a little less room each, so that all of them fit at 820 px. Each ends in its badge's
    slot (audit 9), which is always there: the slot takes the place of the end padding, so that six tabs with their
-   slots are about as wide as six words were. */
+   slots are about as wide as six words were. At 1,440 px beside the pinned sidebar the bar has 441 px, and "Network",
+   the last, was cut by the bar's fade with 10 px and 4 px (455 px of tabs): 8 and 2 give 431. */
 .composer-pane [role="tab"] {
-  padding-inline: 10px 4px;
+  padding-inline: 8px 2px;
 }
 
 /* The response under the request (L-6, L-7): the line is across, and each pane keeps its room from it above and

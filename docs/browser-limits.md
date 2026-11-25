@@ -33,7 +33,7 @@ twice. Each response says where it was sent from: "Sent from this page" or "Sent
 
 Under the address a strip draws the request as a path: where it will leave
 from, a block on the line when it names a vault secret, and the host.
-<!-- claim:C-100 --> Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge.
+<!-- claim:C-100 --> Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge. A send that got no response is drawn as a broken path, the line stopping short of the host with a cross and the host hollow, and says it was not delivered; a reply of any status, a 404 or a 500 too, is a whole path.
 
 The strip names a secret by the variable that holds it ("Uses secret: API key")
 and never opens the vault to do so: the vault is read after the pre-request

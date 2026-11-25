@@ -132,7 +132,7 @@
 .ui-select.env-switcher {
   /* In rem, so that with larger text the select grows with it and the environment's name is not cut (WCAG 1.4.4). */
   flex: 0 1 10rem;
-  min-width: 5rem;
+  min-width: 4rem;
   max-width: 14rem;
   height: var(--ctl-height-md);
   padding-inline-start: 10px;

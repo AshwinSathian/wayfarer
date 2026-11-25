@@ -552,6 +552,17 @@ pre,
   .ds-table.run-results :is(th, td) {
     padding-inline: 6px;
   }
+
+  /* The actions share the column's room, each on a line of its own, its words wrapping: they were cut at the edge of
+     the table ("Show reco"), or scrolled out of view. */
+  .ds-table.run-results .run-action {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding-block: 2px;
+    white-space: normal;
+    text-align: end;
+  }
 }
 
 /* A response's headers (U-058): a name or a value breaks between words, and inside one only when nothing else fits.

@@ -1,19 +1,48 @@
 @let v = view();
 <!-- One string to a screen reader: the path is drawn for the eye. The words in it are the strings' (`strip`, `sent`). -->
-@if (compact()) {
-<div class="route-compact">
-  <span class="route-stop" aria-hidden="true">
+<!-- The path: the origin, a block when a secret is named, the host. After a send with no response it is broken: the
+     line stops short of the host, a cross stands in the gap and the host's node is hollow and dashed, so that it is
+     told from a whole path by its shape and not by its hue (a reply of any status reached the host: a whole path). -->
+<ng-template #track>
+  <div class="route-track" [class.is-broken]="v.broken" aria-hidden="true">
+    <span class="route-rail"></span>
+    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="6" />
+    </svg>
+    @if (v.secrets) {
+    <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <rect x="0" y="4" width="20" height="12" rx="2" />
+    </svg>
+    } @if (v.broken) {
+    <svg class="route-break" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <path d="M5 5l10 10M15 5L5 15" />
+    </svg>
+    <svg class="route-node route-node-hollow" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <circle cx="10" cy="10" r="7" />
+    </svg>
+    } @else {
     <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
       <circle cx="10" cy="10" r="8" />
     </svg>
-    <span class="route-host">{{ v.host }}</span>
-  </span>
-  <span class="route-rail" aria-hidden="true"></span>
-  <button type="button" class="route-toggle" [attr.aria-expanded]="open()" (click)="open.set(!open())">
-    <span class="sr-only">{{ v.text }}</span>
-    <span aria-hidden="true">{{ v.summary }}</span>
-    <app-icon [name]="open() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs" />
-  </button>
+    }
+  </div>
+</ng-template>
+@if (compact()) {
+<div class="route-compact">
+  <!-- Two rows, read in the order of the wide strip: the path and its host, then the words and the fold. -->
+  <div class="route-compact-path" aria-hidden="true">
+    <div class="route-compact-track"><ng-container [ngTemplateOutlet]="track" /></div>
+    <span class="route-host" [class.route-host-none]="!v.hasHost">{{ v.host }}</span>
+  </div>
+  <div class="route-compact-line">
+    <span class="route-compact-text" aria-hidden="true">{{ v.line }}</span>
+    <button type="button" class="route-toggle" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+      <span>{{ open() ? hideLabel : showLabel }}</span>
+      <app-icon [name]="open() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs" />
+      <!-- The visible words are in the name, then the whole strip. -->
+      <span class="sr-only">&ngsp;{{ v.text }}</span>
+    </button>
+  </div>
 </div>
 @if (open()) {
 <ol id="route-strip-full" class="route-stack" aria-hidden="true">
@@ -32,11 +61,19 @@
   </li>
   }
   <li class="route-stop">
-    <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-      <circle cx="10" cy="10" r="8" />
+    <svg
+      class="route-node"
+      [class.route-node-hollow]="v.broken"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      focusable="false"
+    >
+      <circle cx="10" cy="10" [attr.r]="v.broken ? 7 : 8" />
     </svg>
     <span class="route-label"
-      ><span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span></span
+      ><span class="route-method">{{ v.method }}</span>
+      <span class="route-host" [class.route-host-none]="!v.hasHost">{{ v.host }}</span></span
     >
   </li>
   @if (v.facts) {
@@ -49,27 +86,15 @@
 } } @else {
 <div class="route-wide-row">
   <div class="route-wide" role="group" tabindex="0" [attr.aria-label]="v.text">
-    <div class="route-track" aria-hidden="true">
-      <span class="route-rail"></span>
-      <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-        <circle cx="10" cy="10" r="6" />
-      </svg>
-      @if (v.secrets) {
-      <svg class="route-node route-node-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-        <rect x="0" y="4" width="20" height="12" rx="2" />
-      </svg>
-      }
-      <svg class="route-node" width="20" height="20" viewBox="0 0 20 20" focusable="false">
-        <circle cx="10" cy="10" r="8" />
-      </svg>
-    </div>
+    <ng-container [ngTemplateOutlet]="track" />
     <div class="route-labels" [class.has-block]="!!v.secrets" aria-hidden="true">
       <p class="route-label route-label-route">{{ v.route }}</p>
       @if (v.secrets) {
       <p class="route-label route-label-block">{{ v.secrets }}</p>
       }
       <p class="route-label route-label-host">
-        <span class="route-method">{{ v.method }}</span> <span class="route-host">{{ v.host }}</span>
+        <span class="route-method">{{ v.method }}</span>
+        <span class="route-host" [class.route-host-none]="!v.hasHost">{{ v.host }}</span>
       </p>
     </div>
   </div>

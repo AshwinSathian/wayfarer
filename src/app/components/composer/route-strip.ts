@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from "@angular/core";
 import { addressProblem, scriptsOf, strip, stripView, type AddressProblem, type StripInput } from "@wayfarer/core";
 import { BridgeSettings } from "../../services/bridge-settings";
@@ -30,7 +31,7 @@ export interface StripPreset {
  */
 @Component({
   selector: "app-route-strip",
-  imports: [Icon, UiButton],
+  imports: [Icon, NgTemplateOutlet, UiButton],
   templateUrl: "./route-strip.html",
   styleUrl: "./route-strip.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +61,8 @@ export class RouteStrip {
   private readonly slow = signal(false);
   protected readonly running = computed(() => this.preset()?.running ?? this.slow());
   protected readonly sendAnywayLabel = strip.sendAnyway;
+  protected readonly showLabel = strip.showAll;
+  protected readonly hideLabel = strip.hideAll;
 
   /** The address is one the request can go to: a WebSocket's is any `ws:` or `wss:` address the page can read. */
   private readonly valid = computed(() => (this.socket.isSocket() ? !!this.socket.host() : this.store.addressValid()));

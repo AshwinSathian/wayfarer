@@ -401,6 +401,8 @@ for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
   test(`${path} is not wider than a window of 320, 360, 390, 820 or 1,440 px, and has no axe violation`, async ({
     page,
   }) => {
+    // Five loads and five axe scans: CI's Firefox took 30 to 34 s, and the first attempt timed out at 30.
+    test.slow();
     for (const width of [320, 360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(path);

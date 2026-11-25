@@ -197,11 +197,13 @@ export const scriptReview = {
   title: "Review scripts",
   lead: "These scripts run on your computer when you send. Read them before you trust them.",
   flags: {
-    sendRequest: "Calls pm.sendRequest: it can send other requests from this page.",
-    variables: "Reads or writes variables: pm.environment, pm.collectionVariables.",
-    vault: "Asks for secrets: pm.vault.",
+    sendRequest: (lines: readonly number[]) =>
+      `Calls pm.sendRequest on ${lines.length === 1 ? "line" : "lines"} ${lines.join(", ")}: it can send other requests from this page.`,
+    variables: "Reads or writes variables.",
   },
-  counts: (scripts: number, lines: number) => `${scripts} ${scripts === 1 ? "script" : "scripts"}, ${lines} lines.`,
+  callMark: "sends a request",
+  counts: (scripts: number, lines: number, where: string) =>
+    `${scripts} ${scripts === 1 ? "script" : "scripts"} in ${where}, ${lines} ${lines === 1 ? "line" : "lines"}.`,
   trust: "Trust these scripts",
   notNow: "Not now",
   trusted: "Scripts trusted. They run when you send.",

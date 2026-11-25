@@ -271,3 +271,37 @@ test("the review shows a script's characters as they are: no ligature joins => o
   );
   expect(joined).toEqual([]);
 });
+
+test("@claim:C-109 the review shows all of each script's code with its line numbers, and marks the lines that call pm.sendRequest", async ({
+  page,
+}) => {
+  await captureTarget(page);
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const post = [
+    "const base = pm.environment.get('base');",
+    ...Array.from({ length: 30 }, (_, i) => `// step ${i}`),
+    `pm.sendRequest('${TARGET}/other', () => {});`,
+  ].join("\n");
+  await importFile(page, post);
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await page
+    .getByRole("tab", { name: /^Scripts( |$)/ })
+    .first()
+    .click();
+  await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
+  const review = page.getByRole("dialog", { name: "Review scripts" });
+  await expect(review).toContainText("2 scripts in 1 request, 33 lines.");
+  // The code is not in a box that scrolls: its last line is as tall as it is.
+  const code = review.locator(".script-review-code").last();
+  const box = await code.evaluate((el) => ({ client: el.clientHeight, scroll: el.scrollHeight }));
+  expect(box.scroll).toBeLessThanOrEqual(box.client);
+  await expect(code.locator(".script-line")).toHaveCount(32);
+  const call = code.locator(".script-line.is-call");
+  await expect(call).toHaveCount(1);
+  await expect(call).toContainText("pm.sendRequest");
+  await expect(review.locator(".script-review-calls")).toContainText("Calls pm.sendRequest on line 32");
+  // A script that does not name it is not marked.
+  await expect(review.locator(".script-review-code").first().locator(".is-call")).toHaveCount(0);
+});

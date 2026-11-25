@@ -9,7 +9,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.goto("/app/");
 
     // Before any response exists, the response pane shows its own empty state.
-    await expect(page.getByText("Send a request and its response shows here.")).toBeVisible();
+    await expect(page.getByText("Send a request to see what comes back.")).toBeVisible();
 
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();

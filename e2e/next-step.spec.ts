@@ -10,7 +10,7 @@ test("a request ready to send is offered Send, not a cURL command or an import",
   const pane = page.locator(".response-pane");
   await expect(pane.getByRole("button", { name: "Paste a cURL command" })).toBeVisible();
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await expect(pane).toContainText(/^Send this request \((⌘↵|Ctrl\+Enter)\) and its response shows here\.$/);
+  await expect(pane).toContainText(/^Not sent yet\.(⌘↵|Ctrl\+Enter) sends it\. The response appears here\.$/);
   await expect(pane.getByRole("button", { name: "Paste a cURL command" })).toHaveCount(0);
 });
 
@@ -34,7 +34,9 @@ test.describe("the first run's example", () => {
   // With the service worker in control, WebKit's page.route does not see the page's request, and the real API answered.
   test.use({ serviceWorkers: "block" });
 
-  test("Try an example puts an address in the tab and sends nothing until Send", async ({ page }) => {
+  test("@claim:C-108 Try an example sends one request to the host the empty state names, and the response shows", async ({
+    page,
+  }) => {
     // The example is a public API; the test answers it here, as e2e reaches nothing outside this machine (P1.2).
     const asked: string[] = [];
     await page.route(
@@ -50,13 +52,20 @@ test.describe("the first run's example", () => {
       },
     );
     await page.goto("/app/");
-    await page.locator(".response-pane").getByRole("button", { name: "Try an example" }).click();
-    const address = page.locator("input.address-url");
-    await expect(address).toHaveValue(/^https:\/\/[^/{}]+\/todos\/1$/);
-    await expect(address).toBeFocused();
+    const pane = page.locator(".response-pane");
+    // The host is said before the click, and nothing has gone to it.
+    await expect(pane).toContainText(
+      "Try an example sends GET https://jsonplaceholder.typicode.com/todos/1 from this page.",
+    );
     expect(asked).toEqual([]);
-    await send(page);
+    await pane.getByRole("button", { name: "Try an example" }).click();
+    const address = page.locator("input.address-url");
+    await expect(address).toHaveValue("https://jsonplaceholder.typicode.com/todos/1");
     await expect(page.locator(".status-badge")).toHaveText("200");
-    expect(asked).toEqual([await address.inputValue()]);
+    await expect(page.locator("app-route-strip .route-label-route")).toHaveText("Sent from this page");
+    await expect(page.locator("app-route-strip").getByRole("group")).toHaveAccessibleName(
+      /^Sent from this page\. 200 OK, [\d.]+ m?s\. GET jsonplaceholder\.typicode\.com\.$/,
+    );
+    expect(asked).toEqual(["https://jsonplaceholder.typicode.com/todos/1"]);
   });
 });

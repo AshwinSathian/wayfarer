@@ -193,6 +193,9 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A send that gets no response says what happened, why as far as the page can tell, and one next action: you are offline, the server did not answer from the page, no answer came before the timeout, you stopped it, or the Local Bridge could not send it (it did not answer, did not accept the token, the server refused the connection, the name did not resolve, or the certificate was not accepted); what the browser or the bridge reported is behind Details. <!-- claim:C-104 -->
 - The Timings tab draws the phases of a send in one strip against the whole and says where they came from: the browser, or the Local Bridge when the request went through it; where the server does not share timing it shows the total alone and says so, and a send read back from History says its timings are not recorded. <!-- claim:C-105 -->
 - When a request's scripts were left out because they are not reviewed, the Tests tab says the scripts did not run, so their tests did not either, marks its tab, and offers the review, instead of saying the request has no tests. <!-- claim:C-106 -->
+- A cURL command typed or dropped into the address field, not only pasted, is offered as an import in the line under the route strip, and so is a method typed before an address (`POST https://...`); taking the offer reads the command into the request and does not run it. <!-- claim:C-107 -->
+- On an empty tab, "Try an example" sends one GET request from the page to the example address the empty state names, and the response shows with the route strip's account of the send. <!-- claim:C-108 -->
+- The review of scripts shows all of each script's code with its line numbers before the Trust button, and marks the lines that name `pm.sendRequest`; a call whose name the script builds when it runs is not marked. <!-- claim:C-109 -->
 <!-- features:end -->
 
 </details>

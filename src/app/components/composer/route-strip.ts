@@ -12,6 +12,8 @@ import { UiButton } from "../../ui/button";
 /** Nothing moves for a reply that comes sooner (D3.7): the response is there before the eye looks for a sign of it. */
 const RUN_AFTER_MS = 150;
 
+let nextProblemId = 0;
+
 /** A state of the strip drawn as given, for the catalogue: it reads no store. */
 export interface StripPreset {
   input: StripInput;
@@ -35,6 +37,8 @@ export interface StripPreset {
   host: { class: "route-strip block", "[class.is-compact]": "compact()", "[class.is-running]": "running()" },
 })
 export class RouteStrip {
+  /** The problem's text names the offer's button (`aria-describedby`), and two strips may be on one page. */
+  protected readonly problemId = `route-problem-${nextProblemId++}`;
   private readonly store = inject(WorkspaceStore);
   private readonly saved = inject(RequestSave);
   private readonly bridge = inject(BridgeSettings);
@@ -46,6 +50,8 @@ export class RouteStrip {
   readonly compact = input(false);
   /** "Send anyway", offered for the variables that held the last send back. */
   readonly sendAnyway = output<void>();
+  /** The problem line's offer was taken: import the typed cURL command, or use the method it names. */
+  readonly offered = output<NonNullable<AddressProblem["offer"]>>();
 
   /** The catalogue's states: when given, the strip is drawn from it and not from the open tab. */
   readonly preset = input<StripPreset | null>(null);
@@ -100,12 +106,18 @@ export class RouteStrip {
   protected readonly problem = computed(() => {
     const preset = this.preset();
     if (preset) return preset.problem ?? null;
-    const refused = this.store.endpointError();
-    if (refused) return { kind: "address" as const, text: refused };
     const missing = this.variables()
       .filter((variable) => variable.source === "missing")
       .map((variable) => variable.name);
-    return addressProblem(this.store.draft().url, this.valid(), missing, this.environments.activeEnvironment()?.name);
+    const found = addressProblem(
+      this.store.draft().url,
+      this.valid(),
+      missing,
+      this.environments.activeEnvironment()?.name,
+    );
+    // An offer says more than the refusal of a send does: a cURL command typed here is imported, not refused.
+    const refused = this.store.endpointError();
+    return found?.offer || !refused ? found : { kind: "address" as const, text: refused };
   });
   protected readonly blocked = computed(() => (this.preset() ? [] : this.store.unresolvedBlocked()));
 

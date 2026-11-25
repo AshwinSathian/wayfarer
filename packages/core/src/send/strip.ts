@@ -1,4 +1,5 @@
-import type { Route } from "../model/request";
+import { isCurlCommand } from "../import/curl-command";
+import { HTTP_METHODS, type Route } from "../model/request";
 import { sent, strip } from "../strings";
 import { formatDuration, type ExchangeRecord } from "./record";
 
@@ -95,6 +96,25 @@ export function stripView(input: StripInput): StripView {
 export interface AddressProblem {
   kind: "empty" | "missing" | "address";
   text: string;
+  /** What the problem line offers to do about it: read the text as a cURL command, or as a method and an address. */
+  offer?: { kind: "curl"; label: string } | { kind: "method"; label: string; method: string; address: string };
+}
+
+/** `GET https://host/path` typed into the address: a method, one space or more, and an address. */
+const METHOD_AND_ADDRESS = /^\s*([A-Za-z]+)\s+((?:https?|wss?):\/\/\S+|\{\{\S*)\s*$/;
+
+/** The offer for text typed or dropped into the address that is a command or a method and an address, not an address. */
+function typedOffer(url: string): AddressProblem | null {
+  if (isCurlCommand(url))
+    return { kind: "address", text: strip.typedCurl, offer: { kind: "curl", label: strip.typedCurlAction } };
+  const [, word = "", address = ""] = METHOD_AND_ADDRESS.exec(url) ?? [];
+  const method = word.toUpperCase();
+  if (!address || !(HTTP_METHODS as readonly string[]).includes(method)) return null;
+  return {
+    kind: "address",
+    text: strip.typedMethodAndAddress(method, address),
+    offer: { kind: "method", label: strip.typedMethodAction, method, address },
+  };
 }
 
 /**
@@ -107,6 +127,8 @@ export function addressProblem(
   environment?: string,
 ): AddressProblem | null {
   if (!url.trim()) return { kind: "empty", text: strip.needsAddress };
+  const typed = typedOffer(url);
+  if (typed) return typed;
   const [first] = missing;
   if (first !== undefined)
     return {

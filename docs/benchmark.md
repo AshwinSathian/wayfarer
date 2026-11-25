@@ -71,7 +71,7 @@ What each task ends on, and how it gets there:
 - **4.** The same holds for the vault's environment: made while none is in
   use, it is the one in use, so the task no longer opens the toolbar's
   select and chooses it (U-203): 18, was 20.
-- **5a and 5b** end when the cause is named. A direct send says "No
+- **5a and 5b** end when the cause is named. A send from the page says "No
   response" and why the browser cannot say more, with **Send through the
   Local Bridge**. From the failure's record the task copies the command,
   types the code the bridge printed, pairs and sends again (Copy, the code,

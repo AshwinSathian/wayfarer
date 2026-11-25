@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from "@angular/core";
-import { scriptDigest, unsupportedApis } from "@wayfarer/core";
+import { scriptDigest, scriptFlags, scriptReview, unsupportedApis } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
 import { UiButton } from "../../ui/button";
 import { ScriptTrust } from "../../services/script-trust";
@@ -36,8 +36,9 @@ function shown(text: string): string {
   styles: `
     .script-review-code {
       margin: 0;
-      max-height: 16rem;
-      overflow: auto;
+      /* All of the code is on the page, to be read before the button: the dialog scrolls, not a box in it. */
+      overflow-x: auto;
+      counter-reset: line;
       padding: 10px 12px;
       border-radius: var(--radius-sm);
       background: var(--canvas-panel);
@@ -51,6 +52,33 @@ function shown(text: string): string {
       direction: ltr;
       unicode-bidi: isolate;
     }
+    /* A line is as wide as the box, so that a mark covers it. Its number is drawn, not text: it is not copied, and
+       its empty alternative keeps it from being read out. */
+    .script-line {
+      display: inline-block;
+      min-width: 100%;
+      counter-increment: line;
+    }
+    .script-line::before {
+      content: counter(line) / "";
+      display: inline-block;
+      box-sizing: content-box;
+      width: 3ch;
+      margin-right: 1.5ch;
+      text-align: right;
+      color: var(--label-tertiary);
+      user-select: none;
+    }
+    /* Not by colour alone: the line says what it does. */
+    .script-line.is-call {
+      background: var(--fill-secondary);
+      font-weight: 600;
+    }
+    .script-line.is-call::after {
+      content: "  <- " attr(data-mark) / "";
+      color: var(--label-secondary);
+      font-weight: 400;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -62,6 +90,7 @@ export class ScriptReviewDialog {
   /** The scripts were approved: a run that sent without them can say to run again (U-039). */
   readonly approved = output<void>();
 
+  protected readonly text = scriptReview;
   protected readonly saving = signal(false);
   protected readonly count = computed(() =>
     this.trust
@@ -76,6 +105,7 @@ export class ScriptReviewDialog {
     const parts = [...(count("collection") ? ["the collection"] : []), ...some("folder"), ...some("request")];
     return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
   });
+  protected readonly lineCount = computed(() => this.scripts().reduce((sum, script) => sum + script.lines.length, 0));
   protected readonly scripts = computed(() =>
     this.trust.toReview().flatMap((holder) =>
       (
@@ -85,14 +115,24 @@ export class ScriptReviewDialog {
         ] as const
       )
         .filter(([, text]) => text.trim())
-        .map(([kind, text]) => ({
-          holder: holder.name,
-          kind: `${holder.kind} · ${kind}`,
-          text,
-          shown: shown(text),
-          hidden: HIDDEN.test(text),
-          unsupported: unsupportedApis(text),
-        })),
+        .map(([kind, text]) => {
+          const flags = scriptFlags(text);
+          return {
+            holder: holder.name,
+            kind: `${holder.kind} · ${kind}`,
+            text,
+            // What is read is what runs: each line as shown (hidden characters written out), numbered by its place.
+            lines: (shown(text).match(/[^\n]*\n|[^\n]+$/g) ?? []).map((chunk, index) => ({
+              text: chunk.replace(/\r?\n$/, ""),
+              eol: /\r?\n$/.exec(chunk)?.[0] ?? "",
+              call: flags.sendRequestLines.includes(index + 1),
+            })),
+            hidden: HIDDEN.test(text),
+            unsupported: unsupportedApis(text),
+            sendRequest: flags.sendRequestLines.length ? scriptReview.flags.sendRequest(flags.sendRequestLines) : "",
+            variables: flags.variables,
+          };
+        }),
     ),
   );
   /** The places in `scripts` whose text the collection's last review did not cover: new, or changed since. */

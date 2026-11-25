@@ -86,6 +86,11 @@ Two ways in:
   request. What the command asked
   for that the app does not do is listed under the address until you send.
   Text that does not start with `curl` is pasted as text.
+  A command that gets into the field another way (typed, dropped, or put
+  there by a keyboard that is not a paste) stays as text, and the line under
+  the route strip offers **Import as request**: it reads the command the same
+  way and runs nothing. The same line offers **Use it** for a method typed
+  before an address (`POST https://api.example.com/pets`). <!-- claim:C-107 -->
 - **Import it.** **Paste a cURL command**, in the response pane of an empty
   tab, or **cURL command…** in the Collections panel's Import menu (there
   once a collection exists) opens the import dialog with a box for the

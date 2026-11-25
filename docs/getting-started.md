@@ -17,6 +17,10 @@ The request goes from the page straight to that host. Wayfarer has no server of 
 A server that does not allow requests from other sites (CORS) is a limit of the browser, and
 [the Local Bridge](browser-limits.md) is the way round it.
 
+An empty tab offers **Try an example**. It says first which request it sends (`GET` to
+`jsonplaceholder.typicode.com/todos/1`, from this page), and one click sends it: the response shows beside the request,
+and the route strip says where it went. <!-- claim:C-108 -->
+
 ## Keep it in a collection
 
 A request is saved into a collection. Make one with **New collection** in the sidebar, then press the save button

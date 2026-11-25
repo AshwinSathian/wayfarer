@@ -17,7 +17,14 @@ import {
 import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest, recordHeadline, type FailureAction } from "@wayfarer/core";
+import {
+  PastRequest,
+  empty,
+  firstRun as firstRunStrings,
+  recordHeadline,
+  type AddressProblem,
+  type FailureAction,
+} from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
@@ -122,6 +129,9 @@ const EXAMPLE_URL = "https://jsonplaceholder.typicode.com/todos/1";
 export class Composer {
   protected readonly store = inject(WorkspaceStore);
   protected readonly view = inject(ComposerView);
+  protected readonly empty = empty;
+  /** Said before the click: "Try an example" sends one request to this host, from this page. */
+  protected readonly exampleNote = `Try an example sends ${firstRunStrings.example} from this page.`;
   private readonly requestSave = inject(RequestSave);
   protected readonly importPipeline = inject(ImportPipeline);
   protected readonly ai = inject(AiSettings);
@@ -249,9 +259,23 @@ export class Composer {
     this.addressRow()?.focusUrl();
   }
 
-  /** First run: an address that answers any origin, put in this tab for the user to send. Nothing is sent for them. */
+  /**
+   * First run: one click sends the example, whose host the empty state names beforehand. The address is in the tab
+   * and its route strip shows the host and then what the send did, as for any request.
+   */
   tryExample(): void {
     this.store.setUrl(EXAMPLE_URL);
+    void this.sendRequest();
+  }
+
+  /** The route strip's offer for text typed into the address: the cURL command imported (never run), or the method split off. */
+  protected takeOffer(offer: NonNullable<AddressProblem["offer"]>): void {
+    if (offer.kind === "curl") {
+      void this.view.pasteCurl(this.store.draft().url);
+      return;
+    }
+    this.view.onRequestMethodChange(offer.method);
+    this.store.setUrl(offer.address);
     this.focusUrl();
   }
 

@@ -298,6 +298,12 @@ test("@claim:C-109 the review shows all of each script's code with its line numb
   const box = await code.evaluate((el) => ({ client: el.clientHeight, scroll: el.scrollHeight }));
   expect(box.scroll).toBeLessThanOrEqual(box.client);
   await expect(code.locator(".script-line")).toHaveCount(32);
+  // One to a row, in order: a rule that stops a code from wrapping once put them all on one line.
+  const tops = await code
+    .locator(".script-line")
+    .evaluateAll((lines) => lines.map((line) => line.getBoundingClientRect().top));
+  expect(tops).toEqual([...tops].sort((a, b) => a - b));
+  expect(new Set(tops).size).toBe(32);
   const call = code.locator(".script-line.is-call");
   await expect(call).toHaveCount(1);
   await expect(call).toContainText("pm.sendRequest");

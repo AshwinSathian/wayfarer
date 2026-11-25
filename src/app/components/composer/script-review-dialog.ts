@@ -52,6 +52,10 @@ function shown(text: string): string {
       direction: ltr;
       unicode-bidi: isolate;
     }
+    /* The pre's own: a code in a list item does not wrap (components.css), which put every line of a script on one. */
+    .script-review-code code {
+      white-space: inherit;
+    }
     /* A line is as wide as the box, so that a mark covers it. Its number is drawn, not text: it is not copied, and
        its empty alternative keeps it from being read out. */
     .script-line {

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { importWorker, precacheList } from "./build-sw.mjs";
+import { importWorker, precacheList, staticImports } from "./build-sw.mjs";
 
 const folder = (files) => {
   const root = mkdtempSync(join(tmpdir(), "build-sw-"));
@@ -55,4 +55,20 @@ test("of the stylesheets, only the page's and Monaco's are precached: the CSS Mo
   for (const left of ["/main-CCCCCCCC.css", "/chunk-DDDDDDDD.css", "/oauth/callback.css"]) {
     assert.ok(!list.includes(left), left);
   }
+});
+
+test("the shell's static imports are precached, however deep; a dynamic import is left to its first use", () => {
+  const { root } = folder({
+    "main-AAAAAAAA.js": 'import{a}from"./chunk-BBBBBBBB.js";import"./chunk-CCCCCCCC.js";import("./chunk-EEEEEEEE.js")',
+    "chunk-BBBBBBBB.js": 'export{x}from"./chunk-DDDDDDDD.js"',
+    "chunk-CCCCCCCC.js": "",
+    "chunk-DDDDDDDD.js": "",
+    "chunk-EEEEEEEE.js": "",
+  });
+  assert.deepEqual(staticImports(root, ["main-AAAAAAAA.js"]).sort(), [
+    "chunk-BBBBBBBB.js",
+    "chunk-CCCCCCCC.js",
+    "chunk-DDDDDDDD.js",
+    "main-AAAAAAAA.js",
+  ]);
 });

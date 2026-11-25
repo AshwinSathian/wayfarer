@@ -38,8 +38,8 @@ test.afterEach(async () => {
 });
 
 /**
- * Loads the app and waits until the service worker controls the page and holds every file the visit loaded: the
- * app asks for some chunks and fonts after its first render, and "after one visit" is a visit that has finished.
+ * Loads the app and waits until the service worker controls the page, and no longer: "after one visit" is the
+ * first moment the worker answers, so what the first render needs is stored by then (install waits for it).
  */
 async function loadControlled(page: Page): Promise<void> {
   await page.goto(`${base}/app/`);
@@ -47,14 +47,6 @@ async function loadControlled(page: Page): Promise<void> {
   await page.waitForFunction(async () => {
     await navigator.serviceWorker.ready;
     return navigator.serviceWorker.controller?.scriptURL.endsWith("/app/sw.js") ?? false;
-  });
-  await page.waitForFunction(async () => {
-    const paths = performance
-      .getEntriesByType("resource")
-      .map((entry) => new URL(entry.name))
-      .filter((url) => url.origin === location.origin && /-[A-Za-z0-9_-]{8}\.(js|css|woff2)$/.test(url.pathname))
-      .map((url) => url.pathname);
-    return (await Promise.all(paths.map((path) => caches.match(path)))).every(Boolean);
   });
 }
 
@@ -70,6 +62,27 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
   await page.reload();
   await expect(page.locator("input.address-url")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send request" })).toBeVisible();
+});
+
+// A flake here is the bug: the first render's files must be stored before the worker controls the page, so every
+// visit is offline-ready at once. Each round is a fresh context (a first visit) that goes offline the moment it can.
+test("@claim:C-015 a first visit is offline-ready the moment the worker controls it, every time", async ({
+  browser,
+  browserName,
+}) => {
+  test.skip(browserName === "webkit", "offline emulation is unreliable in Playwright WebKit");
+  for (let round = 0; round < 8; round++) {
+    const context = await browser.newContext();
+    try {
+      const page = await context.newPage();
+      await loadControlled(page);
+      await context.setOffline(true);
+      await page.reload();
+      await expect(page.locator("input.address-url"), `round ${round}`).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  }
 });
 
 test("on a connection that is up but answers nothing, the stored shell loads after a few seconds, not when the browser gives up", async ({

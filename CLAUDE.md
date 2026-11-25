@@ -401,12 +401,21 @@ code errors.
   `liveExchange` from the response a tab holds, `recordedExchange` from a `PastRequest` (what
   `TabState.showRecorded` and, later, History's detail read; it says in `notRecorded` which of body,
   timings and tests the entry does not hold). `ResponseViewer` gathers its inputs into the live view;
-  `ResponseStatus`, `ResponseBody`, `ResponseHeaders`, `ResponseTimings`, `ResponseTests` and `EventList`
+  `ResponseStatus`, `ResponseBody`, `ResponseHeaders`, `ResponseSent`, `ResponseTimings`, `ResponseTests` and `EventList`
   take that view and nothing else, and the Body tab's formatting and search are `BodyModel`
-  (`body-model.ts`, made in the viewer's injection context). The three parts that stand on a pane's `<div>`
+  (`body-model.ts`, made in the viewer's injection context). The parts that stand on a pane's `<div>`
   are attribute components (`div[appResponseBody]`, so that `components.css`'s `.response-body-pane > div`
   rules and `no-movement.spec.ts` still find that div). A view of a send that is not the open tab's is made
   from that send's `TabState`, never from `tabs.active()`.
+- The Sent tab (`ResponseSent`, `ExchangeView.sent`) draws `sentView(history entry)`
+  (`packages/core/src/send/sent-view.ts`) and nothing else: the entry `exchange` made after the redactor, live
+  (`TabState.sent`, set from the send's own `TabState` with the response) or stored (`recordedExchange`, so a reload
+  shows the same). It never reads a `BuiltRequest`, a vault secret or the open tab, and it unmasks and looks for
+  nothing: a part that shows more than the entry holds is a leak. A new thing in it comes from `PastRequest.sent` or
+  the `ExchangeRecord`, which `exchange` masks; the property tests of `sent-view.spec.ts` and the scan in
+  `e2e/secrets-wire.spec.ts` (the view of the stored entry, and the page's own text) cover it. Its words are
+  `sentPart` in `strings.ts`: a secret is "masked", never "not sent" (it went out as its value). Through the Local
+  Bridge it says the bridge adds headers of its own: the envelope carries none of what the bridge relayed.
 - A panel's host element carries the layout classes its root `<div>` would
   (`class="block space-y-6"`): a custom element is `display: inline`.
 
@@ -1357,7 +1366,8 @@ code errors.
   on the wire, and nowhere else. Whatever is stored, exported or copied
   goes through `Redactor` (`@wayfarer/core`) first: history, cURL, HAR, a
   collection file. A new place a request or a response is written to does
-  the same, and is added to the scan in `e2e/secrets-wire.spec.ts`.
+  the same, and is added to the scan in `e2e/secrets-wire.spec.ts`. The redactor also looks for what a URL's own setters
+  make of a value (`urlForms`: a backslash in a path is a slash, a tab is dropped).
 - `BuiltRequest.secrets` and `.credentials` are what the redactor looks
   for. A new way to put a credential into a request adds its value there.
 - AWS Signature (`signV4`, `packages/core/src/auth/sigv4.ts`) is applied

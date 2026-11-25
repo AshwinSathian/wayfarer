@@ -50,6 +50,23 @@ export const sent = {
   historyKept: "History kept this request. No response came.",
 } as const;
 
+/** The Sent part of the response: what the app built and sent, as history keeps it. */
+export const sentPart = {
+  tab: "Sent",
+  browserAdds: "A browser adds its own headers (Host, User-Agent and others) that a page cannot see.",
+  bridgeAdds:
+    "The Local Bridge sent this from your computer. It adds headers of its own (Host and others) that are not listed here.",
+  // Never "not sent": a secret goes out as its value; it is *** where the app keeps it.
+  masked: "Vault secrets and credentials are *** here, as they are in history and exports.",
+  noHeaders: "The app set no headers.",
+  noBody: "No body was sent.",
+  secrets: "Vault secrets filled",
+  noSecrets: "Nothing was filled from the vault.",
+  secretsNotRecorded: "Vault secrets filled: not recorded.",
+  cut: (shown: number, of: number) =>
+    `Showing the first ${shown.toLocaleString("en")} of ${of.toLocaleString("en")} characters.`,
+} as const;
+
 /** A failed send: headline, cause, next action, and what the disclosure is called. */
 export const failures = {
   offline: {

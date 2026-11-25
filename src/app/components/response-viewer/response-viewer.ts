@@ -12,7 +12,7 @@ import {
   effect,
 } from "@angular/core";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import type { BinaryBody, ResponseEnvelope, SendTimings, TestResult } from "@wayfarer/core";
+import type { BinaryBody, ResponseEnvelope, SendTimings, SentView, TestResult } from "@wayfarer/core";
 import { AiSettings } from "../../services/ai-settings";
 import { Diagnostics } from "../../services/diagnostics";
 import { Icon } from "../../shared/icon/icon";
@@ -33,13 +33,14 @@ import { BodyModel } from "./body-model";
 import { EventList } from "./event-list";
 import { ResponseBody } from "./response-body";
 import { ResponseHeaders } from "./response-headers";
+import { ResponseSent } from "./response-sent";
 import { ResponseStatus } from "./response-status";
 import { ResponseTests } from "./response-tests";
 import { ResponseTimings } from "./response-timings";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 
-type ResponseTab = "body" | "headers" | "timings" | "tests" | "events";
+type ResponseTab = "body" | "headers" | "timings" | "sent" | "tests" | "events";
 
 /** Below this, a send shows nothing: a quick reply is not preceded by an indicator that flashes (U-078). */
 const SENDING_SHOWN_AFTER_MS = 1000;
@@ -67,6 +68,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
     UiSpinner,
     ResponseBody,
     ResponseHeaders,
+    ResponseSent,
     ResponseStatus,
     ResponseTests,
     ResponseTimings,
@@ -127,6 +129,8 @@ export class ResponseViewer {
   readonly route = input<"direct" | "bridge" | null>(null);
   /** What the send did (D4.12), shown under the status line while open. */
   readonly record = input<ExchangeRecord | null>(null);
+  /** The request as sent, masked as history keeps it (the Sent tab). */
+  readonly sent = input<SentView | null>(null);
   readonly recordOpen = input(false);
   readonly recordOpenChange = output<boolean>();
   /** The `Content-Type` header as received: it chooses the view. */
@@ -162,6 +166,7 @@ export class ResponseViewer {
       tlsInsecure: this.tlsInsecure(),
       route: this.route(),
       record: this.record(),
+      sent: this.sent(),
       inspection: this.inspectionValue(),
       timings: this.timings(),
       testResults: this.testResults(),
@@ -173,6 +178,20 @@ export class ResponseViewer {
       exportContext: this.exportContext(),
     }),
   );
+
+  /** The tab on show: with no response only Tests and Sent exist, and Sent only while the tab holds a send. */
+  protected readonly shownTab = computed((): ResponseTab => {
+    const { sent, isError, statusCode, testResults } = this.exchange();
+    const tab = this.activeTab();
+    if (isError && statusCode === undefined) {
+      const there: ResponseTab[] = [
+        ...(testResults.length ? (["tests"] as const) : []),
+        ...(sent ? (["sent"] as const) : []),
+      ];
+      return there.includes(tab) ? tab : (there[0] ?? "tests");
+    }
+    return tab === "sent" && !sent ? "body" : tab;
+  });
 
   /** The Body tab's views, formatting and search. */
   protected readonly body = new BodyModel(this.exchange, this.activeTab, this.jsonWorker, this.diagnostics);

@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import { ROUTE_OPTIONS, strip } from "@wayfarer/core";
+import { ROUTE_OPTIONS, strip, type SentView } from "@wayfarer/core";
 import { RouteStrip, type StripPreset } from "../components/composer/route-strip";
+import { ResponseSent } from "../components/response-viewer/response-sent";
 import { UiButton } from "../ui/button";
 import { UiCheckbox } from "../ui/checkbox";
 import { UiFile } from "../ui/file";
@@ -74,6 +75,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     UiTabList,
     TabMark,
     Splitter,
+    ResponseSent,
     RouteStrip,
   ],
   template: `
@@ -249,6 +251,27 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <div class="catalogue-strip-state" [attr.data-state]="state.name">
               <p class="type-footnote text-label-secondary">{{ state.name }}</p>
               <app-route-strip [preset]="state.preset" [compact]="!!state.compact" />
+            </div>
+          }
+        </section>
+      }
+
+      @if (showSent) {
+        <section aria-labelledby="catalogue-sent">
+          <h2 id="catalogue-sent" class="type-title-3">Sent</h2>
+          <p class="type-callout text-label-secondary"
+            >What the app built and sent, as history keeps it: the request line, the headers it set, the body and the
+            vault secrets by name. A secret is ***.</p
+          >
+          @for (state of sentStates; track state.name) {
+            <div class="catalogue-sent-state" [attr.data-state]="state.name">
+              <p class="type-footnote text-label-secondary">{{ state.name }}</p>
+              <div
+                appResponseSent
+                class="flex flex-col gap-3"
+                [sent]="state.sent"
+                [label]="'What was sent: ' + state.name"
+              ></div>
             </div>
           }
         </section>
@@ -718,6 +741,55 @@ export class Catalogue {
     { value: "system", label: "System", icon: "settings" },
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },
+  ];
+  /** The Sent part's states are drawn on `?catalogue&sent` only, as the strip's are. */
+  protected readonly showSent = new URLSearchParams(location.search).has("sent");
+  protected readonly sentStates: { name: string; sent: SentView }[] = [
+    {
+      name: "A plain request",
+      sent: {
+        method: "GET",
+        address: "https://api.example.com/pets?limit=2",
+        headers: [{ name: "Accept", value: "application/json" }],
+        route: "direct",
+        secrets: [],
+      },
+    },
+    {
+      name: "Secrets, masked, with a body",
+      sent: {
+        method: "POST",
+        address: "https://api.example.com/pets?key=***",
+        headers: [
+          { name: "Authorization", value: "***" },
+          { name: "Content-Type", value: "application/json" },
+        ],
+        body: { text: '{"owner":"***"}', shown: 15, of: 15 },
+        route: "bridge",
+        secrets: [{ name: "API key", scope: "environment" }, { name: "Owner" }],
+      },
+    },
+    {
+      name: "Recorded, no record, no headers",
+      sent: {
+        method: "DELETE",
+        address: "https://api.example.com/pets/1",
+        headers: [],
+        route: "direct",
+        secrets: null,
+      },
+    },
+    {
+      name: "A body cut where it is drawn",
+      sent: {
+        method: "PUT",
+        address: "https://api.example.com/blob",
+        headers: [],
+        body: { text: "x".repeat(200), shown: 200, of: 250_000 },
+        route: "direct",
+        secrets: [],
+      },
+    },
   ];
   /** The strip's states are drawn on `?catalogue&strip` only: their scans are slow, and every other widget's share the page. */
   protected readonly showStrips = new URLSearchParams(location.search).has("strip");

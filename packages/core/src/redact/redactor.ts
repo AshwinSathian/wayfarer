@@ -54,6 +54,22 @@ function percentEncode(value: string, escaped: RegExp): string {
   });
 }
 
+/**
+ * What a URL's own setters make of a value, read back: a backslash in a path is a slash, a tab or a newline is dropped,
+ * and whatever the three parts escape is escaped the way they do. A server that reports the URL it received reports this.
+ */
+function urlForms(value: string): string[] {
+  const url = new URL("http://h/");
+  const forms: string[] = [];
+  url.pathname = value;
+  forms.push(url.pathname.slice(1));
+  url.search = value;
+  forms.push(url.search.slice(1));
+  url.hash = value;
+  forms.push(url.hash.slice(1));
+  return forms;
+}
+
 /** Every text a value can take on its way into a request or back in a response. */
 function formsOf(value: string): string[] {
   const component = percentEncode(value, /[^A-Za-z0-9\-_.!~*'()]/gu);
@@ -70,6 +86,7 @@ function formsOf(value: string): string[] {
     percentEncode(value, /[^\x21\x24-\x3b\x3d\x40-\x5f\x61-\x7a\x7c\x7e]/gu),
     // The path again, with "^" escaped: the URL standard added it to what a path escapes, and a parser of today writes %5E.
     percentEncode(value, /[^\x21\x24-\x3b\x3d\x40-\x5d\x5f\x61-\x7a\x7c\x7e]/gu),
+    ...urlForms(value),
     // A form field: a space is "+", and a few more characters are escaped.
     new URLSearchParams({ k: value }).toString().slice(2),
     json,

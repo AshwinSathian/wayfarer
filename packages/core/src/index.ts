@@ -94,7 +94,7 @@ export {
 } from "./vault/vault-crypto";
 export { VariableNestingError, VariableResolver, type ScopeStack, type VariableToken } from "./variables/resolver";
 export type { ValidationIssue } from "./model/validate";
-export { MIN_SECRET_LENGTH, Redactor, type RedactOptions } from "./redact/redactor";
+export { MASK, MIN_SECRET_LENGTH, Redactor, type RedactOptions } from "./redact/redactor";
 export { IMPORT_TOO_LARGE, isOversizedImport, parseJson, readImportText, stringifyJson } from "./safe-json";
 export { cookiesFor, parseSetCookie, storeCookie, type Cookie } from "./cookies/jar";
 export { BridgeTransport, bridgeHealthProblem } from "./transport/bridge";
@@ -170,6 +170,7 @@ export {
   type RunSend,
 } from "./send/build";
 export { runOutcome } from "./send/run";
+export { SENT_BODY_SHOWN, sentView, type SentView } from "./send/sent-view";
 export { previewAddress, previewValid, previewVariables, type PreviewVariable } from "./send/preview";
 export { addressProblem, stripView, type AddressProblem, type StripInput } from "./send/strip";
 export { formatDuration, recordHeadline, recordLines, type ExchangeRecord, type RecordPart } from "./send/record";
@@ -206,4 +207,4 @@ export {
 } from "./folder/folder";
 export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";
-export { ROUTE_NAMES, ROUTE_OPTIONS, empty, statusBar, strip, vaultSetup } from "./strings";
+export { ROUTE_NAMES, ROUTE_OPTIONS, empty, sentPart, statusBar, strip, vaultSetup } from "./strings";

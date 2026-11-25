@@ -4,6 +4,8 @@ import {
   type ExchangeRecord,
   type PastRequest,
   type ResponseEnvelope,
+  type SentView,
+  sentView,
 } from "@wayfarer/core";
 import type { SendTimings, TestResult } from "@wayfarer/core";
 import type { ResponseExportContext } from "../shared/inspect/response-export-entry";
@@ -39,6 +41,8 @@ export interface ExchangeView {
   tlsInsecure: boolean;
   route: "direct" | "bridge" | null;
   record: ExchangeRecord | null;
+  /** What the app built and sent, masked as history keeps it. Null while a tab holds no send. */
+  sent: SentView | null;
   inspection: ResponseInspection | null;
   timings: SendTimings | null;
   testResults: TestResult[];
@@ -66,6 +70,7 @@ export function liveExchange(parts: Partial<Omit<ExchangeView, "kind" | "notReco
     tlsInsecure: false,
     route: null,
     record: null,
+    sent: null,
     inspection: null,
     timings: null,
     testResults: [],
@@ -98,6 +103,7 @@ export function recordedExchange(entry: PastRequest): ExchangeView {
       contentType: response?.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1] ?? "",
       route: entry.route,
       record: entry.record ?? null,
+      sent: sentView(entry),
     }),
     kind: "recorded",
     // History keeps the phases of no send and the results of no test; a body only when kept (HISTORY_BODY_LIMIT).

@@ -11,7 +11,10 @@ import {
   shareLink,
 } from "./support/app";
 import { openShareLink, parseShareFragment } from "../packages/core/src/share/link";
+import { sentView } from "../packages/core/src/send/sent-view";
+import type { PastRequest } from "../packages/core/src/send/exchange";
 import { ECHO } from "./support/echo";
+import { found } from "./support/secret-scan";
 
 // P2.5 with P2.8 and P2.9 (plan D21): a vault secret reaches the wire, and
 // nothing that is stored, exported or copied holds it.
@@ -45,35 +48,17 @@ async function sendAndEcho(page: Page): Promise<Echo> {
   return (await (await response).json()) as Echo;
 }
 
-/**
- * Every way `secret` can be read out of `text`: as it is, percent-encoded,
- * as a form field, JSON-escaped, or inside base64 (each run of base64
- * characters is decoded from each of the four positions a reader could
- * start at).
- */
-function found(text: string, secret: string): string[] {
-  const forms: [string, string][] = [
-    ["plain", secret],
-    ["percent", encodeURIComponent(secret)],
-    ["form", new URLSearchParams({ k: secret }).toString().slice(2)],
-    ["json", JSON.stringify(secret).slice(1, -1)],
-    // As a browser writes it into a URL it sends: only the characters a URL cannot hold are escaped.
-    ["url query", new URL(`http://h/?${secret}`).search.slice(1)],
-    ["url path", new URL(`http://h/${secret}`).pathname.slice(1)],
-  ];
-  const hits = forms.filter(([, form]) => text.includes(form)).map(([name]) => name);
-  const needle = Buffer.from(secret, "utf8").toString("latin1");
-  for (const run of text
-    .replace(/-/g, "+")
-    .replace(/_/g, "/")
-    .split(/[^A-Za-z0-9+/]+/)) {
-    for (let start = 0; start < 4 && run.length >= 8; start++) {
-      // Node reads base64 without its padding, to the end of the run.
-      if (Buffer.from(run.slice(start), "base64").toString("latin1").includes(needle)) hits.push("base64");
-    }
-  }
-  return [...new Set(hits)];
+/** The Sent part as the page shows it (S4b2): opened, and read whole. */
+async function sentOnPage(page: Page): Promise<string> {
+  const viewer = page.locator("app-response-viewer");
+  await viewer.getByRole("tab", { name: "Sent", exact: true }).click();
+  await expect(viewer.locator(".sent-request")).toBeVisible();
+  return (await viewer.locator(".sent-request, .sent-secrets, .sent-masked, .sent-note").allInnerTexts()).join("\n");
 }
+
+/** What the Sent part shows of each entry history keeps (S4b2): the view is built from the stored entry alone. */
+const sentViews = (stores: Record<string, unknown>) =>
+  JSON.stringify((stores["history"] as PastRequest[]).map((entry) => sentView(entry)));
 
 /** The collection's file through its one Export… dialog (U-016): Wayfarer's format, or Postman v2.1 (P4.6 b). */
 const downloadText = (page: Page, credentials: boolean) =>
@@ -125,7 +110,7 @@ test("the scanner finds a secret in each encoding it claims to look for", () => 
   expect(found("nothing to see, aGVsbG8gd29ybGQ=", SECRET)).toEqual([]);
 });
 
-test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its plaintext, and a scan of everything stored, exported, shared and copied finds it nowhere", async ({
+test("@claim:C-007 @claim:C-087 @claim:C-103 a protected variable reaches the server as its plaintext, and a scan of everything stored, exported, shared and copied finds it nowhere", async ({
   page,
 }) => {
   // The longest claim test: one send with two scripts, nine copies and two downloads. On a slow WebKit runner it passed 30 s (#228).
@@ -232,6 +217,10 @@ test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its p
   await expect(page.locator(".test-result-fail")).toHaveCount(2);
   const scriptOutput = (await page.locator(".script-console, .test-result-fail").allInnerTexts()).join("\n");
 
+  const sentShown = await sentOnPage(page);
+  expect(sentShown).toContain("API_TOKEN");
+  expect(sentShown).toContain("***");
+
   // The exchange record (D4.12), as the page shows it and as history keeps it.
   if ((await page.locator(".record-toggle").getAttribute("aria-expanded")) !== "true")
     await page.locator(".record-toggle").click();
@@ -245,6 +234,8 @@ test("@claim:C-007 @claim:C-087 a protected variable reaches the server as its p
   const searched: Record<string, string> = {
     "the exchange record on the page": recordShown,
     "the exchange record history keeps": records,
+    "the Sent view of what history keeps": sentViews(stores),
+    "the Sent part on the page": sentShown,
     ...Object.fromEntries(
       Object.entries(stores).map(([name, records]) => [`IndexedDB ${name}`, JSON.stringify(records)]),
     ),
@@ -494,14 +485,18 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
     await expect.poll(async () => (await clipboard()).length).toBe(5 + composer.indexOf(item));
   }
   const copied = await clipboard();
+  const sentShown = await sentOnPage(page);
+  expect(sentShown).toContain("Authorization");
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
   await expect(page.locator(".script-console")).toContainText("the server saw *** and the request says Bearer ***");
 
   const stores = await dumpIdb(page);
   const searched: Record<string, string> = {
+    "the Sent part on the page": sentShown,
     ...Object.fromEntries(
       Object.entries(stores).map(([name, records]) => [`IndexedDB ${name}`, JSON.stringify(records)]),
     ),
+    "the Sent view of what history keeps": sentViews(stores),
     "localStorage and sessionStorage": await page.evaluate(() =>
       JSON.stringify([{ ...localStorage }, { ...sessionStorage }]),
     ),

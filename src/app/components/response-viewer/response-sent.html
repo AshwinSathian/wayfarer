@@ -1,0 +1,43 @@
+@let view = sent();
+<p class="sent-note m-0 type-footnote text-label-secondary">{{ note() }}</p>
+<div
+  class="sent-request overflow-y-auto rounded-lg border border-separator"
+  role="region"
+  [attr.aria-label]="label()"
+  tabindex="0"
+>
+  <p class="sent-line m-0 type-mono-body font-mono break-all px-4 py-3">
+    <span class="sent-method">{{ view.method }}</span>&ngsp;<span class="sent-address">{{ view.address }}</span>
+  </p>
+  @if (view.headers.length) {
+  <table class="ds-table sent-headers">
+    <tbody>
+      <!-- By position: a name sent twice is two rows. -->
+      @for (header of view.headers; track $index) {
+      <tr>
+        <th>{{ header.name }}</th>
+        <td class="font-mono">{{ header.value || '—' }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  } @else {
+  <p class="sent-no-headers m-0 p-4 type-callout text-label-secondary">{{ words.noHeaders }}</p>
+  } @if (view.body; as body) {
+  <pre class="sent-body type-mono-body font-mono m-0 border-t border-separator px-4 py-3 whitespace-pre-wrap break-all">
+{{ body.text }}</pre>
+  } @else {
+  <p class="sent-no-body m-0 border-t border-separator p-4 type-callout text-label-secondary">{{ words.noBody }}</p>
+  }
+</div>
+@if (cutNote(); as cut) {
+<p class="sent-cut m-0 type-footnote text-label-secondary">{{ cut }}</p>
+}
+<p class="sent-secrets m-0 type-callout">
+  @if (view.secrets === null) { {{ words.secretsNotRecorded }} } @else if (view.secrets.length) { {{ words.secrets }}:
+  @for (secret of view.secrets; track $index) {
+  <span class="font-mono">{{ secret.name }}</span>{{ $last ? '.' : ', ' }} } } @else { {{ words.noSecrets }} }
+</p>
+@if (masked()) {
+<p class="sent-masked m-0 type-footnote text-label-secondary">{{ words.masked }}</p>
+}

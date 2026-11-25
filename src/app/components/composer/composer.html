@@ -86,7 +86,11 @@
       </div>
       <div class="tab-panes">
         <div ngTabPanel value="request" class="tab-pane" [preserveContent]="true"
-          ><ng-template ngTabContent><app-composer-sections /></ng-template
+          ><ng-template ngTabContent>
+            @if (!store.draft().url) {
+            <div class="flex flex-col items-start gap-3 pb-2"><ng-container [ngTemplateOutlet]="firstRun" /></div>
+            }
+            <app-composer-sections /></ng-template
         ></div>
         <div ngTabPanel value="response" class="tab-pane" [preserveContent]="true"
           ><ng-template ngTabContent>
@@ -175,24 +179,28 @@
       ><kbd class="keycap">{{ sendKeys }}</kbd> sends it. The response appears here.</p
     >
     } @else {
-    <h3 class="type-empty-title text-label-primary m-0">{{ empty.response.headline }}</h3>
-    <p class="type-callout text-label-secondary m-0">{{ empty.response.body }}</p>
-    <div class="flex flex-wrap gap-2">
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="tryExample()"
-        >{{ empty.response.actions[0] }}</button
-      >
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
-        >{{ empty.response.actions[1] }}</button
-      >
-      @if (ai.offers().draft) {
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="modelCalls.draftOpen.set(true)"
-        >Describe a request…</button
-      >
-      }
-    </div>
-    <p class="type-footnote text-label-secondary m-0">{{ exampleNote }}</p>
+    <ng-container [ngTemplateOutlet]="firstRun" />
     }
   </div>
+</ng-template>
+<!-- The first step, once (V2): in the response where it will be, and on a phone also in the request, which is the pane it opens on. -->
+<ng-template #firstRun>
+  <h3 class="type-empty-title text-label-primary m-0">{{ empty.response.headline }}</h3>
+  <p class="type-callout text-label-secondary m-0">{{ empty.response.body }}</p>
+  <div class="flex flex-wrap gap-2">
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="tryExample()"
+      >{{ empty.response.actions[0] }}</button
+    >
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
+      >{{ empty.response.actions[1] }}</button
+    >
+    @if (ai.offers().draft) {
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="modelCalls.draftOpen.set(true)"
+      >Describe a request…</button
+    >
+    }
+  </div>
+  <p class="type-footnote text-label-secondary m-0">{{ exampleNote }}</p>
 </ng-template>
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>

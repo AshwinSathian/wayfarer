@@ -85,7 +85,7 @@
 </div>
 }
 <!-- Always there, so that a problem moves nothing: the fault, or else what the request also has. -->
-<div class="route-problem">
+<div class="route-problem" [class.route-problem-offer]="!!problem()?.offer">
   @if (problem(); as p) {
   <app-icon
     [name]="p.kind === 'empty' || p.offer ? 'info' : p.kind === 'missing' ? 'warning' : 'error'"

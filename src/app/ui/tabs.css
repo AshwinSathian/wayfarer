@@ -61,6 +61,13 @@
   transition: color var(--dur-quick) var(--ease-standard);
 }
 
+/* On a phone the response's five tabs fit its width: less room each side of the label, the target still 24 px or more. */
+@media (max-width: 30em) {
+  .tab-bar [role="tab"] {
+    padding-inline: 10px;
+  }
+}
+
 .tab-bar [role="tab"]:hover,
 .tab-bar [role="tab"][aria-selected="true"] {
   color: var(--label-primary);

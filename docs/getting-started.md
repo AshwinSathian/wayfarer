@@ -21,6 +21,11 @@ An empty tab offers **Try an example**. It says first which request it sends (`G
 `jsonplaceholder.typicode.com/todos/1`, from this page), and one click sends it: the response shows beside the request,
 and the route strip says where it went. <!-- claim:C-108 -->
 
+On a phone the request and the response are two panes under the address. An empty tab opens on the request, with **Try
+an example** and **Paste a cURL command** at the top of it; a send moves to the response, and the response's tabs (Body,
+Headers, Timings, Sent, Tests) all fit the width, with no sideways scrolling. A long host wraps in its own width and does
+not squeeze the strip's summary button. <!-- claim:C-115 -->
+
 ## Keep it in a collection
 
 A request is saved into a collection. Make one with **New collection** in the sidebar, then press the save button

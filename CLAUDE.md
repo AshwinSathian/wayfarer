@@ -304,11 +304,16 @@ code errors.
   never reads it and never counts it. After a send it is the record: the
   road taken and "N secrets sent, masked in history and exports" (never
   "not sent", C-007). The line under it is always there (the fault, or what
-  else the request has), so a problem moves nothing; its height and the
-  words' two lines are fixed, not what they say. Below 34 em of the
+  else the request has), so a problem moves nothing; its height (a small
+  button's, 24 px, so the offer's button fits in it) and the
+  words' two lines are fixed, not what they say. An offer is one row with its
+  button from 24 em of window up: its words are cut at the tail before the
+  button goes under them; narrower, or with larger text, they wrap. Below 34 em of the
   composer's own width (`Composer.compact`, from the `ResizeObserver` that
   stacks the response, not a window breakpoint) it is the host and one
-  `button` with `aria-expanded` whose text is the whole strip. It is drawn
+  `button` with `aria-expanded` whose text is the whole strip. The host takes
+  its own width and wraps in it; the button is one line (its tail cut) beside
+  the host or under it, never a column of words. It is drawn
   after the mark: an origin, a block on the line when a secret is named, the
   host, in one shape at most 24 rem wide at the left (the same drawing at every
   width, so a 400 px crop holds all of it; variables and scripts sit beside it
@@ -1542,6 +1547,12 @@ code errors.
   does it through the same `ComposerView.pasteCurl` (C-107). Do not add a second test for "is this a command".
 - "Try an example" (`Composer.tryExample`) sends once, on the user's click, to the host the empty state names
   beforehand (C-108): nothing else sends an example, and nothing sends on load.
+- On a phone (`Composer.isMobile`) an empty tab opens on the Request pane, so the
+  first step (`#firstRun` in `composer.html`: the example, the paste, the note) is
+  drawn there too, above the sections, while there is no address (C-115); it is one
+  template, and the Response pane keeps it. The response's tab bar takes 10 px
+  each side of a label below 30 em of window (`tabs.css`), so its five tabs fit
+  at 390 px without scrolling; the 24 px height is kept.
 - `parse(buildCurl(request))` is the request (the fast-check property in
   `curl.spec.ts`). A change to `buildCurl` or to the parser keeps it.
 - A file that is not JSON is read as YAML by `parseYaml`

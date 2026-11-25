@@ -395,6 +395,18 @@ pre,
 .timing-tone-1 {
   background: var(--label-secondary);
 }
+/* Forced colours paint every background as the canvas: the strip's segments keep their length in the text's colour,
+   the two inks told apart by the system's grey (U-116). */
+@media (forced-colors: active) {
+  .timing-tone-0,
+  .timing-tone-1 {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .timing-tone-1 {
+    background: GrayText;
+  }
+}
 
 /* ── Empty state ─────────────────────────────────────────── */
 /* An empty place: what will be there, and the step that fills it (docs/design/voice.md). No box around nothing. */

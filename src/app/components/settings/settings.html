@@ -243,22 +243,13 @@
               (click)="exportEnvironments()"
               ><app-icon name="download" /> Export…</button
             >
-            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="environmentFile.click()"
-              ><app-icon name="upload" /> Import…</button
-            >
-            <input
-              #environmentFile
-              type="file"
-              accept="application/json,.json,.yaml,.yml"
-              class="hidden"
-              aria-label="Import environments from file"
-              (change)="handleEnvironmentImport($event)"
-            />
+            <app-import-menu />
           </div>
         </div>
       </div>
       <p class="settings-note"
-        >To export a collection, use its menu in the sidebar (Export…). To import one, use Import in the sidebar.</p
+        >To export a collection, use its menu in the sidebar (Export…). Import is the same menu here, in Environments
+        and in the sidebar.</p
       >
 
       <h4 class="settings-subhead">Storage in this browser</h4>

@@ -1,5 +1,5 @@
 import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
-import { ROUTE_NAMES, statusBar } from "@wayfarer/core";
+import { ROUTE_NAMES, requestsInOrder, statusBar, vaultSetup } from "@wayfarer/core";
 import { UndoNotice } from "../../services/undo-notice";
 import { ImportPipeline } from "../../services/import-pipeline";
 
@@ -47,6 +47,7 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import { UiTooltip } from "../../ui/tooltip";
 import { Confirm } from "../../ui/confirm";
@@ -86,6 +87,7 @@ import { Tabs } from "../../state/tabs";
   selector: "app-shell",
   imports: [
     AiDraft,
+    UiCheckbox,
     UiInput,
     NgTemplateOutlet,
     Icon,
@@ -208,6 +210,9 @@ export class AppShell implements OnInit {
   });
   readonly historyDrawerVisible = signal(false);
   readonly isFirstVaultSetup = signal(false);
+  /** The setup dialog's passphrase fields show their text (the vault's setup, S5c). */
+  protected readonly showPassphrase = signal(false);
+  protected readonly vaultSetup = vaultSetup;
   readonly confirmPassphrase = signal("");
   readonly unlockPassphrase = signal("");
   resettingAll = false;
@@ -501,6 +506,17 @@ export class AppShell implements OnInit {
     if (added) untracked(() => this.revealInSidebar(`collection:${added.id}`));
   });
 
+  /** A file's Import ends on its first request, open in the composer (S5c): the next step is Send, not a closed dialog. */
+  private readonly importedFirst = effect(() => {
+    const added = this.importPipeline.addedFirst();
+    if (!added) return;
+    untracked(() => {
+      const tree = this.collections.getCollectionTree(added.id);
+      const first = tree ? requestsInOrder(tree)[0] : undefined;
+      if (first) this.handleLoadCollectionRequest(first);
+    });
+  });
+
   /** The sidebar is shown (a drawer below 1,200 px), then the row selected in it. */
   private revealInSidebar(key: string): void {
     if (this.sidebarOverlay() || !this.drawerVisible()) this.toggleNavigation();
@@ -684,6 +700,7 @@ export class AppShell implements OnInit {
     this.unlockPassphrase.set("");
     this.confirmPassphrase.set("");
     this.unlockError.set("");
+    this.showPassphrase.set(false);
   }
 
   closeLockDialog(): void {
@@ -693,6 +710,7 @@ export class AppShell implements OnInit {
     this.unlockPassphrase.set("");
     this.confirmPassphrase.set("");
     this.unlockError.set("");
+    this.showPassphrase.set(false);
   }
 
   async unlockSecrets(): Promise<void> {

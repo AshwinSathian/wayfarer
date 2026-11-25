@@ -568,6 +568,19 @@ pre,
   font-weight: 600;
   color: var(--label-primary);
 }
+.run-glyph {
+  margin-inline-end: 0.25rem;
+  vertical-align: -0.125em;
+}
+.run-count-passed {
+  color: var(--status-success-text);
+}
+.run-count-failed {
+  color: var(--status-error-text);
+}
+.run-count-failed.run-count-zero {
+  color: var(--label-secondary);
+}
 .run-count-passed b {
   color: var(--status-success-text);
 }

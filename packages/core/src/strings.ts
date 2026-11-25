@@ -246,10 +246,14 @@ export const firstRun = {
   result: (host: string, status: string, ms: number) => `Sent from this page to ${host}. ${status}, ${ms} ms.`,
 } as const;
 
+const holds = (requests: number, folders: number) =>
+  `${requests} ${requests === 1 ? "request" : "requests"}${folders ? ` in ${folders} ${folders === 1 ? "folder" : "folders"}` : ""}`;
+
 export const importing = {
-  menu: ["File...", "cURL command...", "Link..."],
-  report: (requests: number, folders: number, hosts: readonly string[]) =>
-    `${requests} ${requests === 1 ? "request" : "requests"} in ${folders} ${folders === 1 ? "folder" : "folders"} go to: ${hosts.join(", ")}.`,
+  menu: ["File…", "cURL command…", "Link…"],
+  /** The one line a collection of the file gets: what it holds, and the hosts follow it as a list. */
+  holds,
+  goesTo: (requests: number, folders: number) => `${holds(requests, folders)} go to:`,
   footer: "Nothing is stored until you choose Import.",
   done: (name: string) => `Imported ${name}. Undo.`,
 } as const;

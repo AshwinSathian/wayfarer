@@ -86,7 +86,7 @@
     <div class="import-report">
       <p class="ds-section-label mb-1.5">{{ imported.report.formatName }}</p>
       <p class="type-subhead text-label-primary">"{{ pipeline.fileName() }}" will add {{ counts() }}.</p>
-      <p class="type-footnote text-label-tertiary mt-0.5">Nothing is stored until you choose Import.</p>
+      <p class="type-footnote text-label-tertiary mt-0.5">{{ importing.footer }}</p>
     </div>
     @if (imported.report.warnings.length) {
     <!-- A line with the warning's glyph, not an amber card in the dialog (V12). -->
@@ -119,11 +119,7 @@
         <p class="type-footnote text-label-secondary mt-0.5">{{ review?.summary }}</p>
       </div>
       }
-      <p class="ds-section-label mb-1.5">Collection</p>
       <p class="type-title-3 text-label-primary">{{ entry.payload.collection.name }}</p>
-      <p class="type-footnote text-label-tertiary mt-0.5">
-        {{ plural(entry.payload.folders.length, "folder") }} · {{ plural(entry.payload.requests.length, "request") }}
-      </p>
       <!-- What it needs of the receiver, before the hosts (receive.md): secrets, credentials, scripts. -->
       @for (line of linesOf(entry); track line.kind) {
       <div class="import-need type-footnote text-label-secondary mt-1.5" [attr.data-need]="line.kind">
@@ -138,13 +134,16 @@
         <p>{{ line.after }}</p>
         }
       </div>
-      } @let hosts = hostsOf(entry); @if (hosts.length) {
-      <p class="type-footnote text-label-secondary mt-1.5">Its requests go to:</p>
+      } @let hosts = hostsOf(entry); @let folders = entry.payload.folders.length; @let requests =
+      entry.payload.requests.length; @if (hosts.length) {
+      <p class="type-footnote text-label-secondary mt-1.5">{{ importing.goesTo(requests, folders) }}</p>
       <ul class="import-hosts type-mono-body text-label-primary" aria-label="Hosts its requests go to">
         @for (host of hosts; track host) {
         <li>{{ host }}</li>
         }
       </ul>
+      } @else {
+      <p class="type-footnote text-label-secondary mt-1.5">{{ importing.holds(requests, folders) }}.</p>
       }
     </div>
     @if (imported.report.format === 'wayfarer-collection') {

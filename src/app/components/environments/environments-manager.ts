@@ -20,13 +20,12 @@ import { FormsModule } from "@angular/forms";
 import { UiInput } from "../../ui/input";
 import { UiButton } from "../../ui/button";
 import { UiTooltip } from "../../ui/tooltip";
-import type { EnvironmentDoc, Row, VariableChange } from "@wayfarer/core";
+import { empty, type EnvironmentDoc, type Row, type VariableChange } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { recordDiagnostic } from "../../services/diagnostics";
 import { VariableFocus } from "../../services/variable-focus";
-import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
-import { VariablesDialog } from "../variables/variables-dialog";
+import { ImportMenu } from "../import/import-menu";
 import { VariableRows, type VariableHolder } from "../variables/variable-rows";
 import { EnvironmentExportDialog } from "./environment-export-dialog";
 import { StoragePersistence } from "../../services/storage-persistence";
@@ -40,7 +39,7 @@ interface EnvironmentDraft {
 
 @Component({
   selector: "app-environments-manager",
-  imports: [UiInput, Icon, FormsModule, UiButton, UiTooltip, VariableRows, VariablesDialog, EnvironmentExportDialog],
+  imports: [UiInput, Icon, FormsModule, UiButton, UiTooltip, VariableRows, ImportMenu, EnvironmentExportDialog],
   templateUrl: "./environments-manager.html",
   styleUrl: "./environments-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,8 +48,6 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly envService = inject(EnvironmentsStore);
   private readonly undo = inject(UndoNotice);
   private readonly variableFocus = inject(VariableFocus);
-  /** Every file picked here goes down the one import road (P4.1). */
-  protected readonly importPipeline = inject(ImportPipeline);
   private readonly persistence = inject(StoragePersistence);
   private readonly injector = inject(Injector);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -62,7 +59,9 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   readonly activeEnvironment = this.envService.activeEnvironment;
   readonly loading = this.envService.loading;
   readonly globals = this.envService.globals;
-  readonly globalsVisible = signal(false);
+  /** The globals are open in the pane, in place of an environment. */
+  readonly globalsOpen = signal(false);
+  protected readonly empty = empty;
   readonly globalsHint =
     "Every request can use these as {{name}}, whichever environment is active. An environment's or a collection's variable with the same name wins.";
   readonly selectedId: WritableSignal<string | null> = signal(null);
@@ -80,6 +79,16 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
       write: (changes) => this.writeVariables(id, changes),
     };
   });
+  /** The globals' variables, for the rows: they write through the store as an environment's do. */
+  readonly globalsHolder = computed<VariableHolder>(() => ({
+    id: "globals",
+    name: "Globals",
+    rows: this.globals(),
+    write: async (changes) => {
+      void this.persistence.request();
+      return await this.envService.changeGlobals(changes);
+    },
+  }));
   /** A variable a chip asked to see (U-132), handed to the rows. */
   readonly reveal = signal<{ key: string } | null>(null);
 
@@ -97,7 +106,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       const env = this.activeEnvironment();
-      if (env && !this.selectedId()) {
+      if (env && !this.selectedId() && !this.globalsOpen()) {
         this.selectEnvironment(env.meta.id);
       }
     });
@@ -118,7 +127,8 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
       untracked(() => {
         this.variableFocus.pending.set(null);
         if (token.source === "global") {
-          this.globalsVisible.set(true);
+          this.selectGlobals();
+          this.reveal.set({ key: token.key });
           return;
         }
         // Missing, with no environment in use: a new one, and the variable is its first row (U-132).
@@ -149,8 +159,16 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     // The environment being left keeps its name as typed; its rows write theirs when they are shown another's.
     if (this.draft()?.id !== id) void this.commit();
     const env = this.environments().find((doc) => doc.meta.id === id);
+    this.globalsOpen.set(false);
     this.selectedId.set(id);
     if (env) this.draft.set({ id, name: env.name, description: env.description });
+  }
+
+  selectGlobals(): void {
+    void this.commit();
+    this.selectedId.set(null);
+    this.draft.set(null);
+    this.globalsOpen.set(true);
   }
 
   /** The variable a missing chip asked for, given to the environment being named as its first row. */
@@ -215,10 +233,6 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   /** The export dialog asks what the file should hold of protected variables. */
   readonly exportDialogVisible = signal(false);
 
-  async saveGlobals(changes: VariableChange[]): Promise<void> {
-    await this.envService.changeGlobals(changes);
-  }
-
   async duplicate(env: EnvironmentDoc): Promise<void> {
     const copy = await this.envService.duplicateEnvironment(env.meta.id);
     if (copy) {
@@ -232,6 +246,7 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     const remaining = this.environments();
     this.selectedId.set(null);
     this.draft.set(null);
+    this.globalsOpen.set(false);
     if (remaining.length) this.selectEnvironment(remaining[0].meta.id);
     if (removed)
       this.undo.offer(`Removed ${env.name}.`, async () => {

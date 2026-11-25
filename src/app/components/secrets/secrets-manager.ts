@@ -1,3 +1,4 @@
+import { empty, vaultSetup } from "@wayfarer/core";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -102,6 +103,8 @@ export class SecretsManager {
   }
 
   /** No passphrase has been chosen in this browser yet (U-164). */
+  protected readonly empty = empty;
+  protected readonly vaultSetup = vaultSetup;
   protected get noVault(): boolean {
     return this.secretsService.made() === false;
   }

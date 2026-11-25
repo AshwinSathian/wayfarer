@@ -28,6 +28,7 @@ import { Tree, UiTreeNode } from "../../ui/tree";
 import { Folder, RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportPipeline } from "../../services/import-pipeline";
+import { ImportMenu } from "../import/import-menu";
 import { HTTP_METHODS } from "@wayfarer/core";
 import {
   CollectionNodeData,
@@ -64,6 +65,7 @@ export interface PaletteAction {
   selector: "app-collections-sidebar",
   imports: [
     FolderDialog,
+    ImportMenu,
     UiButton,
     UiInput,
     Icon,
@@ -404,16 +406,11 @@ export class CollectionsSidebar implements OnInit {
   private readonly tree = viewChild<Tree<NodeData>>("tree");
   private readonly undo = inject(UndoNotice);
 
-  /** The header's Import menu (U-010): a file, a cURL command pasted, or a shared link pasted (receive.md). */
   protected readonly empty = empty;
-  protected readonly importItems: UiMenuItem[] = [
-    { label: "File…", icon: "upload_file", command: () => this.fileInput()?.nativeElement.click() },
-    { label: "cURL command…", icon: "terminal", command: () => this.importPipeline.openPaste() },
-    { label: "Link…", icon: "link", command: () => this.importPipeline.openPaste("link") },
-    ...(this.folders.supported
-      ? [{ label: "Folder…", icon: "folder_open" as const, command: () => void this.openFolder() }]
-      : []),
-  ];
+  /** What only the sidebar adds to the Import menu: a folder that holds a collection. */
+  protected readonly folderItems: UiMenuItem[] = this.folders.supported
+    ? [{ label: "Folder…", icon: "folder_open", command: () => void this.openFolder() }]
+    : [];
 
   protected collectionName(id: string): string {
     return this.collectionsService.tree().find(({ collection }) => collection.meta.id === id)?.collection.name ?? "";
@@ -446,7 +443,6 @@ export class CollectionsSidebar implements OnInit {
         : []),
     ];
   });
-  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>("fileInput");
 
   private emitLoadRequest(doc: RequestDoc): void {
     this.loadRequest.emit(doc);

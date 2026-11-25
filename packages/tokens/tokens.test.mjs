@@ -333,7 +333,7 @@ test("success's green is drawn only where a status is", () => {
     "styles.css", // the utility class itself
     "design-system/components.css", // .text-status-success, a status code, a run's passed count
     "design-system/controls.css", // btn-success, a tone of the button
-    "app/components/response-viewer/response-viewer.html", // a passing test's glyph
+    "app/components/response-viewer/response-tests.html", // a passing test's glyph
     "app/components/settings/diagnostics-pane.html", // a self-test that passed
     "app/shared/monaco/monaco-loader.ts", // a JSON string's colour, the editor's syntax
   ]);

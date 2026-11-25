@@ -480,7 +480,8 @@ test("a script of a restored tab runs when it was allowed as the tab was stored,
     .locator(".composer-pane")
     .getByRole("tab", { name: /^Scripts( |$)/ })
     .click();
-  await expect(page.getByRole("button", { name: "Review scripts" })).toBeVisible();
+  // In the Scripts tab: the Tests tab of the response says it too, and holds the same action.
+  await expect(page.locator(".composer-pane").getByRole("button", { name: "Review scripts" })).toBeVisible();
   expect(violations).toEqual([]);
 });
 

@@ -66,6 +66,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The count after a request tab's name is drawn as part of the tab, not as an inline box of its own.** In Firefox the empty badge slot after "Tests" measured as cut off at 200% text. Nothing moves; the end-to-end checks of the offline app, the forced-colours focus outline, the YAML imports and the docs pages' width were corrected to what the app now does.
 - **The route strip on a phone is its path, host, words and a button.** At 390 px it showed a dot, the host, a stub of line and a chevron, without the words. It is now two rows, the path with the host and then "Sent from this page · 1 variable" with "Show the whole route" as a button with words. Where the strip had floated at a fixed 24 rem, its path now takes the width of the request's column.
 - **At 200% text in a 320 px window nothing is wider than the window.** The address row's buttons (Send was cut to "Sen"), the empty state's actions, the toolbar's environment menu and a run's results each overflowed sideways; they wrap or shrink now. A run's "Show record" and "Open" wrap in their column on a phone instead of being cut off.
 - **The request's six tabs fit beside the pinned sidebar at 1,440 px.** "Network" was cut at its edge.

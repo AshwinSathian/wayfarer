@@ -26,6 +26,8 @@ export type TabMarkValue = number | "held" | null;
         <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only">(not reviewed)</span>
       }
     </span>`,
+  // A custom element is inline: Firefox gives an inline box a client width of 0, so its badge read as cut off.
+  host: { class: "contents" },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabMark {

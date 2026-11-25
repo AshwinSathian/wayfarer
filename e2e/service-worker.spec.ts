@@ -37,13 +37,24 @@ test.afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-/** Loads the app and waits until the service worker controls the page. */
+/**
+ * Loads the app and waits until the service worker controls the page and holds every file the visit loaded: the
+ * app asks for some chunks and fonts after its first render, and "after one visit" is a visit that has finished.
+ */
 async function loadControlled(page: Page): Promise<void> {
   await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () => {
     await navigator.serviceWorker.ready;
     return navigator.serviceWorker.controller?.scriptURL.endsWith("/app/sw.js") ?? false;
+  });
+  await page.waitForFunction(async () => {
+    const paths = performance
+      .getEntriesByType("resource")
+      .map((entry) => new URL(entry.name))
+      .filter((url) => url.origin === location.origin && /-[A-Za-z0-9_-]{8}\.(js|css|woff2)$/.test(url.pathname))
+      .map((url) => url.pathname);
+    return (await Promise.all(paths.map((path) => caches.match(path)))).every(Boolean);
   });
 }
 

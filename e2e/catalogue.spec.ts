@@ -1603,10 +1603,12 @@ test("text field: in forced colours each keeps its edge and a focused one shows 
     page.getByLabel(name, { exact: true }).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
   for (const name of ["Name", "Subprotocols", "Message"])
     expect(await css(name, "border-top-style"), name).toBe("solid");
-  // The glow is taken away, and no outline takes its place (no focus ring, maintainer, 2026-11-09).
+  // The glow is taken away, so the one outline of the app (styles.css) shows what is focused, from the keyboard.
   for (const name of ["Name", "Address"]) {
     await page.getByLabel(name, { exact: true }).focus();
-    expect(await css(name, "outline-style"), name).toBe("none");
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    expect(await css(name, "outline-style"), name).toBe("solid");
   }
 });
 
@@ -1775,7 +1777,7 @@ test("checkbox: in forced colours each keeps its edge, a checked one is painted 
   expect(await css("Follow redirects", "background-color", "::before")).toBe(await system("HighlightText"));
   await box("Follow redirects").focus();
   await page.keyboard.press("Tab");
-  expect(await css("Do not verify the server's certificate", "outline-style")).toBe("none");
+  expect(await css("Do not verify the server's certificate", "outline-style")).toBe("solid");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

@@ -1272,6 +1272,12 @@ code errors.
   server only. The built app needs neither; do not "fix" the worker for
   them.
 - An e2e that runs a script asserts 0 `securitypolicyviolation` events.
+- The review dialog (`script-review-dialog`) shows every script in full, numbered, in the page and not in a box that
+  scrolls (the dialog scrolls), and marks each line that names `sendRequest` (`scriptFlags`,
+  `packages/core/src/scripting/review.ts`; a name built at run time is not found, and the docs say so). It does not
+  hold the Trust button back until the end is scrolled to: a gate on scrolling is a disabled button without a reason
+  for a keyboard user, and a script's end can be skimmed past as easily as the middle. It stays the only caller of
+  `approveScripts` for a review.
 - Which scripts may run is `ScriptTrust` (`src/app/services/script-trust.ts`,
   plan D6): a collection's `scriptTrust.approved` lists the SHA-256 of each
   script reviewed or written here, and a script runs only if its digest is
@@ -1510,6 +1516,12 @@ code errors.
   none of them would have its value read as the address. The page decides
   "is this a command" with `isCurlCommand` alone and gives the text to the
   worker (`ImportWorkerClient.curl`); it does not load the parser.
+  Text that got into the address by another way than a paste (typed, dropped,
+  dictated) is the route strip's offer: `addressProblem` (`packages/core/src/send/strip.ts`) says
+  "Import as request" for a command and "Use it" for `METHOD https://...`, and `Composer.takeOffer`
+  does it through the same `ComposerView.pasteCurl` (C-107). Do not add a second test for "is this a command".
+- "Try an example" (`Composer.tryExample`) sends once, on the user's click, to the host the empty state names
+  beforehand (C-108): nothing else sends an example, and nothing sends on load.
 - `parse(buildCurl(request))` is the request (the fast-check property in
   `curl.spec.ts`). A change to `buildCurl` or to the parser keeps it.
 - A file that is not JSON is read as YAML by `parseYaml`

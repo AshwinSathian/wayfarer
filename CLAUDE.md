@@ -760,6 +760,21 @@ code errors.
 - Review what an upgrade tool writes line by line. The Tailwind tool turned
   preflight on, changed the cascade and rewrote words in test titles.
 
+## Keyboard
+
+- One list of keys: `src/app/shared/shortcuts.ts`. `SHORTCUTS` (with ⌘/Ctrl or Alt), `JUMPS` (G, then a letter, BB2) and
+  `panelKeys` (the collections panel's) are what the palette's rows, Settings › Shortcuts and the tests read. A new
+  shortcut goes there, never into a template as a literal; a jump names its palette command's id (`command`), and the
+  shell's `paletteCommands` gives that command the keys (`jumpOf`).
+- Every action a person can take has a palette command (the shell's `paletteCommands`, `reachCommands`, the sidebar's
+  `commands()`); a new menu item, pane button or drawer action adds one in the same PR, or says in the PR why not.
+  A command that is only sometimes there (a variable to go to, a strip's offer) is listed only then.
+- A jump key (`JumpKeys`, `src/app/services/jump-keys.ts`) is a single character key, so (WCAG 2.1.4) it can be turned
+  off in Settings › Shortcuts and never fires where text is typed, in a menu or list, in a modal dialog or a popover,
+  with a modifier or while composing. The shell reads it on the window in the capture phase from its own construction,
+  before the collections panel's C and N and the tree's letters, and stops the two keys it took: a listener added
+  earlier than the shell's would read them first. A jump goes to its place by a class in `jump-targets.ts`.
+
 ## Angular Material (history)
 
 - **Material has left the app (D3.3, plan row 1.34).** The maintainer

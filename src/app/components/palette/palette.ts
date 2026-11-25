@@ -96,14 +96,28 @@ export class Palette {
         })),
       ].filter((group) => group.items.length);
     }
-    const found = this.items().filter((item) => {
-      const text = `${item.label} ${item.detail ?? ""} ${item.method ?? ""}`.toLowerCase();
-      return words.every((word) => text.includes(word));
-    });
+    // What starts with the words typed comes first, then what has them in its label, then in its address: Enter on
+    // "history" opens History, not the command that mentions it. The sort is stable, so the rest keep their order.
+    const typed = words.join(" ");
+    const rank = (item: PaletteItem) =>
+      item.label.toLowerCase().startsWith(typed)
+        ? 0
+        : words.every((word) => item.label.toLowerCase().includes(word))
+          ? 1
+          : 2;
+    const found = this.items()
+      .filter((item) => {
+        const text = `${item.label} ${item.detail ?? ""} ${item.method ?? ""}`.toLowerCase();
+        return words.every((word) => text.includes(word));
+      })
+      .sort((a, b) => rank(a) - rank(b));
+    // The group with the best match leads, so that Enter runs the best match and not the first group's.
     return GROUPS.map((name) => ({
       name,
       items: found.filter((item) => item.group === name).slice(0, PER_GROUP),
-    })).filter((group) => group.items.length);
+    }))
+      .filter((group) => group.items.length)
+      .sort((a, b) => rank(a.items[0]) - rank(b.items[0]));
   });
 
   protected readonly rows = computed(() => this.groups().flatMap((group) => group.items));

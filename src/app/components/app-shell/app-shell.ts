@@ -1,4 +1,6 @@
-import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
+import { JUMPS, SHORTCUTS, ariaKeysOf, jumpOf, keysOf, matches } from "../../shared/shortcuts";
+import { JumpKeys } from "../../services/jump-keys";
+import { focusResponse, focusStrip, focusVariables, stripFold, stripOffer } from "./jump-targets";
 import { ROUTE_NAMES, compare, requestsInOrder, statusBar, vaultSetup } from "@wayfarer/core";
 import { UndoNotice } from "../../services/undo-notice";
 import { ImportPipeline } from "../../services/import-pipeline";
@@ -7,10 +9,16 @@ import { ImportPipeline } from "../../services/import-pipeline";
 function paletteGroupOf(id: string): PaletteGroup {
   if (/^(lock|unlock)-secrets$|^open-secrets-manager$/.test(id)) return "Vault";
   if (
-    /^(toggle-theme|response-under|response-beside|open-settings|open-local-bridge-settings|reset-all-data)$/.test(id)
+    /^(toggle-theme|response-under|response-beside|open-settings|open-local-bridge-settings|reset-all-data)$|^open-settings-/.test(
+      id,
+    )
   )
     return "Settings";
-  if (/^(focus-address-bar|toggle-sidebar|open-history|compare-response|environments|open-docs)$/.test(id))
+  if (
+    /^(focus-address-bar|toggle-sidebar|open-history|compare-response|environments|open-docs)$|^go-|^compare-history$|^(next|previous)-tab$/.test(
+      id,
+    )
+  )
     return "Go to";
   return "Requests";
 }
@@ -35,6 +43,7 @@ import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   Injector,
   OnInit,
   afterNextRender,
@@ -69,7 +78,8 @@ import { Composer } from "../composer/composer";
 import { PastRequests } from "../past-requests/past-requests";
 import { CollectionsSidebar, PaletteAction } from "../collections/collections-sidebar";
 import { SecretsManager } from "../secrets/secrets-manager";
-import { Settings, type SettingsSection } from "../settings/settings";
+import { SECTIONS, Settings, type SettingsSection } from "../settings/settings";
+import { WorkspaceStore } from "../../state/workspace-store";
 import { Icon } from "../../shared/icon/icon";
 import { Mark } from "../../shared/icon/mark";
 import { DOCS } from "../../shared/docs";
@@ -114,6 +124,7 @@ import { Tabs } from "../../state/tabs";
 })
 export class AppShell implements OnInit {
   protected readonly shortcuts = SHORTCUTS;
+  protected readonly jumps = JUMPS;
   protected readonly keys = keysOf;
   protected readonly ariaKeys = ariaKeysOf;
   private readonly diagnostics = inject(Diagnostics);
@@ -213,6 +224,10 @@ export class AppShell implements OnInit {
   /** History has an entry or a diff open beside its list: the drawer is wider where the window has room. */
   protected readonly historyRail = signal(false);
   /** The entry History is asked to open: this response's, to compare it with another. */
+  /** Asked to open History with its rows ticked: a count, so that the same ask can come again. */
+  protected readonly historySelecting = signal(0);
+  private readonly store = inject(WorkspaceStore);
+  protected readonly jumpKeys = inject(JumpKeys);
   protected readonly historyEntry = signal<{ id: number; compare: boolean } | null>(null);
   readonly isFirstVaultSetup = signal(false);
   /** The setup dialog's passphrase fields show their text (the vault's setup, S5c). */
@@ -302,7 +317,7 @@ export class AppShell implements OnInit {
 
   /** The shell's commands for the palette; the sidebar adds New collection and what can be done to its selected row. */
   get paletteCommands(): PaletteAction[] {
-    return [
+    const commands: PaletteAction[] = [
       // One command: a new request is a new tab (ia.md, D4-f; U-168).
       {
         id: "new-request",
@@ -423,7 +438,85 @@ export class AppShell implements OnInit {
             },
           ]
         : []),
+      ...this.reachCommands(),
     ];
+    // The jump keys are the registry's (`JUMPS`): a command that has one shows it.
+    return commands.map((command) => ({ ...command, keys: command.keys ?? jumpOf(command.id) }));
+  }
+
+  /** What was in a menu, a pane or a drawer only: reached by name from the palette (BB2), and by jump keys. */
+  private reachCommands(): PaletteAction[] {
+    const tab = this.openTabs.active();
+    const isRequest = !tab.document && !tab.run;
+    const fold = stripFold();
+    const offer = stripOffer();
+    const tabs = this.openTabs.tabs();
+    const at = tabs.findIndex((other) => other === tab);
+    return [
+      { id: "go-collections", label: "Collections", run: () => this.focusCollections() },
+      { id: "go-response", label: "The response", run: () => void focusResponse() },
+      ...(isRequest && this.store.previewVariables().length
+        ? [{ id: "go-variables", label: "The request's variables", run: () => void focusVariables() }]
+        : []),
+      ...(isRequest ? [{ id: "go-route-strip", label: "The route strip", run: () => void focusStrip() }] : []),
+      // Where the strip is folded, the rest of it is one press away; and the offer it makes is the command's name.
+      ...(fold
+        ? [
+            {
+              id: "route-strip-detail",
+              label: fold.getAttribute("aria-expanded") === "true" ? "Hide the whole route" : "Show the whole route",
+              run: () => fold.click(),
+            },
+          ]
+        : []),
+      ...(offer ? [{ id: "route-strip-offer", label: offer.textContent?.trim() ?? "", run: () => offer.click() }] : []),
+      ...(tabs.length > 1
+        ? [
+            { id: "next-tab", label: "Next tab", run: () => this.openTabs.activate(tabs[(at + 1) % tabs.length].id) },
+            {
+              id: "previous-tab",
+              label: "Previous tab",
+              run: () => this.openTabs.activate(tabs[(at + tabs.length - 1) % tabs.length].id),
+            },
+          ]
+        : []),
+      ...(isRequest
+        ? ["Copy as cURL", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"].map(
+            (label, index) => ({ id: `copy-as-${index}`, label, run: () => this.composer().copyAs(index) }),
+          )
+        : []),
+      { id: "import-file", label: "Import a file…", run: () => this.pickImportFile() },
+      { id: "import-curl", label: "Import a cURL command…", run: () => this.importPipeline.openPaste() },
+      { id: "new-environment", label: "New environment…", run: () => this.chooseEnvironment(NEW_ENVIRONMENT) },
+      { id: "compare-history", label: "Compare two history entries…", run: () => this.compareHistory() },
+      { id: "clear-history", label: "Clear history…", run: () => void this.confirmClear() },
+      ...SECTIONS.filter(({ id }) => id !== "general" && id !== "bridge").map((section) => ({
+        id: `open-settings-${section.id}`,
+        label: `Settings: ${section.label}`,
+        run: () => this.openSettings(section.id),
+      })),
+    ];
+  }
+
+  /** The collections, shown (a drawer below 1,200 px) and focused on the selected row, else the first. */
+  private focusCollections(): void {
+    if (this.sidebarOverlay() || !this.drawerVisible()) this.toggleNavigation();
+    afterNextRender(() => this.sidebar()?.focusTree(), { injector: this.injector });
+  }
+
+  /** A file is chosen in the browser's own picker, which a key may open: the one import road takes it from there. */
+  private pickImportFile(): void {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,.json,.har,.yaml,.yml";
+    input.addEventListener("change", (event) => void this.importPipeline.pick(event));
+    input.click();
+  }
+
+  /** History opens with its rows ticked for choosing: two ticked, and Compare the two is offered (C-119). */
+  private compareHistory(): void {
+    this.historySelecting.update((count) => count + 1);
+    this.openHistory();
   }
 
   /** Write tests and Explain in the palette: the open tab's response must be there, and failed for Explain. */
@@ -565,6 +658,23 @@ export class AppShell implements OnInit {
       void this.undo.undo();
     }
   }
+
+  /**
+   * G, then a letter (BB2). Read on the window on the way down, from the shell's own construction, so ahead of the
+   * collections panel's letters (C, N) and the tree's, which stop the keys they handle: the key a jump takes is not theirs.
+   */
+  private readonly jumpListener = (() => {
+    const keydown = (event: KeyboardEvent) => {
+      const { command, swallow } = this.jumpKeys.read(event);
+      if (swallow) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+      if (command) void this.paletteCommands.find((action) => action.id === command)?.run();
+    };
+    window.addEventListener("keydown", keydown, true);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+  })();
 
   get historyBadge(): string | undefined {
     const pastRequests = this.pastRequests();

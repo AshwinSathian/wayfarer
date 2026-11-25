@@ -346,6 +346,24 @@
       <app-cookies-pane />
       } @case ('shortcuts') {
       <div class="settings-group">
+        <div class="settings-row settings-row-switch">
+          <div class="min-w-0">
+            <label for="jump-keys" class="settings-title type-callout text-label-primary">Jump keys</label>
+            <p class="type-footnote text-label-secondary"
+              >Press G, then a letter, to go to a place. They work only where no text is being typed. Off: G is a letter
+              like any other.</p
+            >
+          </div>
+          <input
+            type="checkbox"
+            uiCheckbox
+            id="jump-keys"
+            [checked]="jumpKeys.enabled()"
+            (change)="jumpKeys.choose($any($event.target).checked)"
+          />
+        </div>
+      </div>
+      <div class="settings-group">
         @for (shortcut of shortcuts(); track shortcut.keys) {
         <div class="settings-row">
           <span class="type-callout text-label-secondary">{{ shortcut.description }}</span>

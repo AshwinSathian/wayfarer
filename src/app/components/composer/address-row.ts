@@ -105,6 +105,12 @@ export class AddressRow {
     el.focus();
   }
 
+  /** The palette's Copy as…: the same items as the menu, by their place in it (cURL, fetch, requests, HTTPie). */
+  copyAs(index: number): void {
+    const item = this.curlItems[index];
+    if (item && "command" in item) item.command();
+  }
+
   private copied(note: Promise<string>): void {
     void note.then((text) => {
       if (text) this.copyStatus.show(text);

@@ -132,6 +132,7 @@
         [loading]="historyLoading()"
         [displayHeader]="false"
         [openEntry]="historyEntry()"
+        [startSelecting]="historySelecting()"
         (railChange)="historyRail.set($event)"
         (loadRequest)="handleLoadRequest($event)"
         (deleteRequest)="deleteRequest.emit($event)"
@@ -564,6 +565,15 @@
     ><app-icon name="close" class="icon-sm"
   /></button>
   }
+</div>
+
+<!-- The jump keys (BB2): after G, what each next key goes to, said by a status region and drawn where the Undo is. -->
+<div class="jump-hint" role="status">
+  @if (jumpKeys.armed()) {
+  <span class="type-footnote">G, then</span>
+  @for (jump of jumps; track jump.command) {
+  <span class="type-footnote jump-hint-item"><kbd class="keycap">{{ jump.key }}</kbd> {{ jump.label }}</span>
+  } }
 </div>
 
 <!-- A collection's or a folder's settings: here, not in the sidebar, whose drawer may be closed (U-132). -->

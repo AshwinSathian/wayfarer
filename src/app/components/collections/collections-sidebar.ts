@@ -213,6 +213,13 @@ export class CollectionsSidebar implements OnInit {
     this.tree()?.reveal(key);
   }
 
+  /** Focus goes to the tree: its selected row, else its first (the jump to the collections). */
+  focusTree(): void {
+    const tree = this.tree();
+    const key = this.selectedNode()?.key ?? this.nodes()[0]?.key;
+    if (tree && key) tree.focusNode(key);
+  }
+
   /** What the palette offers from here: New collection, and what can be done to the selected row. */
   commands(): PaletteAction[] {
     const actions: PaletteAction[] = [

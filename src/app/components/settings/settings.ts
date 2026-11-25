@@ -26,7 +26,8 @@ import { CookiesPane } from "./cookies-pane";
 import { DiagnosticsPane } from "./diagnostics-pane";
 import { RequestSettings } from "../../services/request-settings";
 import { PaletteAction } from "../collections/collections-sidebar";
-import { SHORTCUTS, keysOf } from "../../shared/shortcuts";
+import { JumpKeys } from "../../services/jump-keys";
+import { JUMPS, SHORTCUTS, keysOf, panelKeys } from "../../shared/shortcuts";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
 import type { IconName } from "../../shared/icon/icon-paths";
@@ -68,7 +69,7 @@ interface SectionEntry {
   about: string;
 }
 
-const SECTIONS: SectionEntry[] = [
+export const SECTIONS: SectionEntry[] = [
   // One pane for how the app looks and how a request is sent: the theme alone was a pane of one row (U-025).
   { id: "general", label: "General", icon: "settings", about: "How the app looks, and how a request is sent." },
   { id: "history", label: "History", icon: "history", about: "What is kept of the requests you send." },
@@ -145,6 +146,7 @@ const SECTIONS: SectionEntry[] = [
 export class Settings {
   readonly themeService = inject(Theme);
   protected readonly paneLayout = inject(PaneLayout);
+  protected readonly jumpKeys = inject(JumpKeys);
   readonly bridgeService = inject(BridgeSettings);
   readonly requestSettings = inject(RequestSettings);
   readonly vault = inject(SecretsVault);
@@ -224,18 +226,10 @@ export class Settings {
   protected readonly shortcuts = computed<KeyboardShortcut[]>(() => [
     { keys: keysOf(SHORTCUTS.palette), description: "Open the command palette" },
     ...this.paletteActions().flatMap((action) =>
-      action.keys ? [{ keys: keysOf(action.keys), description: action.label }] : [],
+      action.keys && !action.keys.after ? [{ keys: keysOf(action.keys), description: action.label }] : [],
     ),
-    { keys: "C", description: "New collection, with the collections panel focused" },
-    { keys: "N", description: "New request in the selected collection or folder" },
-    { keys: "Delete", description: "Delete the item selected in the collections panel" },
-    { keys: "F2", description: "Rename the item selected in the collections panel, or the focused tab" },
-    {
-      keys: `${keysOf({ key: "↑", alt: true })} ${keysOf({ key: "↓", alt: true })}`,
-      description: "Move the selected item up or down among its siblings",
-    },
-    { keys: keysOf({ key: "F10", shift: true }), description: "Open the menu of the selected item or the focused tab" },
-    { keys: "Escape", description: "Close the open dialog, drawer or palette" },
+    ...JUMPS.map((jump) => ({ keys: keysOf({ key: jump.key, after: "G" }), description: jump.label })),
+    ...panelKeys(),
   ]);
 
   exportEnvironments(): void {

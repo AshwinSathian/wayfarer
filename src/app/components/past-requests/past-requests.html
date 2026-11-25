@@ -65,6 +65,8 @@
         >
         }
         <button uiButton type="button" class="btn-secondary btn-sm ms-auto" (click)="stopSelecting()">Done</button>
+        <!-- The keyboard's way, said: Space ticks the focused entry, and the button appears with the second tick. -->
+        <p class="history-help type-footnote basis-full">Tick two entries with Space to compare them.</p>
         } @else {
         <button uiButton type="button" class="btn-secondary btn-sm" (click)="selecting.set(true)">Select…</button>
         <!-- Away from the drawer's Close, in words, and asked first (U-086). -->

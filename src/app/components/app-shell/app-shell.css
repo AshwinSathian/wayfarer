@@ -117,6 +117,27 @@
   color: var(--label-primary);
 }
 
+.jump-hint {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 46;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.jump-hint:has(> *) {
+  min-height: 34px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--separator);
+  background: var(--canvas-sidebar);
+  box-shadow: var(--shadow-overlay);
+  color: var(--label-primary);
+}
+
 /* Where the sidebar is a drawer, a delete made in it leaves the drawer (a top-layer dialog) over the strip's start:
    the words go to its end, beside the Undo. */
 @media (width < 75em) {

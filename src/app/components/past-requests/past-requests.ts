@@ -134,6 +134,8 @@ export class PastRequests {
    * An entry the list was asked to open, from outside (a tab's response: "Compare this response with…"). The shell
    * gives it again after it has been used, so the same entry can be asked for twice.
    */
+  /** A count the shell raises to ask for the rows to be ticked (the palette's Compare two history entries). */
+  readonly startSelecting = input(0);
   readonly openEntry = input<{ id: number; compare: boolean } | null>(null);
   /** The rail is drawn: the shell widens the drawer for it. */
   readonly railChange = output<boolean>();
@@ -146,6 +148,14 @@ export class PastRequests {
 
   constructor() {
     effect(() => this.railChange.emit(this.railOpen()));
+    // Asked from outside (the palette): the rows are ticked, and focus is on the first tick.
+    effect(() => {
+      if (!this.startSelecting()) return;
+      this.selecting.set(true);
+      afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>(".history-tick")?.focus(), {
+        injector: this.injector,
+      });
+    });
     effect(() => {
       const wanted = this.openEntry();
       if (wanted) void this.showDetail(wanted.id, wanted.compare);

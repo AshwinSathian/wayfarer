@@ -375,6 +375,7 @@ test("the route tokens are named only where the brand hue is drawn", () => {
   const allowed = new Set([
     "app/ui/tree.css", // the selected row's mark
     "app/components/composer/route-strip.css", // the strip's line, its nodes and its route words
+    "app/shared/empty-state/route-glyph.css", // the same path, small: its line
   ]);
   const found = sources(/\.(html|ts|css)$/, (file) => /\.spec\.ts$|^design-system\/tokens\./.test(file))
     .filter(([file, text]) => !allowed.has(file) && /--route(?![\w-]*-)|--route-(text|fill)/.test(text))

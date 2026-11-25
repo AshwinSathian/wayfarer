@@ -1,0 +1,20 @@
+.walk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator);
+}
+
+.walk-text {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.walk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

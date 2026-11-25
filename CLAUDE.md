@@ -690,6 +690,17 @@ code errors.
   with New environment as its one action, and Import beside it. The vault is
   set up from where it is met (the status bar, the Secrets dialog, a variable's
   lock) with the same words, `vaultSetup` in `strings.ts`.
+- An empty place is `<app-empty-state [headline] [body]>` (`src/app/shared/empty-state/`), with its one action projected:
+  the route strip's path small (`app-route-glyph`: an origin, a block, the host; only its line has the brand hue, the
+  rest is ink), the headline in `type-empty-title` and one sentence, both from `empty` in `packages/core/src/strings.ts`.
+  It is still: no animation at all, so there is nothing for reduced motion to stop. A new empty place uses it and
+  gets a state in `?catalogue&empty`; do not draw a headline and a sentence by hand. A place with a second control
+  (Import beside New) has it projected too, but the filled button is the one action.
+- The first-run walk (`FirstRunWalk`, `first-run-walk.ts` in the composer) starts only from "Try an example" on a
+  profile without `wayfarer:first-walk`, and is the strip's three stops one sentence each, inline under the strip:
+  never a dialog, never moved focus; its words are a polite region always in the page, and Escape ends it only when
+  nothing else took the key. Done, Dismiss and Escape write the key; Reset all data removes it with the rest. Do not
+  start it from an ordinary send: every e2e test sends from a new profile.
 - The toolbar holds the environment, Environments, History and Settings
   (S4). The environment select ends in "New environment…", the way to the
   first one (it opens Environments at a name field: `EnvironmentsStore.newRequested`).

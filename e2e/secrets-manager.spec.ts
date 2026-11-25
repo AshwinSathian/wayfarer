@@ -77,6 +77,6 @@ test.describe("Secrets management view", () => {
       .getByRole("alertdialog", { name: "Delete the secret Renamed Token?" })
       .getByRole("button", { name: "Delete", exact: true })
       .click();
-    await expect(page.getByText("Secrets you mark in Environments are kept here.")).toBeVisible();
+    await expect(page.getByText("No secrets yet.")).toBeVisible();
   });
 });

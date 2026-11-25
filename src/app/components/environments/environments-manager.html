@@ -168,18 +168,14 @@
   </div>
   } @else {
   <!-- None yet: what one is for, and the one thing to do (S5c). Import is the same menu as everywhere. -->
-  <div class="env-empty flex flex-col items-start gap-3 min-w-0">
-    <h3 class="type-empty-title text-label-primary m-0">{{ empty.environments.headline }}</h3>
-    <p class="type-callout text-label-secondary m-0 max-w-prose">{{ empty.environments.body }}</p>
-    <div class="flex flex-wrap gap-2">
-      @if (!newEnvDialogVisible()) {
-      <button uiButton="filled" class="btn-sm" type="button" (click)="openNewEnvironmentDialog()"
-        >{{ empty.environments.actions[0] }}</button
-      >
-      }
-      <app-import-menu look="outlined" />
-    </div>
-  </div>
+  <app-empty-state class="env-empty" [headline]="empty.environments.headline" [body]="empty.environments.body">
+    @if (!newEnvDialogVisible()) {
+    <button uiButton="filled" class="btn-sm" type="button" (click)="openNewEnvironmentDialog()"
+      >{{ empty.environments.actions[0] }}</button
+    >
+    }
+    <app-import-menu look="outlined" />
+  </app-empty-state>
   }
 </div>
 

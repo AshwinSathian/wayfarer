@@ -181,6 +181,16 @@ export const empty = {
     body: "The vault keeps secrets such as API keys encrypted with a passphrase only you know. Set it up before you add a secret.",
     action: "Set up vault",
   },
+  secrets: {
+    headline: "No secrets yet.",
+    body: "A secret is a variable you lock in Environments. Its value is kept here, encrypted, and masked wherever Wayfarer stores it.",
+    action: "Open Environments",
+  },
+  diff: {
+    headline: "Nothing to compare yet.",
+    body: "History holds only this one entry. Send the request again, then compare the two.",
+    action: "Open it to send again",
+  },
   tests: {
     headline: "No tests on this request.",
     body: "A test checks the response, for example that the status is 200.",
@@ -271,6 +281,20 @@ export const firstRun = {
   placeholder: "Paste a cURL command or type an address",
   example: "GET https://jsonplaceholder.typicode.com/todos/1",
   result: (host: string, status: string, ms: number) => `Sent from this page to ${host}. ${status}, ${ms} ms.`,
+} as const;
+
+/** The walk of the strip after the first example send (overhaul BB1): one sentence for each of its three stops. */
+export const firstRunWalk = {
+  label: "How this request travelled",
+  step: (n: number, of: number) => `Step ${n} of ${of}`,
+  origin: (from: string) => `It left from ${from}, on your device.`,
+  block: "A secret a request names is masked wherever Wayfarer keeps it. This one named none.",
+  blockSent: (n: number) =>
+    `${n === 1 ? "A secret" : `${n} secrets`} named in this request ${n === 1 ? "is" : "are"} masked wherever Wayfarer keeps it.`,
+  host: (host: string) => `It arrived at ${host}. The response is below.`,
+  next: "Next",
+  done: "Done",
+  dismiss: "Dismiss",
 } as const;
 
 const holds = (requests: number, folders: number) =>

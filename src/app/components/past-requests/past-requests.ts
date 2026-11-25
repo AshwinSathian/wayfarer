@@ -1,3 +1,4 @@
+import { EmptyState } from "../../shared/empty-state/empty-state";
 import { DatePipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -56,6 +57,7 @@ export interface HistoryGroup {
 @Component({
   selector: "app-past-requests",
   imports: [
+    EmptyState,
     UiMethodGlyph,
     UiButton,
     UiInput,

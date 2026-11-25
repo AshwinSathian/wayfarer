@@ -1,4 +1,5 @@
-import { empty, vaultSetup } from "@wayfarer/core";
+import { EmptyState } from "../../shared/empty-state/empty-state";
+import { empty } from "@wayfarer/core";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -49,7 +50,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [VaultActions, UiSpinner, UiInput, Icon, FormsModule, UiButton, Dialog, UiTooltip],
+  imports: [EmptyState, VaultActions, UiSpinner, UiInput, Icon, FormsModule, UiButton, Dialog, UiTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +66,10 @@ export class SecretsManager {
 
   readonly visible = model(false);
   readonly requestUnlock = output<void>();
+  /** The empty list's one action: the Environments tab, where a variable is locked into a secret. */
+  readonly openEnvironments = output<void>();
+  protected readonly vaultEmpty = empty.vault;
+  protected readonly secretsEmpty = empty.secrets;
 
   private readonly docs = signal<SecretDoc[]>([]);
   readonly loading = signal(false);
@@ -103,8 +108,6 @@ export class SecretsManager {
   }
 
   /** No passphrase has been chosen in this browser yet (U-164). */
-  protected readonly empty = empty;
-  protected readonly vaultSetup = vaultSetup;
   protected get noVault(): boolean {
     return this.secretsService.made() === false;
   }

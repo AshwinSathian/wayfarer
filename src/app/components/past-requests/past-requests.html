@@ -11,13 +11,11 @@
     }
   </div>
   } @else if (!pastRequests().length) {
-  <div class="flex flex-col items-start gap-3 px-5 py-6">
-    <h3 class="type-empty-title text-label-primary m-0">{{ empty.history.headline }}</h3>
-    <p class="type-callout text-label-secondary m-0">{{ empty.history.body }}</p>
+  <app-empty-state class="px-5 py-6" [headline]="empty.history.headline" [body]="empty.history.body">
     <button uiButton="filled" class="btn-sm" type="button" (click)="sendRequest.emit()"
       >{{ empty.history.action }}</button
     >
-  </div>
+  </app-empty-state>
   } @else {
   <div class="history-pane flex flex-col gap-3">
     <div class="history-tools flex flex-col gap-2 px-3 pt-1">

@@ -55,6 +55,9 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { ScriptsPanel } from "./scripts-panel";
 import { TabMark } from "./tab-mark";
 import { TabStrip } from "./tab-strip";
+import { EmptyState } from "../../shared/empty-state/empty-state";
+import { FirstRunWalk } from "../../services/first-run-walk";
+import { FirstRunWalkPanel } from "./first-run-walk";
 import { RouteStrip } from "./route-strip";
 import { VariableChips } from "./variable-chips";
 
@@ -105,6 +108,8 @@ const EXAMPLE_URL = "https://jsonplaceholder.typicode.com/todos/1";
     BrowserNotes,
     RequestWarnings,
     RouteStrip,
+    EmptyState,
+    FirstRunWalkPanel,
     VariableChips,
     ParamsPanel,
     HeadersPanel,
@@ -133,6 +138,7 @@ export class Composer {
   /** Said before the click: "Try an example" sends one request to this host, from this page. */
   protected readonly exampleNote = `Try an example sends ${firstRunStrings.example} from this page.`;
   private readonly requestSave = inject(RequestSave);
+  private readonly firstWalk = inject(FirstRunWalk);
   protected readonly importPipeline = inject(ImportPipeline);
   protected readonly ai = inject(AiSettings);
   protected readonly modelCalls = inject(ModelCalls);
@@ -265,6 +271,7 @@ export class Composer {
    */
   tryExample(): void {
     this.store.setUrl(EXAMPLE_URL);
+    this.firstWalk.start();
     void this.sendRequest();
   }
 

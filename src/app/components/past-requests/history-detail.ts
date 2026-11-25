@@ -1,3 +1,4 @@
+import { EmptyState } from "../../shared/empty-state/empty-state";
 import { DatePipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -10,7 +11,7 @@ import {
   output,
   signal,
 } from "@angular/core";
-import { ROUTE_NAMES, compare, formatDuration, sentPart, type PastRequest } from "@wayfarer/core";
+import { ROUTE_NAMES, compare, empty, formatDuration, sentPart, type PastRequest } from "@wayfarer/core";
 import { statusTone } from "../../shared/http/status-tone";
 import { Icon } from "../../shared/icon/icon";
 import { recordedExchange } from "../../state/exchange-view";
@@ -35,7 +36,7 @@ const PARTS: UiSegment<Part>[] = [
  */
 @Component({
   selector: "app-history-detail",
-  imports: [DatePipe, Icon, ResponseHeaders, ResponseSent, UiButton, UiSegmented, UiSelect],
+  imports: [EmptyState, DatePipe, Icon, ResponseHeaders, ResponseSent, UiButton, UiSegmented, UiSelect],
   templateUrl: "./history-detail.html",
   styleUrl: "./history-detail.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +57,7 @@ export class HistoryDetail {
   protected readonly parts = PARTS;
   protected readonly part = signal<Part>("body");
   protected readonly words = compare;
+  protected readonly none = empty.diff;
   protected readonly route = ROUTE_NAMES;
   protected readonly statusTone = statusTone;
   protected readonly formatDuration = formatDuration;

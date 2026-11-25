@@ -1,0 +1,19 @@
+<!-- Always there, so that a sentence put into it is said (a region made with its text is not). -->
+<p class="sr-only" role="status">{{ shown() ? sentence() : "" }}</p>
+@if (shown()) {
+<section class="walk" role="region" [attr.aria-label]="words.label">
+  <app-route-glyph [lit]="walk.step()" />
+  <div class="walk-text" aria-hidden="true">
+    <p class="type-footnote text-label-secondary m-0">{{ words.label }} · {{ words.step(walk.step() + 1, total) }}</p>
+    <p class="type-callout text-label-primary m-0">{{ sentence() }}</p>
+  </div>
+  <div class="walk-actions">
+    <button uiButton="filled" class="btn-sm" type="button" (click)="walk.next()"
+      >{{ walk.step() === total - 1 ? words.done : words.next }}</button
+    >
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="walk.finish()"
+      >{{ words.dismiss }}</button
+    >
+  </div>
+</section>
+}

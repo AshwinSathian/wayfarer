@@ -225,6 +225,17 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  test(`the empty places are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme, "&empty");
+    const found: string[] = [];
+    await page.locator("#catalogue-empty").scrollIntoViewIfNeeded();
+    await scanner(
+      page,
+      found,
+    )("empty places: collections, history, environments, response, vault, secrets, tests, diff");
+    expect(found).toEqual([]);
+  });
+
   test(`the route strip, in each of its states, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
   }) => {

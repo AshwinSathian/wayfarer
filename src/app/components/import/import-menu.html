@@ -1,0 +1,19 @@
+<button
+  type="button"
+  [uiButton]="look() === 'outlined' ? 'outlined' : ''"
+  class="btn-secondary btn-sm"
+  ngMenuTrigger
+  #trigger="ngMenuTrigger"
+  [menu]="menu.menu()"
+  (keydown.escape)="escape()"
+  >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
+/></button>
+<ui-menu #menu [trigger]="trigger" [items]="items()" />
+<input
+  #file
+  type="file"
+  accept="application/json,.json,.har,.yaml,.yml"
+  class="hidden"
+  aria-label="File to import"
+  (change)="pipeline.pick($event)"
+/>

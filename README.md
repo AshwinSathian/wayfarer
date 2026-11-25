@@ -196,6 +196,11 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A cURL command typed or dropped into the address field, not only pasted, is offered as an import in the line under the route strip, and so is a method typed before an address (`POST https://...`); taking the offer reads the command into the request and does not run it. <!-- claim:C-107 -->
 - On an empty tab, "Try an example" sends one GET request from the page to the example address the empty state names, and the response shows with the route strip's account of the send. <!-- claim:C-108 -->
 - The review of scripts shows all of each script's code with its line numbers before the Trust button, and marks the lines that name `pm.sendRequest`; a call whose name the script builds when it runs is not marked. <!-- claim:C-109 -->
+- Import is one menu, with a file, a cURL command and a link, in the Collections panel, in Environments and in Settings; each choice opens the same report. <!-- claim:C-110 -->
+- After a file's Import, the first request of what it added is open in the composer; the report before it says how many requests go to which hosts and that nothing is stored until you choose Import. <!-- claim:C-111 -->
+- Setting up the vault says what the vault is, that a forgotten passphrase cannot be recovered, and offers to show the passphrase as it is typed. <!-- claim:C-112 -->
+- The global variables are the first row of the Environments list and open in the same pane as an environment's variables, written as they are left; with no environment, the pane says what one is for and offers one action to make it. <!-- claim:C-113 -->
+- A collection run's table marks each row passed or failed with a glyph, as well as its colour, and says where its request was sent: from this page or through the Local Bridge. <!-- claim:C-114 -->
 <!-- features:end -->
 
 </details>

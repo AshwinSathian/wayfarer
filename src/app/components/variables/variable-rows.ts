@@ -22,6 +22,7 @@ import {
   variableChanges,
   type Row,
   type VariableChange,
+  vaultSetup,
 } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
@@ -88,6 +89,7 @@ export interface VariablesDraft {
   host: { "(focusout)": "onFocusOut($event)" },
 })
 export class VariableRows implements OnDestroy {
+  protected readonly vaultSetup = vaultSetup;
   private readonly secretsService = inject(SecretsVault);
   private readonly injector = inject(Injector);
   private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");

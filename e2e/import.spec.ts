@@ -387,7 +387,7 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
   await page.getByRole("tree").getByText("Shop API", { exact: true }).click();
   await page.keyboard.press("ArrowRight");
   await openFolder(page, "Admin");
-  await page.getByText("List", { exact: true }).click();
+  await page.getByRole("tree").getByText("List", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue("{{base}}/echo?x=1");
   const [sent] = await Promise.all([
     page.waitForRequest(
@@ -470,7 +470,7 @@ test("the review lists each item as it is stored and says which variables the fi
   await expect(plan.getByRole("listitem").filter({ hasText: "Status and body" })).toHaveText(
     /^Request\s*Status and body\s*New$/,
   );
-  await expect(review).toContainText("1 folder · 2 requests");
+  await expect(review).toContainText("2 requests in 1 folder go to:");
   await expect(review).toContainText(
     "{{base}} has no value in the file, and both requests use it: give it a value in an environment or in the collection's settings before you send.",
   );
@@ -592,7 +592,7 @@ test("the import report and the script review list a collection's items in the o
     buffer: Buffer.from(JSON.stringify(file)),
   });
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await expect(dialog.getByText("Its requests go to:")).toBeVisible();
+  await expect(dialog.getByText("4 requests in 2 folders go to:")).toBeVisible();
   const names = ["Store", "Orders", "List orders", "Create order", "Customers", "Get customer", "Health"];
   const rows = dialog.getByRole("list", { name: "What is imported" }).locator(".import-plan-name");
   await expect(rows).toHaveText(names);

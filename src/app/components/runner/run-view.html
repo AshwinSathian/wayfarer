@@ -134,8 +134,12 @@
 
 @if (results.length) {
 <div class="run-summary flex flex-wrap items-center gap-x-5 gap-y-2">
-  <span class="run-count run-count-passed"><b>{{ passed() }}</b> passed</span>
-  <span class="run-count run-count-failed" [class.run-count-zero]="!failed()"><b>{{ failed() }}</b> failed</span>
+  <span class="run-count run-count-passed"
+    ><app-icon name="check_circle" class="icon-xs run-glyph" /><b>{{ passed() }}</b> passed</span
+  >
+  <span class="run-count run-count-failed" [class.run-count-zero]="!failed()"
+    ><app-icon name="error" class="icon-xs run-glyph" /><b>{{ failed() }}</b> failed</span
+  >
   @if (skipped()) {
   <span class="run-count"><b>{{ skipped() }}</b> skipped</span>
   } @if (tests().length) {
@@ -210,11 +214,22 @@
         <td>
           @if (result.skipped) {
           <span class="text-label-secondary">Skipped</span>
-          } @else if (result.status) {
-          <span class="status-code" [class]="statusTone(result.status)">{{ result.status }}</span>
-          @if (result.statusText) {&ngsp;<span class="text-label-secondary">{{ result.statusText }}</span>} } @else {
-          <span class="text-status-error">No response</span>
-          }
+          } @else {
+          <!-- The glyph says the row's result, as its colour does (a run has no colour-only state). -->
+          <span class="inline-flex items-center gap-1.5"
+            ><app-icon
+              [name]="failedOf(result) ? 'error' : 'check_circle'"
+              [class]="failedOf(result) ? 'icon-xs text-status-error-text' : 'icon-xs text-status-success-text'"
+            /><span class="sr-only">{{ failedOf(result) ? "Failed. " : "Passed. " }}</span>
+            @if (result.status) {
+            <span class="status-code" [class]="statusTone(result.status)">{{ result.status }}</span>
+            @if (result.statusText) {&ngsp;<span class="text-label-secondary">{{ result.statusText }}</span>} } @else {
+            <span class="text-status-error-text">No response</span>
+            }</span
+          >
+          @if (routeOf(row.record); as route) {
+          <p class="type-footnote text-label-secondary m-0">{{ route }}</p>
+          } }
         </td>
         <td class="num">{{ formatDuration(result.durationMs) }}</td>
         <td>{{ testsOf(result) }}</td>

@@ -11,7 +11,7 @@ holds a collection, such as a clone of a teammate's repository, opens with
 **Import › Folder…** in a Chromium browser ([Keep a collection in a folder](folders.md)).
 
 Every file reaches the app by one road, whichever Import button you press
-(the Collections panel, Environments, or Settings):
+(the Collections panel, Environments, or Settings), and the button is the same menu in all three, with **File…**, **cURL command…** and **Link…**: <!-- claim:C-110 -->
 
 1. **Read.** The page reads the file, at most 10 MB of it. A larger file is
    refused before it is parsed. A file may be JSON or YAML; a YAML file may
@@ -29,6 +29,8 @@ Every file reaches the app by one road, whichever Import button you press
    variables the collection gives a value filled in. <!-- claim:C-090 -->
 4. **Confirm.** **Import** stores it: each collection in one transaction, all
    of it or none. **Cancel**, Escape or closing the dialog stores nothing.
+   When it is done, the first request of what a file added is open in the
+   composer, ready to send. <!-- claim:C-111 -->
 
 ## What the report warns about
 

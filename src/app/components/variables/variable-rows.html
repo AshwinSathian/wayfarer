@@ -91,8 +91,8 @@
           <!-- The vault is made in the row that asked for it, not in a second dialog (U-136). -->
           <div #vaultForm class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
             <p id="env-vault-create-title" class="type-footnote text-label-primary"
-              >Choose a passphrase for the vault. It encrypts {{ item.key }} and every secret after it, and nothing can
-              open them without it: a forgotten passphrase cannot be recovered.</p
+              >Set up the vault to keep {{ item.key || "this variable" }} as a secret. {{ vaultSetup.lead }} {{
+              vaultSetup.note }}</p
             >
             <div class="flex flex-wrap gap-2">
               <label class="flex min-w-0 flex-1 basis-40 flex-col gap-1">

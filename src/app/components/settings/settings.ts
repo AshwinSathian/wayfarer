@@ -36,7 +36,7 @@ import { WorkspaceBackup } from "../../services/workspace-backup";
 import { Confirm } from "../../ui/confirm";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { ROUTE_NAMES, empty, readImportText, serializeEnvironmentExport, vaultSetup } from "@wayfarer/core";
-import { ImportPipeline } from "../../services/import-pipeline";
+import { ImportMenu } from "../import/import-menu";
 import { DOCS } from "../../shared/docs";
 import { saveJsonFile } from "../../shared/save-file";
 import { formatBytes } from "../../shared/inspect/timing-bars";
@@ -124,6 +124,7 @@ const SECTIONS: SectionEntry[] = [
   selector: "app-settings",
   imports: [
     Icon,
+    ImportMenu,
     FormsModule,
     UiButton,
     UiCheckbox,
@@ -150,7 +151,6 @@ export class Settings {
   readonly persistence = inject(StoragePersistence);
   private readonly backup = inject(WorkspaceBackup);
   private readonly confirm = inject(Confirm);
-  private readonly importPipeline = inject(ImportPipeline);
 
   readonly backupHistory = signal(false);
   readonly backupErrors = signal<string[]>([]);
@@ -241,11 +241,6 @@ export class Settings {
   exportEnvironments(): void {
     const json = serializeEnvironmentExport(this.environmentsService.environments());
     saveJsonFile("environments-export.json", json);
-  }
-
-  /** The file goes down the one import road: the report opens over Settings, and nothing is stored before it is confirmed. */
-  async handleEnvironmentImport(event: Event): Promise<void> {
-    await this.importPipeline.pick(event);
   }
 
   constructor() {

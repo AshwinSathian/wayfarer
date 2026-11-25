@@ -12,6 +12,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { recordDiagnostic } from "../../services/diagnostics";
 import {
   collectionHosts,
+  importing,
   receiverLines,
   receiverLineText,
   scriptsOf,
@@ -85,6 +86,7 @@ export class ImportDialog {
   }
 
   /** Every host the collection sends to, shown before anything is stored (T1.3). */
+  protected readonly importing = importing;
   protected hostsOf(entry: ImportedCollection): string[] {
     return collectionHosts(entry.payload);
   }

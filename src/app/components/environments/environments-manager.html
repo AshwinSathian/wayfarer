@@ -15,33 +15,20 @@
         ><app-icon name="add" class="icon-xs" />New</button
       >
     </div>
-    <div class="mb-2 flex flex-wrap items-center gap-1">
-      <button type="button" uiButton class="btn-secondary btn-sm" (click)="globalsVisible.set(true)">Globals</button>
-      <button
-        type="button"
-        uiButton
-        class="btn-secondary btn-sm"
-        aria-label="Import environments"
-        (click)="envImportInput.click()"
-        >Import</button
-      >
-      <button
-        type="button"
-        uiButton
-        class="btn-secondary btn-sm"
-        aria-label="Export environments"
-        (click)="exportDialogVisible.set(true)"
-        >Export</button
-      >
+    <!-- Globals are the first row of the list: they open in the pane like an environment, with no dialog (S5c). -->
+    <div class="space-y-1 mb-1">
+      <div class="env-item" data-env="globals" [class.active]="globalsOpen()">
+        <button
+          type="button"
+          class="env-item-select"
+          [attr.aria-current]="globalsOpen() ? 'true' : null"
+          (click)="selectGlobals()"
+        >
+          <span class="type-body font-semibold text-label-primary truncate max-w-full">Globals</span>
+          <span class="type-footnote text-label-secondary">Every request, in any environment</span>
+        </button>
+      </div>
     </div>
-
-    <input
-      #envImportInput
-      type="file"
-      accept="application/json,.json,.yaml,.yml"
-      class="hidden"
-      (change)="importPipeline.pick($event)"
-    />
 
     @if (newEnvDialogVisible()) {
     <!-- A new environment is a row of the list, named in place (DQ9): Enter makes it (U-044), Escape puts it away. -->
@@ -60,20 +47,8 @@
         placeholder="Staging, Production…"
       />
     </div>
-    } @if (!environments().length) {
-    <div class="ds-empty-state py-6">
-      <app-icon name="dns" class="icon-lg text-label-tertiary" />
-      <h3 class="type-empty-title text-label-primary text-center m-0">No environments yet</h3>
-      <p class="type-footnote text-label-secondary text-center"
-        >An environment holds variables, such as one address for staging and another for production.</p
-      >
-      @if (!newEnvDialogVisible()) {
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openNewEnvironmentDialog()"
-        >New environment</button
-      >
-      }
-    </div>
-    } @else { @let activeEnv = activeEnvironment(); @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
+    } @if (environments().length) { @let activeEnv = activeEnvironment(); @let activeEnvId = activeEnv ?
+    activeEnv.meta.id : undefined;
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <!-- A row is not a button: it holds one that selects it, stretched over the row, and the row's own buttons beside it. -->
@@ -129,6 +104,20 @@
       }
     </div>
     }
+    <!-- Files in and out: the one Import menu, and Export (S5c). -->
+    @if (environments().length) {
+    <div class="mt-3 flex flex-wrap items-center gap-1">
+      <app-import-menu />
+      <button
+        type="button"
+        uiButton
+        class="btn-secondary btn-sm"
+        aria-label="Export environments"
+        (click)="exportDialogVisible.set(true)"
+        >Export</button
+      >
+    </div>
+    }
   </div>
 
   <!-- ── Environment editor ────────────────────────────────── -->
@@ -165,34 +154,34 @@
     <app-variable-rows class="mt-5" [holder]="holder" [reveal]="reveal()" />
     }
   </div>
+  } @else if (globalsOpen()) {
+  <div class="env-editor min-w-0">
+    <h3 class="type-title-3 text-label-primary m-0">Globals</h3>
+    <p class="type-footnote text-label-secondary mt-1">{{ globalsHint }}</p>
+    <app-variable-rows class="mt-5" [holder]="globalsHolder()" [reveal]="reveal()" />
+  </div>
   } @else if (environments().length) {
   <div class="ds-empty-state">
-    <app-icon
-      name="dns"
-      class="icon-xl text-label-tertiary"
-      style="
-        font-variation-settings:
-          &quot;FILL&quot; 0,
-          &quot;wght&quot; 200,
-          &quot;GRAD&quot; -25,
-          &quot;opsz&quot; 48;
-      "
-    />
     <p class="type-callout text-label-tertiary max-w-[220px] text-center"
       >Choose an environment to edit its variables.</p
     >
   </div>
+  } @else {
+  <!-- None yet: what one is for, and the one thing to do (S5c). Import is the same menu as everywhere. -->
+  <div class="env-empty flex flex-col items-start gap-3 min-w-0">
+    <h3 class="type-empty-title text-label-primary m-0">{{ empty.environments.headline }}</h3>
+    <p class="type-callout text-label-secondary m-0 max-w-prose">{{ empty.environments.body }}</p>
+    <div class="flex flex-wrap gap-2">
+      @if (!newEnvDialogVisible()) {
+      <button uiButton="filled" class="btn-sm" type="button" (click)="openNewEnvironmentDialog()"
+        >{{ empty.environments.actions[0] }}</button
+      >
+      }
+      <app-import-menu look="outlined" />
+    </div>
+  </div>
   }
 </div>
-
-<app-variables-dialog
-  header="Global variables"
-  [hint]="globalsHint"
-  [variables]="globals()"
-  [visible]="globalsVisible()"
-  (visibleChange)="globalsVisible.set($event)"
-  (save)="saveGlobals($event)"
-/>
 
 <app-environment-export-dialog
   [environments]="environments()"

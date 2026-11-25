@@ -64,6 +64,13 @@ export class ImportPipeline {
    */
   readonly addedFromLink = signal<{ id: string } | null>(null);
 
+  /**
+   * The first collection a file's Import added (S5c): the shell opens its first request, so the import ends on a
+   * request to send, not on a closed dialog. A new object each time. A link's Import does not set it: it moves focus
+   * to the collection's row (`addedFromLink`).
+   */
+  readonly addedFirst = signal<{ id: string } | null>(null);
+
   private text = "";
   private afterConfirm: ((ids: string[]) => Promise<void>) | undefined;
   /** Counts each `close`: an open, a read or a store that began before one does not show its result after it. */
@@ -229,6 +236,7 @@ export class ImportPipeline {
     if (opened === this.opened) this.close();
     if (added.length && !environments) offerUndo(fromLink ? `Added ${names[0]}.` : `Imported ${name}.`);
     if (fromLink) this.addedFromLink.set({ id: added[0] });
+    else if (added.length) this.addedFirst.set({ id: added[0] });
     return added;
   }
 

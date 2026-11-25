@@ -115,13 +115,13 @@ test("the Environments list's header names its controls, and fits at 320 px", as
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/app/");
   const dialog = await openEnvironments(page);
+  // With none, Import is in the empty pane and Export waits for something to export.
   for (const [name, text] of [
-    ["Globals", "Globals"],
-    ["Import environments", "Import"],
-    ["Export environments", "Export"],
+    [/^Globals/, /^Globals/],
+    ["Import", "Import"],
     ["New environment", "New"],
-  ]) {
-    const control = dialog.getByRole("button", { name, exact: true }).first();
+  ] as const) {
+    const control = dialog.getByRole("button", { name, exact: typeof name === "string" }).first();
     await expect(control).toHaveText(text);
     await expect(control).toBeInViewport({ ratio: 1 });
   }
@@ -157,7 +157,7 @@ test("at 390 px the vault's form in a row is in the window whole when it opens",
     .nth(1)
     .click();
   await expect(dialog.getByLabel("Passphrase", { exact: true })).toBeFocused();
-  const form = dialog.getByRole("group", { name: /^Choose a passphrase for the vault/ });
+  const form = dialog.getByRole("group", { name: /^Set up the vault to keep/ });
   for (const control of [
     form.getByLabel("Passphrase", { exact: true }),
     form.getByLabel("Confirm passphrase", { exact: true }),

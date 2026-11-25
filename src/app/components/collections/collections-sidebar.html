@@ -5,16 +5,7 @@
     <!-- Not while the tree is empty: its own block offers New collection and the same Import menu (L-16). -->
     @if (nodes().length) {
     <div class="flex items-center gap-1">
-      <button
-        type="button"
-        uiButton
-        class="btn-secondary btn-sm"
-        ngMenuTrigger
-        #importTrigger="ngMenuTrigger"
-        [menu]="importMenu.menu()"
-        >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
-      /></button>
-      <ui-menu #importMenu [trigger]="importTrigger" [items]="importItems" />
+      <app-import-menu [extra]="folderItems" />
       <button
         type="button"
         uiButton
@@ -44,17 +35,7 @@
   <p class="type-footnote text-label-primary m-0" aria-hidden="true"
     ><app-icon name="warning" /> {{ folderRefused() }}</p
   >
-  }
-
-  <input
-    #fileInput
-    type="file"
-    accept="application/json,.json,.har,.yaml,.yml"
-    class="hidden"
-    (change)="importPipeline.pick($event)"
-  />
-
-  @if (loading()) {
+  } @if (loading()) {
   <span class="ui-skeleton h-[160px] w-full" aria-hidden="true"></span>
   } @else if (!nodes().length) {
   <!-- Where the first row will be, left-aligned, with no picture (V2). -->
@@ -63,17 +44,8 @@
     <p class="type-callout text-label-secondary m-0">{{ empty.collections.body }}</p>
     <div class="flex flex-wrap gap-2">
       <button uiButton="filled" class="btn-sm" type="button" (click)="handleCreateCollection()">New collection</button>
-      <!-- The menu of the header when there are collections: file, cURL command, link (audit 16). -->
-      <button
-        type="button"
-        uiButton="outlined"
-        class="btn-secondary btn-sm"
-        ngMenuTrigger
-        #emptyImportTrigger="ngMenuTrigger"
-        [menu]="emptyImportMenu.menu()"
-        >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
-      /></button>
-      <ui-menu #emptyImportMenu [trigger]="emptyImportTrigger" [items]="importItems" />
+      <!-- The one Import menu, as the header's when there are collections (audit 16). -->
+      <app-import-menu look="outlined" [extra]="folderItems" />
     </div>
   </div>
   } @else {

@@ -13,8 +13,10 @@ import {
   runCounts,
   runEnding,
   runFailed,
+  sent,
   sharedErrorHeading,
   sharedErrors,
+  type ExchangeRecord,
   type RunResult,
 } from "@wayfarer/core";
 import { CollectionRunner } from "../../services/collection-runner";
@@ -48,6 +50,12 @@ export class RunView {
   readonly run = input.required<RunState>();
   protected readonly formatDuration = formatDuration;
   protected readonly statusTone = statusTone;
+
+  /** Where a row's request went, in the words of the Sent line; nothing for a request that was not sent. */
+  protected routeOf(record: ExchangeRecord | undefined): string {
+    if (!record) return "";
+    return record.route === "bridge" ? sent.throughBridge : sent.fromPage;
+  }
 
   /** The requests a run would send now, as they are stored. */
   protected readonly requests = computed(() => {

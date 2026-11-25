@@ -418,7 +418,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   const other = await fresh.newPage();
   await other.goto("/app/");
   await openSettings(other, "Data and storage");
-  await other.getByLabel("Import environments from file").setInputFiles(file);
+  await other.getByRole("dialog", { name: "Settings", exact: true }).getByLabel("File to import").setInputFiles(file);
   // Since P4.1 every import shows what it will add first, also this one.
   const report = other.getByRole("dialog", { name: "Import environments" });
   await expect(report).toContainText("will add 1 environment");

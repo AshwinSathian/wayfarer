@@ -47,11 +47,11 @@ test("a wrong passphrase is an alert, and the field is marked invalid and descri
   const create = page.getByRole("dialog", { name: "Set up vault", exact: true });
   const alert = create.getByRole("alert");
   await expect(alert).toHaveText("");
-  await create.getByLabel("Choose a passphrase", { exact: true }).fill("short");
+  await create.getByLabel("Passphrase", { exact: true }).fill("short");
   await create.getByLabel("Confirm passphrase", { exact: true }).fill("short");
   await create.getByRole("button", { name: "Set up vault", exact: true }).click();
   await expect(alert).toHaveText("A passphrase needs at least 8 characters.");
-  const field = create.getByLabel("Choose a passphrase", { exact: true });
+  const field = create.getByLabel("Passphrase", { exact: true });
   await expect(field).toHaveAttribute("aria-invalid", "true");
   await expect(field).toHaveAttribute("aria-describedby", "vault-error");
 });

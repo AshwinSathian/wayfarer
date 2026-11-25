@@ -128,9 +128,9 @@ body.
 
 **Where the token is kept.** With the vault unlocked, the token and its
 refresh token are a vault secret, encrypted like any other and listed
-under Manage secrets as "OAuth 2.0 token" with the grant, the token URL,
+under Secrets as "OAuth 2.0 token" with the grant, the token URL,
 the client ID and the scope: that name is how the app finds it again, and
-it holds no secret. With the vault locked, or with no vault, the token is
+it holds no secret. With the vault locked, or before it is set up, the token is
 in this tab's memory only and is gone when the tab closes or reloads.
 Nothing else stores it: history holds `Bearer ***`, and so does every
 export and copy, "with credentials" included. A script is shown the mask

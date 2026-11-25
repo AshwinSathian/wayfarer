@@ -9,7 +9,7 @@ The vault keeps values you mark as secret (an API key, a token, a password) encr
 | Data key | A random AES-GCM-256 key, made when you choose the passphrase. It encrypts every secret. | Stored only wrapped (encrypted) under the passphrase key. Unwrapped, it is in the memory of an unlocked tab, as a key WebCrypto will not export. |
 | Passphrase key | Derived from your passphrase with PBKDF2-SHA-256, 600,000 iterations (OWASP's 2023 minimum) and a random 16-byte salt. It wraps the data key with AES-GCM. | Nowhere. It is derived when you unlock, used once, and dropped. |
 
-The passphrase is used exactly as you type it: a space at the end is part of it.
+The passphrase is used exactly as you type it: a space at the end is part of it. Setting up the vault says what it is and that a forgotten passphrase cannot be recovered, and **Show passphrase** shows what you type. <!-- claim:C-112 -->
 
 ## What is stored
 

@@ -102,8 +102,8 @@ const BANNED = [
 const ALLOWED_UNTIL_S5D = {
   "src/app/components/exchange-record/exchange-record.html": ["Wire"],
   "packages/site/src/pages/index.astro": ["Postman"],
-  "docs/auth.md": ["Postman", "No vault", "Manage secrets"],
-  "docs/benchmark.md": ["No vault", "internal ID"],
+  "docs/auth.md": ["Postman"],
+  "docs/benchmark.md": ["internal ID"],
   "docs/cli.md": ["Postman"],
   "docs/collections-schema.md": ["Postman"],
   "docs/deployment.md": ["internal ID"],

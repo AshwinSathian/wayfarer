@@ -104,19 +104,9 @@
           } @if (ex.sent) {
           <button ngTab type="button" value="sent">Sent</button>
           } @if (!noResponse || ex.testResults.length) {
-          <button ngTab type="button" value="tests">
-            Tests
-            <span class="tab-badge ml-1">
-              @if (testsHeld()) {
-              <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only"
-                >(scripts did not run)</span
-              >
-              } @else if (ex.testResults.length) {
-              <span class="tab-count" [class]="testFailCount ? 'text-status-error' : 'text-label-secondary'"
-                >{{ ex.testResults.length }}</span
-              >@if (testFailCount) {<span class="sr-only"> ({{ testFailCount }} failed)</span>} }
-            </span>
-          </button>
+          <button ngTab type="button" value="tests"
+            >Tests <app-tab-mark [mark]="testsMark()" [failed]="testFailCount"
+          /></button>
           }
         </div>
 

@@ -416,6 +416,23 @@ code errors.
   `e2e/secrets-wire.spec.ts` (the view of the stored entry, and the page's own text) cover it. Its words are
   `sentPart` in `strings.ts`: a secret is "masked", never "not sent" (it went out as its value). Through the Local
   Bridge it says the bridge adds headers of its own: the envelope carries none of what the bridge relayed.
+- The Timings tab (`ResponseTimings`) draws one strip of the send's phases against the whole, in two inks that
+  alternate (no hue: hue is protocol), with a legend and a line that says where they came from (`timing` in
+  `strings.ts`): the browser's Resource Timing, the Local Bridge's own (`ExchangeView.route`), or the total alone
+  when the server shares none. What the phases leave out is a segment of its own, "Not measured". A recorded
+  exchange says "not recorded" and draws `ExchangeRecord.durationMs`: history has no phases, and giving it a
+  `timings` field is a stored-data change that is not made. `SendTimings` (`exchange.ts`) is the scripts' times, a
+  different thing, shown in the Tests tab.
+- A send with no response shows `FailurePanel` (`src/app/components/failure-panel/`), made by `failurePanel`
+  (`packages/core/src/send/failure.ts`) from the `ExchangeRecord` alone: a headline, a cause line, one next action
+  (`FailureAction`, which `Composer.onFailureAction` does) and the browser's or the bridge's words behind Details.
+  The class is read from `failure.kind`, `failure.reported`, the route and the app's first sentence: a page cannot tell
+  a refused connection, an unknown name and a server that does not allow the page apart (one `TypeError`), so that is
+  one class and its action is the Local Bridge, which can. A new failure goes into `failureClass`, its words into
+  `failures` (`strings.ts`) and an e2e in `e2e/failures.spec.ts`; the record is not changed. The exchange record
+  beside it holds what the send did (`failureShown`); a run's row and History keep the record's own failure line.
+  A response that failed before anything was sent (a script's error, a declined send) has no record: the app's words
+  stay in `.response-failure`'s plain line.
 - A panel's host element carries the layout classes its root `<div>` would
   (`class="block space-y-6"`): a custom element is `display: inline`.
 
@@ -997,7 +1014,8 @@ code errors.
   count (one digit, `0.875rem`), so a tab does not change its width as a
   header is added or a body chosen (audit 9; `e2e/tab-badges.spec.ts`
   measures it). Scripts held back for review put the warning glyph in that
-  slot, with its words for a screen reader. No dot, no second shape: a new
+  slot, with its words for a screen reader; the response's Tests tab uses the same slot, with `failed` making its
+  count red and saying "(N failed)", and the glyph when the scripts did not run. No dot, no second shape: a new
   state is a count, or this glyph's place. The slot takes the place of the
   tab's end padding (`composer.css`), so six tabs are about as wide as six words were.
   The composer's request tabs are one `ngTabs` on `app-composer` (a host

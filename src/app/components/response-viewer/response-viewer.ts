@@ -11,6 +11,7 @@ import {
   signal,
   effect,
 } from "@angular/core";
+import { TabMark, type TabMarkValue } from "../composer/tab-mark";
 import { FailurePanel } from "../failure-panel/failure-panel";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import type { BinaryBody, FailureAction, ResponseEnvelope, SendTimings, SentView, TestResult } from "@wayfarer/core";
@@ -62,6 +63,7 @@ const SENDING_SHOWN_AFTER_MS = 1000;
     HarExportDialog,
     Icon,
     Tab,
+    TabMark,
     TabContent,
     TabPanel,
     Tabs,
@@ -216,8 +218,10 @@ export class ResponseViewer {
     return this.testResults().filter((r) => !r.passed).length;
   }
 
-  /** The scripts did not run, so the Tests tab says so instead of showing nothing (S4b3). */
-  protected readonly testsHeld = computed(() => this.scriptsSkipped());
+  /** The Tests tab's mark: the scripts did not run, so the tab says so instead of showing nothing (S4b3); else the count. */
+  protected readonly testsMark = computed((): TabMarkValue =>
+    this.scriptsSkipped() ? "held" : this.testResults().length || null,
+  );
 
   /** The exchange record of a send that got no response: the panel says it, and the record holds the rest. */
   protected readonly failedRecord = computed(() => {

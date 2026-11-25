@@ -89,7 +89,7 @@ test("@claim:C-051 @claim:C-106 an imported collection's scripts do not run unti
   // The Tests tab says the scripts did not run and offers the review; its tab carries the warning mark (S4b3).
   const testsHeld = page.locator(".tests-held");
   await expect(testsHeld).toContainText("Scripts did not run, so their tests did not either.");
-  await expect(tests(page)).toHaveAccessibleName("Tests (scripts did not run)");
+  await expect(tests(page)).toHaveAccessibleName("Tests (not reviewed)");
   await expect(testsHeld.getByRole("button", { name: "Review scripts" })).toBeVisible();
   // The assertion still ran.
   await expect(page.locator(".test-result-pass")).toHaveCount(1);

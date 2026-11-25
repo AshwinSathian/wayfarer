@@ -6,7 +6,7 @@
   <p class="failure-cause type-callout text-label-secondary">{{ p.cause }}</p>
   @if (setup()) {
   <p class="failure-next type-callout text-label-primary">{{ p.next }}</p>
-  <app-bridge-setup (sendAgain)="act.emit('bridge')" />
+  <app-bridge-setup class="type-footnote" (sendAgain)="act.emit('bridge')" />
   } @else {
   <div class="failure-act flex flex-wrap items-center gap-x-3 gap-y-2">
     <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="act.emit(p.action)"
@@ -20,7 +20,7 @@
   <div class="failure-details">
     <button
       uiButton
-      class="btn-plain btn-sm"
+      class="btn-plain btn-sm -ml-2"
       type="button"
       aria-controls="failure-details-body"
       [attr.aria-expanded]="open()"

@@ -4,7 +4,6 @@ import {
   buildCurl,
   copyNote,
   formatDuration,
-  recordRoute,
   redactExport,
   type HarExchange,
   type RedactOptions,
@@ -43,7 +42,6 @@ export class ResponseStatus {
   readonly exportHar = output<HarSource>();
 
   protected readonly statusTone = statusTone;
-  protected readonly recordRoute = recordRoute;
   protected readonly formatDuration = formatDuration;
   protected readonly formatBytes = formatBytes;
   /** What the last copy did, beside the export button for a few seconds (U-050). */

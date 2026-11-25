@@ -155,7 +155,7 @@ describe("ResponseViewer", () => {
       fixture.detectChanges();
       const element = fixture.nativeElement as HTMLElement;
       const toggle = element.querySelector<HTMLButtonElement>(".record-toggle");
-      expect(toggle?.textContent?.trim()).toBe("Sent from this page to api.example.com");
+      expect(toggle?.textContent?.trim()).toBe("Record");
       expect(toggle?.getAttribute("aria-expanded")).toBe("false");
       expect(element.querySelector("#exchange-record")).toBeNull();
       const asked: boolean[] = [];

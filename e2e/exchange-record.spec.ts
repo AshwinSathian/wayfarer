@@ -40,7 +40,7 @@ test("direct: the first line names the route and the host, and the record stays 
   await expect(page.locator(".response-announcement")).toHaveText(
     /^200 OK, [\d.]+ ms, sent from this page to 127\.0\.0\.1:4300$/,
   );
-  await expect(page.locator(".record-toggle")).toHaveText(`Sent from this page to ${HOST}`);
+  await expect(page.locator(".record-toggle")).toHaveText("Record");
   await expect(page.getByRole("region", { name: "Exchange record" })).toHaveCount(0);
   expect(await openRecord(page)).toEqual({
     route: `Sent from this page to ${HOST}.`,
@@ -266,7 +266,7 @@ test("a history entry keeps its record: loaded from History it opens into it, an
 
   // A reload shows the tab's response from history again, its record with it, closed.
   await page.reload();
-  await expect(page.locator(".record-toggle")).toHaveText(`Sent from this page to ${HOST}`);
+  await expect(page.locator(".record-toggle")).toHaveText("Record");
   expect(await openRecord(page)).toEqual(sent);
   await expect(page.getByRole("region", { name: "Exchange record" })).not.toContainText(plaintext);
 });

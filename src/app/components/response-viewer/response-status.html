@@ -49,9 +49,7 @@
     aria-controls="exchange-record"
     [attr.aria-expanded]="recordOpen()"
     (click)="recordOpenChange.emit(!recordOpen())"
-    >{{ recordRoute(rec) }}<app-icon
-      [name]="recordOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-      class="icon-xs"
+    >Record<app-icon [name]="recordOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs"
   /></button>
   } @else if (ex.route; as route) {
   <span class="response-fact route-badge" uiTooltip="Route"

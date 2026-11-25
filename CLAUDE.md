@@ -396,6 +396,17 @@ code errors.
   `edited`). What is computed from the draft, a tab's unsaved mark among
   it, needs the draft's signal to change: `headersEdited` replaces the
   list, `edited` the draft.
+- The response pane (`src/app/components/response-viewer/`) draws one `ExchangeView`
+  (`src/app/state/exchange-view.ts`; a code name, the user's words are "Sent" and "Response"):
+  `liveExchange` from the response a tab holds, `recordedExchange` from a `PastRequest` (what
+  `TabState.showRecorded` and, later, History's detail read; it says in `notRecorded` which of body,
+  timings and tests the entry does not hold). `ResponseViewer` gathers its inputs into the live view;
+  `ResponseStatus`, `ResponseBody`, `ResponseHeaders`, `ResponseTimings`, `ResponseTests` and `EventList`
+  take that view and nothing else, and the Body tab's formatting and search are `BodyModel`
+  (`body-model.ts`, made in the viewer's injection context). The three parts that stand on a pane's `<div>`
+  are attribute components (`div[appResponseBody]`, so that `components.css`'s `.response-body-pane > div`
+  rules and `no-movement.spec.ts` still find that div). A view of a send that is not the open tab's is made
+  from that send's `TabState`, never from `tabs.active()`.
 - A panel's host element carries the layout classes its root `<div>` would
   (`class="block space-y-6"`): a custom element is `display: inline`.
 

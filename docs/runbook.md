@@ -95,7 +95,7 @@ Until then they run the claim's own test, `only-own-scripts`: no script but the 
 BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test e2e/no-edge-injection.spec.ts
 ```
 
-Finally, load the site in a private window with DevTools open: the console must show no Content Security Policy violations, and the Network tab no request to any host other than `wayfarer.ashwinsathian.com`. Settings changes can take a minute to reach every edge location. If the first check still shows injection, wait and retry before assuming a step failed.
+Finally, load the site in a private window with DevTools open: the console must show no Content Security Policy violations, and the Network tab no request to any host other than `wayfarer.ashwinsathian.com`. Settings changes can take a minute to reach every edge location. If the first check still shows injection, wait and check again before assuming a step failed.
 
 ### 7. Read-only audit via API (optional, repeatable)
 
@@ -116,7 +116,7 @@ Expected: `{"enabled":false}`; `fight_mode: false, enable_js: false`; the rule e
 
 Undo each step in reverse order: delete rule `wayfarer-no-injection`, re-enable Web Analytics automatic setup, and turn Network Error Logging, JavaScript Detections and Bot Fight Mode back on. Reverting brings the CSP violations back, and the `no-edge-injection` test fails again.
 
-### Optional zone hardening (not required by the plan)
+### Optional zone hardening (not required)
 
 These are good hygiene for a site whose pitch is trust. Each changes behaviour for the whole zone, so they're listed separately and are your call:
 
@@ -137,7 +137,7 @@ These are good hygiene for a site whose pitch is trust. Each changes behaviour f
 
 ## npm name reservation
 
-`wayfarer-bridge` and `wayfarer-cli` are reserved with placeholder releases until their first real release (v2.4.0, P6.6). This needs an npm account with 2FA.
+`wayfarer-bridge` and `wayfarer-cli` are reserved with placeholder releases until their first real release (v2.4.0). This needs an npm account with 2FA.
 
 ### 1. Account security first
 
@@ -211,9 +211,9 @@ npm view wayfarer-bridge dist-tags maintainers  # latest: 0.0.0-reserved; your a
 npm view wayfarer-cli    dist-tags maintainers
 ```
 
-These are the P0.13 checks: `npm view … maintainers` lists the maintainer account.
+These are the checks: `npm view … maintainers` lists the maintainer account.
 
-### The first release (P6.6)
+### The first release
 
 `.github/workflows/release.yml` publishes a package when a tag names it:
 `bridge-v<version>` for `wayfarer-bridge`, `cli-v<version>` for
@@ -259,7 +259,7 @@ Don't unpublish the placeholders. npm allows unpublishing only within 72
 hours, and an unpublished name can't be reused for 24 hours, which is a
 window for a squatter.
 
-## Releasing the app (P7.7)
+## Releasing the app
 
 A tag of the app's version makes its GitHub release:
 
@@ -312,7 +312,7 @@ seconds from the hosted page, in Chrome, Firefox and Safari**.
 3. A request with the route Auto to an address without CORS goes through
    the bridge and its badge says **Local Bridge**.
 4. Write each browser's time and result in
-   [#99](https://github.com/AshwinSathian/wayfarer/issues/99) (F42), which
+   [#99](https://github.com/AshwinSathian/wayfarer/issues/99), which
    this closes.
 
 ### After the first deploy of v2.3.0
@@ -351,7 +351,7 @@ check them once after one:
    and `Cross-Origin-Opener-Policy: same-origin` as `/`.
 3. **The service worker leaves it alone.** After opening the callback page,
    switch the network off and reload `/`: the app loads, not the callback
-   page (F69; `e2e/service-worker.spec.ts` holds it on a local server).
+   page (`e2e/service-worker.spec.ts` holds it on a local server).
 
 And once in **Safari itself**, with any OAuth 2.0 provider: Auth tab, OAuth
 2.0, Authorization Code, **Get token**. The sign-in window must open. It is

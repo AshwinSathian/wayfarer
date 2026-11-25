@@ -138,7 +138,7 @@ export function checkClaims(root) {
   return errors;
 }
 
-/** Each row of the threat model's tables (`| Boundary | STRIDE | Threat | Mitigation | Claims |`) links a claim of the ledger. */
+/** Each row of the threat model's tables (`| Boundary | STRIDE | Threat | Mitigation |`) names a claim of the ledger in a `<!-- claim:C-NNN -->` comment. */
 function checkThreatModel(root, ids) {
   const path = join(root, THREAT_MODEL);
   if (!existsSync(path)) return [`${THREAT_MODEL} is missing`];
@@ -154,7 +154,7 @@ function checkThreatModel(root, ids) {
     );
   for (const cells of rows) {
     const name = `${cells[0]} / ${cells[1]}`;
-    const linked = [...(cells.at(-1) ?? "").matchAll(/C-\d{3}/g)].map((match) => match[0]);
+    const linked = [...cells.join("|").matchAll(/<!--\s*claim:(C-\d{3})\s*-->/g)].map((match) => match[1]);
     if (!linked.length) errors.push(`${THREAT_MODEL}: the row "${name}" links no claim`);
     for (const id of linked)
       if (!ids.has(id)) errors.push(`${THREAT_MODEL}: the row "${name}" links ${id}, which has no row in ${LEDGER}`);

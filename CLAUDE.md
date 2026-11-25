@@ -581,9 +581,14 @@ code errors.
   cannot tell hues apart: the label does, and the glyph (S2b).
 - The words the app says are `packages/core/src/strings.ts`, and the glossary
   in `scripts/glossary.test.mjs` bans the words it names (Verdict, Depart,
-  Retry, Wire, Direct to, Postman outside import, export and the compare
-  pages, internal IDs) in templates, docs and the site. Its list of files
-  that still offend (until the copy sweep, S5d) only shrinks.
+  Retry, Wire, Direct to, Postman outside import, export, scripts and the
+  compare pages, internal IDs such as C-007, P4.7 or D6) in templates, docs,
+  the site and every string of two words or more in a `.ts` file of the app,
+  the core and the site. There is no list of offenders: a message that needs
+  such a word is reworded, and a word that belongs to one place (Postman in
+  the importers) is allowed by path in `BANNED`. A doc names a claim in a
+  `<!-- claim:C-NNN -->` comment, never in text a reader sees (the threat
+  model's rows too).
 - The labels, `--ctl-boundary`, the state fills (`--fill-*`), the
   separators and the ink's hover and press are not hand-set: each has a
   `com.wayfarer.derive` extension and `packages/tokens/tokens.mjs` solves

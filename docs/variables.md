@@ -17,7 +17,7 @@ Two more scopes are looked up before these and have no editor yet: variables a s
 
 Only names you defined are variables. `{{constructor}}` is not one.
 
-**A name may hold any character but a brace**, as in Postman: `{{api/key}}`, `{{first name}}`. The spaces just inside the braces are not part of the name. A name of letters, digits, `_`, `.` and `-` that has no value is a missing variable, and the composer asks before it sends. Anything else between two pairs of braces is a variable only when you defined one with that name: a body may hold another language's templates (`{{ user.name | upper }}`), and those are sent as written without a question.
+**A name may hold any character but a brace**: `{{api/key}}`, `{{first name}}`. The spaces just inside the braces are not part of the name. A name of letters, digits, `_`, `.` and `-` that has no value is a missing variable, and the composer asks before it sends. Anything else between two pairs of braces is a variable only when you defined one with that name: a body may hold another language's templates (`{{ user.name | upper }}`), and those are sent as written without a question.
 
 ## A value that holds a variable
 
@@ -41,7 +41,7 @@ Random values come from the browser's `crypto.getRandomValues`.
 
 ## A variable that has no value
 
-A request with a `{{name}}` that has no value anywhere is not sent. The composer says which variable and offers **Send anyway**, which sends it as written. Settings, "Hold back a request with a variable that has no value", switches this off: the variable is then sent as written, as Postman does. The chips list it under "Missing" either way.
+A request with a `{{name}}` that has no value anywhere is not sent. The composer says which variable and offers **Send anyway**, which sends it as written. Settings, "Hold back a request with a variable that has no value", switches this off: the variable is then sent as written. The chips list it under "Missing" either way.
 
 ## Secrets
 

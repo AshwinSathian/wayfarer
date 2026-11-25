@@ -69,8 +69,8 @@ sandboxing and the device's disk encryption. In particular:
   a vault secret is never in a file, only its reference.
 - **A collection you share as a file or a link is masked the same way.**
   A credential typed into auth is `***` unless you tick Include
-  credentials for that file or link, <!-- claim:C-088 --> and no vault
-  secret's plaintext is in either. <!-- claim:C-087 --> A link carries the
+  credentials for that file or link, <!-- claim:C-088 --> and the plaintext of a vault
+  secret is in neither. <!-- claim:C-087 --> A link carries the
   collection encrypted after the `#` of its address, which the browser does
   not send: opening it asks the server for the app's own files and nothing
   else. <!-- claim:C-084 --> [Sharing](sharing.md) has the details.

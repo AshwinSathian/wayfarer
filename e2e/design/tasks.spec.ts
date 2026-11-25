@@ -254,7 +254,7 @@ const TASKS: Task[] = [
       await expect(user.page.locator(".status-badge")).toHaveText("401");
       // The record says which credential went: none was filled, nothing was masked (D4.12).
       await user.click(user.page.locator(".record-toggle"));
-      await expect(user.page.locator(".record-secrets")).toHaveText("No vault secret was filled.");
+      await expect(user.page.locator(".record-secrets")).toHaveText("Nothing was filled from the vault.");
     },
   },
   {

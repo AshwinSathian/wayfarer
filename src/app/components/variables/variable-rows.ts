@@ -244,7 +244,7 @@ export class VariableRows implements OnDestroy {
     if (!this.secretsService.isUnlocked()) {
       if (!(await this.secretsService.exists())) {
         // The vault is made here, in the row that asked for it (U-136), and then the row is marked.
-        console.debug("[wayfarer] mark as secret: there is no vault, asking for a passphrase in the row");
+        console.debug("[wayfarer] mark as secret: the vault is not set up, asking for a passphrase in the row");
         this.vaultFor.set(index);
         this.vaultPassphrase.set("");
         this.vaultConfirmation.set("");

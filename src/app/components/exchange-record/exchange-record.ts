@@ -44,7 +44,7 @@ export class ExchangeRecordView {
     return record.unpaired ? "setup" : "bridge";
   });
 
-  protected wire(part: RecordPart): string | null {
+  protected sentValue(part: RecordPart): string | null {
     return typeof part === "string" ? null : part.wire;
   }
 

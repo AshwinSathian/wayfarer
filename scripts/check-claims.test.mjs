@@ -31,7 +31,7 @@ const GOOD = {
   "e2e/a.spec.ts": 'test("@claim:C-001 no third-party requests", async () => {});\n',
   "src/app/x.spec.ts": "it('encrypts @claim:C-002', () => {});\n",
   "docs/threat-model.md":
-    "| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n| Page and network | I | Telemetry | None is sent | C-001 |\n",
+    "| Boundary | STRIDE | Threat | Mitigation |\n|---|---|---|---|\n| Page and network | I | Telemetry | None is sent <!-- claim:C-002 --> |\n",
 };
 
 test("parseLedger reads ID, source and test columns", () => {
@@ -76,18 +76,24 @@ test("the threat model must exist (P7.4)", () => {
 test("a threat model row with no claim, or a claim with no ledger row, fails (P7.4)", () => {
   const model = (row) => ({
     ...GOOD,
-    "docs/threat-model.md": `| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n${row}\n`,
+    "docs/threat-model.md": `| Boundary | STRIDE | Threat | Mitigation |\n|---|---|---|---|\n${row}\n`,
   });
   assert.match(
-    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | |"))).join("\n"),
+    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check |"))).join("\n"),
     /threat-model\.md: the row "Page and bridge \/ S" links no claim/,
   );
   assert.match(
-    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | C-009 |"))).join("\n"),
+    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check <!-- claim:C-009 --> |"))).join(
+      "\n",
+    ),
     /threat-model\.md: the row "Page and bridge \/ S" links C-009, which has no row/,
   );
   assert.deepEqual(
-    checkClaims(fixture(model("| Page and bridge | S, T | Another site | Origin check | C-001, C-002 |"))),
+    checkClaims(
+      fixture(
+        model("| Page and bridge | S, T | Another site | Origin check <!-- claim:C-001 --> <!-- claim:C-002 --> |"),
+      ),
+    ),
     [],
   );
 });

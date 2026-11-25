@@ -52,7 +52,7 @@ test("@claim:C-117 History is filtered by tokens: status, method, host, route an
     "status:soon is not a value that filter takes",
   );
   await expect(rows).toHaveCount(0);
-  // Each row says the host first, the end of the path, the status and where the request was sent from.
+  // Each row says the address, the status and where the request was sent from.
   await search.fill("");
   await expect(rows.nth(2)).toContainText("127.0.0.1:4300");
   await expect(rows.nth(2)).toContainText("/echo?run=one");
@@ -64,9 +64,7 @@ test("@claim:C-118 an entry opens beside the list as it was kept, and says what 
 }) => {
   await sendThree(page);
   await openHistory(page);
-  await drawer(page)
-    .getByRole("button", { name: /^Details of GET .*run=one/ })
-    .click();
+  await drawer(page).locator(".history-row", { hasText: "run=one" }).locator(".history-details").click();
   const rail = drawer(page).getByRole("region", { name: "Entry" });
   await expect(rail).toContainText("200");
   await expect(rail.getByRole("heading")).toContainText("run=one");
@@ -84,7 +82,7 @@ test("@claim:C-118 an entry opens beside the list as it was kept, and says what 
   await page.keyboard.press("Escape");
   await expect(rail).toHaveCount(0);
   await expect(drawer(page)).toBeVisible();
-  await expect(drawer(page).getByRole("button", { name: /^Details of GET .*run=one/ })).toBeFocused();
+  await expect(drawer(page).locator(".history-row", { hasText: "run=one" }).locator(".history-details")).toBeFocused();
 });
 
 test("@claim:C-119 two entries are compared by status, headers and body, a JSON body by path with what changed first, from the keyboard", async ({
@@ -93,9 +91,7 @@ test("@claim:C-119 two entries are compared by status, headers and body, a JSON 
   await sendThree(page);
   await openHistory(page);
   // The rail's Compare with… (the keyboard and screen reader path).
-  await drawer(page)
-    .getByRole("button", { name: /^Details of GET .*run=two/ })
-    .press("Enter");
+  await drawer(page).locator(".history-row", { hasText: "run=two" }).locator(".history-details").press("Enter");
   const rail = drawer(page).getByRole("region", { name: "Entry" });
   await rail.locator("ui-select").focus();
   await page.keyboard.press("ArrowDown");
@@ -106,6 +102,8 @@ test("@claim:C-119 two entries are compared by status, headers and body, a JSON 
   // The newest is first in the choice, then the other 200: the diff is of two echoes or an echo and the 503.
   const text = await diff.innerText();
   expect(text).toMatch(/Status/);
+  // Focus is in the rail (the choice that held it is gone), so that Escape closes the rail and not the drawer.
+  await expect(diff.getByRole("button", { name: "Back" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(diff).toHaveCount(0);
 

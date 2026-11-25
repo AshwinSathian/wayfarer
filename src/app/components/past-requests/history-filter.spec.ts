@@ -32,7 +32,7 @@ describe("history filter tokens", () => {
     ]);
   });
 
-  it("filters by status class, exact status and no response", () => {
+  it("@claim:C-117 filters by status class, exact status and no response", () => {
     expect(ids("status:5xx")).toEqual([2]);
     expect(ids("status:200")).toEqual([1]);
     expect(ids("status:error")).toEqual([3]);
@@ -56,10 +56,13 @@ describe("history filter tokens", () => {
 });
 
 describe("addressParts", () => {
-  it("leads with the host and keeps the end of the path", () => {
-    expect(addressParts("https://api.test/v1/pets/42?x=1")).toEqual({ host: "api.test", tail: "…/pets/42?x=1" });
-    expect(addressParts("https://api.test/pets")).toEqual({ host: "api.test", tail: "/pets" });
-    expect(addressParts("https://api.test/")).toEqual({ host: "api.test", tail: "" });
-    expect(addressParts("{{base}}/pets")).toEqual({ host: "", tail: "{{base}}/pets" });
+  it("splits an address into its scheme, its host and the rest, which join back as written", () => {
+    expect(addressParts("https://api.test/v1/pets/42?x=1")).toEqual({
+      scheme: "https://",
+      host: "api.test",
+      rest: "/v1/pets/42?x=1",
+    });
+    expect(addressParts("http://127.0.0.1:4300")).toEqual({ scheme: "http://", host: "127.0.0.1:4300", rest: "" });
+    expect(addressParts("{{base}}/pets")).toEqual({ scheme: "", host: "", rest: "{{base}}/pets" });
   });
 });

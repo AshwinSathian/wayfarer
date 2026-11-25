@@ -429,7 +429,7 @@ code errors.
   `timings` field is a stored-data change that is not made. `SendTimings` (`exchange.ts`) is the scripts' times, a
   different thing, shown in the Tests tab.
 - History (`src/app/components/past-requests/`) is a log with a rail. A row is a `HistorySummary` (no body, no headers):
-  host and the end of the path (`addressParts`), status, time, route and age; its **Details** button reads the entry by
+  the address with its host in bold (`addressParts`: scheme, host, rest, which join back as written, so the row's name holds the whole address), status, time, route and age; its **Details** button reads the entry by
   id (`HistoryRepository.get`) and opens `HistoryDetail`, the recorded `ExchangeView` (`ResponseHeaders`,
   `ResponseSent`, the kept body in a `<pre>`; never Monaco in a drawer) beside the list from 64 em, in its place below
   (the drawer widens by `.history-drawer.has-rail`). The search's tokens are `parseFilter` (`history-filter.ts`): a word

@@ -28,7 +28,7 @@ describe("diffExchanges", () => {
     expect(diff.headers).toEqual([]);
   });
 
-  it("lists changed paths before removed before added, with a path from the root", () => {
+  it("@claim:C-119 lists changed paths before removed before added, with a path from the root", () => {
     const diff = diffExchanges(
       side({ body: '{"gone":1,"n":{"id":1},"list":[1,2],"same":true}' }),
       side({ body: '{"new":1,"n":{"id":2},"list":[1],"same":true}' }),

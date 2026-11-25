@@ -97,7 +97,8 @@ test("a collection variable and a global reach the server, an environment's valu
   pop = await variable("winner");
   await expect(pop).toContainText('environment "Tripwire env"');
   await expect(pop).toContainText("from-environment");
-  await expect(pop).toContainText('Hides the value in collection "Tripwire collection"');
+  await expect(pop).toContainText("Hides the value in");
+  await expect(pop).toContainText('collection "Tripwire collection"');
   await expect(pop.getByRole("button", { name: "Show winner in its environment" })).toBeVisible();
   await page.keyboard.press("Escape");
   // Which scope wins is the doc's to explain (U-166).

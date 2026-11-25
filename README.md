@@ -203,6 +203,10 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A collection run's table marks each row passed or failed with a glyph, as well as its colour, and says where its request was sent: from this page or through the Local Bridge. <!-- claim:C-114 -->
 - On a phone, an empty tab opens on the request with "Try an example" and "Paste a cURL command" at the top of it; after a send the response shows with all its tabs inside the window, and a long host does not squeeze the route strip's summary button. <!-- claim:C-115 -->
 - On a tablet, with the response under the request, the response starts in the upper part of the window after a send: the request keeps about a third of the height until you move the line. <!-- claim:C-116 -->
+- History's search takes filters for status, method, host, route and time (`status:5xx`, `method:POST`, `host:x`, `route:bridge`, `slower-than:500ms`) beside words; a filter with a value it cannot read is named and matches nothing. <!-- claim:C-117 -->
+- A history entry opens beside the list as it was kept: status, response headers, the body when one was kept, and what was sent; it says that timings and test results are not recorded. <!-- claim:C-118 -->
+- Two history entries, or a tab's response and an entry, are compared by status, route, request, headers and body, a JSON body by path with what changed first; the comparison reads only the entries history kept, in which secrets are masked, and says when a body was not kept. <!-- claim:C-119 -->
+- A variable's button shows its scope and value on hover and keyboard focus, and its popover on a click, with the holder, what it hides and a button to show it where it is set or to add it; a vault secret shows as `***` and the vault is not read. <!-- claim:C-120 -->
 <!-- features:end -->
 
 </details>

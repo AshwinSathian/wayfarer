@@ -111,24 +111,13 @@
   overflow-wrap: anywhere;
 }
 
-/* The host leads and keeps its room; the path's end follows and gives way first. */
-.history-address {
-  display: flex;
+/* The host leads: the scheme steps back and the host is heavier; the rest of the address is as written. */
+.history-scheme {
+  color: var(--label-tertiary);
 }
 
 .history-host {
-  flex: none;
-  max-width: 70%;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-weight: 600;
-}
-
-.history-tail {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--label-secondary);
-  text-overflow: ellipsis;
 }
 
 .history-help {
@@ -174,4 +163,11 @@
     min-height: 0;
     overflow-y: auto;
   }
+}
+
+/* The two icon buttons of a row stand one above the other: the address keeps the width it had. */
+.history-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
 }

@@ -98,11 +98,11 @@ export function matches(request: HistorySummary, query: string): boolean {
   );
 }
 
-/** An address as a row draws it: the host, and the path's end, which tells requests to one host apart. `tail` is "" for a bare host. */
-export function addressParts(url: string): { host: string; tail: string } {
-  const parsed = URL.parse(url);
-  if (!parsed) return { host: "", tail: url };
-  const segments = parsed.pathname.split("/").filter(Boolean);
-  const tail = `${segments.length > 2 ? "…/" : "/"}${segments.slice(-2).join("/")}${parsed.search}`;
-  return { host: parsed.host, tail: segments.length || parsed.search ? tail : "" };
+/** An address as a row draws it: its scheme, its host, which leads, and the rest. They join back into the address as written. */
+export function addressParts(url: string): { scheme: string; host: string; rest: string } {
+  const host = URL.parse(url)?.host ?? "";
+  const at = host ? url.indexOf(`//${host}`) : -1;
+  if (at < 0) return { scheme: "", host: "", rest: url };
+  const start = at + 2;
+  return { scheme: url.slice(0, start), host, rest: url.slice(start + host.length) };
 }

@@ -145,8 +145,8 @@
               >
               @let at = addressParts(request.sent.url);
               <span class="history-address type-mono-body"
-                >@if (at.host) { <span class="history-host">{{ at.host }}</span
-                ><span class="history-tail">{{ at.tail }}</span> } @else { {{ at.tail }} }</span
+                ><span class="history-scheme">{{ at.scheme }}</span><span class="history-host">{{ at.host }}</span>{{
+                at.rest }}</span
               >
             </span>
             <span class="history-facts type-footnote">
@@ -163,30 +163,33 @@
               <span>{{ relativeTime(request.createdAt) }}</span>
             </span>
           </button>
-          @if (!request.model) {
-          <button
-            type="button"
-            uiButton="icon"
-            class="btn-plain history-details"
-            uiTooltip="Details"
-            uiTooltipPosition="above"
-            [attr.aria-label]="'Details of ' + request.sent.method + ' ' + request.sent.url"
-            (click)="showDetail(request.id)"
-          >
-            <app-icon name="info" class="icon-sm" />
-          </button>
-          } }
-          <button
-            type="button"
-            uiButton="icon"
-            class="btn-plain history-delete"
-            uiTooltip="Delete from history"
-            uiTooltipPosition="above"
-            aria-label="Delete from history"
-            (click)="confirmDelete(request, $event)"
-          >
-            <app-icon name="delete" class="icon-sm" />
-          </button>
+          }
+          <span class="history-actions">
+            @if (!request.model) {
+            <button
+              type="button"
+              uiButton="icon"
+              class="btn-plain history-details"
+              uiTooltip="Details"
+              uiTooltipPosition="above"
+              [attr.aria-label]="'Details of ' + request.sent.method + ' ' + addressParts(request.sent.url).host + (request.response ? ', ' + request.response.status : '')"
+              (click)="showDetail(request.id)"
+            >
+              <app-icon name="info" class="icon-sm" />
+            </button>
+            }
+            <button
+              type="button"
+              uiButton="icon"
+              class="btn-plain history-delete"
+              uiTooltip="Delete from history"
+              uiTooltipPosition="above"
+              aria-label="Delete from history"
+              (click)="confirmDelete(request, $event)"
+            >
+              <app-icon name="delete" class="icon-sm" />
+            </button>
+          </span>
 
           <ng-template #details>
             <div class="space-y-1.5 min-w-45 max-w-xs type-callout p-1">

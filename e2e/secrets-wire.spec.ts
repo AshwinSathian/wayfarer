@@ -719,7 +719,7 @@ test("@claim:C-007 @claim:C-119 @claim:C-120 the history rail, the diff of two e
 
   await page.getByRole("button", { name: "History", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "History", exact: true });
-  await drawer.getByRole("button", { name: /^Details of GET .*run=1/ }).click();
+  await drawer.locator(".history-row", { hasText: "run=1" }).locator(".history-details").click();
   const rail = drawer.getByRole("region", { name: "Entry" });
   const parts: string[] = [];
   for (const part of ["Response", "Headers", "Sent"]) {

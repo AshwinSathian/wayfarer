@@ -30,7 +30,7 @@ line between them, so a response is in view after a send. <!-- claim:C-116 -->
 
 ## Look back, and compare
 
-History lists each send with its host, the end of the path, the status, where it went from and when. The search takes
+History lists each send with its address (the host in bold), the status, where it went from and when. The search takes
 words and filters: `status:5xx`, `status:404`, `status:error`, `method:POST`, `host:example.com`, `route:bridge` and
 `slower-than:500ms`; a filter it cannot read is named, and nothing matches until it is fixed. <!-- claim:C-117 -->
 The **Details** button of a row opens the entry beside the list as it was kept: its status, response headers, the body

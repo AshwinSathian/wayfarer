@@ -96,6 +96,15 @@ describe("Redactor", () => {
     );
   });
 
+  it("masks what a URL's own setters make of a value: a backslash in a path is a slash, a tab is dropped", () => {
+    const url = new URL("https://example.com/");
+    url.pathname = "/\\pa55word";
+    expect(url.pathname).toBe("//pa55word");
+    const redactor = new Redactor(["\\pa55word", "tab\tbed-secret"]);
+    expect(redactor.text(url.href)).toBe("https://example.com//***");
+    expect(redactor.text("https://example.com/tabbed-secret")).toBe("https://example.com/***");
+  });
+
   it("takes a secret that holds half of a surrogate pair, which cannot be percent-encoded", () => {
     const value = "abc\ud800def";
     expect(new Redactor([value]).text(`x ${value} y`)).toBe(`x ${MASK} y`);

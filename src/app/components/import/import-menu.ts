@@ -23,8 +23,8 @@ export class ImportMenu {
   protected readonly pipeline = inject(ImportPipeline);
   /** Items after the three common ones. */
   readonly extra = input<UiMenuItem[]>([]);
-  /** The button is the plain `outlined` one; false for the filled one. */
-  readonly quiet = input(true);
+  /** The button is text, or outlined where it stands beside other outlined buttons or alone in an empty state. */
+  readonly look = input<"text" | "outlined">("text");
   private readonly file = viewChild<ElementRef<HTMLInputElement>>("file");
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

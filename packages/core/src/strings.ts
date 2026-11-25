@@ -253,7 +253,7 @@ export const importing = {
   menu: ["File…", "cURL command…", "Link…"],
   /** The one line a collection of the file gets: what it holds, and the hosts follow it as a list. */
   holds,
-  goesTo: (requests: number, folders: number) => `${holds(requests, folders)} go to:`,
+  goesTo: (requests: number, folders: number) => `${holds(requests, folders)} ${requests === 1 ? "goes" : "go"} to:`,
   footer: "Nothing is stored until you choose Import.",
   done: (name: string) => `Imported ${name}. Undo.`,
 } as const;

@@ -197,7 +197,7 @@ shown, each as it was received: two `Set-Cookie` headers are two lines.
 ## Cookies
 
 A browser has a cookie jar, and a page can neither read it nor fill it for
-another site. Wayfarer sends a direct request with `credentials: "omit"`,
+another site. Wayfarer sends a request from the page with `credentials: "omit"`,
 so it carries none of the browser's cookies, and what a response sets is
 kept nowhere.
 

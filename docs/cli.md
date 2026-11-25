@@ -103,7 +103,7 @@ Node's own support, in Node 22.21 and 24.5 and later.
   result says so. Get the token in your CI job and put it in a variable.
 - **Files of a request body.** A file picked in the app is kept in that
   browser, not in the collection file: such a request is not sent.
-- **The cookie jar.** As a direct request from the app, a request carries
+- **The cookie jar.** As a request sent from the app's page, a request carries
   no cookie it did not set itself.
 - **Event streams and WebSockets.** An event stream is read as a body when
   it ends: give `--timeout` for one that does not. A `ws:` or `wss:`

@@ -529,7 +529,10 @@ you (plan decision D6):
 - **An imported collection, and one restored from a backup, is not
   trusted.** Its requests are sent without their scripts; assertions still
   run. The Scripts tab says so and offers **Review scripts**: a dialog with
-  every script of the collection, read-only: its own, its folders' and its requests'. "Trust these scripts" marks
+  every script of the collection, read-only: its own, its folders' and its requests'. All of each script's code is on
+  the page, with line numbers, so the dialog scrolls and not a box in it; a line that names `sendRequest` is marked
+  "sends a request" and listed above the code. <!-- claim:C-109 --> A call whose name the script builds when it runs
+  (`pm["send" + "Request"]`) is not found by that mark: read the code. "Trust these scripts" marks
   the collection trusted and stores the digest of each script shown. The
   same review is offered where you meet the scripts first: the import's
   report (**Import and review scripts…**, which imports the collection

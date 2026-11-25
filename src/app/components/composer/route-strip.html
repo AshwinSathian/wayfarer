@@ -88,11 +88,20 @@
 <div class="route-problem">
   @if (problem(); as p) {
   <app-icon
-    [name]="p.kind === 'empty' ? 'info' : p.kind === 'missing' ? 'warning' : 'error'"
-    [class]="'icon-xs route-problem-glyph ' + (p.kind === 'empty' ? 'text-label-secondary' : p.kind === 'missing' ? 'text-status-warning' : 'text-status-error')"
+    [name]="p.kind === 'empty' || p.offer ? 'info' : p.kind === 'missing' ? 'warning' : 'error'"
+    [class]="'icon-xs route-problem-glyph ' + (p.kind === 'empty' || p.offer ? 'text-label-secondary' : p.kind === 'missing' ? 'text-status-warning' : 'text-status-error')"
   />
-  <p class="route-problem-text" aria-hidden="true">{{ p.text }}</p>
-  @if (blocked().length) {
+  <p class="route-problem-text" [id]="problemId" aria-hidden="true">{{ p.text }}</p>
+  @if (p.offer; as offer) {
+  <button
+    uiButton="outlined"
+    class="btn-secondary btn-sm"
+    type="button"
+    [attr.aria-describedby]="problemId"
+    (click)="offered.emit(offer)"
+    >{{ offer.label }}</button
+  >
+  } @else if (blocked().length) {
   <button uiButton class="btn-sm" type="button" (click)="sendAnyway.emit()">{{ sendAnywayLabel }}</button>
   } } @else if (v.facts && !compact()) {
   <p class="route-facts route-facts-under" aria-hidden="true">{{ v.facts }}</p>

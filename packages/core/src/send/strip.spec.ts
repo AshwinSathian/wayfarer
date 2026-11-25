@@ -104,4 +104,25 @@ describe("the problem line", () => {
     });
     expect(addressProblem("https://api.example.com", true, [])).toBeNull();
   });
+
+  it("@claim:C-107 offers to import a cURL command typed into the address, and to split a method from its address", () => {
+    expect(addressProblem("curl -X POST https://api.example.com/pets", false, [])).toEqual({
+      kind: "address",
+      text: "This looks like a cURL command. Import it.",
+      offer: { kind: "curl", label: "Import as request" },
+    });
+    expect(addressProblem("post https://api.example.com/pets", false, [])).toEqual({
+      kind: "address",
+      text: "Use POST for https://api.example.com/pets?",
+      offer: { kind: "method", label: "Use it", method: "POST", address: "https://api.example.com/pets" },
+    });
+    expect(addressProblem("GET {{base}}/pets", false, [])?.offer).toMatchObject({
+      method: "GET",
+      address: "{{base}}/pets",
+    });
+    // Not offers: a word that is no method, an address with a space in it, a plain address.
+    expect(addressProblem("FETCH https://api.example.com", false, [])?.offer).toBeUndefined();
+    expect(addressProblem("GET https://api.example.com/a b", false, [])?.offer).toBeUndefined();
+    expect(addressProblem("https://api.example.com/curl", true, [])).toBeNull();
+  });
 });

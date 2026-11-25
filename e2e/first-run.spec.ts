@@ -30,7 +30,7 @@ test("the empty response offers a cURL command, and the empty sidebar a collecti
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const response = page.locator(".response-pane");
-  await expect(response).toContainText("Send a request and its response shows here.");
+  await expect(response).toContainText("Send a request to see what comes back.");
   await expect(response.getByRole("button", { name: /Import/ })).toHaveCount(0);
   await response.getByRole("button", { name: "Paste a cURL command" }).click();
   const paste = page.getByRole("dialog", { name: "Import" });

@@ -45,6 +45,38 @@ describe("ScriptReviewDialog", () => {
     expect(items[1].querySelector(".script-review-unsupported")).toBeNull();
   });
 
+  // S5a: all of the code on the page, numbered, with the lines that send requests marked in words.
+  it("@claim:C-109 shows every line numbered and marks the lines that call pm.sendRequest", async () => {
+    const code = ["const base = pm.environment.get('base');", "pm.sendRequest(base + '/x', () => {});", "done();"].join(
+      "\n",
+    );
+    TestBed.configureTestingModule({
+      imports: [ScriptReviewDialog],
+      providers: [
+        {
+          provide: ScriptTrust,
+          useValue: {
+            toReview: signal<ReviewedScripts[]>([{ kind: "request", name: "Health", pre: code, post: "" }]),
+            approvedDigests: signal(new Set<string>()),
+            approve: () => Promise.resolve(),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(ScriptReviewDialog);
+    fixture.componentRef.setInput("visible", true);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const lines = [...host.querySelectorAll(".script-line")];
+    expect(lines).toHaveLength(3);
+    expect(lines.map((line) => line.classList.contains("is-call"))).toEqual([false, true, false]);
+    expect(lines[1]?.getAttribute("data-mark")).toBe("sends a request");
+    expect(host.querySelector(".script-review-code code")?.textContent).toBe(code);
+    expect(host.querySelector(".script-review-calls")?.textContent).toContain("Calls pm.sendRequest on line 2");
+    expect(host.querySelector(".script-review-variables")).not.toBeNull();
+    expect(host.textContent).toContain("1 script in 1 request, 3 lines.");
+  });
+
   // V11: in a review of scripts none of which was trusted, "Not reviewed yet" beside every one said nothing.
   it("marks no script when none of them was trusted", async () => {
     TestBed.configureTestingModule({

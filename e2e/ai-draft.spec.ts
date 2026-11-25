@@ -124,7 +124,7 @@ test("@claim:C-078 an answer that names a vault secret is refused, and the draft
 test("@claim:C-069 with no provider, there is no Describe a request… and no palette command", async ({ page }) => {
   await page.addInitScript(() => localStorage.removeItem("wayfarer:ai"));
   await page.goto("/app/");
-  await expect(page.getByText("Send a request and its response shows here.")).toBeVisible();
+  await expect(page.getByText("Send a request to see what comes back.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Describe a request…" })).toHaveCount(0);
   const field = await openPalette(page);
   await field.fill("Draft a request");

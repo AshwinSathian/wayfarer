@@ -122,6 +122,7 @@ export {
   type ScriptSendRequest,
 } from "./scripting/host";
 export { loadLibraries } from "./scripting/libraries";
+export { scriptFlags } from "./scripting/review";
 export { scriptDigest, scriptsApproved, scriptsOf } from "./scripting/trust";
 export {
   requestsInOrder,
@@ -207,5 +208,17 @@ export {
 } from "./folder/folder";
 export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";
-export { ROUTE_NAMES, ROUTE_OPTIONS, empty, failures, sentPart, statusBar, strip, timing, vaultSetup } from "./strings";
+export {
+  ROUTE_NAMES,
+  ROUTE_OPTIONS,
+  empty,
+  failures,
+  firstRun,
+  scriptReview,
+  sentPart,
+  statusBar,
+  strip,
+  timing,
+  vaultSetup,
+} from "./strings";
 export { failurePanel, type FailureAction } from "./send/failure";

@@ -1,9 +1,9 @@
-<ui-dialog header="Review scripts" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
+<ui-dialog [header]="text.title" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
   <div class="flex flex-col gap-4">
+    <p class="type-callout text-label-secondary">{{ text.lead }}</p>
     <p class="type-callout text-label-secondary">
-      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ places() }}. They run each time their requests are
-      sent. A script can change your variables, and with them where a later request goes. Read them before you trust
-      them.
+      {{ text.counts(count(), lineCount(), places()) }} They run each time their requests are sent, and a script can
+      change your variables, and with them where a later request goes.
     </p>
     <!-- One script each, in the order they run (U-040): which it is, whether this review is its first, and what of
          Postman's it uses that the app does not have. -->
@@ -30,6 +30,16 @@
             does not have, so the script stops with an error there." : ", " }}}</span
           >
         </p>
+        } @if (script.sendRequest) {
+        <p class="script-review-calls type-footnote text-status-warning flex items-start gap-1">
+          <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+          <span class="min-w-0">{{ script.sendRequest }}</span>
+        </p>
+        } @if (script.variables) {
+        <p class="script-review-variables type-footnote text-label-secondary flex items-start gap-1">
+          <app-icon name="info" class="icon-xs mt-0.5 shrink-0" />
+          <span class="min-w-0">{{ text.flags.variables }}</span>
+        </p>
         } @if (script.hidden) {
         <p class="script-review-hidden type-footnote text-status-warning flex items-start gap-1">
           <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
@@ -39,17 +49,19 @@
           >
         </p>
         }
-        <pre class="script-review-code"><code>{{ script.shown }}</code></pre>
+        <pre
+          class="script-review-code"
+        ><code>@for (line of script.lines; track $index) {<span class="script-line" [class.is-call]="line.call" [attr.data-mark]="line.call ? text.callMark : null">{{ line.text }}</span>{{ line.eol }}}</code></pre>
       </li>
       }
     </ol>
     }
     <div class="flex flex-wrap justify-end gap-2">
       <button type="button" uiButton="outlined" class="btn-secondary" (click)="visibleChange.emit(false)"
-        >Not now</button
+        >{{ text.notNow }}</button
       >
       <button type="button" uiButton="filled" [disabled]="saving() || !count()" (click)="approve()"
-        >Trust these scripts</button
+        >{{ text.trust }}</button
       >
     </div>
   </div>

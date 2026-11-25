@@ -268,6 +268,29 @@ test("a tab may be left while its request is on its way, and its response is the
   await expect(page.locator(".status-badge")).toHaveText("204");
 });
 
+// Overhaul S4b1: the response on screen is the open tab's, so a send that ends in a tab left behind changes nothing in
+// the one now open, and shows in its own tab when that is opened again.
+test("send in tab A, switch to B: A's response lands in A and B keeps its own", async ({ page }) => {
+  await page.goto("/app/");
+  await address(page).fill(`${ECHO}/delay/1500`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.getByRole("button", { name: "Stop request" })).toBeVisible();
+
+  await page.getByRole("button", { name: "New tab" }).click();
+  await address(page).fill(`${ECHO}/status/204`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("204", { timeout: 15_000 });
+
+  // A's answer arrives while B is open: B still shows its own.
+  await page.waitForTimeout(2500);
+  await expect(page.locator(".status-badge")).toHaveText("204");
+  await expect(address(page)).toHaveValue(`${ECHO}/status/204`);
+
+  await tabs(page).nth(0).click();
+  await expect(address(page)).toHaveValue(`${ECHO}/delay/1500`);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+});
+
 test("closing a tab whose request is on its way asks first, and cancels the request", async ({ page }) => {
   await page.goto("/app/");
   await page.getByRole("button", { name: "New tab" }).click();

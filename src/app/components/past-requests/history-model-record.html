@@ -1,0 +1,31 @@
+@let e = entry();
+<section class="exchange-record type-footnote" aria-label="Exchange record">
+  <app-exchange-record [record]="e.record" [actions]="false" />
+</section>
+<div class="flex flex-wrap gap-2">
+  <button
+    uiButton
+    type="button"
+    class="btn-sm"
+    [attr.aria-expanded]="showing() === 'sent'"
+    (click)="showing.set(showing() === 'sent' ? null : 'sent')"
+    >Show what was sent</button
+  >
+  @if (e.response?.body) {
+  <button
+    uiButton
+    type="button"
+    class="btn-sm"
+    [attr.aria-expanded]="showing() === 'answer'"
+    (click)="showing.set(showing() === 'answer' ? null : 'answer')"
+    >Show the response</button
+  >
+  }
+</div>
+@if (showing() === "sent") {
+<pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="What was sent, as kept">
+{{ e.sent.method + " " + e.sent.url + "\n" + headerLines(e) + "\n\n" + (e.sent.bodyPreview ?? "") }}</pre>
+} @else if (showing() === "answer") {
+<pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The response, as kept">
+{{ e.response?.body?.text }}</pre>
+}

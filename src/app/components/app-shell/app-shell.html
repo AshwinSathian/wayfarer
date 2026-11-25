@@ -100,9 +100,9 @@
 <dialog
   uiModal
   #historyDrawer="uiModal"
-  class="ui-drawer ui-drawer-end"
+  class="ui-drawer ui-drawer-end history-drawer"
+  [class.has-rail]="historyRail()"
   aria-label="History"
-  style="width: 27rem"
   [open]="historyDrawerVisible()"
   dismissable
   (closeRequest)="closeHistory()"
@@ -131,6 +131,8 @@
         [pastRequests]="pastRequests()"
         [loading]="historyLoading()"
         [displayHeader]="false"
+        [openEntry]="historyEntry()"
+        (railChange)="historyRail.set($event)"
         (loadRequest)="handleLoadRequest($event)"
         (deleteRequest)="deleteRequest.emit($event)"
         (clearAll)="confirmClear()"

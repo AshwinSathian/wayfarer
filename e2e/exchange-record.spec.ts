@@ -175,9 +175,12 @@ test("before Send, the preview names the environment's secret that hides the col
   await expect(preview.locator(".preview-auth")).toHaveText(
     'Auth: Bearer token, from collection "Tripwire collection". {{token}} comes from the environment Tripwire env, as a vault secret.',
   );
-  const chip = preview.getByRole("button", { name: /^token environment "Tripwire env"/ });
-  await expect(chip).toContainText("*** from the vault");
+  await preview.getByRole("button", { name: /^token Environment/ }).click();
+  const chip = page.getByRole("dialog", { name: "Variable token" });
+  await expect(chip).toContainText("*** (a vault secret");
   await expect(chip).toContainText('Hides the value in collection "Tripwire collection"');
+  await expect(chip).not.toContainText(plaintext);
+  await page.keyboard.press("Escape");
   await expect(preview).not.toContainText(plaintext);
   await expect(preview).not.toContainText("collection-value");
 
@@ -199,10 +202,11 @@ test("the preview's chip for a variable with no value adds it to the environment
     '{{nowhere}} has no value in environment "Tripwire env". Set a value.',
   );
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
-  await expect(chip).toContainText("No value");
-  // The request is in a collection: the chip asks where the variable goes (D4.5).
+  // The request is in a collection: the popover asks where the variable goes (D4.5).
   await chip.press("Enter");
-  await page.getByRole("menuitem", { name: 'Add nowhere to environment "Tripwire env"' }).click();
+  const pop = page.getByRole("dialog", { name: "Variable nowhere" });
+  await expect(pop).toContainText("No value");
+  await pop.getByRole("button", { name: 'Add nowhere to environment "Tripwire env"' }).click();
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
@@ -232,7 +236,12 @@ for (const theme of ["light", "dark"] as const) {
         collection: { auth: { type: "bearer", token: "{{host}}" }, variables: { host: "shadowed" } },
       },
     );
-    await expect(page.locator("app-variable-chips .var-chip-shadows")).toBeVisible();
+    await page
+      .locator("app-variable-chips")
+      .getByRole("button", { name: /^host / })
+      .click();
+    await expect(page.getByRole("dialog", { name: "Variable host" })).toContainText("Hides the value in");
+    await page.keyboard.press("Escape");
     await page.mouse.move(5, 5);
     // The missing chip pulses twice as it appears: axe reads its colours once it has stopped (a slow runner was
     // still in the pulse).

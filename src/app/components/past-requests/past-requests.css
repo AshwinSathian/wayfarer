@@ -111,23 +111,67 @@
   overflow-wrap: anywhere;
 }
 
-/* A model call opened in place: its record, and the kept texts, wrapping. */
-.history-model-record {
+/* The host leads and keeps its room; the path's end follows and gives way first. */
+.history-address {
   display: flex;
-  flex: 1 0 100%;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  padding: 4px 6px 10px;
 }
 
-.history-kept {
-  max-height: calc(24 * 1.5em);
+.history-host {
+  flex: none;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.history-tail {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--label-secondary);
+  text-overflow: ellipsis;
+}
+
+.history-help {
   margin: 0;
-  padding: 8px 10px;
-  overflow-y: auto;
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-sm);
-  white-space: pre-wrap;
+  color: var(--label-secondary);
   overflow-wrap: anywhere;
+}
+
+.history-details {
+  flex: none;
+  opacity: 0.6;
+}
+
+.history-row:hover .history-details,
+.history-row:focus-within .history-details {
+  opacity: 1;
+}
+
+/* The rail: under 64 em it is the pane and the list waits behind it; from 64 em the drawer is wide enough for both. */
+.history-rail {
+  min-width: 0;
+}
+
+.history.has-rail .history-pane {
+  display: none;
+}
+
+@media (width >= 64em) {
+  .history.has-rail {
+    display: grid;
+    grid-template-columns: 27rem minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .history.has-rail .history-pane {
+    display: flex;
+    min-height: 0;
+    overflow-y: auto;
+    border-inline-end: 1px solid var(--separator);
+  }
+
+  .history.has-rail .history-rail {
+    min-height: 0;
+    overflow-y: auto;
+  }
 }

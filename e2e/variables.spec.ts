@@ -76,19 +76,30 @@ test("a collection variable and a global reach the server, an environment's valu
   }
   await closeHolderSettings(page, "Tripwire collection");
 
-  // The chips name where each value comes from.
+  // A click on a variable's button opens its popover: where its value comes from, and the value.
   const chips = page.locator("app-variable-chips");
-  const chip = (name: string) =>
-    chips.locator(".var-chip").filter({ has: page.locator(".var-chip-name", { hasText: name }) });
-  await expect(chip("fromCollection")).toContainText('collection "Tripwire collection"');
-  await expect(chip("fromCollection")).toContainText("c-1");
-  await expect(chip("fromGlobal")).toContainText("the globals");
-  await expect(chip("fromGlobal")).toContainText("g-1");
-  // The environment's chip acts: it shows the variable in its environment. It hides the collection's value (D4.12).
-  await expect(chips.getByRole("button", { name: 'winner environment "Tripwire env"' })).toContainText(
-    "from-environment",
-  );
-  await expect(chip("winner")).toContainText('Hides the value in collection "Tripwire collection"');
+  const variable = async (name: string) => {
+    await chips
+      .locator(".var-chip")
+      .filter({ has: page.locator(".var-chip-name", { hasText: name }) })
+      .click();
+    return page.getByRole("dialog", { name: `Variable ${name}` });
+  };
+  let pop = await variable("fromCollection");
+  await expect(pop).toContainText('collection "Tripwire collection"');
+  await expect(pop).toContainText("c-1");
+  await page.keyboard.press("Escape");
+  pop = await variable("fromGlobal");
+  await expect(pop).toContainText("the globals");
+  await expect(pop).toContainText("g-1");
+  await page.keyboard.press("Escape");
+  // The environment's value hides the collection's (D4.12), and the popover offers to show it where it is set.
+  pop = await variable("winner");
+  await expect(pop).toContainText('environment "Tripwire env"');
+  await expect(pop).toContainText("from-environment");
+  await expect(pop).toContainText('Hides the value in collection "Tripwire collection"');
+  await expect(pop.getByRole("button", { name: "Show winner in its environment" })).toBeVisible();
+  await page.keyboard.press("Escape");
   // Which scope wins is the doc's to explain (U-166).
   const doc = chips.getByRole("link", { name: "Where a value comes from" });
   await expect(doc).toHaveAttribute("href", "../docs/variables/#where-a-value-comes-from");
@@ -122,8 +133,14 @@ test("F74: a variable whose name holds a slash or a space reaches the server, an
     },
   );
   const chips = page.locator("app-variable-chips");
-  await expect(chips.getByRole("button", { name: 'api/key environment "Tripwire env"' })).toContainText("k-1");
-  await expect(chips.getByRole("button", { name: 'first name environment "Tripwire env"' })).toContainText("Ada");
+  for (const [name, value] of [
+    ["api/key", "k-1"],
+    ["first name", "Ada"],
+  ]) {
+    await chips.getByRole("button", { name: `${name} Environment` }).click();
+    await expect(page.getByRole("dialog", { name: `Variable ${name}` })).toContainText(value);
+    await page.keyboard.press("Escape");
+  }
   // What is between braces and is no plain name is not a missing variable: nothing asks for it.
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 

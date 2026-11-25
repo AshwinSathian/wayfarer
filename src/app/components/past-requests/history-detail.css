@@ -1,0 +1,59 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 16px 16px;
+}
+
+.detail-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* A rail beside the list has no way back to take; under 64 em the rail is the pane and has. */
+.detail-back-icon {
+  transform: scaleX(-1);
+}
+
+.detail-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--label-primary);
+}
+
+.detail-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0;
+  color: var(--label-secondary);
+}
+
+.detail-body {
+  max-height: calc(30 * 1.5em);
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.detail-note,
+.detail-gaps {
+  margin: 0;
+  color: var(--label-secondary);
+}
+
+.detail-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--label-secondary);
+}

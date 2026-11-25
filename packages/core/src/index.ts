@@ -171,6 +171,15 @@ export {
   type RunSend,
 } from "./send/build";
 export { runOutcome } from "./send/run";
+export {
+  diffExchanges,
+  MAX_PATH_CHANGES,
+  type BodyDiff,
+  type DiffSide,
+  type ExchangeDiff,
+  type HeaderChange,
+  type PathChange,
+} from "./send/diff";
 export { SENT_BODY_SHOWN, sentView, type SentView } from "./send/sent-view";
 export { previewAddress, previewValid, previewVariables, type PreviewVariable } from "./send/preview";
 export { addressProblem, stripView, type AddressProblem, type StripInput } from "./send/strip";
@@ -215,12 +224,14 @@ export {
   failures,
   firstRun,
   importing,
+  compare,
   scriptReview,
   sent,
   sentPart,
   statusBar,
   strip,
   timing,
+  variableCard,
   vaultSetup,
 } from "./strings";
 export { failurePanel, type FailureAction } from "./send/failure";

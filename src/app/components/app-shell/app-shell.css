@@ -172,3 +172,14 @@
 .shell-notice p {
   margin: 0;
 }
+
+/* History: 27 rem, and from 64 em, with an entry or a diff open beside the list, wide enough for both. */
+dialog.history-drawer {
+  width: 27rem;
+}
+
+@media (width >= 64em) {
+  dialog.history-drawer.has-rail {
+    width: min(62rem, 100%);
+  }
+}

@@ -1,5 +1,17 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from "@angular/core";
 import { UiInput } from "../../ui/input";
 import { UiCheckbox } from "../../ui/checkbox";
 import { Confirm } from "../../ui/confirm";
@@ -8,39 +20,24 @@ import { historyExchange, type HarSource } from "../../shared/inspect/har-export
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
 import { UiMethodGlyph } from "../../ui/method-glyph";
-import { MODEL_ACTION_WORDS, empty, formatDuration, type ExchangeRecord, type PastRequest } from "@wayfarer/core";
+import {
+  MODEL_ACTION_WORDS,
+  ROUTE_NAMES,
+  compare,
+  empty,
+  formatDuration,
+  type ExchangeRecord,
+  type PastRequest,
+} from "@wayfarer/core";
 import { statusTone } from "../../shared/http/status-tone";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
-import { ExchangeRecordView } from "../exchange-record/exchange-record";
 import { Icon } from "../../shared/icon/icon";
 import { HistoryRepository, type HistorySummary } from "../../data/history-repository";
-
-/**
- * Whether every word of `query` is part of the entry's URL or of the name and place of the saved request it was sent
- * from, or is its method or its status; for a model call, also part of its action, host or model (D4.10). Case does
- * not matter.
- */
-export function matches(request: HistorySummary, query: string): boolean {
-  const url = request.sent.url.toLowerCase();
-  const from = request.sentFrom ? [request.sentFrom.name, ...request.sentFrom.path].join(" ").toLowerCase() : "";
-  const method = request.sent.method.toLowerCase();
-  const status = String(request.response?.status ?? "");
-  const model = request.model
-    ? `${MODEL_ACTION_WORDS[request.model.action]} ${hostOf(request)} ${request.model.model}`.toLowerCase()
-    : "";
-  return query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .every(
-      (word) => url.includes(word) || from.includes(word) || method === word || status === word || model.includes(word),
-    );
-}
-
-/** The host a request went to, as its record names it; the address when it has none. */
-export function hostOf(request: HistorySummary): string {
-  return request.record?.host ?? request.sent.url;
-}
+import type { UiSelectOption } from "../../ui/select";
+import { ExchangeDiff } from "./exchange-diff";
+import { FILTER_HELP, addressParts, hostOf, matches, parseFilter } from "./history-filter";
+import { HistoryDetail } from "./history-detail";
+import { HistoryModelRecord } from "./history-model-record";
 
 /** Which entries History lists: all, the requests sent, or the calls to a model (D4.10). */
 export type HistoryKind = "all" | "requests" | "models";
@@ -68,7 +65,9 @@ export interface HistoryGroup {
     UiCheckbox,
     HarExportDialog,
     UiSegmented,
-    ExchangeRecordView,
+    ExchangeDiff,
+    HistoryDetail,
+    HistoryModelRecord,
   ],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",
@@ -93,6 +92,8 @@ export class PastRequests {
 
   private readonly confirm = inject(Confirm);
   private readonly history = inject(HistoryRepository);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   readonly skeletonPlaceholders = Array.from({ length: 4 }).map((_, i) => i);
 
@@ -111,8 +112,6 @@ export class PastRequests {
   protected readonly expanded = signal<number | undefined>(undefined);
   /** That model call's entry as kept, read by its id when it was opened: the list holds no record or body. */
   protected readonly opened = signal<(PastRequest & { record: ExchangeRecord }) | null>(null);
-  /** Which kept text of the opened model call is shown. */
-  protected readonly showing = signal<"sent" | "answer" | null>(null);
 
   /** The entries the filter and the search leave, newest first as they are given. */
   private readonly shown = computed(() => {
@@ -121,6 +120,98 @@ export class PastRequests {
       (request) => (kind === "all" || (kind === "models") === !!request.model) && matches(request, this.query()),
     );
   });
+
+  /** What the search field says its tokens are, and which it was given wrong. */
+  protected readonly filterHelp = FILTER_HELP.join("  ");
+  protected readonly invalid = computed(() => parseFilter(this.query()).invalid);
+  protected readonly addressParts = addressParts;
+  protected readonly route = ROUTE_NAMES;
+  protected readonly compareWords = compare;
+
+  /**
+   * An entry the list was asked to open, from outside (a tab's response: "Compare this response with…"). The shell
+   * gives it again after it has been used, so the same entry can be asked for twice.
+   */
+  readonly openEntry = input<{ id: number; compare: boolean } | null>(null);
+  /** The rail is drawn: the shell widens the drawer for it. */
+  readonly railChange = output<boolean>();
+  /** The entry in the rail, as kept (read by its id), or the two a diff compares. */
+  protected readonly detail = signal<PastRequest | null>(null);
+  protected readonly diff = signal<{ a: PastRequest; b: PastRequest } | null>(null);
+  protected readonly railOpen = computed(() => !!this.detail() || !!this.diff());
+  /** What the last open or compare could not do: an entry that is gone since the list was read. */
+  protected readonly gone = signal("");
+
+  constructor() {
+    effect(() => this.railChange.emit(this.railOpen()));
+    effect(() => {
+      const wanted = this.openEntry();
+      if (wanted) void this.showDetail(wanted.id, wanted.compare);
+    });
+  }
+
+  /** The entries the rail may compare the open one with: sends, newest first, at most the newest fifty. */
+  protected readonly others = computed((): UiSelectOption<number>[] => {
+    const open = this.detail()?.id;
+    return this.pastRequests()
+      .filter((request) => request.id !== undefined && request.id !== open && !request.model)
+      .slice(0, 50)
+      .map((request) => ({
+        value: request.id ?? -1,
+        label: `${request.sent.method} ${request.sent.url} · ${request.response?.status ?? "No response"} · ${this.relativeTime(request.createdAt)}`,
+      }));
+  });
+
+  /** Two entries are ticked: one click compares them. */
+  protected readonly twoChosen = computed(() => this.chosen().length === 2);
+
+  /** The rail was opened to compare, from a tab's response: its choice takes focus. */
+  protected readonly asked = signal(false);
+
+  protected async showDetail(id: number | undefined, asked = false): Promise<void> {
+    this.asked.set(asked);
+    this.gone.set("");
+    const entry = id === undefined ? null : await this.history.get(id);
+    if (!entry) {
+      this.gone.set(compare.gone);
+      return;
+    }
+    this.diff.set(null);
+    this.detail.set(entry);
+  }
+
+  /** Compares the entries `a` and `b`, each read by its id: what the diff holds is what history kept, masked. */
+  protected async showDiff(a: number | undefined, b: number | undefined): Promise<void> {
+    this.gone.set("");
+    const read = async (id: number | undefined) => (id === undefined ? null : await this.history.get(id));
+    const [one, two] = await Promise.all([read(a), read(b)]);
+    if (!one || !two) {
+      this.gone.set(compare.gone);
+      return;
+    }
+    this.diff.set({ a: one, b: two });
+  }
+
+  protected compareChosen(): void {
+    const [a, b] = this.chosen();
+    void this.showDiff(a?.id, b?.id);
+  }
+
+  protected closeRail(): void {
+    const id = this.detail()?.id ?? this.diff()?.a.id;
+    this.diff.set(null);
+    this.detail.set(null);
+    // The list is drawn again: focus goes back to the row the rail was opened from.
+    afterNextRender(
+      () => this.host.nativeElement.querySelector<HTMLElement>(`[data-entry="${id}"] .history-details`)?.focus(),
+      { injector: this.injector },
+    );
+  }
+
+  /** Back from a diff to the entry it was started from, if there is one. */
+  protected closeDiff(): void {
+    this.diff.set(null);
+  }
 
   protected chooseKind(kind: HistoryKind): void {
     this.kind.set(kind);
@@ -240,7 +331,6 @@ export class PastRequests {
       this.loadRequest.emit(req);
       return;
     }
-    this.showing.set(null);
     if (this.expanded() === req.id || req.id === undefined) {
       this.expanded.set(undefined);
       return;
@@ -252,16 +342,16 @@ export class PastRequests {
 
   /** Escape inside an opened model call's row closes it, not the drawer, and focus goes back to the row. */
   protected collapse(event: Event): void {
+    if (this.railOpen() && !event.defaultPrevented) {
+      event.preventDefault();
+      this.closeRail();
+      return;
+    }
     const row = (event.target as HTMLElement).closest(".history-row");
     if (!row?.querySelector(".history-model-record")) return;
     event.preventDefault();
     this.expanded.set(undefined);
     row.querySelector<HTMLElement>(".history-open")?.focus();
-  }
-
-  /** The headers of what was sent, as kept: one per line. */
-  protected headerLines(request: PastRequest): string {
-    return request.sent.headers.map(([name, value]) => `${name}: ${value}`).join("\n");
   }
 
   async confirmDelete(req: HistorySummary, event: Event): Promise<void> {

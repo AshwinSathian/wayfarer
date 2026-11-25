@@ -1,49 +1,71 @@
-<!-- First: it draws nothing here (display: contents), and last it would give the chips the stack's margin. -->
-<ui-menu #placeMenu [items]="placeItems()" />
 @if (authLine(); as auth) {
 <p class="preview-auth type-footnote text-label-secondary">{{ auth }}</p>
 }
 <div class="flex flex-wrap gap-2">
-  @for (variable of store.previewVariables(); track variable.name) { @let does = action(variable);
-  <div
+  @for (variable of store.previewVariables(); track variable.name) {
+  <button
     #chip
-    class="var-chip var-{{ variable.source === 'missing' ? 'missing' : variable.source === 'environment' ? 'environment' : 'request' }}"
-    [attr.role]="does ? 'button' : null"
-    [attr.tabindex]="does ? 0 : null"
-    [uiTooltip]="does"
-    (click)="act(variable, chip, placeMenu)"
-    (keydown.enter)="act(variable, chip, placeMenu)"
-    (keydown.space)="$event.preventDefault(); act(variable, chip, placeMenu)"
+    type="button"
+    class="var-chip var-{{ family(variable) }}"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="selected()?.name === variable.name"
+    [uiTooltip]="card"
+    (click)="toggle(variable, chip, pop)"
   >
-    <div class="flex items-center gap-1.5">
-      @if (variable.source === 'missing') {
-      <app-icon name="warning" class="icon-xs shrink-0" />
-      }
-      <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>
-      <span class="var-chip-source type-footnote text-label-secondary"
-        >{{ variable.holder ?? (variable.source === 'dynamic' ? 'Dynamic' : variable.source === 'secret' ? 'Vault' :
-        'Missing') }}</span
-      >
-    </div>
-    <div class="var-chip-value type-footnote text-label-secondary mt-0.5">
-      @if (variable.error) { {{ variable.error }} } @else if (variable.vaulted || variable.source === 'secret') {
-      <span class="font-mono">***</span> from the vault } @else if (variable.value !== undefined) {
-      <span class="font-mono">{{ variable.value }}</span>
-      } @else if (variable.source === 'dynamic') { New value each send } @else { No value }
-    </div>
-    @if (variable.shadows.length) {
-    <div class="var-chip-shadows type-footnote text-label-secondary mt-0.5"
-      >Hides the value in {{ hidden(variable) }}</div
-    >
+    @if (variable.source === 'missing') {
+    <app-icon name="warning" class="icon-xs shrink-0" />
     }
-  </div>
-  } @if (store.previewVariables().length) {
+    <span class="var-chip-name type-mono-body font-semibold font-mono">{{ variable.name }}</span>
+    <span class="var-chip-source type-footnote text-label-secondary">{{ words.scopes[variable.source] }}</span>
+    <ng-template #card>
+      <div class="var-card type-footnote">
+        <p class="m-0 text-label-primary"
+          ><span class="font-mono font-semibold">{{ variable.name }}</span> · {{ words.scopes[variable.source] }}</p
+        >
+        <p class="m-0 text-label-secondary"
+          >{{ words.value }}: <span class="font-mono">{{ valueOf(variable) }}</span></p
+        >
+      </div>
+    </ng-template>
+  </button>
+  }
   <a
     class="var-chips-doc type-footnote text-label-primary underline self-center"
     [href]="docs.variableScopes"
     target="_blank"
     rel="noopener noreferrer"
-    >Where a value comes from</a
+    >{{ words.docs }}</a
   >
-  }
+</div>
+<!-- One popover, in the top layer: light dismiss, Escape and focus back come from the platform. Hover and focus on a
+     button show its card (the tooltip's); a click shows this, which can act. -->
+<div
+  #pop
+  popover="auto"
+  class="var-popover"
+  role="dialog"
+  tabindex="-1"
+  [attr.aria-label]="selected() ? 'Variable ' + selected()?.name : null"
+  (toggle)="closed($event, pop)"
+>
+  @if (selected(); as variable) {
+  <p class="var-pop-title type-callout"
+    ><span class="font-mono font-semibold">{{ variable.name }}</span>
+    <span class="text-label-secondary">{{ words.scopes[variable.source] }}</span></p
+  >
+  <dl class="var-pop-facts type-footnote">
+    <dt>{{ words.value }}</dt>
+    <dd class="font-mono">{{ valueOf(variable) }}</dd>
+    <dt>{{ words.source }}</dt>
+    <dd>{{ variable.holder ?? words.notSet }}</dd>
+    @if (variable.shadows.length) {
+    <dt>{{ words.hides }}</dt>
+    <dd>{{ hidden(variable) }}</dd>
+    }
+  </dl>
+  @for (action of actions(variable); track action.label) {
+  <button uiButton="outlined" class="btn-secondary btn-sm var-pop-action" type="button" (click)="run(action, pop)"
+    >{{ action.label }}</button
+  >
+  } }
 </div>

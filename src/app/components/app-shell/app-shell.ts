@@ -1,5 +1,5 @@
 import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "../../shared/shortcuts";
-import { ROUTE_NAMES, requestsInOrder, statusBar, vaultSetup } from "@wayfarer/core";
+import { ROUTE_NAMES, compare, requestsInOrder, statusBar, vaultSetup } from "@wayfarer/core";
 import { UndoNotice } from "../../services/undo-notice";
 import { ImportPipeline } from "../../services/import-pipeline";
 
@@ -10,7 +10,8 @@ function paletteGroupOf(id: string): PaletteGroup {
     /^(toggle-theme|response-under|response-beside|open-settings|open-local-bridge-settings|reset-all-data)$/.test(id)
   )
     return "Settings";
-  if (/^(focus-address-bar|toggle-sidebar|open-history|environments|open-docs)$/.test(id)) return "Go to";
+  if (/^(focus-address-bar|toggle-sidebar|open-history|compare-response|environments|open-docs)$/.test(id))
+    return "Go to";
   return "Requests";
 }
 
@@ -209,6 +210,10 @@ export class AppShell implements OnInit {
     }
   });
   readonly historyDrawerVisible = signal(false);
+  /** History has an entry or a diff open beside its list: the drawer is wider where the window has room. */
+  protected readonly historyRail = signal(false);
+  /** The entry History is asked to open: this response's, to compare it with another. */
+  protected readonly historyEntry = signal<{ id: number; compare: boolean } | null>(null);
   readonly isFirstVaultSetup = signal(false);
   /** The setup dialog's passphrase fields show their text (the vault's setup, S5c). */
   protected readonly showPassphrase = signal(false);
@@ -363,6 +368,15 @@ export class AppShell implements OnInit {
         label: "History",
         run: () => this.openHistory(),
       },
+      ...(this.openTabs.active().historyKey() !== undefined
+        ? [
+            {
+              id: "compare-response",
+              label: compare.fromTab,
+              run: () => this.compareOpenResponse(),
+            },
+          ]
+        : []),
       {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
         label: this.secretsUnlocked
@@ -570,7 +584,16 @@ export class AppShell implements OnInit {
     this.historyDrawerVisible.set(true);
   }
 
+  /** The open tab's response is an entry in history, the one its send wrote: History opens on it, to compare. */
+  protected compareOpenResponse(): void {
+    const id = this.openTabs.active().historyKey();
+    if (id === undefined) return;
+    this.historyEntry.set({ id, compare: true });
+    this.openHistory();
+  }
+
   protected closeHistory(): void {
+    this.historyEntry.set(null);
     this.historyDrawer().close();
     this.historyDrawerVisible.set(false);
   }

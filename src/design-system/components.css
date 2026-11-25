@@ -340,12 +340,63 @@ pre,
 /* ── Variable chips ──────────────────────────────────────── */
 .var-chip {
   display: inline-flex;
-  flex-direction: column;
-  padding: 4px 9px;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.5rem;
+  padding: 2px 9px;
   border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--type-footnote-size);
   cursor: pointer;
   transition: opacity var(--dur-quick) var(--ease-standard);
-  font-size: var(--type-footnote-size);
+}
+
+/* The popover a click opens (claim: the variable's scope, value and holder): the platform's, with none of its look. */
+.var-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 16px));
+  padding: 10px 12px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-lg);
+  background: var(--canvas-overlay);
+  box-shadow: var(--shadow-overlay);
+  color: var(--label-primary);
+  font-family: var(--font-sans);
+}
+
+.var-popover:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+.var-pop-title {
+  margin: 0;
+}
+
+.var-pop-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 10px;
+  margin: 0;
+}
+
+.var-pop-facts dt {
+  color: var(--label-secondary);
+}
+
+.var-pop-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.var-pop-action {
+  align-self: flex-start;
+  text-align: start;
 }
 
 .var-chip.var-environment {

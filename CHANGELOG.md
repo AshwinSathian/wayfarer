@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **The response has a Sent part: what the app built and sent.** After a send, the Sent tab shows the method and address, the headers the app set, the body and the vault secrets that were filled, by the name of their variable. It says that a browser adds its own headers (Host, User-Agent and others) that a page cannot see, and through the Local Bridge that the bridge adds headers of its own. It shows what history keeps of the request, so a vault secret, an OAuth 2.0 token, a cookie from the jar and a credential are `***` in it; a request opened from History, or the tab after a reload, shows the same part, and says "not recorded" for the vault secrets of an entry with no record.
+
 ### Changed
 
 - **A route strip under the address says where the request leaves from, and replaces the rows that did.** It draws the request as a compact path (24 rem wide, at the left) in the shape of the mark: an origin, a block on the line when the request names a vault secret ("Uses secret: API key", by name; the vault is not opened to say it) and the host. After a send it says the road it took ("Sent from this page", "Sent through the Local Bridge") and how many secrets were sent, masked in history and exports. A missing variable or an address that is not one is said in a line under it that is always there, so typing one no longer moves the tabs and the response, and a send with no address says why Send is off. When the room beside the request is narrow (a phone, 200% text, the pinned sidebar) it folds to the host and one button that opens the rest. While a send takes longer than 150 ms a segment runs along the line, stopping with the send. Gone: "Sends to", the route badge, "Editing ... Save writes back to it" (it is the tab's tooltip), the red error row under the address (now the strip's line, with Send anyway).
@@ -35,6 +39,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A secret with a backslash, a tab or a newline in a URL is masked where the browser rewrote it.** A browser writes a backslash in a path as a slash and drops a tab or newline; the redactor looked for the secret as typed, so the rest of it stood in the address that history and exports keep. It now looks for what the address setters make of it too.
 - **The address field's focus edge follows the bar's rounded corner.** At its right end it was cut square, leaving a heavy stub beside the curve.
 - **On a phone, and wherever the sidebar is a drawer, the backup and update notices stand in the page again.** Floating over the page's foot they covered the control below the fold (found by a browser test at 390 px); they float only beside the pinned sidebar, over its empty foot.
 

@@ -77,6 +77,7 @@ The plaintext then exists in three places only: the vault (encrypted), this tab'
 | Where | What happens |
 |---|---|
 | History: the request as sent, the response, the request as composed | The secret is masked as `***`, also where the server sent it back |
+| The Sent part of the response, also after a reload | The same entry history keeps, so `***`; each secret is named by its variable |
 | Export → Copy as cURL, Copy as HAR | Masked, also in the "with credentials" variants |
 | Copy as cURL in the composer | The secret is not read at all: its reference stays as written |
 | Collection export | Holds the reference, never the value |

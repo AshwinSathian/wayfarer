@@ -89,17 +89,19 @@
     }
     <!-- ── Response tabs ──────────────────────────────────── -->
     <!-- With no response (U-175) there is no body, no headers and no timings: only Tests, when one ran. -->
-    @if (!noResponse || ex.testResults.length) {
+    @if (!noResponse || ex.testResults.length || ex.sent) {
     <div class="response-tabs px-4 pt-1">
       <div ngTabs class="tabs">
-        <div uiTabList [selectedTab]="noResponse ? 'tests' : activeTab()" (selectedTabChange)="activeTab.set($event)">
+        <div uiTabList [selectedTab]="shownTab()" (selectedTabChange)="activeTab.set($event)">
           @if (!noResponse) {
           <button ngTab type="button" value="body">Body</button>
           <button ngTab type="button" value="headers">Headers</button>
           <button ngTab type="button" value="timings">Timings</button>
           } @if (ex.eventCount) {
           <button ngTab type="button" value="events">Events</button>
-          }
+          } @if (ex.sent) {
+          <button ngTab type="button" value="sent">Sent</button>
+          } @if (!noResponse || ex.testResults.length) {
           <button ngTab type="button" value="tests">
             Tests @if (ex.testResults.length) {
             <span class="ml-2 inline-flex items-center gap-1">
@@ -111,6 +113,7 @@
             </span>
             }
           </button>
+          }
         </div>
 
         <div class="tab-panes">
@@ -152,11 +155,20 @@
               /> </ng-template
           ></div>
           }
+          <!-- ── Sent tab ───────────────────────────────────── -->
+          @if (ex.sent; as sent) {
+          <div ngTabPanel value="sent" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div appResponseSent class="flex flex-col gap-3 pb-4" [sent]="sent"></div> </ng-template
+          ></div>
+          }
           <!-- ── Tests tab ──────────────────────────────────── -->
+          @if (!noResponse || ex.testResults.length) {
           <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <app-response-tests [exchange]="ex" (openScripts)="openScripts.emit()" /> </ng-template
           ></div>
+          }
         </div>
       </div>
     </div>

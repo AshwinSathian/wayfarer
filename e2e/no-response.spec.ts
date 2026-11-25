@@ -35,12 +35,12 @@ test("a refused connection: No response, the app's words, the browser's own, and
   // Nothing in the server's place: no body in a server's face.
   await expect(page.locator("app-response-viewer pre")).toHaveCount(0);
   // U-175: said once, leading with what was reported; nothing of a secret or a mask the send had none of, and no
-  // tab of a response that never came.
+  // tab of a response that never came: what was sent is there to read (S4b2), and nothing else.
   await expect(failure).toHaveCount(1);
   await expect(record.locator("li").first()).toHaveClass("record-failure");
   await expect(record).not.toContainText("No vault secret was filled.");
   await expect(record).not.toContainText("Nothing was masked.");
-  await expect(page.locator("app-response-viewer").getByRole("tab")).toHaveCount(0);
+  await expect(page.locator("app-response-viewer").getByRole("tab")).toHaveText(["Sent"]);
 });
 
 test("an offline browser is said so", async ({ page, context }) => {

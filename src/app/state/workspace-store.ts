@@ -39,6 +39,7 @@ import {
   newId,
   parseEventStream,
   redactExport,
+  sentView,
   copyNote,
   type ExportRequest,
   resolveAuth,
@@ -171,6 +172,7 @@ export class WorkspaceStore {
   readonly responseTlsInsecure = this.ofTab((tab) => tab.responseTlsInsecure);
   readonly responseRoute = this.ofTab((tab) => tab.responseRoute);
   readonly responseRecord = this.ofTab((tab) => tab.record);
+  readonly responseSent = this.ofTab((tab) => tab.sent);
   readonly recordOpen = this.ofTab((tab) => tab.recordOpen);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
@@ -500,6 +502,8 @@ export class WorkspaceStore {
     this.applyStream(tab, result);
     // The record opens by itself only on a failure, with what was reported and what to do (D4.12).
     tab.record.set(result.record);
+    // From the entry history keeps, masked: the same one, so the Sent part and a reload of it agree.
+    tab.sent.set(sentView(result.history));
     tab.recordOpen.set(result.record.failure !== undefined);
     // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
     if (result.cookieValues.length)

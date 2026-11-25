@@ -61,7 +61,7 @@ export const sentPart = {
   noHeaders: "The app set no headers.",
   noBody: "No body was sent.",
   secrets: "Vault secrets filled",
-  noSecrets: "No vault secret was filled.",
+  noSecrets: "Nothing was filled from the vault.",
   secretsNotRecorded: "Vault secrets filled: not recorded.",
   cut: (shown: number, of: number) =>
     `Showing the first ${shown.toLocaleString("en")} of ${of.toLocaleString("en")} characters.`,

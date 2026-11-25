@@ -238,6 +238,16 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  test(`the Sent part, in each of its states, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
+    await open(page, theme, "&sent");
+    const found: string[] = [];
+    await page.locator("#catalogue-sent").scrollIntoViewIfNeeded();
+    await scanner(page, found)("Sent: plain, secrets masked, not recorded, a cut body");
+    expect(found).toEqual([]);
+  });
+
   test(`the splitter, side by side and one above the other, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
   }) => {

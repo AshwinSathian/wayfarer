@@ -44,6 +44,54 @@ describe("ResponseViewer", () => {
     expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("Certificate not checked");
   });
 
+  describe("the Sent tab", () => {
+    const element = () => fixture.nativeElement as HTMLElement;
+    const sent = {
+      method: "POST",
+      address: "https://api.example.com/pets?key=***",
+      headers: [{ name: "Authorization", value: "***" }],
+      body: { text: "owner=***", shown: 9, of: 9 },
+      route: "direct" as const,
+      secrets: [{ name: "API key" }],
+    };
+
+    it("is there with a response, shows only what it was given, and says what a browser adds", () => {
+      fixture.componentRef.setInput("responseStatusCode", 200);
+      fixture.componentRef.setInput("sent", sent);
+      fixture.componentRef.setInput("activeTab", "sent");
+      fixture.detectChanges();
+      const text = element().querySelector(".sent-request")?.textContent ?? "";
+      expect(text).toContain("POST https://api.example.com/pets?key=***");
+      expect(text).toContain("owner=***");
+      expect(element().querySelector(".sent-note")?.textContent).toBe(
+        "A browser adds its own headers (Host, User-Agent and others) that a page cannot see.",
+      );
+      expect(element().querySelector(".sent-secrets")?.textContent?.replace(/\s+/g, " ").trim()).toBe(
+        "Vault secrets filled: API key.",
+      );
+      expect(element().querySelector(".sent-masked")?.textContent).toContain("as they are in history and exports");
+    });
+
+    it("is there when no response came, and says the bridge adds headers of its own when it sent", () => {
+      fixture.componentRef.setInput("isError", true);
+      fixture.componentRef.setInput("sent", { ...sent, route: "bridge", secrets: null });
+      fixture.componentRef.setInput("activeTab", "sent");
+      fixture.detectChanges();
+      expect(element().querySelector(".sent-note")?.textContent).toContain("The Local Bridge");
+      expect(element().querySelector(".sent-secrets")?.textContent).toContain("not recorded");
+    });
+
+    it("is not there while the tab holds no send", () => {
+      fixture.componentRef.setInput("responseStatusCode", 200);
+      fixture.componentRef.setInput("activeTab", "sent");
+      fixture.detectChanges();
+      expect(element().querySelector(".sent-request")).toBeNull();
+      expect([...element().querySelectorAll('[role="tab"]')].map((tab) => tab.textContent?.trim())).not.toContain(
+        "Sent",
+      );
+    });
+  });
+
   // D5-e (V1): while a request is out the last response stays. For its first second nothing changes (D3.7); then the
   // status line says it is sending, with a spinner and the time so far, and the old response under it is dimmed.
   describe("while a request is on its way", () => {

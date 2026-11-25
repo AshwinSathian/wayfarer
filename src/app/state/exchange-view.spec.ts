@@ -64,4 +64,30 @@ describe("ExchangeView", () => {
     expect(none).toMatchObject({ isError: true, statusCode: undefined, error: "refused" });
     expect(none.notRecorded.body).toBe(false);
   });
+
+  it("a recorded view's Sent part is the entry's sent request and the record's secrets, and says when there is no record", () => {
+    const view = recordedExchange(
+      entry({
+        sent: { method: "POST", url: "http://h/x?k=***", headers: [["Authorization", "***"]], bodyPreview: "a=***" },
+        record: {
+          durationMs: 1,
+          route: "bridge",
+          host: "h",
+          secrets: [{ name: "API key" }],
+          masked: { headers: ["Authorization"], responseHeaders: [] },
+          kept: { response: true, body: true },
+        },
+      }),
+    );
+    expect(view.sent).toEqual({
+      method: "POST",
+      address: "http://h/x?k=***",
+      headers: [{ name: "Authorization", value: "***" }],
+      body: { text: "a=***", shown: 5, of: 5 },
+      route: "bridge",
+      secrets: [{ name: "API key" }],
+    });
+    expect(recordedExchange(entry()).sent?.secrets).toBeNull();
+    expect(liveExchange({}).sent).toBeNull();
+  });
 });

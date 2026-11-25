@@ -38,7 +38,7 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
   await expect(composer.getByRole("tabpanel")).toHaveCount(1);
 });
 
-test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({ page }) => {
+test("response tabs: arrow keys walk Body, Headers, Timings, Sent and Tests", async ({ page }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?keys=1`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -46,7 +46,7 @@ test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({
   const viewer = page.locator("app-response-viewer");
 
   await viewer.getByRole("tab", { name: "Body" }).focus();
-  for (const name of [/^Headers/, /^Timings/, /^Tests/, /^Body/]) {
+  for (const name of [/^Headers/, /^Timings/, /^Sent/, /^Tests/, /^Body/]) {
     await page.keyboard.press("ArrowRight");
     await expect(viewer.getByRole("tab", { name })).toBeFocused();
     await expect(viewer.getByRole("tab", { name })).toHaveAttribute("aria-selected", "true");

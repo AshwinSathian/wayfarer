@@ -141,7 +141,7 @@ describe("sentView", () => {
     expect(view.secrets).toBeNull();
   });
 
-  it("names a vault secret by its variable and never by its value", async () => {
+  it("@claim:C-103 names a vault secret by its variable and never by its value", async () => {
     const { history } = await send({
       headers: [["X-Thing", "plain-secret-1"]],
       secrets: ["plain-secret-1"],
@@ -153,7 +153,7 @@ describe("sentView", () => {
     expect(shown(view)).not.toContain("plain-secret-1");
   });
 
-  it("masks a credential header whole and the cookies of the jar, which the page did not write", async () => {
+  it("@claim:C-103 masks a credential header whole and the cookies of the jar, which the page did not write", async () => {
     const { history } = await send(
       {
         headers: [

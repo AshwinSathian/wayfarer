@@ -84,6 +84,14 @@ comes; the composer does not list that one.
 headers. You cannot remove them. Through the bridge none of them is added;
 Node sets `Host` and `Connection` for its own connection.
 
+## The Sent part
+
+After a send the response has a Sent part: the request as the app built it, one line with the method and the address, the headers the app set, and the body. <!-- claim:C-102 --> After a send, the Sent part shows the method line, the address, the headers the app set and the body of the request, and says that a browser adds its own headers (Host, User-Agent and others) that a page cannot see; through the Local Bridge it says the bridge adds headers of its own.
+
+The headers a browser adds are listed above. Through the bridge, Node writes `Host`, `Content-Length` and a `Connection` of its own, and `Accept-Encoding` where you set none; the page does not see them, so the part does not list them.
+
+The part shows what history keeps of the request, after the redactor ([Secrets](secrets.md)), and nothing else: <!-- claim:C-103 --> In the Sent part a vault secret, an OAuth 2.0 token, a cookie of the jar and a credential are `***`, as they are in history and exports, and a vault secret is named by the variable that held it, never by its value; it is masked where the app keeps and shows the request, and it went out as its value. A vault secret shorter than 6 characters is not found, and an encoding the redactor does not know is not either (the limits in [Secrets](secrets.md)). A request opened from History shows the same part from the stored entry, and says "not recorded" for the vault secrets of an entry that holds no record.
+
 ## What Wayfarer leaves out
 
 Wayfarer sends your request with no `Referer` and no cookies

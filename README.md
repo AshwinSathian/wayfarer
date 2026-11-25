@@ -188,6 +188,8 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - The command palette lists a few commands in each group with what you ran last on top, and finds a saved request by its name, address or method; choosing one opens it and sends nothing. <!-- claim:C-099 -->
 - Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge. <!-- claim:C-100 -->
 - The strip names the vault secrets a request uses without reading the vault, and after a send says how many were sent, masked in history and exports. <!-- claim:C-101 -->
+- After a send, the Sent part shows the method line, the address, the headers the app set and the body of the request, and says that a browser adds its own headers (Host, User-Agent and others) that a page cannot see; through the Local Bridge it says the bridge adds headers of its own. <!-- claim:C-102 -->
+- In the Sent part a vault secret, an OAuth 2.0 token, a cookie of the jar and a credential are `***`, as they are in history and exports, and a vault secret is named by the variable that held it, never by its value; it is masked where the app keeps and shows the request, and it went out as its value. <!-- claim:C-103 -->
 <!-- features:end -->
 
 </details>

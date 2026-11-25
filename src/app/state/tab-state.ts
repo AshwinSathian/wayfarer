@@ -13,7 +13,7 @@ import {
 import { RequestDoc } from "../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { TestResult } from "@wayfarer/core";
-import type { ExchangeRecord, SendTimings } from "@wayfarer/core";
+import type { ExchangeRecord, SendTimings, SentView } from "@wayfarer/core";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
@@ -123,7 +123,7 @@ export class TabState {
   readonly responseStatusCode = signal<number | undefined>(undefined);
   readonly responseStatusText = signal<string | undefined>(undefined);
   readonly responseIsError = signal(false);
-  readonly responseTab = signal<"body" | "headers" | "timings" | "tests" | "events">("body");
+  readonly responseTab = signal<"body" | "headers" | "timings" | "sent" | "tests" | "events">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
@@ -135,6 +135,8 @@ export class TabState {
   readonly responseRoute = signal<"direct" | "bridge" | null>(null);
   /** What the last send did (D4.12): the route, the host, the secrets filled, what was masked and kept. */
   readonly record = signal<ExchangeRecord | null>(null);
+  /** What the Sent part shows: the request as history keeps it, masked. Set with the response, from the same entry. */
+  readonly sent = signal<SentView | null>(null);
   /** The record is shown beside the response: opened by a failure or by the person, never by a success. */
   readonly recordOpen = signal(false);
   readonly responseContentType = signal("");
@@ -234,6 +236,7 @@ export class TabState {
     this.responseError.set(view.error);
     this.responseRoute.set(view.route);
     this.record.set(view.record);
+    this.sent.set(view.sent);
     this.recordOpen.set(open && !!entry.record);
   }
 
@@ -253,6 +256,7 @@ export class TabState {
     this.responseTlsInsecure.set(false);
     this.responseRoute.set(null);
     this.record.set(null);
+    this.sent.set(null);
     this.recordOpen.set(false);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
+import { settled } from "./support/settled";
 import { openPalette, protectVariable, seedAndOpen, send } from "./support/app";
 
 // S6: History as a log with a rail, a diff of two exchanges, and the variable popover.
@@ -76,8 +77,14 @@ test("@claim:C-118 an entry opens beside the list as it was kept, and says what 
   await expect(rail.getByRole("region", { name: "Response headers" })).toContainText("content-type");
   await rail.getByRole("radio", { name: "Sent" }).click();
   await expect(rail.getByRole("region", { name: "What was sent, as kept" })).toContainText("/echo?run=one");
+  await page.mouse.move(5, 5);
+  await settled(page);
   const found = (await axe(page).include("dialog[aria-label=History]").analyze()).violations;
-  expect(found.map((v) => v.id)).toEqual([]);
+  expect(
+    found.flatMap((v) =>
+      v.nodes.map((n) => `${v.id}: ${n.target.join(" ")} ${n.failureSummary?.split("\n")[1]?.trim() ?? ""}`),
+    ),
+  ).toEqual([]);
   // Escape closes the rail first, and the drawer on the second.
   await page.keyboard.press("Escape");
   await expect(rail).toHaveCount(0);
@@ -96,7 +103,9 @@ test("@claim:C-119 two entries are compared by status, headers and body, a JSON 
   await rail.locator("ui-select").focus();
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("Enter");
+  // The choice alone compares nothing: the button does.
+  await expect(rail.getByRole("button", { name: "Compare", exact: true })).toBeEnabled();
+  await rail.getByRole("button", { name: "Compare", exact: true }).press("Enter");
   const diff = rail.locator("app-exchange-diff");
   await expect(diff.getByRole("status")).toContainText("Comparing GET");
   // The newest is first in the choice, then the other 200: the diff is of two echoes or an echo and the 503.
@@ -127,8 +136,14 @@ test("@claim:C-119 two entries are compared by status, headers and body, a JSON 
   // A changed path comes before one that was removed or added.
   const kinds = await two.locator(".diff-path .diff-kind").allInnerTexts();
   expect(kinds[0]).toBe("Changed");
+  await page.mouse.move(5, 5);
+  await settled(page);
   const found = (await axe(page).include("dialog[aria-label=History]").analyze()).violations;
-  expect(found.map((v) => v.id)).toEqual([]);
+  expect(
+    found.flatMap((v) =>
+      v.nodes.map((n) => `${v.id}: ${n.target.join(" ")} ${n.failureSummary?.split("\n")[1]?.trim() ?? ""}`),
+    ),
+  ).toEqual([]);
 
   // An entry and a 503: the headers and the body differ, and a body not kept is not compared.
   await page.keyboard.press("Escape");
@@ -156,6 +171,7 @@ test("@claim:C-119 a response in a tab is compared from the palette, with the en
 
 test("@claim:C-120 a variable's button shows its scope, value and holder on hover and focus, and its popover on a click, with a way to set it; a vault secret is never read", async ({
   page,
+  browserName,
 }) => {
   const plaintext = "popover-secret-4c1e";
   await seedAndOpen(
@@ -180,16 +196,25 @@ test("@claim:C-120 a variable's button shows its scope, value and holder on hove
   await expect(card).toHaveCount(0);
   // Keyboard focus: the same card, and Enter opens the popover with focus in it.
   await env.focus();
-  await page.keyboard.press("Shift+Tab");
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("tooltip")).toContainText("env-value");
+  if (browserName !== "webkit") {
+    // Safari's Tab passes over a button: its keyboard focus (the card's trigger) is not reachable by Tab there.
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("tooltip")).toContainText("env-value");
+  }
   await page.keyboard.press("Enter");
   const pop = page.getByRole("dialog", { name: "Variable fromEnv" });
   await expect(pop).toBeVisible();
   await expect(pop).toContainText('environment "Tripwire env"');
   await expect(pop.getByRole("button", { name: "Show fromEnv in its environment" })).toBeVisible();
+  await page.mouse.move(5, 5);
+  await settled(page);
   const found = (await axe(page).include(".var-popover").analyze()).violations;
-  expect(found.map((v) => v.id)).toEqual([]);
+  expect(
+    found.flatMap((v) =>
+      v.nodes.map((n) => `${v.id}: ${n.target.join(" ")} ${n.failureSummary?.split("\n")[1]?.trim() ?? ""}`),
+    ),
+  ).toEqual([]);
   await page.keyboard.press("Escape");
   await expect(pop).toBeHidden();
   await expect(env).toBeFocused();

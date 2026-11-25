@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
 import {
-  ROUTE_NAMES,
-  compare,
-  diffExchanges,
-  formatDuration,
-  type HeaderChange,
-  type PastRequest,
-} from "@wayfarer/core";
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  output,
+} from "@angular/core";
+import { ROUTE_NAMES, compare, diffExchanges, formatDuration, type PastRequest } from "@wayfarer/core";
 import { UiButton } from "../../ui/button";
 import { Icon } from "../../shared/icon/icon";
 
@@ -47,7 +49,13 @@ export class ExchangeDiff {
     return values.length ? values.join(", ") : "none";
   }
 
-  protected kindWord(change: HeaderChange | { kind: "added" | "removed" | "changed" }): string {
+  protected kindWord(change: { kind: "added" | "removed" | "changed" }): string {
     return change.kind === "added" ? "Added" : change.kind === "removed" ? "Removed" : "Changed";
+  }
+
+  constructor() {
+    // The choice that held focus is gone, or the list is hidden: focus goes to Back, so that Escape closes the rail.
+    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    afterNextRender(() => host.querySelector<HTMLElement>("button")?.focus());
   }
 }

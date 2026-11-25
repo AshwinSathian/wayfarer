@@ -57,3 +57,14 @@
   gap: 4px;
   color: var(--label-secondary);
 }
+
+.detail-compare-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-compare-row ui-select {
+  flex: 1;
+  min-width: 0;
+}

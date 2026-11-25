@@ -37,11 +37,21 @@
 <p class="detail-gaps type-footnote">{{ words.gaps[0] }} {{ words.gaps[1] }}</p>
 <div class="detail-compare">
   <span id="detail-compare-label" class="type-footnote">{{ words.menuItem }}</span>
-  <ui-select
-    aria-labelledby="detail-compare-label"
-    placeholder="Choose an entry"
-    [options]="others()"
-    [value]="-1"
-    (valueChange)="compared.emit($event)"
-  />
+  <div class="detail-compare-row">
+    <ui-select
+      aria-labelledby="detail-compare-label"
+      placeholder="Choose an entry"
+      [options]="others()"
+      [value]="chosen() ?? -1"
+      (valueChange)="chosen.set($event)"
+    />
+    <button
+      uiButton="outlined"
+      class="btn-secondary"
+      type="button"
+      [disabled]="chosen() === null"
+      (click)="compared.emit(chosen() ?? -1)"
+      >Compare</button
+    >
+  </div>
 </div>

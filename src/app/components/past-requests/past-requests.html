@@ -213,7 +213,7 @@
   </div>
   @if (railOpen()) {
   <div class="history-rail" role="region" aria-label="Entry">
-    @if (diff(); as d) {
+    @defer (on immediate) { @if (diff(); as d) {
     <app-exchange-diff [a]="d.a" [b]="d.b" (closed)="detail() ? closeDiff() : closeRail()" />
     } @else if (detail(); as entry) {
     <app-history-detail
@@ -224,7 +224,7 @@
       (opened)="loadRequest.emit(entry)"
       (compared)="showDiff(entry.id, $event)"
     />
-    }
+    } }
   </div>
   } }
 </section>

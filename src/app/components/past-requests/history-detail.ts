@@ -51,6 +51,8 @@ export class HistoryDetail {
   readonly opened = output<void>();
   readonly compared = output<number>();
 
+  /** The entry chosen to compare with: nothing is compared until the button says so. */
+  protected readonly chosen = signal<number | null>(null);
   protected readonly parts = PARTS;
   protected readonly part = signal<Part>("body");
   protected readonly words = compare;
@@ -67,7 +69,8 @@ export class HistoryDetail {
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     afterNextRender(() => {
-      if (this.focusCompare()) host.querySelector<HTMLElement>(".detail-compare ui-select")?.focus();
+      // What had focus may be gone (the list is hidden under 64 em): focus goes into the rail.
+      host.querySelector<HTMLElement>(this.focusCompare() ? ".detail-compare ui-select" : "button")?.focus();
     });
   }
 }

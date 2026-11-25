@@ -178,7 +178,6 @@ export class PastRequests {
     }
     this.diff.set(null);
     this.detail.set(entry);
-    if (!asked) this.focusRail();
   }
 
   /** Compares the entries `a` and `b`, each read by its id: what the diff holds is what history kept, masked. */
@@ -191,14 +190,6 @@ export class PastRequests {
       return;
     }
     this.diff.set({ a: one, b: two });
-    this.focusRail();
-  }
-
-  /** What was in focus may be gone (the list is hidden under 64 em, the choice is replaced by the diff): focus goes into the rail. */
-  private focusRail(): void {
-    afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>(".history-rail button")?.focus(), {
-      injector: this.injector,
-    });
   }
 
   protected compareChosen(): void {

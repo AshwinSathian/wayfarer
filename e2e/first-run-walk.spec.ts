@@ -72,6 +72,22 @@ test("Escape ends the walk, and Dismiss does too", async ({ page }) => {
   expect(await stored(page)).not.toBeNull();
 });
 
+test("Escape typed in a field, or with a tooltip showing, does not end the walk", async ({ page }) => {
+  await tryExample(page);
+  await expect(walk(page)).toBeVisible();
+  await page.locator("input.address-url").focus();
+  await page.keyboard.press("Escape");
+  await expect(walk(page)).toBeVisible();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.getByRole("button", { name: "Settings", exact: true }).first().hover();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await expect(walk(page)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(walk(page)).toHaveCount(0);
+});
+
 test("a dialog that takes Escape keeps the walk", async ({ page }) => {
   await tryExample(page);
   await expect(walk(page)).toBeVisible();

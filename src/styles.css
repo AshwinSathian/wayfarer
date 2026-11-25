@@ -181,6 +181,15 @@ summary:focus-visible,
   box-shadow: inset 0 0 0 2px var(--btn-fg);
 }
 
+/* Forced colours take every box-shadow away, so the edge above vanishes there and a focused control shows nothing.
+   The one place an outline is drawn: in a system colour, inside the box, for whatever the keyboard reaches. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: -2px;
+  }
+}
+
 /* Controls fade their colours on hover and focus. Nothing else has a colour
    transition, so a theme change is instant (docs/design/motion.md). */
 button,

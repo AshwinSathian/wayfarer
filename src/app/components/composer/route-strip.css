@@ -169,12 +169,13 @@
   color: var(--label-secondary);
 }
 
-/* The host is never truncated: it wraps where it must. */
+/* The host is never truncated, and is never broken while it fits: `break-word` breaks only a word wider than its line,
+   where `anywhere` also let the column shrink to a letter and cut "typicode" in two. */
 .route-host {
   font-family: var(--font-mono);
   font-variant-ligatures: none;
   font-size: var(--type-mono-body-size);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /* ── Compact: the host, a line, and one button that opens the rest ─────────── */

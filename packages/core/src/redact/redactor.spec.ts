@@ -96,6 +96,13 @@ describe("Redactor", () => {
     );
   });
 
+  it("does not mask the bare rest of a secret that starts with ? or # (the setters drop that character)", () => {
+    for (const secret of ["?pa55word1", "#pa55word1"]) {
+      const redactor = new Redactor([secret]);
+      expect(redactor.text(`see ${secret} and pa55word1`)).toBe(`see ${MASK} and pa55word1`);
+    }
+  });
+
   it("masks what a URL's own setters make of a value: a backslash in a path is a slash, a tab is dropped", () => {
     const url = new URL("https://example.com/");
     url.pathname = "/\\pa55word";

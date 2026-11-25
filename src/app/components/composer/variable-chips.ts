@@ -106,7 +106,19 @@ export class VariableChips {
     return [];
   }
 
+  /** The press that is on its way to a click was on the chip whose popover was open: the platform closed it on the press. */
+  private pressedOpen = false;
+
+  /** Light dismiss closes the popover on the press, before the click: remember that the press found it open. */
+  protected pressed(variable: PreviewVariable, popover: HTMLElement): void {
+    this.pressedOpen = this.selected()?.name === variable.name && popover.matches(":popover-open");
+  }
+
   protected toggle(variable: PreviewVariable, chip: HTMLElement, popover: HTMLElement): void {
+    const wasOpen = this.pressedOpen;
+    this.pressedOpen = false;
+    // A second click on the open chip closes it (the platform did, on the press); a key's click has no press, and closes it here.
+    if (wasOpen) return;
     if (this.selected()?.name === variable.name && popover.matches(":popover-open")) {
       popover.hidePopover();
       return;

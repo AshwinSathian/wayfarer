@@ -102,6 +102,13 @@ History keeps the kind of failure and what was reported, and the panel is made f
 
 The Timings tab draws the send's phases in one strip against the whole, and says where they came from. <!-- claim:C-105 --> The strip shows the phases the browser measured, or those the Local Bridge measured when the request went through it, and says which; where the server does not share timing it shows the total alone and says so. A send read back from History keeps the total and no phases, and says "not recorded".
 
+## A large plain-text response
+
+A body of plain text is drawn as one block, so the browser lays all of it out at once: about 1 MB takes one stretch of
+roughly a quarter of a second on a laptop (measured: 227 to 246 ms), during which the page does not answer a key. JSON
+is drawn in an editor that lays out only the lines in view (5 MB: longest stretch 56 to 59 ms). Plain text is not yet
+drawn a part at a time.
+
 ## The Tests tab and scripts that did not run
 
 <!-- claim:C-106 --> When a request's scripts were left out because they are not reviewed, the Tests tab says the scripts did not run, so their tests did not either, marks its tab, and offers the review, instead of saying the request has no tests. The assertions of the request still run.

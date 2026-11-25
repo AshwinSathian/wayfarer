@@ -3,18 +3,18 @@ import { JUMPS } from "../shared/shortcuts";
 import { Diagnostics } from "./diagnostics";
 
 const STORAGE_KEY = "wayfarer:jump-keys";
-/** How long the first key waits for the second. */
-const ARMED_MS = 1500;
+/** How long the first key waits for the second: long enough for a switch or a screen reader to say the hint (WCAG 2.2.1). */
+const ARMED_MS = 5000;
 
 /** Where a key is typed, or chooses an item of a list: the letters are the field's or the list's there. */
-const KEYS_OWNED =
-  "input, textarea, select, .monaco-editor, [contenteditable], [role=combobox], [role=listbox], [role=menu]";
+export const KEYS_OWNED =
+  "input, textarea, select, .monaco-editor, [contenteditable], [role=combobox], [role=listbox], [role=menu], [role=tree], [role=treeitem]";
 
 /**
  * The jump keys (BB2): G, then a letter, goes to a place (`JUMPS`). A single character key, so (WCAG 2.1.4) it can be
  * turned off in Settings › Shortcuts, and it is read only where nothing owns the letters: never in a field, an editor,
- * a menu or list, a dialog or the variable's popover, never with a modifier, never while a text is being composed.
- * The shell reads it on the window in the capture phase, ahead of the collections panel's own letters and the tree's.
+ * a menu, list or tree, a dialog or the variable's popover, never with a modifier, never while a text is being composed.
+ * The shell reads it on the window in the capture phase, ahead of the collections panel's own letters (C, N).
  */
 @Injectable({ providedIn: "root" })
 export class JumpKeys {

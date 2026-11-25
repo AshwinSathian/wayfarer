@@ -416,7 +416,7 @@ describe("ResponseViewer", () => {
       expect(element().querySelector(".response-failure")?.textContent).toBe(why);
       expect(element().querySelector(".response-tabs")).toBeNull();
       set({ testResults: [{ label: "status is 200", passed: false, source: "assertion" }] });
-      expect(tabs()).toEqual(["Tests 1 (1 failed)"]);
+      expect(tabs()).toEqual(["Tests (1 run, 1 failed)"]);
       expect(element().querySelector(".test-result-fail")?.textContent).toContain("status is 200");
       expect(element().textContent?.match(/Send it through the Local Bridge/g)).toHaveLength(1);
     });

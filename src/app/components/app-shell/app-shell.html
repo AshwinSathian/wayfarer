@@ -567,8 +567,10 @@
   }
 </div>
 
-<!-- The jump keys (BB2): after G, what each next key goes to, said by a status region and drawn where the Undo is. -->
-<div class="jump-hint" role="status">
+<!-- The jump keys (BB2): after G, what each next key goes to. A screen reader is told in one line that a letter is awaited
+     (the eight places are in Settings › Shortcuts); the list is drawn for the eye, above the status bar. -->
+<p class="sr-only" role="status">{{ jumpKeys.armed() ? "Jump: press a letter. Escape cancels." : "" }}</p>
+<div class="jump-hint" aria-hidden="true">
   @if (jumpKeys.armed()) {
   <span class="type-footnote">G, then</span>
   @for (jump of jumps; track jump.command) {

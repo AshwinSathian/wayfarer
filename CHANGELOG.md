@@ -64,6 +64,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Forced colours show which control has focus.** The 2 px edge inside a focused control is a shadow, which forced colours take away, so every focused button, tab, row and radio looked as at rest. They now get a 2 px outline in the system's highlight colour. The focus test runs in forced colours too.
+- **G, then a letter, no longer takes the tree's letters.** In the collections tree, typing G and then E jumped to Environments instead of selecting the next row that starts with G or E. The tree's letters are the tree's, as a list's and a menu's are. The hint now waits 5 seconds instead of 1.5, says one line to a screen reader ("Jump: press a letter. Escape cancels.") instead of the eight places, and sits above the status bar instead of over it.
+- **A request's tabs have names a screen reader can say.** "Body 1", "Auth 1" and "Network 2" read as part of the name; they are now "Body (1 set)", "Tests (2 run, 1 failed)". The mark has room for three characters ("99+"), so a tab does not move at 10 or 100.
+- **Comparing two exchanges reads right.** The kind of change and its path ran together ("Changeddate"), the heading was announced as a status and lost its heading role, and each side's letter was read twice.
+- **Escape in a field, or with a tooltip or popover showing, no longer ends the first-run walk.** Any Escape that nothing prevented ended it; now the field's, the tooltip's or the popover's own Escape does its job and the walk stays.
+- **Clicking a variable's button again closes its popover.** It opened it again and the button still said it was expanded.
+- **The route strip's folded button no longer points at an element that is not there.** It named the open list with `aria-controls` while the list did not exist.
+- **A secret that starts with `?` or `#` no longer masks the rest of itself on its own.** The URL parser drops that first character, and the redactor also looked for what was left, so the same letters in ordinary text were masked.
+- **The size check counts what the first download loads.** `bundle:report` counted only the files `index.html` names, and missed the chunks they import (21 kB gzip). It now follows static imports and measures 363,808 B gzip; the gate is reset to that times 1.10 (see below). The Angular budgets already counted them.
+- **The host in the route strip no longer breaks inside a word.** In the first-run walk at 1440 px "typicode.com" showed as "typicod" and "e.com".
+
 - **Forced colours draw the timing strip.** The strip's segments were painted as backgrounds, which forced colours turn into the page colour, so the strip disappeared for people who use them; its segments are now drawn in the text colour and the system grey.
 - **A secret with a backslash, a tab or a newline in a URL is masked where the browser rewrote it.** A browser writes a backslash in a path as a slash and drops a tab or newline; the redactor looked for the secret as typed, so the rest of it stood in the address that history and exports keep. It now looks for what the address setters make of it too.
 - **The address field's focus edge follows the bar's rounded corner.** At its right end it was cut square, leaving a heavy stub beside the curve.

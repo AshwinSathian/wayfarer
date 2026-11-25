@@ -918,11 +918,11 @@ test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", a
   await expect(tab("Body")).toHaveAttribute("aria-selected", "true");
   await expect(shown).toHaveAccessibleName("Body");
   await page.keyboard.press("End");
-  await expect(tab("Tests 2")).toBeFocused();
+  await expect(tab("Tests (2 run)")).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(tab("Params")).toBeFocused();
   await page.keyboard.press("ArrowLeft");
-  await expect(tab("Tests 2")).toBeFocused();
+  await expect(tab("Tests (2 run)")).toBeFocused();
   await page.keyboard.press("Home");
   await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
   await expect(parts.locator('[role="tab"][tabindex="0"]')).toHaveAccessibleName("Params");

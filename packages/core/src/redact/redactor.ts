@@ -63,10 +63,11 @@ function urlForms(value: string): string[] {
   const forms: string[] = [];
   url.pathname = value;
   forms.push(url.pathname.slice(1));
+  // The setters drop one leading "?" or "#": what is left is not the secret, and is not looked for on its own.
   url.search = value;
-  forms.push(url.search.slice(1));
+  if (!value.startsWith("?")) forms.push(url.search.slice(1));
   url.hash = value;
-  forms.push(url.hash.slice(1));
+  if (!value.startsWith("#")) forms.push(url.hash.slice(1));
   return forms;
 }
 

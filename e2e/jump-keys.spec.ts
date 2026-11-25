@@ -50,9 +50,9 @@ test("@claim:C-123 G then a letter goes to History, Environments, Settings, the 
   await onThePage(page);
   await jump(page, "c");
   await expect(page.getByRole("tree").getByRole("treeitem", { selected: true }).first()).toBeFocused();
-  // The collections panel reads C and N itself, and the tree reads letters: neither took the jump's keys.
-  await jump(page, "c");
-  await expect(page.getByRole("dialog", { name: /New collection/ })).toHaveCount(0);
+  // In the tree the letters are the tree's (type-ahead): G, then E, jumps nowhere.
+  await jump(page, "e");
+  await expect(page.getByRole("region", { name: "Environments", exact: true })).toHaveCount(0);
 
   await onThePage(page);
   await jump(page, "e");
@@ -95,7 +95,17 @@ test("@claim:C-123 a jump key is a letter where text is typed, in a dialog, in a
   await expect(history(page)).toHaveCount(0);
   // Said while it waits, and in Settings › Shortcuts with the others.
   await page.keyboard.press("g");
-  await expect(page.getByRole("status").filter({ hasText: "G, then" })).toContainText("History");
+  const hint = page.locator(".jump-hint");
+  await expect(hint).toContainText("History");
+  // A screen reader gets one short line, not the eight places; and the hint is above the status bar, not on it.
+  await expect(page.getByRole("status").filter({ hasText: "press a letter" })).toHaveText(
+    "Jump: press a letter. Escape cancels.",
+  );
+  const [shown, bar] = await Promise.all([hint.boundingBox(), page.locator("footer.status-bar").boundingBox()]);
+  expect(shown && bar && shown.y + shown.height <= bar.y).toBe(true);
+  // It waits a while (WCAG 2.2.1): a second later it is still waiting.
+  await page.waitForTimeout(2000);
+  await expect(hint).toContainText("History");
   await page.keyboard.press("s");
   const dialog = settings(page);
   await expect(dialog).toBeVisible();

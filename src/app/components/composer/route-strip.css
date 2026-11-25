@@ -122,12 +122,15 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 0.75rem;
-  /* Three lines of the words: a longer route does not make the strip taller than a short one. */
-  min-height: calc(3 * var(--type-callout-line));
+  /* Two lines of the words (the method over the host): a longer route does not make the strip taller than a short
+     one. A route with a secret's block has a third, so it keeps room for it: the preview under the strip
+     (U-174) was 14 px short of its room with three lines reserved for every route. */
+  min-height: calc(2 * var(--type-callout-line));
   margin-top: 0.25rem;
 }
 
 .route-labels.has-block {
+  min-height: calc(3 * var(--type-callout-line));
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr);
 }
 

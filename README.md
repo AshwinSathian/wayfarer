@@ -156,7 +156,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - The app can be used by keyboard alone: the core flow (a collection, a new tab, an address, a header, send, save, run) needs no pointer, a dialog opens on the field it asks for, and closing one gives focus back to what opened it. <!-- claim:C-067 -->
 - Settings → Diagnostics shows the app's errors and what the Content-Security-Policy blocked, with self-tests; the report it copies, and the GitHub issue it opens, hold no address, header, body or vault secret of a request sent before. <!-- claim:C-068 -->
 - AI is off until a provider is added in Settings › AI: until then no AI control is drawn, the palette has no AI command, and no request goes to a model. <!-- claim:C-069 -->
-- A prompt sent to a model holds no vault secret's plaintext and no credential: it quotes the exchange as history keeps it, masked. <!-- claim:C-070 -->
+- A prompt sent to a model holds neither the plaintext of a vault secret nor a credential: it quotes the exchange as history keeps it, masked. <!-- claim:C-070 -->
 - What is sent to a model is shown before it is sent, byte for byte, and nothing is sent until Send to model. <!-- claim:C-071 -->
 - A response body goes into a prompt only when it is ticked for that call; the tick starts unticked every time. <!-- claim:C-072 -->
 - A model's proposal changes nothing until it is accepted, and Undo puts the script or the request back as it was. <!-- claim:C-073 -->
@@ -173,7 +173,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A collection shared as a link reaches no server: its content and its code are after the `#` of the address, which the browser does not send, and opening the link asks for the app's own files and nothing else. <!-- claim:C-084 -->
 - Opening a shared link takes the part after `#` off the address bar before the app reads anything else. <!-- claim:C-085 -->
 - A collection received by link shows the import report and is not stored until Import; cancelled, nothing is stored. <!-- claim:C-086 -->
-- A collection shared as a file or a link holds no vault secret's plaintext. <!-- claim:C-087 -->
+- A collection shared as a file or a link never holds a vault secret's plaintext. <!-- claim:C-087 -->
 - In a collection shared as a file or a link, a credential typed into auth is written as `***` unless Include credentials was ticked for that file or link. <!-- claim:C-088 -->
 - Before a collection is shared, the Share dialog names where it goes: the file's name, or the link's length. <!-- claim:C-089 -->
 - The import report names every host a collection sends to before anything is stored: each request's address and each OAuth 2.0 sign-in and token address, with the variables the collection gives a value filled in. <!-- claim:C-090 -->
@@ -181,7 +181,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A response of type `text/event-stream` is shown event by event as it arrives, each with its id, name and data; Stop ends it, and Reconnect sends `Last-Event-ID`, the last id the stream gave. <!-- claim:C-092 -->
 - A GraphQL body can fetch the server's schema by introspection; with it, a field the schema does not have is marked in the query's editor. <!-- claim:C-093 -->
 - The composer holds requests in tabs, each with its own request and response; after a reload the tabs are there, their unsaved edits and the open one with them. <!-- claim:C-094 -->
-- A collection kept in a folder is written as plain files with no timestamp and no vault secret; a credential typed into an auth field is written as `***`. <!-- claim:C-095 -->
+- A collection kept in a folder is written as plain files with no timestamp and none of the vault's secrets; a credential typed into an auth field is written as `***`. <!-- claim:C-095 -->
 - A change made in a collection's folder from outside is shown with each file's diff, and reaches the collection only when you take it, through the import report. <!-- claim:C-096 -->
 - Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn. <!-- claim:C-097 -->
 - The status bar says "Not backed up" until a backup was made and then how long ago it was; the only thing kept for it is that time, in `localStorage`. <!-- claim:C-098 -->

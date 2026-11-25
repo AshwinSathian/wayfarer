@@ -27,7 +27,7 @@ publishes them, and a time is compared only where a rival does.
 
 **Versions.** Wayfarer: `main` at `1a2ed52` (2026-11-05, the release
 candidate for v3.0.0; first measured at `62d85ef` on 2026-11-04, and run
-again after D5-e's changes to tasks 2 and 3, U-203), a production build served by
+again after the changes to tasks 2 and 3), a production build served by
 `e2e/support/prod-server.mjs` with production's headers; Chromium 156 in
 Playwright 1.64.1's Linux image (`mcr.microsoft.com/playwright:v1.64.1-noble`)
 under Docker on an Apple M4 Pro. The echo server of `e2e/support` is every
@@ -51,8 +51,8 @@ rivals' versions are those their documentation describes, below.
 
 What each task ends on, and how it gets there:
 
-- **1.** The caret starts in the address (D4-c): the address, then Enter.
-- **2.** Since D5-e the import's report offers **Import and review
+- **1.** The caret starts in the address: the address, then Enter.
+- **2.** Now the import's report offers **Import and review
   scripts…**: the collection is stored with its scripts unapproved, and the
   review opens on it. With nothing stored, the sidebar's Import used to open the
   file dialog itself (L-16): Import…, the file, Import and review
@@ -62,15 +62,15 @@ What each task ends on, and how it gets there:
   as one with collections (Import, File…), so the steps are 8; the run has not
   been made again.
 - **3.** An environment made while none is in use is the one in use (a
-  first one already was; since D5-e any is), so the toolbar's select is
+  first one already was; now any is), so the toolbar's select is
   not part of the task: Environments, New environment, the name, Enter,
-  Add variable, the variable's name (the caret is already there, U-145),
+  Add variable, the variable's name (the caret is already there),
   a click into the value and the value: 8. Before, the script also opened
   the select and chose the environment already in use (2), and clicked
   into the name it was already in (1).
 - **4.** The same holds for the vault's environment: made while none is in
   use, it is the one in use, so the task no longer opens the toolbar's
-  select and chooses it (U-203): 18, was 20.
+  select and chooses it: 18, was 20.
 - **5a and 5b** end when the cause is named. A send from the page says "No
   response" and why the browser cannot say more, with **Send through the
   Local Bridge**. From the failure's record the task copies the command,
@@ -248,7 +248,7 @@ All linked, none copied. Per rival, each image's URL, page, date and description
 
 ## Wayfarer against the rivals
 
-Section 1 of the plan asks that Wayfarer be fastest or tied for fastest on
+The goal is that Wayfarer be fastest or tied for fastest on
 at least six of the eight tasks, in time and in actions. Time cannot be
 compared: no rival publishes seconds, and the rivals were not run. In
 actions, Wayfarer's measured count against the fewest any rival documents:
@@ -264,8 +264,8 @@ actions, Wayfarer's measured count against the fewest any rival documents:
 | 7 | Run a collection with a data file and read the report | 5 | 2 (Bruno's and Hoppscotch's CLIs); 5 in an app (Bruno, paid) | Tied in an app; behind a CLI by 3 |
 | 8 | Find a request sent last week | 4 | 2 and scrolling (Hoppscotch); 3 with a search (Postman, inferred) | Behind by 1 to 2 |
 
-Fastest or tied on five of eight (1, 2, 4, 5, 6; task 2 since D5-e), six
-if task 7 is compared app to app. Section 1's six is met only that way:
+Fastest or tied on five of eight (1, 2, 4, 5, 6; task 2 since the import change), six
+if task 7 is compared app to app. The goal of six is met only that way:
 tasks 3 and 8 are behind, and
-the comparison rests on documented counts, several of them inferred. D5-c
-records the gap or closes it (plan row 1.64).
+the comparison rests on documented counts, several of them inferred. The gap
+is recorded here until it is closed.

@@ -14,7 +14,7 @@ needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
 ([One-time setup](#one-time-setup-owner)), which the repository does not
 have yet, and has not run without them.
 
-**Build once, deploy what was tested** (P1.7). Every push to `main` runs CI
+**Build once, deploy what was tested.** Every push to `main` runs CI
 (`.github/workflows/ci.yml`), which builds `dist/deploy` once and uploads it
 as the `dist` artifact (kept 14 days). The browser tests are
 `.github/workflows/e2e.yml` (Actions → **E2E** → *Run workflow*, or
@@ -60,7 +60,7 @@ last:
 
 | Variable | Set to `true` when | Until then |
 |---|---|---|
-| `ZONE_HARDENED` | the zone changes in [`runbook.md`](runbook.md#cloudflare-zone) (P0.12) are done | deploy and synthetic skip the `no-edge-injection` test, with a warning; the zone still injects scripts, which the CSP blocks |
+| `ZONE_HARDENED` | the zone changes in [`runbook.md`](runbook.md#cloudflare-zone) are done | deploy and synthetic skip the `no-edge-injection` test, with a warning; the zone still injects scripts, which the CSP blocks |
 | `SYNTHETIC_ENABLED` | production runs a release CI built (by `deploy.yml`, or by hand from CI's `dist` artifact) | the 6-hourly schedule does nothing; manual runs still work |
 
 The manual procedure below is how production ships until those secrets are

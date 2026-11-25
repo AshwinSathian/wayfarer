@@ -39,7 +39,7 @@ const DOES: [string, string[]][] = [
     ["C-065", "C-066"],
   ],
   [
-    "AI is off until you add a provider; what is sent to a model is shown byte for byte before it is sent, and holds no vault secret",
+    "AI is off until you add a provider; what is sent to a model is shown byte for byte before it is sent, and never holds a vault secret's plaintext",
     ["C-069", "C-070", "C-071"],
   ],
   [

@@ -1,3 +1,4 @@
+import { sentPart } from "../strings";
 import { VARIABLE_SCOPES, type VariableScope } from "../variables/resolver";
 
 /** A vault secret placed into a request: the variable that held it, and where that variable is set. */
@@ -129,7 +130,7 @@ export function recordLines(record: ExchangeRecord, keeper: "history" | "run" = 
         ),
         ". Each is *** in what is kept.",
       ]
-    : ["No vault secret was filled."];
+    : [sentPart.noSecrets];
   const { masked } = record;
   const parts: RecordPart[][] = [
     ...(masked.address ? [["the address"]] : []),

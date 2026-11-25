@@ -1,10 +1,12 @@
 // The glossary (overhaul S1a): the words a user reads, the same everywhere. Reads what a person sees (templates,
-// pages of the site, docs, README, the strings file) and refuses a banned word or an internal ID. CHANGELOG.md and
+// pages of the site, docs, README, the strings file, and the prose strings of the app's and the core's .ts files:
+// errors, labels, toasts, confirms) and refuses a banned word or an internal ID. CHANGELOG.md and
 // docs/claims.md are history and the ledger: exempt. Run by `npm run test:scripts`.
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
+import ts from "typescript";
 import * as strings from "../packages/core/src/strings.ts";
 
 const root = new URL("../", import.meta.url).pathname;
@@ -16,6 +18,7 @@ const read = (dir, pattern) =>
 /** A text without its `<!-- -->` comments: cut where each opens and resumes after where it closes. */
 const noComments = (text) =>
   text
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .split("<!--")
     .map((part, i) => (i === 0 ? part : part.slice(part.indexOf("-->") + 3)))
     .join("");
@@ -38,6 +41,32 @@ const markdownText = (source) =>
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`[^`\n]*`/g, "")
     .replace(/\]\([^)]*\)/g, "]");
+
+/**
+ * What a person may read in a .ts file: each string literal of two words or more (an identifier, a key or a path has
+ * none), not the imports, the types or the comments. A literal that holds markup (an inline template) is read as a
+ * template is.
+ */
+function codeText(source, path) {
+  const out = [];
+  const visit = (node) => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node) || ts.isTypeNode(node)) return;
+    if (
+      ts.isStringLiteral(node) ||
+      ts.isNoSubstitutionTemplateLiteral(node) ||
+      ts.isTemplateHead(node) ||
+      ts.isTemplateMiddle(node) ||
+      ts.isTemplateTail(node)
+    ) {
+      const text = node.text;
+      if (/<\/?[a-z][\w-]*[\s>/]/i.test(text)) out.push(templateText(text));
+      else if (/\s/.test(text.trim())) out.push(text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true));
+  return out.join("\n");
+}
 
 /** The strings file's values, all of them. */
 function stringsText() {
@@ -69,13 +98,20 @@ function readable() {
   for (const f of read("src", /\.html$/)) add(`src/${f.slice(4)}`, templateText(readFileSync(join(root, f), "utf8")));
   for (const f of read("packages/site/src", /\.astro$/)) add(f, templateText(readFileSync(join(root, f), "utf8")));
   for (const f of read("docs", /\.md$/)) if (!EXEMPT.has(f)) add(f, markdownText(readFileSync(join(root, f), "utf8")));
+  // Not the specs, the dev catalogue or the test helpers: a person reads none of them.
+  for (const dir of ["src", "packages/core/src", "packages/site/src"])
+    for (const f of read(dir, /\.ts$/))
+      if (
+        !/\.(spec|test|worker|d)\.ts$|(^|\/)(catalogue|testing|test|vm-libs)\/|(^|\/)(strings|vm-bootstrap)\.ts$/.test(
+          f,
+        )
+      )
+        add(f, codeText(readFileSync(join(root, f), "utf8"), f));
   add("README.md", markdownText(readFileSync(join(root, "README.md"), "utf8")));
   add("packages/core/src/strings.ts", stringsText());
   return files;
 }
 
-// Only templates (.html, .astro), docs and the strings file are scanned: a user string written in a .ts file is not (S5d
-// extends this when it sweeps the copy).
 // A word is matched whole and without regard to case. `where` says the files that may still use it.
 const BANNED = [
   { name: "Verdict", re: /\bverdicts?\b/i },
@@ -85,37 +121,22 @@ const BANNED = [
   { name: "Retry", re: /\bretr(?:y|ies|ied|ying)\b/i },
   { name: "Wire", re: /\bwire\b/i },
   {
+    // Where the file format or the API Wayfarer reads, writes or emulates is the subject: the importers and exporters,
+    // the scripts' `pm` and the docs that name them. Not Settings, not the composer.
     name: "Postman",
     re: /\bpostman\b/i,
     where:
-      /^(docs\/(import|export|postman-compatibility|getting-started)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/compare|components\/CompareClose)|src\/app\/components\/(import[\w-]*\/|collections\/export-dialog\.html|environments\/environment-export-dialog\.html))/,
+      /^(docs\/(import|export|postman-compatibility|getting-started|scripts|auth|cli|collections-schema|graphql|trust-center)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/(compare|index\.astro|llms\.txt\.ts)|lib\/rivals\.ts|components\/CompareClose)|packages\/core\/src\/(import|export)\/|packages\/core\/src\/(ai\/model-call|send\/exchange)\.ts|src\/app\/components\/(import[\w-]*\/|collections\/export-dialog\.(html|ts)|environments\/environment-export-dialog\.html))/,
   },
   { name: "Create vault", re: /\bcreate vault\b/i },
   { name: "No vault", re: /\bno vault\b(?! yet\.)/i },
   { name: "Manage secrets", re: /\bmanage secrets\b/i },
   { name: "journey, station", re: /\b(?:journey|station)s?\b/i },
-  { name: "internal ID", re: /\b(?:U-\d{2,3}|C-\d{3}|P\d\.\d+|Task D|plan row|design plan)\b/ },
+  {
+    name: "internal ID",
+    re: /\b(?:U-\d{2,3}|C-\d{3}|[PTW]\d\.\d+|D\d-[a-z]|Task D|plan row|design plan|PLAN-\w+)\b/,
+  },
 ];
-
-// Offenders today, by file. Each is a word `S5d` (the copy sweep) takes out, and a line leaves this list when it does:
-// the test fails on an entry that no longer offends, so the list only shrinks. Nothing new goes in.
-const ALLOWED_UNTIL_S5D = {
-  "src/app/components/exchange-record/exchange-record.html": ["Wire"],
-  "packages/site/src/pages/index.astro": ["Postman"],
-  "docs/auth.md": ["Postman"],
-  "docs/benchmark.md": ["internal ID"],
-  "docs/cli.md": ["Postman"],
-  "docs/collections-schema.md": ["Postman"],
-  "docs/deployment.md": ["internal ID"],
-  "docs/graphql.md": ["Postman"],
-  "docs/runbook.md": ["Retry", "internal ID"],
-  "docs/scripts.md": ["Postman"],
-  "docs/secrets.md": ["Wire"],
-  "docs/threat-model.md": ["internal ID"],
-  "docs/trust-center.md": ["Postman", "No vault"],
-  "docs/variables.md": ["Postman"],
-  "README.md": ["No vault"],
-};
 
 function offences() {
   const found = {};
@@ -127,16 +148,10 @@ function offences() {
   return found;
 }
 
-test("no page, template or doc uses a banned word or an internal ID, but the ones S5d still has to take out", () => {
-  const found = offences();
+test("no page, template, doc or message of the app uses a banned word or an internal ID", () => {
   const fresh = [];
-  for (const [path, names] of Object.entries(found))
-    for (const name of names) if (!ALLOWED_UNTIL_S5D[path]?.includes(name)) fresh.push(`${path}: ${name}`);
+  for (const [path, names] of Object.entries(offences())) for (const name of names) fresh.push(`${path}: ${name}`);
   assert.deepEqual(fresh, [], "a banned word; use the glossary's word (packages/core/src/strings.ts)");
-  const stale = [];
-  for (const [path, names] of Object.entries(ALLOWED_UNTIL_S5D))
-    for (const name of names) if (!found[path]?.includes(name)) stale.push(`${path}: ${name}`);
-  assert.deepEqual(stale, [], "no longer offends: take it off the S5d list");
 });
 
 test("the strings file is itself clean, and names no Postman, wire or direct", () => {

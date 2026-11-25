@@ -57,7 +57,7 @@ describe("the record's sentences", () => {
   it("say where it went, that no secret was filled, nothing masked, and what history kept", () => {
     expect(texts(record())).toEqual({
       route: "Sent from this page to api.example.com.",
-      secrets: "No vault secret was filled.",
+      secrets: "Nothing was filled from the vault.",
       masked: "Nothing was masked.",
       kept: "History kept the request and the response.",
     });

@@ -72,7 +72,7 @@ A protected variable holds `{{$secret.<id>}}`. When a request that uses it is se
 2. **Vault locked:** the unlock dialog opens. With the passphrase, the request is sent. Closing the dialog sends nothing.
 3. **The vault does not have that secret** (it was deleted, or the environment came from another browser without its vault file): the reference is all there is, and the request is refused. A `{{$secret.…}}` reference is never sent, also not by "Send anyway".
 
-The plaintext then exists in three places only: the vault (encrypted), this tab's memory, and the request on the wire. Everything that is stored, exported or copied goes through the redactor first:
+The plaintext then exists in three places only: the vault (encrypted), this tab's memory, and the request on the network. Everything that is stored, exported or copied goes through the redactor first:
 
 | Where | What happens |
 |---|---|

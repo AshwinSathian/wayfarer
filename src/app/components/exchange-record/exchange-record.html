@@ -1,6 +1,6 @@
 <ng-template #sentence let-line>
   <li class="record-{{ line.field }}">
-    @for (part of line.parts; track $index) { @if (wire(part); as value) {
+    @for (part of line.parts; track $index) { @if (sentValue(part); as value) {
     <span class="font-mono text-label-primary">{{ value }}</span>
     } @else {
     <span>{{ words(part) }}</span>

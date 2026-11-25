@@ -44,7 +44,7 @@ test("a refused connection: No response, the failure panel's words, the browser'
   await expect(page.locator("app-response-viewer pre")).toHaveCount(0);
   // U-175: said once, and no tab of a response that never came: what was sent is there to read (S4b2), and nothing else.
   await expect(page.locator(".response-failure")).toHaveCount(1);
-  await expect(record).not.toContainText("No vault secret was filled.");
+  await expect(record).not.toContainText("Nothing was filled from the vault.");
   await expect(record).not.toContainText("Nothing was masked.");
   await expect(page.locator("app-response-viewer").getByRole("tab")).toHaveText(["Sent"]);
 });

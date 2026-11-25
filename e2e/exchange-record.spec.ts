@@ -44,7 +44,7 @@ test("direct: the first line names the route and the host, and the record stays 
   await expect(page.getByRole("region", { name: "Exchange record" })).toHaveCount(0);
   expect(await openRecord(page)).toEqual({
     route: `Sent from this page to ${HOST}.`,
-    secrets: "No vault secret was filled.",
+    secrets: "Nothing was filled from the vault.",
     masked: "Nothing was masked.",
     kept: "History kept the request and the response.",
   });
@@ -98,7 +98,7 @@ test("with a masked header: a credential typed by hand is listed as masked", asy
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   const record = await openRecord(page);
-  expect(record.secrets).toBe("No vault secret was filled.");
+  expect(record.secrets).toBe("Nothing was filled from the vault.");
   expect(record.masked).toBe("Masked with *** in what is kept: Authorization and the response body.");
 });
 

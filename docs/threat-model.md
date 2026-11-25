@@ -11,10 +11,10 @@ Threats are sorted by STRIDE: **S**poofing, **T**ampering, **R**epudiation,
 privilege. Repudiation does not apply to a single-user app with no server,
 so it has no rows.
 
-Each mitigation names the claims that prove it. A claim is a row of
-[`claims.md`](claims.md) with a test that runs in CI, in three browsers where
-the claim is about the page. `npm run check:claims` fails when a row here
-links no claim, or a claim that is not in the ledger.
+Each mitigation is held by a claim: a row of [`claims.md`](claims.md) with a
+test that runs in CI, in three browsers where the claim is about the page.
+Each row carries its claim in a comment, and `npm run check:claims` fails
+when a row names none, or one that is not in the ledger.
 
 What the browser itself enforces (the same-origin policy, CORS, the sandbox
 of a frame) is taken as given. So is the operating system under the Local
@@ -25,12 +25,12 @@ Bridge: anything that can read your home folder can read the bridge's token.
 The page talks to the host that serves it and to the hosts you send requests
 to. Nothing else.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Page and the internet | I | The app reports what you do, or sends your data to a third party. | No account, no analytics, no telemetry. Apart from loading the app, the only traffic is the request you send, to the host you chose. | C-001 |
-| Page and target server | I | A vault secret is sent somewhere you did not mean, or its `{{$secret.*}}` placeholder leaks into a request. | A placeholder never reaches the network, in any encoding. When a pre-request script moved the request to another host, the app asks before it reads the vault. | C-007, C-053 |
-| Page and target server | T, E | A response carries script that runs in the app. | A response is shown, never run. HTML goes to a sandboxed frame with no script, no network and no way out of the frame. | C-048, C-009 |
-| Page and target server | S | A service worker answers a failed request in the server's place, so you see a response the server never sent. | The service worker never handles a request to another origin, and a network failure shows the browser's own error. | C-010, C-015 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Page and the internet | I | The app reports what you do, or sends your data to a third party. | No account, no analytics, no telemetry. Apart from loading the app, the only traffic is the request you send, to the host you chose. <!-- claim:C-001 --> |
+| Page and target server | I | A vault secret is sent somewhere you did not mean, or its `{{$secret.*}}` placeholder leaks into a request. | A placeholder never reaches the network, in any encoding. When a pre-request script moved the request to another host, the app asks before it reads the vault. <!-- claim:C-007 --> <!-- claim:C-053 --> |
+| Page and target server | T, E | A response carries script that runs in the app. | A response is shown, never run. HTML goes to a sandboxed frame with no script, no network and no way out of the frame. <!-- claim:C-048 --> <!-- claim:C-009 --> |
+| Page and target server | S | A service worker answers a failed request in the server's place, so you see a response the server never sent. | The service worker never handles a request to another origin, and a network failure shows the browser's own error. <!-- claim:C-010 --> <!-- claim:C-015 --> |
 
 ## The page and its scripts
 
@@ -38,80 +38,80 @@ A user's pre-request and post-response scripts run in QuickJS, compiled to
 WebAssembly, inside a worker. The page and the worker talk only through
 messages.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Page and script worker | E | A script escapes the sandbox and reaches the network, the page, the worker's scope or the browser's storage. | The VM's global is an allow-list. `require` gives five libraries that ship with the app. The only request a script can make is `pm.sendRequest`, which the page sends on the same road as yours. | C-052, C-006 |
-| Page and script worker | T | A script from someone else's collection runs on import and changes your requests or variables. | A collection from a file or a backup is untrusted. Its scripts run only once you have read them and said you trust them, and a script that changes afterwards waits for another review. The CLI runs a file's scripts only with `--allow-scripts`. | C-051, C-066 |
-| Page and script worker | I | A script reads a vault secret's plaintext and sends it away. | A post-response script sees the request with every vault secret masked. A pre-request script that sends the request to another host makes the app ask before the vault is read. | C-053, C-007 |
-| Page and script worker | E | Text a script or a response wrote is evaluated as code in the page. | The Content-Security-Policy forbids `eval` and inline script, and Trusted Types guard the DOM's script sinks. | C-011, C-016 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Page and script worker | E | A script escapes the sandbox and reaches the network, the page, the worker's scope or the browser's storage. | The VM's global is an allow-list. `require` gives five libraries that ship with the app. The only request a script can make is `pm.sendRequest`, which the page sends on the same road as yours. <!-- claim:C-052 --> <!-- claim:C-006 --> |
+| Page and script worker | T | A script from someone else's collection runs on import and changes your requests or variables. | A collection from a file or a backup is untrusted. Its scripts run only once you have read them and said you trust them, and a script that changes afterwards waits for another review. The CLI runs a file's scripts only with `--allow-scripts`. <!-- claim:C-051 --> <!-- claim:C-066 --> |
+| Page and script worker | I | A script reads a vault secret's plaintext and sends it away. | A post-response script sees the request with every vault secret masked. A pre-request script that sends the request to another host makes the app ask before the vault is read. <!-- claim:C-053 --> <!-- claim:C-007 --> |
+| Page and script worker | E | Text a script or a response wrote is evaluated as code in the page. | The Content-Security-Policy forbids `eval` and inline script, and Trusted Types guard the DOM's script sinks. <!-- claim:C-011 --> <!-- claim:C-016 --> |
 
 ## The page and its files
 
 Imported files are someone else's text. They are parsed in a worker and
 checked field by field before anything is stored.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Imported file and page | T | A file holds values the app never writes (a method that is not a token, a header that is not a row) and corrupts the stores. | Every field is checked against what the app itself writes. The report shows what will be added before anything is stored, and nothing is stored if you cancel. | C-054, C-026 |
-| Imported file and page | I | An OpenAPI `$ref` points at a URL, and importing it fetches that URL. | A reference is followed only inside the file. The importer has no code that could fetch one. | C-060 |
-| Imported file and page | D | A small YAML file expands into a huge one through aliases. | A YAML file that grows through aliases is refused. | C-059 |
-| Imported file and page | T, E | A collection file brings scripts that run at once. | Imported scripts are unapproved until reviewed. | C-051, C-058 |
-| Exported file and others | I | An export or a HAR carries your credentials to whoever receives it. | Exports, cURL and code mask credentials and vault secrets unless you ask for them in that export. A HAR is built from masked exchanges. | C-014, C-035, C-055, C-020 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Imported file and page | T | A file holds values the app never writes (a method that is not a token, a header that is not a row) and corrupts the stores. | Every field is checked against what the app itself writes. The report shows what will be added before anything is stored, and nothing is stored if you cancel. <!-- claim:C-054 --> <!-- claim:C-026 --> |
+| Imported file and page | I | An OpenAPI `$ref` points at a URL, and importing it fetches that URL. | A reference is followed only inside the file. The importer has no code that could fetch one. <!-- claim:C-060 --> |
+| Imported file and page | D | A small YAML file expands into a huge one through aliases. | A YAML file that grows through aliases is refused. <!-- claim:C-059 --> |
+| Imported file and page | T, E | A collection file brings scripts that run at once. | Imported scripts are unapproved until reviewed. <!-- claim:C-051 --> <!-- claim:C-058 --> |
+| Exported file and others | I | An export or a HAR carries your credentials to whoever receives it. | Exports, cURL and code mask credentials and vault secrets unless you ask for them in that export. A HAR is built from masked exchanges. <!-- claim:C-014 --> <!-- claim:C-035 --> <!-- claim:C-055 --> <!-- claim:C-020 --> |
 
 ## The page and a shared link
 
 A collection shared as a link (`docs/sharing.md`) is the collection file, compressed and encrypted under a key of its
 own, after the `#` of the app's address. The code is that key. What a link holds is untrusted until you choose Import.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Shared link and the internet | I | The link's content or its code reaches a server: Wayfarer's host, or a chat app's link preview. | Content and code are after `#`, which a browser never sends, and opening a link asks for the app's own files and nothing else. A preview fetcher asks for the address without its fragment. The chat service itself keeps the message's text, link and all: that is why the code is apart from the link, and "Put the code in the link" is off. | C-084 |
-| Shared link and page | I | The link is read off the screen or the address bar after it was opened. | The app takes the fragment off the address bar before it reads anything else. The browser's own history list still holds the address opened (see below). | C-085 |
-| Shared link and page | S, T | A forged or changed link brings requests that send your data elsewhere, or scripts that run. | A changed byte fails AES-GCM's check and the link is refused. T1 has no sender identity: anyone with the app can make a link that looks like a teammate's. What a link holds goes through the import report, which names every host its requests go to, and nothing is stored before Import; its scripts are held until you review them. | C-086, C-090, C-051 |
-| Shared link and others | I | A link or a shared file carries your credentials or a vault secret to whoever receives it. | A vault secret is never written into a shared file or link, and a credential typed into auth is `***` unless you tick Include credentials for that one file or link. | C-087, C-088, C-089 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Shared link and the internet | I | The link's content or its code reaches a server: Wayfarer's host, or a chat app's link preview. | Content and code are after `#`, which a browser never sends, and opening a link asks for the app's own files and nothing else. A preview fetcher asks for the address without its fragment. The chat service itself keeps the message's text, link and all: that is why the code is apart from the link, and "Put the code in the link" is off. <!-- claim:C-084 --> |
+| Shared link and page | I | The link is read off the screen or the address bar after it was opened. | The app takes the fragment off the address bar before it reads anything else. The browser's own history list still holds the address opened (see below). <!-- claim:C-085 --> |
+| Shared link and page | S, T | A forged or changed link brings requests that send your data elsewhere, or scripts that run. | A changed byte fails AES-GCM's check and the link is refused. T1 has no sender identity: anyone with the app can make a link that looks like a teammate's. What a link holds goes through the import report, which names every host its requests go to, and nothing is stored before Import; its scripts are held until you review them. <!-- claim:C-086 --> <!-- claim:C-090 --> <!-- claim:C-051 --> |
+| Shared link and others | I | A link or a shared file carries your credentials or a vault secret to whoever receives it. | A vault secret is never written into a shared file or link, and a credential typed into auth is `***` unless you tick Include credentials for that one file or link. <!-- claim:C-087 --> <!-- claim:C-088 --> <!-- claim:C-089 --> |
 
 ## The page and its storage
 
 Everything is stored in the browser's IndexedDB on your device.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Page and IndexedDB | I | Someone with your browser profile reads your secrets. | Vault values are stored only as ciphertext: AES-GCM-256 under a data key wrapped by a key derived from your passphrase (PBKDF2-SHA-256, 600,000 iterations). The key is in memory only, and the vault locks on reload and when idle. | C-003, C-004, C-005 |
-| Page and IndexedDB | I | History keeps the credentials a request carried. | History masks credentials and vault secrets before anything is written. | C-008 |
-| Page and IndexedDB | D | Data you want gone stays behind. | Reset all data deletes the database, and another tab holding it open is told to reload. | C-013 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Page and IndexedDB | I | Someone with your browser profile reads your secrets. | Vault values are stored only as ciphertext: AES-GCM-256 under a data key wrapped by a key derived from your passphrase (PBKDF2-SHA-256, 600,000 iterations). The key is in memory only, and the vault locks on reload and when idle. <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 --> |
+| Page and IndexedDB | I | History keeps the credentials a request carried. | History masks credentials and vault secrets before anything is written. <!-- claim:C-008 --> |
+| Page and IndexedDB | D | Data you want gone stays behind. | Reset all data deletes the database, and another tab holding it open is told to reload. <!-- claim:C-013 --> |
 
 ## The page and the Local Bridge
 
 The Local Bridge is a process on your machine. It sends a request for the
 page when the browser cannot, and answers on `127.0.0.1` only.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Page and Local Bridge | S, E | Another website you visit asks the bridge to send requests from your machine: to your intranet, or to `localhost` services. | The bridge relays only for an allowed origin that presents its token. | C-041 |
-| Page and Local Bridge | I | A redirect takes a request that holds a vault secret to another host. | Through the bridge, such a request is not followed to another host, another port, or the same host without TLS. | C-063 |
-| Page and Local Bridge | T | A request the server already received is sent a second time through the bridge. | Auto never sends a request again once its response began. It sends one through the bridge at once only when it needed a preflight or is a GET, HEAD or OPTIONS, and asks you first otherwise. A server that passes the preflight and answers without CORS still gets it twice. | C-064 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Page and Local Bridge | S, E | Another website you visit asks the bridge to send requests from your machine: to your intranet, or to `localhost` services. | The bridge relays only for an allowed origin that presents its token. <!-- claim:C-041 --> |
+| Page and Local Bridge | I | A redirect takes a request that holds a vault secret to another host. | Through the bridge, such a request is not followed to another host, another port, or the same host without TLS. <!-- claim:C-063 --> |
+| Page and Local Bridge | T | A request the server already received is sent a second time through the bridge. | Auto never sends a request again once its response began. It sends one through the bridge at once only when it needed a preflight or is a GET, HEAD or OPTIONS, and asks you first otherwise. A server that passes the preflight and answers without CORS still gets it twice. <!-- claim:C-064 --> |
 
 ## The page and the sign-in window
 
 OAuth 2.0's Authorization Code grant opens the identity provider in another
 window, which answers on `/app/oauth/callback`.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Callback page and app | S | Another page sends the app a sign-in answer, so that you use a token of the attacker's. | The app takes an answer only when it carries the `state` made for that sign-in, and uses PKCE for the code. | C-062 |
-| Callback page and app | E | The callback page runs the app's code, or the app's code runs with the callback's query. | The callback page is a page of its own, with its own script and style under the same Content-Security-Policy. | C-011, C-062 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Callback page and app | S | Another page sends the app a sign-in answer, so that you use a token of the attacker's. | The app takes an answer only when it carries the `state` made for that sign-in, and uses PKCE for the code. <!-- claim:C-062 --> |
+| Callback page and app | E | The callback page runs the app's code, or the app's code runs with the callback's query. | The callback page is a page of its own, with its own script and style under the same Content-Security-Policy. <!-- claim:C-011 --> <!-- claim:C-062 --> |
 
 ## The page and a model provider
 
 AI is off until you add a provider in Settings › AI. Then a model call
 goes to the address you gave, with the key kept in the vault.
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| Page and model provider | I | A prompt carries a vault secret or a credential to the provider. | A prompt quotes the exchange as history keeps it, masked; a prompt that names a secret's reference is not sent. | C-070, C-077 |
-| Page and model provider | I | Something is sent to a model without your knowing. | Nothing is sent until Send to model, and what goes is shown first, byte for byte; a response body goes only when ticked for that call. | C-071, C-072, C-080 |
-| Page and model provider | T | A model's answer changes your request or runs as a script. | A proposal changes nothing until accepted, Undo puts it back, and tests a model wrote run only where the request's scripts may run. | C-073, C-079 |
-| Page and model provider | I | The provider's key is stored where other code reads it. | The key is kept only as a vault secret, and removing the provider deletes it. | C-074, C-075 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| Page and model provider | I | A prompt carries a vault secret or a credential to the provider. | A prompt quotes the exchange as history keeps it, masked; a prompt that names a secret's reference is not sent. <!-- claim:C-070 --> <!-- claim:C-077 --> |
+| Page and model provider | I | Something is sent to a model without your knowing. | Nothing is sent until Send to model, and what goes is shown first, byte for byte; a response body goes only when ticked for that call. <!-- claim:C-071 --> <!-- claim:C-072 --> <!-- claim:C-080 --> |
+| Page and model provider | T | A model's answer changes your request or runs as a script. | A proposal changes nothing until accepted, Undo puts it back, and tests a model wrote run only where the request's scripts may run. <!-- claim:C-073 --> <!-- claim:C-079 --> |
+| Page and model provider | I | The provider's key is stored where other code reads it. | The key is kept only as a vault secret, and removing the provider deletes it. <!-- claim:C-074 --> <!-- claim:C-075 --> |
 
 The provider itself is a third party you chose: what it does with a prompt
 is out of the app's hands, as a target server's is.
@@ -121,16 +121,16 @@ is out of the app's hands, as a target server's is.
 The app is static files on Cloudflare's network, or on any host you choose
 ([Self-hosting](self-hosting.md)).
 
-| Boundary | STRIDE | Threat | Mitigation | Claims |
-|---|---|---|---|---|
-| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only. A monitor loads the production page every 6 hours and fails on any script that runs and is not the app's. The hosting zone injects a bot-detection script today; the policy blocks it, and the stricter test (nothing blocked at all) is skipped on production until the zone stops. | C-012, C-011, C-016 |
-| Service worker and page | T | The service worker serves an old or a foreign file as the app. | The service worker caches only the app's own files, and a new version takes over only when the page asks. | C-015 |
+| Boundary | STRIDE | Threat | Mitigation |
+|---|---|---|---|
+| CDN and page | T | The host serves a script the app did not ship. | The Content-Security-Policy allows the app's own origin only. A monitor loads the production page every 6 hours and fails on any script that runs and is not the app's. The hosting zone injects a bot-detection script today; the policy blocks it, and the stricter test (nothing blocked at all) is skipped on production until the zone stops. <!-- claim:C-012 --> <!-- claim:C-011 --> <!-- claim:C-016 --> |
+| Service worker and page | T | The service worker serves an old or a foreign file as the app. | The service worker caches only the app's own files, and a new version takes over only when the page asks. <!-- claim:C-015 --> |
 
 ## What this model does not cover
 
 - **A compromised browser or operating system.** An extension with access
   to the page, or malware that reads memory, sees what the page sees.
-- **A hostile host for the hosted app.** The monitor (C-012) finds a
+- **A hostile host for the hosted app.** The monitor finds a
   script that is not the app's within 6 hours; it does not prevent one,
   and it does not see a changed file of the app's own. If that
   matters to you, host the folder yourself.

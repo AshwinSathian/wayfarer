@@ -3,24 +3,23 @@
 // reader's sight (PLAN-design row 1.74): e2e/site.spec.ts holds every ID named here to the ledger, and the claims page
 // is one link, the footer's. A fact about another product names its source and the date it was read.
 //
-// The page argues in this order: what it is (the hero, with a picture of the app); the proof a reader can check from
-// here (what this very page fetched, read from the browser's own record); bringing a Postman collection; a day with the
-// app, recorded; keys and the browser's limits; the figures; what the others ask first; how a claim is tested; the
+// The page argues in this order: what it is (the hero: the route strip drawn as the app draws it, and the app); the proof a reader can check from
+// here (what this very page fetched, read from the browser's own record); what a send leaves behind (Sent, the
+// comparison, a variable's source); bringing a collection from another client; a day with the app, recorded; keys and the browser's limits; the figures; what the others ask first; how a claim is tested; the
 // rest of the app; the questions; the call. One idea a section, each with its own composition, in one reading column.
 import Base from "../layouts/Base.astro";
 import Claims from "../components/Claims.astro";
 import Shot from "../components/Shot.astro";
+import RouteDrawing from "../components/RouteDrawing.astro";
 import Clip from "../components/Clip.astro";
 import AskFirst from "../components/AskFirst.astro";
 import { claims } from "../lib/content";
 import { homeGraph } from "../lib/structured-data";
 import { version } from "../../../../package.json";
 
-const TITLE = "Wayfarer: the API client that opens in a tab";
+const TITLE = "Wayfarer: see where each request goes";
 const DESCRIPTION =
-  "Import Postman collections, run their scripts, keep API keys encrypted and share a collection by encrypted link, in your browser. No install, no account, no server of ours between you and your API. Free and MIT-licensed.";
-
-const POSTMAN_PLANS = "https://learning.postman.com/docs/billing/about-plans";
+  "An API client in your browser that shows where each request goes, which secrets it carries and what History kept. Import Postman collections, run their scripts and share a collection by encrypted link. No install, no account, no server of ours between you and your API. Free and MIT-licensed.";
 const ledger = claims();
 
 /** The rows the trust section quotes, as the ledger words them, with the tests that hold them. */
@@ -28,14 +27,14 @@ const QUOTED = ["C-084", "C-003", "C-001"]
   .map((id) => ledger.find((row) => row.id === id))
   .filter((row) => row !== undefined);
 
-/** Bringing a Postman collection: what you give, and what comes back. */
+/** Bringing a collection from another client: what you give, and what comes back. */
 const STEPS = [
   {
     title: "First, import it.",
     shot: "import",
     width: 960,
     height: 720,
-    alt: "Wayfarer's import report for a Postman collection: what it adds, its scripts held, and the one host it calls",
+    alt: "Wayfarer's import report for a collection file: what it adds, its scripts held, and the one host it calls",
     text: "You see what it adds and every host it calls before anything is stored.",
     ids: ["C-054", "C-090"],
   },
@@ -56,6 +55,43 @@ const STEPS = [
     alt: "Wayfarer's run of the collection: six requests, each with its status, time and passing test",
     text: "The same requests, in the same order, to the same results, with wayfarer-cli in a pipeline.",
     ids: ["C-065"],
+  },
+];
+
+/** What a send leaves behind, each with the claim that holds it. */
+const AFTER = [
+  {
+    title: "Sent, as it left",
+    shot: "sent",
+    width: 1088,
+    height: 860,
+    class: "",
+    min: "max-sm:min-w-[34rem]",
+    alt: "The Sent part of a response: the method and address, the headers with the Authorization value shown as three stars, and the body",
+    text: "The method, address, headers and body the app built. A secret is masked wherever it is kept.",
+    ids: ["C-007", "C-008"],
+  },
+  {
+    title: "Where a value came from",
+    shot: "popover",
+    width: 1000,
+    height: 420,
+    class: "",
+    min: "max-sm:min-w-[31rem]",
+    alt: "A variable's popover over the composer: its name, the collection it is set in, its value, and a button to show it where it is set",
+    text: "Click a variable: its holder, its value, and where to change it. A secret shows as stars and the vault is not read.",
+    ids: ["C-120"],
+  },
+  {
+    title: "Two entries, compared",
+    shot: "diff",
+    width: 1984,
+    height: 1750,
+    class: "lg:col-span-2",
+    min: "max-sm:min-w-[62rem]",
+    alt: "History with two entries ticked and compared: status, route and request side by side, then the body and headers that changed",
+    text: "Status, route, request, headers and body, a JSON body by path with what changed first. It says when a body was not kept.",
+    ids: ["C-119"],
   },
 ];
 
@@ -94,8 +130,8 @@ const DAY = [
 /** What the rest of the page did not show, each with its claims and its page. */
 const MORE = [
   ["Auth", "Bearer, Basic, API key, OAuth 2.0 and AWS Signature, inherited from a folder.", ["C-019", "C-061", "C-062"], "/docs/auth/"],
-  ["Import", "Postman, Insomnia, OpenAPI, HAR and cURL, with a report before anything is stored.", ["C-058", "C-059", "C-060"], "/docs/import/"],
-  ["Export", "cURL, fetch, Python, HTTPie, HAR and Postman v2.1, with secrets masked.", ["C-020", "C-055", "C-035", "C-057"], "/docs/export/"],
+  ["Import", "Collections from other clients, OpenAPI, HAR and cURL, with a report before anything is stored.", ["C-058", "C-059", "C-060"], "/docs/import/"],
+  ["Export", "cURL, fetch, Python, HTTPie, HAR and a collection file other clients read, with secrets masked.", ["C-020", "C-055", "C-035", "C-057"], "/docs/export/"],
   ["GraphQL, WebSocket, event streams", "A schema from the server, sockets logged message by message, events as they arrive.", ["C-093", "C-091", "C-092"], "/docs/graphql/"],
   ["AI that asks before it sends", "Off until you add a provider, and every byte shown before it goes.", ["C-069", "C-071"], "/docs/ai/"],
   ["Offline and installable", "Loads offline after one visit, installs as an app, works by keyboard alone.", ["C-015", "C-036", "C-067"], "/docs/getting-started/"],
@@ -124,7 +160,7 @@ const QUESTIONS: { q: string; a: string; ids: string[] }[] = [
     ids: ["C-084", "C-087", "C-086", "C-090"],
   },
   {
-    q: "A request works in Postman and fails here. Why?",
+    q: "A request works in a desktop client and fails here. Why?",
     a: 'A page in a browser has rules a desktop app does not: CORS, headers it may not set, no relaxed TLS. The composer says before you send what the browser will do. For what a browser cannot do, the <a href="/docs/browser-limits/">Local Bridge</a> sends the request from your machine.',
     ids: ["C-049", "C-041", "C-064"],
   },
@@ -171,40 +207,50 @@ const graph = {
 
 <Base path="/" title={TITLE} description={DESCRIPTION} graph={graph}>
   <main id="main">
-    <!-- What it is, and the one thing to do. -->
-    <section aria-labelledby="hero" class="frame pt-16 sm:pt-28">
-      <div class="col">
-        <h1 id="hero" class="type-site-title-1 text-ink sm:type-site-display lg:type-site-hero lg:max-w-[12em]">
-          The API client that opens in a tab
-        </h1>
-        <p class="mt-8 type-site-lede text-ink">
-          Import a Postman collection, run its scripts and share it as an encrypted link. No install, no account, and
-          no server of ours between you and your API. <Claims ids={["C-058", "C-040", "C-084", "C-001"]} />
-        </p>
-        <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
-          <a href="/app/" class="btn type-site-body px-6 py-3">Open Wayfarer</a>
-          <a href="/compare/moving-from-postman/" class="link type-site-body text-ink">Moving from Postman</a>
+    <!-- What it is, and the one thing to do: the route strip, drawn as the app draws it, beside the sentence. -->
+    <section aria-labelledby="hero" class="frame pt-12 sm:pt-20">
+      <div class="col-wide grid grid-cols-1 items-end gap-10 lg:max-w-[76rem] lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-16">
+        <div>
+          <h1 id="hero" class="type-site-title-1 text-ink sm:type-site-display lg:type-site-hero">
+            See where each request goes
+          </h1>
+          <p class="mt-6 type-site-lede text-ink">
+            Wayfarer sends your request from this tab to the host you typed, and shows the route, the secrets it carries
+            and what History kept. No install, no account, and no server of ours between you and your API.
+            <Claims ids={["C-001", "C-064", "C-008"]} />
+          </p>
+          <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <a href="/app/" class="btn type-site-body px-6 py-3">Open Wayfarer</a>
+            <a href="/compare/moving-from-postman/" class="link type-site-body text-ink">Moving a collection over</a>
+          </div>
+          <p class="mt-5 type-site-small text-ink-muted">Free and MIT-licensed. Version {version}.</p>
         </div>
-        <p class="mt-6 type-site-small text-ink-muted">Free and MIT-licensed. Version {version}.</p>
+        <figure class="plate p-5 sm:p-8" data-ui>
+          <RouteDrawing secret="API key" method="POST" host="api.example.com" />
+          <figcaption class="mt-6 type-site-small text-ink-muted max-sm:hidden">
+            The strip under the address bar, before a send. After it: sent from this page, and the secret masked in
+            history and exports. <Claims ids={["C-007", "C-008"]} />
+          </figcaption>
+        </figure>
       </div>
-      <figure class="col-wide mt-16 sm:mt-24">
+      <figure class="col-wide mt-12 sm:mt-16">
         <!-- On a phone the picture is drawn twice its width and shows the request and its answer at a size that reads;
              from 768 px it is the whole app. -->
         <div class="plate aspect-[4/5] md:aspect-auto" data-ui>
           <Shot
             hero
-            class="h-full object-cover object-[80%_40%] md:h-auto md:object-fill"
+            class="h-full object-cover object-[80%_30%] md:h-auto md:object-fill"
             name="hero"
             width={1440}
             height={900}
             sizes="(min-width: 90rem) 78rem, (min-width: 48rem) 100vw, 230vw"
-            alt="Wayfarer with a Postman collection imported: a POST request built from its variables, and the JSON answer, 201 Created"
+            alt="Wayfarer after a send: a POST request built from its variables, the route strip under the address bar saying it was sent from this page, and the JSON answer, 201 Created"
           />
         </div>
         <figcaption class="mt-5 max-w-[36rem] type-site-small text-ink-muted">
-          A Postman collection, imported with its scripts. <Claims ids={["C-058"]} /> Each variable says where its value came
-          from. <Claims ids={["C-025"]} /> The answer came straight from the API, sent from this tab with no server of ours
-          in between. <Claims ids={["C-001", "C-064"]} />
+          A collection imported with its scripts, one request sent. Each variable says where its value came from.
+          <Claims ids={["C-025", "C-058"]} /> The answer came straight from the API, sent from this tab with no server of
+          ours in between. <Claims ids={["C-001", "C-064"]} />
         </figcaption>
       </figure>
     </section>
@@ -252,13 +298,48 @@ const graph = {
       </div>
     </section>
 
-    <!-- Bringing a Postman collection: what you give and what comes back, in one column; the last breaks out wide. -->
-    <section aria-labelledby="postman" class="section frame">
+    <!-- What a send leaves behind: the Sent part, two entries compared, a variable's source. -->
+    <section aria-labelledby="left-behind" class="section frame">
       <div class="col">
-        <h2 id="postman" class="rise type-site-title-1 text-ink">Bring your Postman collection</h2>
+        <h2 id="left-behind" class="rise type-site-title-1 text-ink">What a send leaves behind</h2>
+        <p class="rise mt-6 text-ink">
+          Every send keeps what the app built and what came back, with secrets masked. Open an entry beside the list as it
+          was kept, or compare two. <Claims ids={["C-008", "C-118", "C-119"]} />
+        </p>
+      </div>
+      <div class="col-wide mt-14 grid grid-cols-1 gap-16 lg:max-w-[76rem] lg:grid-cols-2 lg:gap-12">
+        {
+          AFTER.map((item) => (
+            <div class={item.class}>
+              <h3 class="rise type-site-title-3 text-ink">{item.title}</h3>
+              <p class="rise mt-2 mb-6 text-ink">
+                {item.text} <Claims ids={item.ids} />
+              </p>
+              <!-- On a phone the picture keeps its size, so that its words read, and the plate scrolls sideways. -->
+              <div class="rise plate p-3 sm:p-5" data-ui>
+                <div class="overflow-x-auto" tabindex="0" role="region" aria-label={item.title}>
+                  <Shot
+                    class={`h-auto ${item.min}`}
+                    name={item.shot}
+                    width={item.width}
+                    height={item.height}
+                    sizes="(min-width: 64rem) 36rem, 62rem"
+                    alt={item.alt}
+                  />
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Bringing a collection from another client: what you give and what comes back, in one column; the last breaks out wide. -->
+    <section aria-labelledby="bring" class="section frame">
+      <div class="col">
+        <h2 id="bring" class="rise type-site-title-1 text-ink">Bring a collection over</h2>
         <p class="rise mt-6 text-ink text-links">
-          Postman Free has been one user since March 2026 (<a href={POSTMAN_PLANS}>Postman's plans</a>, read on
-          <time datetime="2026-11-07">7 November 2026</time>). Wayfarer has no plans and no seats.
+          Collections from other clients come in as files, with a report before anything is stored.
         </p>
       </div>
       <ol class="col-wide mt-16 space-y-24 lg:max-w-[76rem]">
@@ -285,7 +366,7 @@ const graph = {
         }
       </ol>
       <p class="col mt-12">
-        <a class="link type-site-body font-semibold text-ink" href="/compare/moving-from-postman/">Moving from Postman, step by step</a>
+        <a class="link type-site-body font-semibold text-ink" href="/compare/moving-from-postman/">Moving a collection over, step by step</a>
       </p>
     </section>
 

@@ -790,3 +790,49 @@ test("on a phone the landing's comparison shows Wayfarer's answers and folds the
   await expect(first.locator("dt", { hasText: "Postman" })).toBeVisible();
   await expect(first.getByRole("link", { name: /Postman docs/ })).toBeVisible();
 });
+
+// Overhaul S7: the first screen is the product. The route strip is drawn from the app's tokens beside the headline, and
+// the app's own picture starts above the fold at a laptop's and a phone's size.
+for (const [width, height] of [
+  [1440, 900],
+  [390, 844],
+] as const) {
+  test(`the landing's route strip and the app's picture are on the first screen at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    const strip = page.getByRole("img", { name: /^From this page\. Uses secret: API key\. POST api\.example\.com\.$/ });
+    await expect(strip).toBeInViewport({ ratio: 1 });
+    const hero = page.locator("#hero + p, section[aria-labelledby='hero']").first();
+    const picture = hero.locator("img:visible").first();
+    const box = await picture.boundingBox();
+    expect(box?.y ?? Infinity).toBeLessThan(height);
+    // The line is the brand hue, drawn from a token and not written on the page.
+    const line = await page.locator(".route-line").evaluate((el) => getComputedStyle(el).borderTopColor);
+    const token = await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--route)";
+      document.body.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    });
+    expect(line).toBe(token);
+  });
+}
+
+test("the landing names no other product outside its comparison, only the comparison's dated rows do", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const outside = await page.evaluate(() => {
+    const text = [...document.querySelectorAll("main")]
+      .map((main) => {
+        const copy = main.cloneNode(true) as HTMLElement;
+        copy.querySelector("section[aria-labelledby='ask-first']")?.remove();
+        return copy.textContent ?? "";
+      })
+      .join(" ");
+    return text.match(/Postman|Bruno|Yaak|Hoppscotch|Insomnia|Scalar/g) ?? [];
+  });
+  expect(outside).toEqual([]);
+});

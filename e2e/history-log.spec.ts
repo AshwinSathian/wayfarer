@@ -136,6 +136,10 @@ test("@claim:C-119 two entries are compared by status, headers and body, a JSON 
   // A changed path comes before one that was removed or added.
   const kinds = await two.locator(".diff-path .diff-kind").allInnerTexts();
   expect(kinds[0]).toBe("Changed");
+  // A screen reader hears the kind and the path as separate words, and the heading is a heading with a live region
+  // beside it, not a heading made a status.
+  expect(await paths.first().evaluate((li) => li.textContent?.replace(/\s+/g, " ").trim())).toMatch(/^Changed \$\./);
+  await expect(two.getByRole("heading", { level: 3 })).toContainText("Comparing");
   await page.mouse.move(5, 5);
   await settled(page);
   const found = (await axe(page).include("dialog[aria-label=History]").analyze()).violations;

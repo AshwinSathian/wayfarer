@@ -1,14 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject } from "@angular/core";
 import { firstRunWalk } from "@wayfarer/core";
 import { FirstRunWalk, WALK_STEPS } from "../../services/first-run-walk";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { RouteGlyph } from "../../shared/empty-state/route-glyph";
+import { KEYS_OWNED } from "../../services/jump-keys";
 import { UiButton } from "../../ui/button";
 
 /**
  * Under the route strip, after the first example's response: the strip's three stops, one sentence each, Next to
  * go on, Dismiss to end it. Inline and not modal: nothing is inert, focus is never moved to it, and the sentence is
- * said by a polite region. Escape ends it when nothing else took the key (a menu or a dialog did, then it stays).
+ * said by a polite region. Escape ends it only when it is the page's own: not in a field or an editor, not with a
+ * dialog, a popover or a tooltip open (each takes the key first and the walk stays).
  */
 @Component({
   selector: "app-first-run-walk",
@@ -17,7 +19,6 @@ import { UiButton } from "../../ui/button";
   styleUrl: "./first-run-walk.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "(document:keydown.escape)": "escape($event)",
     // No box while there is nothing to show: an empty block would still take its gap in the composer's column.
     "[class.block]": "shown()",
     "[class.contents]": "!shown()",
@@ -44,8 +45,15 @@ export class FirstRunWalkPanel {
     }
   });
 
-  protected escape(event: Event): void {
-    if (event.defaultPrevented || !this.shown() || document.querySelector("dialog:modal")) return;
-    this.walk.finish();
-  }
+  /** On the capture phase, ahead of a tooltip, which closes itself on this key and does not stop it. */
+  private readonly escapeListener = (() => {
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || !this.shown()) return;
+      if (document.querySelector("dialog:modal, :popover-open")) return;
+      if (event.target instanceof HTMLElement && event.target.closest(KEYS_OWNED)) return;
+      this.walk.finish();
+    };
+    document.addEventListener("keydown", keydown, true);
+    inject(DestroyRef).onDestroy(() => document.removeEventListener("keydown", keydown, true));
+  })();
 }

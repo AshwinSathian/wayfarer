@@ -4,7 +4,8 @@
     <app-icon name="chevron_right" class="icon-xs diff-back-icon" />Back
   </button>
 </div>
-<h3 class="diff-title type-callout" role="status">{{ heading() }}</h3>
+<h3 class="diff-title type-callout">{{ heading() }}</h3>
+<p class="sr-only" role="status">{{ heading() }}</p>
 <dl class="diff-sides type-footnote">
   <dt>A</dt>
   <dd class="font-mono">{{ nameA() }}</dd>
@@ -61,8 +62,9 @@
   <ul class="diff-paths type-mono-body font-mono">
     @for (change of d.body.changes; track $index) {
     <li class="diff-path diff-{{ change.kind }}">
-      <span class="diff-kind type-footnote font-sans">{{ kindWord(change) }}</span>
-      <span class="diff-at">{{ change.path }}</span>
+      <span class="diff-kind type-footnote font-sans">{{ kindWord(change) }}</span>&ngsp;<span class="diff-at"
+        >{{ change.path }}</span
+      >
       @if (change.a !== undefined) {<span class="diff-a"><span class="sr-only">A: </span>{{ change.a }}</span>} @if
       (change.b !== undefined) {<span class="diff-b"><span class="sr-only">B: </span>{{ change.b }}</span>}
     </li>

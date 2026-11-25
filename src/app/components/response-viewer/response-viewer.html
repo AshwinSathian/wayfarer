@@ -105,7 +105,7 @@
           <button ngTab type="button" value="sent">Sent</button>
           } @if (!noResponse || ex.testResults.length) {
           <button ngTab type="button" value="tests"
-            >Tests <app-tab-mark [mark]="testsMark()" [failed]="testFailCount"
+            >Tests <app-tab-mark [mark]="testsMark()" [failed]="testFailCount" unit="run"
           /></button>
           }
         </div>

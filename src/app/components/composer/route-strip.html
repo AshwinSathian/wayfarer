@@ -9,13 +9,7 @@
     <span class="route-host">{{ v.host }}</span>
   </span>
   <span class="route-rail" aria-hidden="true"></span>
-  <button
-    type="button"
-    class="route-toggle"
-    [attr.aria-expanded]="open()"
-    aria-controls="route-strip-full"
-    (click)="open.set(!open())"
-  >
+  <button type="button" class="route-toggle" [attr.aria-expanded]="open()" (click)="open.set(!open())">
     <span class="sr-only">{{ v.text }}</span>
     <span aria-hidden="true">{{ v.summary }}</span>
     <app-icon [name]="open() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs" />

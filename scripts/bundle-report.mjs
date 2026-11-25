@@ -18,6 +18,13 @@ const out = args[1] ?? "bundle-report.json";
 
 const index = readFileSync(join(root, "index.html"), "utf8");
 const initial = new Set([...index.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g)].map((m) => m[1].replace(/^\//, "")));
+// What those files import statically is loaded before they run, named in index.html or not: follow `from "./x.js"` and
+// `import "./x.js"` (not `import("./x.js")`, which is lazy) until nothing new is found.
+for (const file of initial) {
+  if (!file.endsWith(".js")) continue;
+  const source = readFileSync(join(root, file), "utf8");
+  for (const [, name] of source.matchAll(/(?:\bfrom\s*|\bimport\s*(?!\())["']\.\/([^"']+\.js)["']/g)) initial.add(name);
+}
 const size = (file) => {
   const bytes = readFileSync(join(root, file));
   return { file, raw: bytes.length, gzip: gzipSync(bytes, { level: 9 }).length };

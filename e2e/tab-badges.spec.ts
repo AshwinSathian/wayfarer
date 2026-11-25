@@ -23,14 +23,32 @@ test("the request's tabs keep their place and width as headers, a body and auth 
     .getByRole("textbox", { name: /^Header name/ })
     .first()
     .fill("Accept");
-  await expect(page.getByRole("tab", { name: "Headers 1" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Headers (1 set)" })).toBeVisible();
   expect(await tabBoxes(page)).toEqual(before);
 
   await page.getByRole("tab", { name: "Body" }).click();
   await page.getByRole("combobox", { name: "Body type", exact: true }).click();
   await page.getByRole("option", { name: "Raw" }).click();
-  await expect(page.getByRole("tab", { name: "Body 1" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Body (1 set)" })).toBeVisible();
   expect(await tabBoxes(page)).toEqual(before);
+});
+
+// A count of two digits has room too: the tabs after it do not move. Over 99 it reads "99+", a few px wider.
+test("the request's tabs keep their place and width with 12 parameters, and move a few px at most with 120", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  const before = await tabBoxes(page);
+  const start = (boxes: string[]) => boxes.map((box) => Number(box.split(" ")[1]?.split(",")[0]));
+  for (const count of [12, 120]) {
+    const query = Array.from({ length: count }, (_, i) => `p${i}=1`).join("&");
+    await page.locator("input.address-url").fill(`https://example.com/?${query}`);
+    await expect(page.getByRole("tab", { name: `Params (${count} set)` })).toBeVisible();
+    const now = await tabBoxes(page);
+    if (count === 12) expect(now).toEqual(before);
+    else for (const [i, x] of start(now).entries()) expect(Math.abs(x - start(before)[i]!)).toBeLessThanOrEqual(6);
+  }
 });
 
 // WCAG 2.5.8: the pointer's way to close a tab and the New tab button are each at least 24 by 24 px.

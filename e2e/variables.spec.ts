@@ -88,6 +88,14 @@ test("a collection variable and a global reach the server, an environment's valu
   let pop = await variable("fromCollection");
   await expect(pop).toContainText('collection "Tripwire collection"');
   await expect(pop).toContainText("c-1");
+  // The same button again closes it, and says so (it used to open it again, with aria-expanded still true).
+  const chip = chips.locator(".var-chip").filter({ hasText: "fromCollection" });
+  await expect(chip).toHaveAttribute("aria-expanded", "true");
+  await chip.click();
+  await expect(pop).toHaveCount(0);
+  await expect(chip).toHaveAttribute("aria-expanded", "false");
+  pop = await variable("fromCollection");
+  await expect(pop).toContainText("c-1");
   await page.keyboard.press("Escape");
   pop = await variable("fromGlobal");
   await expect(pop).toContainText("the globals");

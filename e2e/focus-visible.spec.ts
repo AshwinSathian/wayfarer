@@ -72,36 +72,51 @@ async function stopsWithNoChange(page: Page): Promise<string[]> {
   return same;
 }
 
-test("@claim:C-097 every control the keyboard reaches shows that it has focus, on the first-run screen", async ({
-  page,
-}) => {
-  test.slow();
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/app/");
-  await expect(page.locator("input.address-url")).toBeVisible();
-  expect(await stopsWithNoChange(page)).toEqual([]);
-});
+// Forced colours take every box-shadow away, which is how a focus is drawn above: there it is an outline in a system
+// colour (src/styles.css), and the same check holds each stop.
+async function emulate(page: Page, forcedColors: boolean): Promise<void> {
+  if (!forcedColors) return;
+  await page.emulateMedia({ forcedColors: "active" });
+}
 
-test("@claim:C-097 every control the keyboard reaches shows that it has focus, with a collection and a response", async ({
-  page,
-}) => {
-  test.slow();
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/app/");
-  await page.getByRole("button", { name: "New collection" }).first().click();
-  await page.locator("#creation-name-input").fill("Focus");
-  await page.getByRole("button", { name: "Create", exact: true }).click();
-  await expect(page.locator("#creation-name-input")).toHaveCount(0);
-  await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-  expect(await stopsWithNoChange(page)).toEqual([]);
-});
+for (const forcedColors of [false, true]) {
+  const suffix = forcedColors ? " in forced colours" : "";
+  test(`@claim:C-097 every control the keyboard reaches shows that it has focus${suffix}, on the first-run screen`, async ({
+    page,
+  }) => {
+    test.slow();
+    await emulate(page, forcedColors);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    await expect(page.locator("input.address-url")).toBeVisible();
+    expect(await stopsWithNoChange(page)).toEqual([]);
+  });
 
-test("@claim:C-097 every control the keyboard reaches shows that it has focus, on a phone", async ({ page }) => {
-  test.slow();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/app/");
-  await expect(page.locator("input.address-url")).toBeVisible();
-  expect(await stopsWithNoChange(page)).toEqual([]);
-});
+  test(`@claim:C-097 every control the keyboard reaches shows that it has focus${suffix}, with a collection and a response`, async ({
+    page,
+  }) => {
+    test.slow();
+    await emulate(page, forcedColors);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    await page.getByRole("button", { name: "New collection" }).first().click();
+    await page.locator("#creation-name-input").fill("Focus");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    await expect(page.locator("#creation-name-input")).toHaveCount(0);
+    await page.locator("input.address-url").fill(`${ECHO}/echo`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+    expect(await stopsWithNoChange(page)).toEqual([]);
+  });
+
+  test(`@claim:C-097 every control the keyboard reaches shows that it has focus${suffix}, on a phone`, async ({
+    page,
+  }) => {
+    test.slow();
+    await emulate(page, forcedColors);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/app/");
+    await expect(page.locator("input.address-url")).toBeVisible();
+    expect(await stopsWithNoChange(page)).toEqual([]);
+  });
+}

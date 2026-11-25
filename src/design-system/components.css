@@ -612,12 +612,13 @@ pre,
 }
 
 /* The slot after a request tab's name (audit 9): one width whether it holds a count, the held-scripts glyph or
-   nothing, so the tabs do not move as a request is edited. One digit fits; the glyph is as wide as one. */
+   nothing, so the tabs do not move as a request is edited. Two digits fit; a count over 99 is "99+", 2 px wider. A wider slot pushed Network out of the tab strip at 1440 px with
+   the sidebar pinned. The glyph is as wide as one digit. */
 .tab-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 0.875rem;
+  min-width: 1.125rem;
   vertical-align: middle;
 }
 

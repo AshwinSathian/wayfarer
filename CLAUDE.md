@@ -565,9 +565,12 @@ code errors.
   splitter) an inset 2 px edge of ink, `box-shadow: inset 0 0 0 2px
   var(--ink)` in `src/styles.css` (a filled button's takes its label's
   colour), inside the box so that nothing moves or is cut. Do not add an
-  outline back. A new kind of control draws its own focus or is in that
+  outline back, but in forced colours, which take every box-shadow away:
+  there `:focus-visible` is a 2 px `Highlight` outline, inset
+  (`@media (forced-colors: active)` in `src/styles.css`; the site's
+  `global.css` has its own). A new kind of control draws its own focus or is in that
   rule; `e2e/focus-visible.spec.ts` (C-097) holds every control the keyboard
-  reaches, in three engines.
+  reaches, in three engines, also with forced colours emulated.
 - A method is its name and one glyph before it (`<ui-method-glyph [method]>`,
   `src/app/ui/method-glyph.ts`; `methodGlyph` in `shared/http`): a ring for
   GET, HEAD and OPTIONS, a bar for DELETE, a dot for every other token (a

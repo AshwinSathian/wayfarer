@@ -454,7 +454,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <button ngTab type="button" value="params">Params</button>
             <button ngTab type="button" value="headers">Headers</button>
             <button ngTab type="button" value="body">Body</button>
-            <button ngTab type="button" value="tests">Tests <app-tab-mark [mark]="2" /></button>
+            <button ngTab type="button" value="tests">Tests <app-tab-mark [mark]="2" unit="run" /></button>
           </div>
           <div class="tab-panes">
             <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"

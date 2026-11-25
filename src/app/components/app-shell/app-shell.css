@@ -117,22 +117,24 @@
   color: var(--label-primary);
 }
 
+/* Over the page, above the status bar's row and not over it: its buttons stay in sight and in reach while it waits. */
 .jump-hint {
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: 12px;
+  bottom: 3rem;
   z-index: 46;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 16px;
+  max-width: calc(100% - 24px);
+  pointer-events: none;
 }
 
 .jump-hint:has(> *) {
-  min-height: 34px;
-  padding: 4px 12px;
-  border-top: 1px solid var(--separator);
+  padding: 6px 12px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-lg);
   background: var(--canvas-sidebar);
   box-shadow: var(--shadow-overlay);
   color: var(--label-primary);

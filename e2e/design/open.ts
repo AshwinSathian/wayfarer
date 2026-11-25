@@ -159,7 +159,7 @@ async function sendAndWait(page: Page): Promise<void> {
 
 /** A part of the request: a tab, or below 768 px a section of the stacked composer, opened and scrolled to the top. */
 async function composerTab(page: Page, name: string): Promise<void> {
-  // A tab's name ends in what it holds (U-170): "Headers 1", "Body 1".
+  // A tab's name ends in what it holds (U-170): "Headers (1 set)", "Body (1 set)".
   const tab = composer(page).getByRole("tab", { name: new RegExp(`^${name}( |$)`) });
   if (await tab.isVisible()) {
     await tab.click();

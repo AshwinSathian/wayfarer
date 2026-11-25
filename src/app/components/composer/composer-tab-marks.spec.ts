@@ -49,12 +49,12 @@ describe("the request's tabs say what they hold (U-170)", () => {
     store.patch(full);
     await fixture.whenStable();
     expect(names(fixture.nativeElement as HTMLElement, ".composer-pane [role='tab']")).toEqual([
-      "Params 2",
-      "Headers 1",
-      "Body 1",
-      "Auth 1",
-      "Scripts 1",
-      "Network 1",
+      "Params (2 set)",
+      "Headers (1 set)",
+      "Body (1 set)",
+      "Auth (1 set)",
+      "Scripts (1 set)",
+      "Network (1 set)",
     ]);
   });
 
@@ -67,7 +67,7 @@ describe("the request's tabs say what they hold (U-170)", () => {
     await fixture.whenStable();
     expect(names(fixture.nativeElement as HTMLElement, ".composer-pane [role='tab']").slice(3, 5)).toEqual([
       "Auth",
-      "Scripts 1",
+      "Scripts (1 set)",
     ]);
   });
 
@@ -77,12 +77,12 @@ describe("the request's tabs say what they hold (U-170)", () => {
     store.patch(full);
     await fixture.whenStable();
     expect(names(fixture.nativeElement as HTMLElement, "button.section-header")).toEqual([
-      "Params 2",
-      "Headers 1",
-      "Body 1",
-      "Auth 1",
-      "Scripts 1",
-      "Network 1",
+      "Params (2 set)",
+      "Headers (1 set)",
+      "Body (1 set)",
+      "Auth (1 set)",
+      "Scripts (1 set)",
+      "Network (1 set)",
     ]);
   });
 });

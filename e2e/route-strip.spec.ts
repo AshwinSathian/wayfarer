@@ -171,6 +171,8 @@ test.describe("folded", () => {
     await address(page).fill(`${ECHO}/echo?a=1`);
     const toggle = strip(page).locator(".route-toggle");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    // aria-controls would name an element that exists only while open: the button has none.
+    await expect(toggle).not.toHaveAttribute("aria-controls", /.*/);
     await expect(strip(page).locator(".route-host")).toHaveText("127.0.0.1:4300");
     expect(await spoken(page)).toBe("From this page. GET 127.0.0.1:4300.");
     expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(24);

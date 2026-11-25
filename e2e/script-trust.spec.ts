@@ -122,7 +122,7 @@ test("@claim:C-051 @claim:C-106 an imported collection's scripts do not run unti
   await review.getByRole("button", { name: "Trust these scripts" }).click();
   await expect(review).toHaveCount(0);
   await expect(held).toHaveCount(0);
-  await expect(scriptsTab).toHaveAccessibleName("Scripts 3");
+  await expect(scriptsTab).toHaveAccessibleName("Scripts (3 set)");
 
   // Trusted: both scripts run.
   await send(page);

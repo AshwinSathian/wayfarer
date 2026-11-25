@@ -10,6 +10,7 @@
     aria-haspopup="dialog"
     [attr.aria-expanded]="selected()?.name === variable.name"
     [uiTooltip]="card"
+    (pointerdown)="pressed(variable, pop)"
     (click)="toggle(variable, chip, pop)"
   >
     @if (variable.source === 'missing') {

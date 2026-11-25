@@ -1,6 +1,6 @@
 import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from "@angular/core";
-import { formatDuration } from "@wayfarer/core";
+import { empty, formatDuration } from "@wayfarer/core";
 import { AiSettings } from "../../services/ai-settings";
 import type { ExchangeView } from "../../state/exchange-view";
 import { Icon } from "../../shared/icon/icon";
@@ -20,6 +20,8 @@ export class ResponseTests {
   readonly exchange = input.required<ExchangeView>();
   /** The empty line's button: the request's Scripts tab, which the composer holds (U-202). */
   readonly openScripts = output<void>();
+  /** The scripts did not run (not reviewed): the tab says so, with the way to review them. */
+  protected readonly held = empty.testsHeld;
   protected readonly testPassCount = computed(() => this.exchange().testResults.filter((r) => r.passed).length);
   protected readonly testFailCount = computed(() => this.exchange().testResults.filter((r) => !r.passed).length);
   /** How long the scripts and the request took, each by itself; shown when a script ran. */

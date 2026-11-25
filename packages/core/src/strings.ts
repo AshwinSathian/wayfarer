@@ -72,7 +72,8 @@ export const failures = {
   offline: {
     headline: "You are offline.",
     cause: "This device has no network connection, so nothing was sent.",
-    next: "Reconnect, then Send again.",
+    next: "Reconnect, then send again.",
+    action: "Send again",
   },
   unreachable: {
     headline: (host: string) => `No response from ${host}.`,
@@ -83,32 +84,74 @@ export const failures = {
     command: "npx wayfarer-bridge",
   },
   timeout: {
-    headline: (seconds: number) => `No answer in ${seconds} s.`,
+    headline: (took: string) => `No answer in ${took}.`,
     cause: (host: string) => `${host} did not respond before the timeout.`,
-    next: "Send again, or raise the timeout in this request's Network tab.",
+    next: "Raise the request timeout in Settings.",
+    action: "Raise the timeout",
   },
   stopped: {
     headline: "Stopped.",
     cause: "You stopped this request. The server may already have received it.",
-    next: "Send again.",
+    next: "Send it again if you still want it.",
+    action: "Send again",
   },
   refused: {
     headline: (host: string) => `${host} refused the connection.`,
-    cause: (port: string) => `Nothing is listening on port ${port}, or a firewall blocked it.`,
+    cause: "Nothing is listening at that address, or a firewall blocked it.",
     next: "Check the address and port, and that the server is running.",
+    action: "Send again",
   },
   notFound: {
     headline: (host: string) => `Could not find ${host}.`,
     cause: "The name does not resolve from this computer.",
     next: "Check the spelling of the host.",
+    action: "Send again",
   },
   certificate: {
     headline: (host: string) => `The certificate for ${host} was not accepted.`,
     cause: "It is expired, self-signed or issued for another name.",
     next: "Fix the certificate, or turn off certificate checking for this request in its Network tab. The response will say so.",
+    action: "Open request settings",
+  },
+  bridgeDown: {
+    headline: "The Local Bridge did not answer.",
+    cause:
+      "Nothing answered at the bridge's address. It may not be running, the address may be wrong, or it was not told to allow this page (--allow-origin).",
+    next: "Start the bridge, or check its address in Settings.",
+    action: "Open Local Bridge settings",
+  },
+  bridgeToken: {
+    headline: "The Local Bridge did not accept the token.",
+    cause: "The token saved here is not the one this bridge expects.",
+    next: "Pair with the bridge again in Settings.",
+    action: "Open Local Bridge settings",
+  },
+  bridgeVersion: {
+    headline: "The Local Bridge does not understand this page.",
+    cause: "The bridge and this page are of different versions.",
+    next: "Update the Local Bridge and reload Wayfarer, then start the bridge again.",
+    action: "Open Local Bridge settings",
+  },
+  bridgeOther: {
+    headline: "The Local Bridge could not send this request.",
+    cause: "The bridge reached no answer it could pass on. What it said is below.",
+    next: "Read what it said, then send again.",
+    action: "Send again",
   },
   detailsBrowser: "What the browser reported",
   detailsBridge: "What the bridge reported",
+  detailsShow: "Details",
+  panel: "Why there was no response",
+} as const;
+
+/** The Timings part: the strip of phases, and what it says about where they came from. */
+export const timing = {
+  strip: "Where the time went",
+  sourceBrowser: "Phases from the browser.",
+  sourceBridge: "Phases from the Local Bridge.",
+  totalOnly: "Total only: this server does not share timing.",
+  notRecorded: "Timings: not recorded. History keeps the total only.",
+  unaccounted: "Not measured",
 } as const;
 
 export const empty = {
@@ -144,8 +187,8 @@ export const empty = {
     action: "Add a test",
   },
   testsHeld: {
-    headline: (n: number) => `${n} ${n === 1 ? "test is" : "tests are"} in scripts that have not run.`,
-    body: "Review the scripts to run them.",
+    headline: "Scripts did not run, so their tests did not either.",
+    body: "They are not reviewed yet. Review them to run them on the next send.",
     action: "Review scripts",
   },
 } as const;

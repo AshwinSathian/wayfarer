@@ -65,7 +65,7 @@ async function importFile(page: Page, post: string): Promise<void> {
 const row = (page: Page, label: string) => page.locator(".test-result-pass, .test-result-fail", { hasText: label });
 const tests = (page: Page) => page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ });
 
-test("@claim:C-051 an imported collection's scripts do not run until they are reviewed; a re-import with a changed script asks again", async ({
+test("@claim:C-051 @claim:C-106 an imported collection's scripts do not run until they are reviewed; a re-import with a changed script asks again", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -86,6 +86,11 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   expect(hits).toHaveLength(1);
   await tests(page).click();
   await expect(page.locator(".scripts-skipped")).toBeVisible();
+  // The Tests tab says the scripts did not run and offers the review; its tab carries the warning mark (S4b3).
+  const testsHeld = page.locator(".tests-held");
+  await expect(testsHeld).toContainText("Scripts did not run, so their tests did not either.");
+  await expect(tests(page)).toHaveAccessibleName("Tests (not reviewed)");
+  await expect(testsHeld.getByRole("button", { name: "Review scripts" })).toBeVisible();
   // The assertion still ran.
   await expect(page.locator(".test-result-pass")).toHaveCount(1);
   await expect(row(page, "the file's script ran")).toHaveCount(0);

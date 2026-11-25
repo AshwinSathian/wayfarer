@@ -23,12 +23,16 @@ export class ExchangeRecordView {
   readonly keeper = input<"history" | "run">("history");
   /** Whether what to do after a failure is offered: not in a run's row, which sends nothing again. */
   readonly actions = input(true);
+  /** A failure panel above says what was reported and offers the action: the record then holds what the send did. */
+  readonly failureShown = input(false);
   /** Offered on a failure the page could not explain, when the request went from the page. */
   readonly sendThroughBridge = output<void>();
 
   protected readonly lines = computed(() => recordLines(this.record(), this.keeper()));
   /** What was reported, when no response came: it leads, with the action under it (U-175). */
-  protected readonly failure = computed(() => this.lines().find((line) => line.field === "failure"));
+  protected readonly failure = computed(() =>
+    this.failureShown() ? undefined : this.lines().find((line) => line.field === "failure"),
+  );
   protected readonly facts = computed(() => this.lines().filter((line) => line.field !== "failure"));
   /**
    * The browser gave no response and hides why: the Local Bridge can tell. With one paired it is offered; with

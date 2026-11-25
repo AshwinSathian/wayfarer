@@ -2,6 +2,8 @@ import { BinaryBody, parseJson, type ExchangeRecord } from "@wayfarer/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { ResponseViewer, type ResponseExportContext } from "./response-viewer";
+import { ResponseTimings } from "./response-timings";
+import { liveExchange } from "../../state/exchange-view";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { JsonWorkerClient } from "../../shared/json-worker/json-worker-client";
 import { describe, it, beforeEach, expect, vi } from "vitest";
@@ -42,6 +44,77 @@ describe("ResponseViewer", () => {
     fixture.componentRef.setInput("tlsInsecure", true);
     fixture.detectChanges();
     expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("Certificate not checked");
+  });
+
+  describe("the Timings strip (S4b3)", () => {
+    const strip = (parts: Parameters<typeof liveExchange>[0], exchange = liveExchange(parts), recorded = false) => {
+      const timings = TestBed.createComponent(ResponseTimings);
+      timings.componentRef.setInput(
+        "exchange",
+        recorded
+          ? { ...exchange, kind: "recorded", notRecorded: { body: false, timings: true, tests: true } }
+          : exchange,
+      );
+      timings.componentRef.setInput("bars", []);
+      timings.componentRef.setInput("fallback", []);
+      timings.detectChanges();
+      return timings.nativeElement as HTMLElement;
+    };
+    const inspection: ResponseInspection = {
+      id: "a",
+      url: "u",
+      startTime: 0,
+      startEpoch: 0,
+      endTime: 100,
+      duration: 100,
+    };
+
+    it("@claim:C-105 a send read back from history says its timings are not recorded and draws its total", () => {
+      const record: ExchangeRecord = {
+        durationMs: 420,
+        route: "direct",
+        host: "api.example.com",
+        secrets: [],
+        masked: { headers: [], responseHeaders: [] },
+        kept: { response: true, body: false },
+      };
+      const element = strip({ record }, undefined, true);
+      expect(element.textContent).toContain("Timings: not recorded. History keeps the total only.");
+      expect(element.textContent).toContain("420 ms in all");
+      expect(element.querySelectorAll(".timing-segment")).toHaveLength(1);
+    });
+
+    it("@claim:C-105 with no phases it shows the total alone and says the server does not share timing", () => {
+      const timings = TestBed.createComponent(ResponseTimings);
+      timings.componentRef.setInput("exchange", liveExchange({ inspection }));
+      timings.componentRef.setInput("bars", []);
+      timings.componentRef.setInput("fallback", [{ label: "Total", duration: 100, percent: 100 }]);
+      timings.detectChanges();
+      const element = timings.nativeElement as HTMLElement;
+      expect(element.querySelector(".timing-source")?.textContent).toBe(
+        "Total only: this server does not share timing.",
+      );
+      expect(element.querySelectorAll(".timing-segment")).toHaveLength(1);
+    });
+
+    it("@claim:C-105 phases are drawn against the whole, and what they leave out is a segment of its own", () => {
+      const timings = TestBed.createComponent(ResponseTimings);
+      timings.componentRef.setInput(
+        "exchange",
+        liveExchange({ inspection: { ...inspection, phases: { dns: 10, ttfb: 40 } } }),
+      );
+      timings.componentRef.setInput("bars", [
+        { key: "dns", label: "DNS", duration: 10, percent: 10 },
+        { key: "ttfb", label: "TTFB", duration: 40, percent: 40 },
+      ]);
+      timings.componentRef.setInput("fallback", []);
+      timings.detectChanges();
+      const element = timings.nativeElement as HTMLElement;
+      expect(element.querySelector(".timing-source")?.textContent).toBe("Phases from the browser.");
+      expect(
+        [...element.querySelectorAll(".timing-legend li")].map((li) => li.textContent?.replace(/\s+/g, " ").trim()),
+      ).toEqual(["DNS 10 ms", "TTFB 40 ms", "Not measured 50 ms"]);
+    });
   });
 
   describe("the Sent tab", () => {
@@ -212,37 +285,36 @@ describe("ResponseViewer", () => {
       expect(asked).toEqual([true]);
     });
 
-    it("open, says each field in a sentence, the wire's values in monospace, and offers the Local Bridge once", () => {
+    it("open, says each field in a sentence, the wire's values in monospace; the panel says what was reported", () => {
       fixture.componentRef.setInput("isError", true);
       fixture.componentRef.setInput("record", record);
       fixture.componentRef.setInput("recordOpen", true);
       fixture.detectChanges();
-      const region = (fixture.nativeElement as HTMLElement).querySelector("#exchange-record");
+      const element = fixture.nativeElement as HTMLElement;
+      const region = element.querySelector("#exchange-record");
       expect(region?.getAttribute("aria-label")).toBe("Exchange record");
       const lines = [...(region?.querySelectorAll("li") ?? [])].map((line) => line.textContent);
-      // What was reported leads (U-175).
+      // What was reported is the failure panel's, behind its Details; the record holds what the send did (S4b3).
       expect(lines).toEqual([
-        "What was reported: Failed to fetch",
         "Sent from this page to api.example.com.",
         'Filled from the vault: token, from environment "Local". Each is *** in what is kept.',
         "Masked with *** in what is kept: Authorization.",
         "History kept the request. No response came.",
       ]);
-      expect([...(region?.querySelectorAll(".font-mono") ?? [])].map((part) => part.textContent)).toEqual([
-        "Failed to fetch",
-        "api.example.com",
-        "token",
-        "Authorization",
-      ]);
-      // The action is under what was reported, before what the send did.
-      const action = region?.querySelector("button");
-      expect(action?.previousElementSibling?.querySelector(".record-failure")).not.toBeNull();
-      const sent = vi.fn();
-      component.sendThroughBridge.subscribe(sent);
-      const buttons = region?.querySelectorAll("button") ?? [];
-      expect(buttons).toHaveLength(1);
-      buttons[0].click();
-      expect(sent).toHaveBeenCalledOnce();
+      expect(region?.querySelector("button")).toBeNull();
+      // One action in the panel, and the browser's words are not drawn until Details opens.
+      const panel = element.querySelector(".failure-panel");
+      expect(panel?.querySelector(".failure-headline")?.textContent?.trim()).toBe("No response from api.example.com.");
+      expect(panel?.querySelector(".failure-reported")).toBeNull();
+      const acted = vi.fn();
+      component.failureAction.subscribe(acted);
+      const actions = panel?.querySelectorAll<HTMLButtonElement>(".failure-act button") ?? [];
+      expect(actions).toHaveLength(1);
+      actions[0].click();
+      expect(acted).toHaveBeenCalledExactlyOnceWith("bridge");
+      panel?.querySelector<HTMLButtonElement>(".failure-details button")?.click();
+      fixture.detectChanges();
+      expect(panel?.querySelector(".failure-reported")?.textContent).toContain("Failed to fetch");
     });
 
     it("offers nothing when the request went through the bridge, or got a response", () => {
@@ -344,9 +416,35 @@ describe("ResponseViewer", () => {
       expect(element().querySelector(".response-failure")?.textContent).toBe(why);
       expect(element().querySelector(".response-tabs")).toBeNull();
       set({ testResults: [{ label: "status is 200", passed: false, source: "assertion" }] });
-      expect(tabs()).toEqual(["Tests 1"]);
+      expect(tabs()).toEqual(["Tests 1 (1 failed)"]);
       expect(element().querySelector(".test-result-fail")?.textContent).toContain("status is 200");
       expect(element().textContent?.match(/Send it through the Local Bridge/g)).toHaveLength(1);
+    });
+
+    // S4b3: scripts that were left out are not "no tests".
+    it("@claim:C-106 with scripts left out, the Tests tab says they did not run and offers the review, and marks its tab", () => {
+      set({ responseStatusCode: 200, responseStatusText: "OK", scriptsSkipped: true, activeTab: "tests" });
+      const held = element().querySelector(".tests-held");
+      expect(held?.textContent).toContain("Scripts did not run, so their tests did not either.");
+      expect(element().textContent).not.toContain("This request has no tests.");
+      expect(element().querySelector("[ngTab][value='tests'] .tab-badge .sr-only")?.textContent).toBe("(not reviewed)");
+      const opened = vi.fn();
+      component.openScripts.subscribe(opened);
+      held?.querySelector("button")?.click();
+      expect(opened).toHaveBeenCalledOnce();
+    });
+
+    it("the Tests tab's badge counts the tests and is red only when one failed", () => {
+      set({
+        responseStatusCode: 200,
+        testResults: [
+          { label: "a", passed: true, source: "script" },
+          { label: "b", passed: false, source: "script" },
+        ],
+      });
+      const count = element().querySelector("[ngTab][value='tests'] .tab-count");
+      expect(count?.textContent).toBe("2");
+      expect(count?.classList.contains("text-status-error")).toBe(true);
     });
 
     it("draws a test that ran twice under one name as two rows, each its own (NG0955)", () => {

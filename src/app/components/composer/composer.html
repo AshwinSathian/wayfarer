@@ -200,7 +200,7 @@
     [responseStatusCode]="store.responseStatusCode()"
     [responseStatusText]="store.responseStatusText()"
     [isError]="store.responseIsError()"
-    (sendThroughBridge)="sendRequest({ route: 'bridge' })"
+    (failureAction)="onFailureAction($event)"
     [inspection]="store.responseInspection"
     [responseContentLength]="store.responseContentLength()"
     [exportContext]="store.responseExportContext()"

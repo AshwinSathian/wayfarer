@@ -1,0 +1,37 @@
+@if (panel(); as p) {
+<section class="failure-panel response-failure" [attr.aria-label]="label" [attr.data-failure]="p.cls">
+  <p class="failure-headline type-callout text-label-primary">
+    <app-icon name="warning" class="icon-sm shrink-0 line-glyph" />{{ p.headline }}</p
+  >
+  <p class="failure-cause type-callout text-label-secondary">{{ p.cause }}</p>
+  @if (setup()) {
+  <p class="failure-next type-callout text-label-primary">{{ p.next }}</p>
+  <app-bridge-setup class="type-footnote" (sendAgain)="act.emit('bridge')" />
+  } @else {
+  <div class="failure-act flex flex-wrap items-center gap-x-3 gap-y-2">
+    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="act.emit(p.action)"
+      >{{ p.actionLabel }}</button
+    >
+    @if (p.action !== 'bridge') {
+    <span class="failure-next type-footnote text-label-secondary">{{ p.next }}</span>
+    }
+  </div>
+  }
+  <div class="failure-details">
+    <button
+      uiButton
+      class="btn-plain btn-sm -ml-2"
+      type="button"
+      aria-controls="failure-details-body"
+      [attr.aria-expanded]="open()"
+      (click)="open.set(!open())"
+      >{{ detailsShow }}<app-icon [name]="open() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" class="icon-xs"
+    /></button>
+    @if (open()) {
+    <p id="failure-details-body" class="failure-reported type-footnote text-label-secondary">
+      {{ detailsName() }}: <span class="font-mono text-label-primary">{{ p.reported }}</span>
+    </p>
+    }
+  </div>
+</section>
+}

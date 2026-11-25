@@ -16,7 +16,10 @@ export type TabMarkValue = number | "held" | null;
   template: `@let m = mark();
     <span class="tab-badge">
       @if (typeof m === "number") {
-        <span class="tab-count text-label-secondary">{{ m }}</span>
+        <span class="tab-count" [class]="failed() ? 'text-status-error' : 'text-label-secondary'">{{ m }}</span>
+        @if (failed()) {
+          <span class="sr-only"> ({{ failed() }} failed)</span>
+        }
       } @else if (m === "held") {
         <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only">(not reviewed)</span>
       }
@@ -25,4 +28,6 @@ export type TabMarkValue = number | "held" | null;
 })
 export class TabMark {
   readonly mark = input<TabMarkValue>(null);
+  /** How many of the counted things failed (the response's Tests tab): the count is red, and says so after the name. */
+  readonly failed = input(0);
 }

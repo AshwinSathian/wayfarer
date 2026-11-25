@@ -92,6 +92,20 @@ The headers a browser adds are listed above. Through the bridge, Node writes `Ho
 
 The part shows what history keeps of the request, after the redactor ([Secrets](secrets.md)), and nothing else: <!-- claim:C-103 --> In the Sent part a vault secret, an OAuth 2.0 token, a cookie of the jar and a credential are `***`, as they are in history and exports, and a vault secret is named by the variable that held it, never by its value; it is masked where the app keeps and shows the request, and it went out as its value. A vault secret shorter than 6 characters is not found, and an encoding the redactor does not know is not either (the limits in [Secrets](secrets.md)). A request opened from History shows the same part from the stored entry, and says "not recorded" for the vault secrets of an entry that holds no record.
 
+## When a send gets no response
+
+A browser reports one failure for a name that does not resolve, a connection the server refuses and a server that does not allow requests from the page, and it does not say which. <!-- claim:C-104 --> A send that gets no response says what happened, why as far as the page can tell, and one next action: you are offline, the server did not answer from the page, no answer came before the timeout, you stopped it, or the Local Bridge could not send it (it did not answer, did not accept the token, the server refused the connection, the name did not resolve, or the certificate was not accepted). What the browser or the bridge reported is behind Details. Only the bridge can tell a refused connection from an unknown name, so a failure of the page offers to send through it, or says how to start it.
+
+History keeps the kind of failure and what was reported, and the panel is made from them again, so an entry opened later says the same.
+
+## The Timings tab
+
+The Timings tab draws the send's phases in one strip against the whole, and says where they came from. <!-- claim:C-105 --> The strip shows the phases the browser measured, or those the Local Bridge measured when the request went through it, and says which; where the server does not share timing it shows the total alone and says so. A send read back from History keeps the total and no phases, and says "not recorded".
+
+## The Tests tab and scripts that did not run
+
+<!-- claim:C-106 --> When a request's scripts were left out because they are not reviewed, the Tests tab says the scripts did not run, so their tests did not either, marks its tab, and offers the review, instead of saying the request has no tests. The assertions of the request still run.
+
 ## What Wayfarer leaves out
 
 Wayfarer sends your request with no `Referer` and no cookies

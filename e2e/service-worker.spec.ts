@@ -191,7 +191,7 @@ test("@claim:C-010 with the service worker in control, a DNS failure shows the r
   await loadControlled(page);
   await page.locator("input.address-url").fill("https://wayfarer-sw-dns.invalid/");
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.locator(".response-failure").getByText(/^The request got no response/)).toBeVisible();
+  await expect(page.locator(".response-failure .failure-headline")).toContainText("No response from");
   // No status is drawn when none came (U-051), a synthetic 504 least of all.
   await expect(page.locator(".response-status")).toContainText("No response");
   await expect(page.locator(".response-status")).not.toContainText("504");

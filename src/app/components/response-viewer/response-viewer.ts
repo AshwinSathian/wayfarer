@@ -11,8 +11,10 @@ import {
   signal,
   effect,
 } from "@angular/core";
+import { TabMark, type TabMarkValue } from "../composer/tab-mark";
+import { FailurePanel } from "../failure-panel/failure-panel";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import type { BinaryBody, ResponseEnvelope, SendTimings, SentView, TestResult } from "@wayfarer/core";
+import type { BinaryBody, FailureAction, ResponseEnvelope, SendTimings, SentView, TestResult } from "@wayfarer/core";
 import { AiSettings } from "../../services/ai-settings";
 import { Diagnostics } from "../../services/diagnostics";
 import { Icon } from "../../shared/icon/icon";
@@ -57,9 +59,11 @@ const SENDING_SHOWN_AFTER_MS = 1000;
     AiExplain,
     EventList,
     ExchangeRecordView,
+    FailurePanel,
     HarExportDialog,
     Icon,
     Tab,
+    TabMark,
     TabContent,
     TabPanel,
     Tabs,
@@ -105,7 +109,8 @@ export class ResponseViewer {
   readonly responseStatusCode = input<number>();
   readonly responseStatusText = input<string>();
   readonly isError = input(false);
-  readonly sendThroughBridge = output<void>();
+  /** The one thing a failure panel offers, chosen: the composer does it (send again, open a setting). */
+  readonly failureAction = output<FailureAction>();
   readonly inspection = input<Signal<ResponseInspection | null> | null>();
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);
@@ -209,13 +214,20 @@ export class ResponseViewer {
   /** What the HAR dialog exports. Null while it is closed. */
   protected readonly harSource = signal<HarSource | null>(null);
 
-  get testPassCount(): number {
-    return this.testResults().filter((r) => r.passed).length;
-  }
-
   get testFailCount(): number {
     return this.testResults().filter((r) => !r.passed).length;
   }
+
+  /** The Tests tab's mark: the scripts did not run, so the tab says so instead of showing nothing (S4b3); else the count. */
+  protected readonly testsMark = computed((): TabMarkValue =>
+    this.scriptsSkipped() ? "held" : this.testResults().length || null,
+  );
+
+  /** The exchange record of a send that got no response: the panel says it, and the record holds the rest. */
+  protected readonly failedRecord = computed(() => {
+    const { isError, statusCode, record } = this.exchange();
+    return isError && statusCode === undefined && record?.failure ? record : null;
+  });
 
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {

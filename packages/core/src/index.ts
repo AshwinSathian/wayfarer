@@ -207,4 +207,5 @@ export {
 } from "./folder/folder";
 export { changedFiles, describeChange, type FileChange } from "./folder/diff";
 export { keepCredentialsHere } from "./folder/restore";
-export { ROUTE_NAMES, ROUTE_OPTIONS, empty, sentPart, statusBar, strip, vaultSetup } from "./strings";
+export { ROUTE_NAMES, ROUTE_OPTIONS, empty, failures, sentPart, statusBar, strip, timing, vaultSetup } from "./strings";
+export { failurePanel, type FailureAction } from "./send/failure";

@@ -115,4 +115,14 @@ describe("diffExchanges", () => {
     expect(diff.duration).toEqual({ a: undefined, b: undefined });
     expect(diffExchanges(side({ durationMs: 1 }), side({ durationMs: 900 })).differs).toBe(false);
   });
+
+  it("compares the body that was sent, as kept, and says nothing differs only when it does not", () => {
+    const withBody = (bodyPreview?: string) =>
+      side({ sent: { method: "POST", url: "https://api.test/pets", headers: [], bodyPreview } });
+    expect(diffExchanges(withBody('{"a":1}'), withBody('{"a":1}')).differs).toBe(false);
+    const diff = diffExchanges(withBody('{"a":1}'), withBody('{"a":"***"}'));
+    expect(diff.requestBody).toEqual({ changed: true, a: '{"a":1}', b: '{"a":"***"}' });
+    expect(diff.differs).toBe(true);
+    expect(diffExchanges(withBody(), withBody("x")).requestBody).toEqual({ changed: true, b: "x" });
+  });
 });

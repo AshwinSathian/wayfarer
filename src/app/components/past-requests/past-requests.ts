@@ -168,10 +168,15 @@ export class PastRequests {
   /** The rail was opened to compare, from a tab's response: its choice takes focus. */
   protected readonly asked = signal(false);
 
+  /** Each open or compare takes a number; an answer that is not the latest is dropped, so a slow read never replaces a later one. */
+  private latest = 0;
+
   protected async showDetail(id: number | undefined, asked = false): Promise<void> {
     this.asked.set(asked);
     this.gone.set("");
+    const turn = ++this.latest;
     const entry = id === undefined ? null : await this.history.get(id);
+    if (turn !== this.latest) return;
     if (!entry) {
       this.gone.set(compare.gone);
       return;
@@ -183,8 +188,10 @@ export class PastRequests {
   /** Compares the entries `a` and `b`, each read by its id: what the diff holds is what history kept, masked. */
   protected async showDiff(a: number | undefined, b: number | undefined): Promise<void> {
     this.gone.set("");
+    const turn = ++this.latest;
     const read = async (id: number | undefined) => (id === undefined ? null : await this.history.get(id));
     const [one, two] = await Promise.all([read(a), read(b)]);
+    if (turn !== this.latest) return;
     if (!one || !two) {
       this.gone.set(compare.gone);
       return;

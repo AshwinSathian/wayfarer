@@ -91,8 +91,18 @@
 </section>
 
 <section class="diff-part" aria-labelledby="diff-sent">
-  <h4 id="diff-sent" class="type-footnote">Headers sent</h4>
-  @if (!d.requestHeaders.length) {
+  <h4 id="diff-sent" class="type-footnote">Sent</h4>
+  @if (d.requestBody.changed) {
+  <p class="type-callout">The body sent differs.</p>
+  <ul class="diff-paths type-mono-body font-mono">
+    <li class="diff-path">
+      <span class="diff-a">{{ d.requestBody.a ?? '(none)' }}</span>
+      <span class="diff-b">{{ d.requestBody.b ?? '(none)' }}</span>
+    </li>
+  </ul>
+  } @else {
+  <p class="type-callout">The body sent is the same.</p>
+  } @if (!d.requestHeaders.length) {
   <p class="type-callout">No header differs.</p>
   } @else {
   <ul class="diff-list">

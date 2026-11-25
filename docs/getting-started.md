@@ -39,7 +39,7 @@ when one was kept, and what was sent. It says that timings and test results are 
 Two entries are compared from History: tick two with **Select…** and choose **Compare the two**, or open one, and
 choose another in **Compare with...** (the same from a tab's response, in the command palette). The comparison lists the
 status, route, request, headers and body; a JSON body is compared by path, what changed first, and a body that was not
-kept is not compared. It reads only what history kept, which has its secrets masked. <!-- claim:C-119 -->
+kept is not compared. It reads only what history kept, which has its secrets masked, so a secret that changed between two sends looks the same in both. <!-- claim:C-119 -->
 
 ## Keep it in a collection
 

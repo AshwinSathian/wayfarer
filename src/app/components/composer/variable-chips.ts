@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { variableCard, type PreviewVariable } from "@wayfarer/core";
+import { VariableNestingError, VariableResolver, variableCard, type PreviewVariable } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { RequestSave } from "../../services/request-save";
 import { VariableFocus } from "../../services/variable-focus";
@@ -59,8 +59,21 @@ export class VariableChips {
   protected valueOf(variable: PreviewVariable): string {
     if (variable.error) return variable.error;
     if (variable.vaulted || variable.source === "secret") return this.words.secretValue;
-    if (variable.value !== undefined) return variable.value;
+    if (variable.value !== undefined) return this.holdsSecret(variable.value) ? this.words.secretValue : variable.value;
     return variable.source === "dynamic" ? this.words.dynamicValue : this.words.noValue;
+  }
+
+  /**
+   * The value is, or refers to (a chain of variables, or text around a reference), a vault secret. The text is resolved
+   * with a stand-in for every secret: the vault is not read, and a value that cannot be resolved is not shown.
+   */
+  private holdsSecret(value: string): boolean {
+    try {
+      return new VariableResolver(this.store.scopes(), () => "\u0000").resolve(value).includes("\u0000");
+    } catch (error) {
+      if (!(error instanceof VariableNestingError)) throw error;
+      return true;
+    }
   }
 
   /** The holders whose value of the same name this one hides: "collection "Shop" and the globals". */

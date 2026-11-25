@@ -231,3 +231,40 @@ test("@claim:C-120 a variable's button shows its scope, value and holder on hove
   await expect(missing).toContainText("Not set in any scope.");
   await expect(missing.getByRole("button", { name: /^Add nowhere to/ }).first()).toBeVisible();
 });
+
+test("@claim:C-120 a value that refers to a vault secret, in a chain or in text, shows ***, and the popover reads nothing from the vault, locked or unlocked", async ({
+  page,
+}) => {
+  const plaintext = "chain-secret-8d41";
+  await seedAndOpen(
+    page,
+    { chained: "{{vaulted}}", bearer: "Bearer {{vaulted}}", plain: "visible" },
+    { method: "GET", url: `${ECHO}/echo?a={{chained}}&b={{bearer}}&c={{plain}}` },
+  );
+  await protectVariable(page, "vaulted", plaintext);
+  const row = page.locator("app-variable-chips");
+  const read = async (name: string) => {
+    await row.getByRole("button", { name: new RegExp(`^${name} `) }).click();
+    const text = await page.getByRole("dialog", { name: `Variable ${name}` }).innerText();
+    await page.keyboard.press("Escape");
+    return text;
+  };
+  const names = ["chained", "bearer", "plain"];
+  const unlocked: string[] = [];
+  for (const name of names) unlocked.push(await read(name));
+  expect(unlocked[0]).toContain("***");
+  expect(unlocked[1]).toContain("***");
+  expect(unlocked[2]).toContain("visible");
+  for (const text of unlocked) expect(text).not.toContain(plaintext);
+  expect(unlocked[0]).not.toContain("{{vaulted}}");
+  expect(unlocked[1]).not.toContain("$secret");
+
+  // A reload locks the vault. The popover says the same, and nothing asks for the passphrase.
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Vault locked", exact: true }).first()).toBeVisible();
+  const locked: string[] = [];
+  for (const name of names) locked.push(await read(name));
+  expect(locked).toEqual(unlocked);
+  await expect(page.getByLabel("Passphrase", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Vault locked", exact: true }).first()).toBeVisible();
+});

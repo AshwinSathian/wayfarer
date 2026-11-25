@@ -206,7 +206,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - History's search takes filters for status, method, host, route and time (`status:5xx`, `method:POST`, `host:x`, `route:bridge`, `slower-than:500ms`) beside words; a filter with a value it cannot read is named and matches nothing. <!-- claim:C-117 -->
 - A history entry opens beside the list as it was kept: status, response headers, the body when one was kept, and what was sent; it says that timings and test results are not recorded. <!-- claim:C-118 -->
 - Two history entries, or a tab's response and an entry, are compared by status, route, request, headers and body, a JSON body by path with what changed first; the comparison reads only the entries history kept, in which secrets are masked, and says when a body was not kept. <!-- claim:C-119 -->
-- A variable's button shows its scope and value on hover and keyboard focus, and its popover on a click, with the holder, what it hides and a button to show it where it is set or to add it; a vault secret shows as `***` and the vault is not read. <!-- claim:C-120 -->
+- A variable's button shows its scope and value on hover and keyboard focus, and its popover on a click, with the holder, what it hides and a button to show it where it is set or to add it; a vault secret, or a value that refers to one, shows as `***` and the vault is not read, locked or unlocked. <!-- claim:C-120 -->
 <!-- features:end -->
 
 </details>

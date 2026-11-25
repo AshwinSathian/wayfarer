@@ -33,6 +33,8 @@ export interface ExchangeDiff {
   duration: { a?: number; b?: number };
   route: { a: DiffSide["route"]; b: DiffSide["route"]; same: boolean };
   request: { method: { a: string; b: string }; address: { a: string; b: string }; changed: boolean };
+  /** The request's body as history kept it (masked): whether it differs. */
+  requestBody: { changed: boolean; a?: string; b?: string };
   requestHeaders: HeaderChange[];
   headers: HeaderChange[];
   body: BodyDiff;
@@ -81,6 +83,10 @@ const KEY = /^[A-Za-z_$][\w$]*$/;
 
 function shown(value: unknown): string {
   const text = typeof value === "string" ? JSON.stringify(value) : (JSON.stringify(value) ?? String(value));
+  return text.length > VALUE_SHOWN ? `${text.slice(0, VALUE_SHOWN)}…` : text;
+}
+
+function shownText(text: string): string {
   return text.length > VALUE_SHOWN ? `${text.slice(0, VALUE_SHOWN)}…` : text;
 }
 
@@ -150,6 +156,11 @@ export function diffExchanges(a: DiffSide, b: DiffSide): ExchangeDiff {
     address: { a: a.sent.url, b: b.sent.url },
     changed: a.sent.method !== b.sent.method || a.sent.url !== b.sent.url,
   };
+  const requestBody = {
+    changed: a.sent.bodyPreview !== b.sent.bodyPreview,
+    ...(a.sent.bodyPreview !== undefined && { a: shownText(a.sent.bodyPreview) }),
+    ...(b.sent.bodyPreview !== undefined && { b: shownText(b.sent.bodyPreview) }),
+  };
   const requestHeaders = headerChanges(a.sent.headers, b.sent.headers);
   const headers = headerChanges(a.response?.headers ?? [], b.response?.headers ?? []);
   const body = bodyDiff(a, b);
@@ -159,6 +170,7 @@ export function diffExchanges(a: DiffSide, b: DiffSide): ExchangeDiff {
     duration: { a: a.durationMs, b: b.durationMs },
     route,
     request,
+    requestBody,
     requestHeaders,
     headers,
     body,
@@ -166,6 +178,7 @@ export function diffExchanges(a: DiffSide, b: DiffSide): ExchangeDiff {
       !status.same ||
       !route.same ||
       request.changed ||
+      requestBody.changed ||
       requestHeaders.length > 0 ||
       headers.length > 0 ||
       body.kind === "json" ||

@@ -21,8 +21,8 @@ Only names you defined are variables. `{{constructor}}` is not one.
 
 Under the address, each variable of the request (in the address, a header, the body or the auth) is a small button.
 Hover over it or focus it with the keyboard to see its scope and value; click it, or press Enter, for a popover with the
-holder, what it hides and a button to show it where it is set or to add it. A variable that holds a vault secret shows
-`***`: the vault is not read to show it. <!-- claim:C-120 -->
+holder, what it hides and a button to show it where it is set or to add it. A variable that holds a vault secret, or a value that refers to one (through another variable, or in text around it), shows
+`***`: the vault is not read to show it, locked or not. <!-- claim:C-120 -->
 
 ## A value that holds a variable
 

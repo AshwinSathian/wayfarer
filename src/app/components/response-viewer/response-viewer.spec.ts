@@ -427,9 +427,7 @@ describe("ResponseViewer", () => {
       const held = element().querySelector(".tests-held");
       expect(held?.textContent).toContain("Scripts did not run, so their tests did not either.");
       expect(element().textContent).not.toContain("This request has no tests.");
-      expect(element().querySelector("[ngTab][value='tests'] .tab-badge .sr-only")?.textContent).toBe(
-        "(not reviewed)",
-      );
+      expect(element().querySelector("[ngTab][value='tests'] .tab-badge .sr-only")?.textContent).toBe("(not reviewed)");
       const opened = vi.fn();
       component.openScripts.subscribe(opened);
       held?.querySelector("button")?.click();

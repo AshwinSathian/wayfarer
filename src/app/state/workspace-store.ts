@@ -194,7 +194,8 @@ export class WorkspaceStore {
    * first), then its collection, then the globals. A request not saved yet
    * has no collection.
    */
-  private readonly scopes = computed<ScopeStack>(() => this.scopesOf(this.tabs.active()));
+  /** The scopes of the open tab, read by the variable popover to see whether a value refers to a secret (the vault is not read). */
+  readonly scopes = computed<ScopeStack>(() => this.scopesOf(this.tabs.active()));
 
   /** The same for `tab`, open or not: a send reads its own tab's (session 5B). */
   private scopesOf(tab: TabState): ScopeStack {

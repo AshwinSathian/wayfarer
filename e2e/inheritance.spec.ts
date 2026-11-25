@@ -276,7 +276,7 @@ test("the Auth tab names where an inherited token is set and where its value com
   await expect(line).toContainText('Bearer token is sent, from collection "Tripwire collection".');
   await expect(line).toContainText("{{token}} comes from the environment Tripwire env, as a vault secret.");
   // Auth's variables have chips, the vault's among them.
-  await expect(page.locator(".var-chip", { hasText: "From the vault" })).toContainText("token");
+  await expect(page.locator(".var-chip", { hasText: "Environment" })).toContainText("token");
 
   const echo = await sendAndEcho(page);
   expect(header(echo, "authorization")).toBe("Bearer env-secret-value");

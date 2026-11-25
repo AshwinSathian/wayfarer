@@ -175,9 +175,13 @@ test("before Send, the preview names the environment's secret that hides the col
   await expect(preview.locator(".preview-auth")).toHaveText(
     'Auth: Bearer token, from collection "Tripwire collection". {{token}} comes from the environment Tripwire env, as a vault secret.',
   );
-  const chip = preview.getByRole("button", { name: /^token environment "Tripwire env"/ });
-  await expect(chip).toContainText("*** from the vault");
-  await expect(chip).toContainText('Hides the value in collection "Tripwire collection"');
+  await preview.getByRole("button", { name: /^token Environment/ }).click();
+  const chip = page.getByRole("dialog", { name: "Variable token" });
+  await expect(chip).toContainText("*** (a vault secret");
+  await expect(chip).toContainText("Hides the value in");
+  await expect(chip).toContainText('collection "Tripwire collection"');
+  await expect(chip).not.toContainText(plaintext);
+  await page.keyboard.press("Escape");
   await expect(preview).not.toContainText(plaintext);
   await expect(preview).not.toContainText("collection-value");
 
@@ -199,10 +203,11 @@ test("the preview's chip for a variable with no value adds it to the environment
     '{{nowhere}} has no value in environment "Tripwire env". Set a value.',
   );
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
-  await expect(chip).toContainText("No value");
-  // The request is in a collection: the chip asks where the variable goes (D4.5).
+  // The request is in a collection: the popover asks where the variable goes (D4.5).
   await chip.press("Enter");
-  await page.getByRole("menuitem", { name: 'Add nowhere to environment "Tripwire env"' }).click();
+  const pop = page.getByRole("dialog", { name: "Variable nowhere" });
+  await expect(pop).toContainText("No value");
+  await pop.getByRole("button", { name: 'Add nowhere to environment "Tripwire env"' }).click();
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");
@@ -232,7 +237,12 @@ for (const theme of ["light", "dark"] as const) {
         collection: { auth: { type: "bearer", token: "{{host}}" }, variables: { host: "shadowed" } },
       },
     );
-    await expect(page.locator("app-variable-chips .var-chip-shadows")).toBeVisible();
+    await page
+      .locator("app-variable-chips")
+      .getByRole("button", { name: /^host / })
+      .click();
+    await expect(page.getByRole("dialog", { name: "Variable host" })).toContainText("Hides the value in");
+    await page.keyboard.press("Escape");
     await page.mouse.move(5, 5);
     // The missing chip pulses twice as it appears: axe reads its colours once it has stopped (a slow runner was
     // still in the pulse).
@@ -288,7 +298,11 @@ test("the preview's chip for a folder's variable opens the folder's settings at 
       folder: { variables: { page: "inner" } },
     },
   );
-  await page.getByRole("button", { name: /^page folder "Tripwire folder"/ }).press("Enter");
+  await page.getByRole("button", { name: /^page Folder/ }).press("Enter");
+  await page
+    .getByRole("dialog", { name: "Variable page" })
+    .getByRole("button", { name: /^Show page in / })
+    .click();
   const settings = page.getByRole("region", { name: "Folder settings: Tripwire folder" });
   await expect(settings).toBeVisible();
   await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
@@ -301,6 +315,10 @@ test("with no environment, the chip for a variable with no value makes one with 
   await page.locator("input.address-url").fill(`${ECHO}/{{nowhere}}`);
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
   await chip.press("Enter");
+  await page
+    .getByRole("dialog", { name: "Variable nowhere" })
+    .getByRole("button", { name: /^Make an environment/ })
+    .click();
   const region = page.getByRole("region", { name: "Environments", exact: true });
   await expect(page.locator("#new-env-name-input")).toBeFocused();
   await page.keyboard.type("Local");
@@ -316,11 +334,12 @@ test("the chip for a variable with no value can add it to the request's collecti
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/{{nowhere}}` });
   const chip = page.getByRole("button", { name: /^nowhere Missing/ });
   await chip.press("Enter");
-  await expect(page.getByRole("menuitem")).toHaveCount(2);
+  const pop = page.getByRole("dialog", { name: "Variable nowhere" });
+  await expect(pop.getByRole("button", { name: /^Add nowhere to/ })).toHaveCount(2);
   await page.keyboard.press("Escape");
   await expect(chip).toBeFocused();
   await chip.click();
-  await page.getByRole("menuitem", { name: 'Add nowhere to collection "Tripwire collection"' }).click();
+  await pop.getByRole("button", { name: 'Add nowhere to collection "Tripwire collection"' }).click();
   const settings = page.getByRole("region", { name: "Collection settings: Tripwire collection" });
   await expect(settings.getByRole("tab", { name: "Variables" })).toHaveAttribute("aria-selected", "true");
   await expect(settings.getByPlaceholder("Name", { exact: true }).last()).toHaveValue("nowhere");

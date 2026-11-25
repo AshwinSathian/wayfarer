@@ -1,0 +1,57 @@
+@let ex = view();
+<div class="detail-bar">
+  <button uiButton class="btn-sm detail-back" type="button" (click)="closed.emit()">
+    <app-icon name="chevron_right" class="icon-xs detail-back-icon" />All entries
+  </button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="opened.emit()">Open in a tab</button>
+</div>
+<h3 class="detail-title type-callout">
+  <span class="font-mono">{{ entry().sent.method }}</span>&ngsp;<span class="font-mono">{{ entry().sent.url }}</span>
+</h3>
+<p class="detail-facts type-footnote">
+  @if (ex.statusCode !== undefined) {
+  <span class="status-code" [class]="statusTone(ex.statusCode)">{{ ex.statusCode }}</span>
+  <span>{{ ex.statusText }}</span>
+  } @else {
+  <span class="text-status-error">No response</span>
+  }
+  <span>{{ route[entry().route === 'bridge' ? 'bridge' : 'page'] }}</span>
+  @if (entry().durationMs) {
+  <span class="tabular-nums">{{ formatDuration(entry().durationMs ?? 0) }}</span>
+  }
+  <span>{{ entry().createdAt | date: "medium" }}</span>
+</p>
+<span id="detail-part-label" class="sr-only">Part of the entry</span>
+<ui-segmented aria-labelledby="detail-part-label" [options]="parts" [value]="part()" (valueChange)="part.set($event)" />
+@switch (part()) { @case ("headers") {
+<div appResponseHeaders [exchange]="ex"></div>
+} @case ("sent") { @if (ex.sent; as sent) {
+<div appResponseSent [sent]="sent" label="What was sent, as kept"></div>
+} } @default { @if (ex.notRecorded.body) {
+<p class="detail-note type-callout">{{ words.noBodies }}</p>
+} @else if (bodyText()) {
+<pre class="detail-body type-mono-body font-mono" tabindex="0" aria-label="The response, as kept">{{ bodyText() }}</pre>
+} @else {
+<p class="detail-note type-callout">The response has no body.</p>
+} } }
+<p class="detail-gaps type-footnote">{{ words.gaps[0] }} {{ words.gaps[1] }}</p>
+<div class="detail-compare">
+  <span id="detail-compare-label" class="type-footnote">{{ words.menuItem }}</span>
+  <div class="detail-compare-row">
+    <ui-select
+      aria-labelledby="detail-compare-label"
+      placeholder="Choose an entry"
+      [options]="others()"
+      [value]="chosen() ?? -1"
+      (valueChange)="chosen.set($event)"
+    />
+    <button
+      uiButton="outlined"
+      class="btn-secondary"
+      type="button"
+      [disabled]="chosen() === null"
+      (click)="compared.emit(chosen() ?? -1)"
+      >Compare</button
+    >
+  </div>
+</div>

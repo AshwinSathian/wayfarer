@@ -2,9 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import { ROUTE_OPTIONS, strip, type SentView } from "@wayfarer/core";
+import { ROUTE_OPTIONS, strip, type PastRequest, type SentView } from "@wayfarer/core";
 import { RouteStrip, type StripPreset } from "../components/composer/route-strip";
 import { ResponseSent } from "../components/response-viewer/response-sent";
+import { ExchangeDiff } from "../components/past-requests/exchange-diff";
+import { HistoryDetail } from "../components/past-requests/history-detail";
 import { UiButton } from "../ui/button";
 import { UiCheckbox } from "../ui/checkbox";
 import { UiFile } from "../ui/file";
@@ -76,6 +78,8 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     TabMark,
     Splitter,
     ResponseSent,
+    ExchangeDiff,
+    HistoryDetail,
     RouteStrip,
   ],
   template: `
@@ -274,6 +278,22 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
               ></div>
             </div>
           }
+        </section>
+      }
+
+      @if (showDiff) {
+        <section aria-labelledby="catalogue-diff">
+          <h2 id="catalogue-diff" class="type-title-3">Diff and entry</h2>
+          <p class="type-callout text-label-secondary"
+            >Two history entries compared, and one entry as the rail shows it. Only what history kept: secrets are
+            ***.</p
+          >
+          <div class="catalogue-diff-state" data-state="Diff, a JSON body">
+            <app-exchange-diff [a]="diffA" [b]="diffB" />
+          </div>
+          <div class="catalogue-diff-state" data-state="Entry, body not kept">
+            <app-history-detail [entry]="diffNoBody" />
+          </div>
         </section>
       }
 
@@ -742,6 +762,32 @@ export class Catalogue {
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },
   ];
+  /** The diff and the rail's entry are drawn on `?catalogue&diff` only. */
+  protected readonly showDiff = new URLSearchParams(location.search).has("diff");
+  private entry(id: number, status: number, body: string | null, extra: [string, string][] = []): PastRequest {
+    return {
+      id,
+      createdAt: Date.UTC(2026, 10, 24, 9, id),
+      template: {} as PastRequest["template"],
+      sent: { method: "GET", url: "https://api.example.com/pets?limit=2", headers: [["Authorization", "***"]] },
+      response: {
+        status,
+        statusText: status === 200 ? "OK" : "Service Unavailable",
+        headers: [["content-type", "application/json"], ...extra],
+        ...(body !== null && { body: { text: body, truncated: false } }),
+      },
+      durationMs: 120 * id,
+      route: id === 1 ? "direct" : "bridge",
+    };
+  }
+  protected readonly diffA = this.entry(1, 200, '{"pets":[{"id":1,"name":"Rex"}],"total":1,"token":"***"}');
+  protected readonly diffB = this.entry(
+    2,
+    503,
+    '{"pets":[{"id":1,"name":"Max"},{"id":2}],"error":"busy","token":"***"}',
+    [["retry-after", "5"]],
+  );
+  protected readonly diffNoBody = this.entry(3, 200, null);
   /** The Sent part's states are drawn on `?catalogue&sent` only, as the strip's are. */
   protected readonly showSent = new URLSearchParams(location.search).has("sent");
   protected readonly sentStates: { name: string; sent: SentView }[] = [

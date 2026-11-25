@@ -1,5 +1,5 @@
-<section class="history h-full w-full">
-  <p class="sr-only" role="status">{{ said() }}</p>
+<section class="history h-full w-full" [class.has-rail]="railOpen()">
+  <p class="sr-only" role="status">{{ said() }}{{ gone() }}</p>
   @if (loading()) {
   <!-- Rows to come, as rows: no box inside the drawer's box (U-093). -->
   <div class="flex flex-col gap-3 px-3 py-2">
@@ -19,7 +19,7 @@
     >
   </div>
   } @else {
-  <div class="flex flex-col gap-3">
+  <div class="history-pane flex flex-col gap-3">
     <div class="history-tools flex flex-col gap-2 px-3 pt-1">
       <input
         class="font-sans w-full"
@@ -28,8 +28,14 @@
         aria-label="Search history"
         [placeholder]="hasModelCalls() ? 'Search by name, address, method, status or model' : 'Search by name, address, method or status'"
         [value]="query()"
+        aria-describedby="history-filter-help"
         (input)="query.set($any($event.target).value)"
       />
+      <p id="history-filter-help" class="history-help type-footnote">
+        @if (invalid().length) {
+        <span class="text-status-error">{{ invalid().join(" ") }} is not a value that filter takes.</span> } @else {
+        Filters: {{ filterHelp }} }
+      </p>
       @if (hasModelCalls()) {
       <div class="flex items-center gap-2">
         <span id="history-kind-label" class="type-footnote text-label-secondary">Show</span>
@@ -55,6 +61,11 @@
         >
           <app-icon name="download" /> Export {{ chosen().length || "" }} as HAR…
         </button>
+        @if (twoChosen()) {
+        <button uiButton="outlined" type="button" class="btn-secondary btn-sm" (click)="compareChosen()"
+          >{{ compareWords.chosen }}</button
+        >
+        }
         <button uiButton type="button" class="btn-secondary btn-sm ms-auto" (click)="stopSelecting()">Done</button>
         } @else {
         <button uiButton type="button" class="btn-secondary btn-sm" (click)="selecting.set(true)">Select…</button>
@@ -83,7 +94,7 @@
 
       <ul class="history-list">
         @for (request of group.requests; track trackById($index, request)) {
-        <li class="history-row">
+        <li class="history-row" [attr.data-entry]="request.id">
           @if (selecting()) {
           <input
             type="checkbox"
@@ -132,7 +143,11 @@
               <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0"
                 ><ui-method-glyph [method]="request.sent.method" />{{ request.sent.method }}</span
               >
-              <span class="history-address type-mono-body">{{ request.sent.url }}</span>
+              @let at = addressParts(request.sent.url);
+              <span class="history-address type-mono-body"
+                ><span class="history-scheme">{{ at.scheme }}</span><span class="history-host">{{ at.host }}</span>{{
+                at.rest }}</span
+              >
             </span>
             <span class="history-facts type-footnote">
               @if (request.response) {
@@ -144,21 +159,37 @@
               } @if (request.durationMs) {
               <span class="tabular-nums">{{ formatDuration(request.durationMs) }}</span>
               }
+              <span>{{ route[request.route === 'bridge' ? 'bridge' : 'page'] }}</span>
               <span>{{ relativeTime(request.createdAt) }}</span>
             </span>
           </button>
           }
-          <button
-            type="button"
-            uiButton="icon"
-            class="btn-plain history-delete"
-            uiTooltip="Delete from history"
-            uiTooltipPosition="above"
-            aria-label="Delete from history"
-            (click)="confirmDelete(request, $event)"
-          >
-            <app-icon name="delete" class="icon-sm" />
-          </button>
+          <span class="history-actions">
+            @if (!request.model) {
+            <button
+              type="button"
+              uiButton="icon"
+              class="btn-plain history-details"
+              uiTooltip="Details"
+              uiTooltipPosition="above"
+              [attr.aria-label]="'Details of ' + request.sent.method + ' ' + addressParts(request.sent.url).host + (request.response ? ', ' + request.response.status : '')"
+              (click)="showDetail(request.id)"
+            >
+              <app-icon name="info" class="icon-sm" />
+            </button>
+            }
+            <button
+              type="button"
+              uiButton="icon"
+              class="btn-plain history-delete"
+              uiTooltip="Delete from history"
+              uiTooltipPosition="above"
+              aria-label="Delete from history"
+              (click)="confirmDelete(request, $event)"
+            >
+              <app-icon name="delete" class="icon-sm" />
+            </button>
+          </span>
 
           <ng-template #details>
             <div class="space-y-1.5 min-w-45 max-w-xs type-callout p-1">
@@ -172,42 +203,7 @@
             </div>
           </ng-template>
           @if (request.model && expanded() === request.id && opened(); as entry) {
-          <div class="history-model-record">
-            <section class="exchange-record type-footnote" aria-label="Exchange record">
-              <app-exchange-record [record]="entry.record" [actions]="false" />
-            </section>
-            <div class="flex flex-wrap gap-2">
-              <button
-                uiButton
-                type="button"
-                class="btn-sm"
-                [attr.aria-expanded]="showing() === 'sent'"
-                (click)="showing.set(showing() === 'sent' ? null : 'sent')"
-                >Show what was sent</button
-              >
-              @if (entry.response?.body) {
-              <button
-                uiButton
-                type="button"
-                class="btn-sm"
-                [attr.aria-expanded]="showing() === 'answer'"
-                (click)="showing.set(showing() === 'answer' ? null : 'answer')"
-                >Show the response</button
-              >
-              }
-            </div>
-            @if (showing() === "sent") {
-            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="What was sent, as kept">
-{{
-            entry.sent.method + " " + entry.sent.url + "\n" + headerLines(entry) + "\n\n" + (entry.sent.bodyPreview ?? "")
-          }}</pre>
-            } @else if (showing() === "answer") {
-            <pre class="history-kept type-mono-body font-mono" tabindex="0" aria-label="The response, as kept">
-{{
-            entry.response?.body?.text
-          }}</pre>
-            }
-          </div>
+          <app-history-model-record [entry]="entry" />
           }
         </li>
         }
@@ -215,7 +211,22 @@
     </div>
     }
   </div>
-  }
+  @if (railOpen()) {
+  <div class="history-rail" role="region" aria-label="Entry">
+    @defer (on immediate) { @if (diff(); as d) {
+    <app-exchange-diff [a]="d.a" [b]="d.b" (closed)="detail() ? closeDiff() : closeRail()" />
+    } @else if (detail(); as entry) {
+    <app-history-detail
+      [entry]="entry"
+      [others]="others()"
+      [focusCompare]="asked()"
+      (closed)="closeRail()"
+      (opened)="loadRequest.emit(entry)"
+      (compared)="showDiff(entry.id, $event)"
+    />
+    } }
+  </div>
+  } }
 </section>
 
 <app-har-export-dialog [source]="harSource()" (closed)="harSource.set(null)" />

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { PastRequests, matches } from "./past-requests";
+import { PastRequests } from "./past-requests";
+import { matches } from "./history-filter";
 import { PastRequest } from "@wayfarer/core";
 import { Confirm } from "../../ui/confirm";
 import { describe, it, beforeEach, expect, vi } from "vitest";
@@ -235,6 +236,74 @@ describe("PastRequests", () => {
       fixture.componentRef.setInput("pastRequests", entries.slice(1));
       fixture.detectChanges();
       expect(button(/as HAR/).textContent).toContain("Export 1 as HAR…");
+    });
+  });
+  describe("the rail and the diff", () => {
+    const withBody = (id: number, url: string, body: string): PastRequest => ({
+      id,
+      ...historyEntry({ url, createdAt: id * 1000, status: 200 }),
+      response: { status: 200, statusText: "OK", headers: [], body: { text: body, truncated: false } },
+    });
+    const pair = [withBody(2, "https://api.test/b", '{"n":2}'), withBody(1, "https://api.test/a", '{"n":1}')];
+    const text = () => (fixture.nativeElement as HTMLElement).textContent ?? "";
+
+    beforeEach(() => {
+      stored = pair;
+      fixture.componentRef.setInput("pastRequests", pair);
+      fixture.detectChanges();
+    });
+
+    it("opens an entry in the rail as it was kept, read by its id, and tells the shell", async () => {
+      const railOpen = vi.fn();
+      component.railChange.subscribe(railOpen);
+      fixture.componentRef.setInput("openEntry", { id: 1, compare: false });
+      await vi.waitFor(() => expect(text()).toContain("Timings: not recorded."));
+      expect(text()).toContain('{"n":1}');
+      expect(railOpen).toHaveBeenLastCalledWith(true);
+    });
+
+    it("drops a slow read that a later open has passed", async () => {
+      let release: (entry: PastRequest | null) => void = () => undefined;
+      const slow = new Promise<PastRequest | null>((resolve) => (release = resolve));
+      const history = TestBed.inject(HistoryRepository) as unknown as {
+        get: { mockImplementationOnce: (read: () => Promise<PastRequest | null>) => void };
+      };
+      history.get.mockImplementationOnce(() => slow);
+      fixture.componentRef.setInput("openEntry", { id: 2, compare: false });
+      fixture.detectChanges();
+      fixture.componentRef.setInput("openEntry", { id: 1, compare: false });
+      await vi.waitFor(() => expect(text()).toContain('{"n":1}'));
+      release(pair[0]);
+      await new Promise((resolve) => setTimeout(resolve));
+      fixture.detectChanges();
+      expect(text()).toContain('{"n":1}');
+      expect(text()).not.toContain('{"n":2}');
+    });
+
+    it("says an entry that is gone since the list was read, and opens nothing", async () => {
+      fixture.componentRef.setInput("openEntry", { id: 99, compare: false });
+      await vi.waitFor(() => expect(text()).toContain("That entry is no longer in history."));
+      expect(text()).not.toContain("Timings: not recorded.");
+    });
+
+    it("compares the two ticked entries by path and goes back to the list", async () => {
+      component.selecting.set(true);
+      fixture.detectChanges();
+      const boxes = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+        '.history-row input[type="checkbox"]',
+      );
+      boxes[0].click();
+      boxes[1].click();
+      fixture.detectChanges();
+      const compare = [...(fixture.nativeElement as HTMLElement).querySelectorAll("button")].find(
+        (button) => button.textContent === "Compare the two",
+      );
+      compare?.click();
+      await vi.waitFor(() => expect(text()).toContain("$.n"));
+      expect(text()).toContain("Secret values are masked in both.");
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(".diff-bar button")?.click();
+      fixture.detectChanges();
+      expect(text()).not.toContain("$.n");
     });
   });
 });

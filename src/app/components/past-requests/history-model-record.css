@@ -1,0 +1,20 @@
+/* A model call opened in place: its record, and the kept texts, wrapping. */
+:host {
+  display: flex;
+  flex: 1 0 100%;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px 10px;
+}
+
+.history-kept {
+  max-height: calc(24 * 1.5em);
+  margin: 0;
+  padding: 8px 10px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

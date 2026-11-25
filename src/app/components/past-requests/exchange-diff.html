@@ -1,0 +1,119 @@
+@let d = diff();
+<div class="diff-bar">
+  <button uiButton class="btn-sm diff-back" type="button" (click)="closed.emit()">
+    <app-icon name="chevron_right" class="icon-xs diff-back-icon" />Back
+  </button>
+</div>
+<h3 class="diff-title type-callout" role="status">{{ heading() }}</h3>
+<dl class="diff-sides type-footnote">
+  <dt>A</dt>
+  <dd class="font-mono">{{ nameA() }}</dd>
+  <dt>B</dt>
+  <dd class="font-mono">{{ nameB() }}</dd>
+</dl>
+@if (!d.differs) {
+<p class="diff-same type-callout">{{ words.nothingDiffers }}</p>
+}
+
+<section class="diff-part" aria-labelledby="diff-status">
+  <h4 id="diff-status" class="type-footnote">Status and route</h4>
+  <table class="diff-table type-callout">
+    <thead>
+      <tr><td></td><th scope="col">A</th><th scope="col">B</th></tr>
+    </thead>
+    <tbody>
+      <tr [class.diff-changed]="!d.status.same">
+        <th scope="row">Status</th><td>{{ d.status.a }}</td><td>{{ d.status.b }}</td>
+      </tr>
+      <tr [class.diff-changed]="!d.route.same">
+        <th scope="row">Route</th>
+        <td>{{ route[d.route.a === 'bridge' ? 'bridge' : 'page'] }}</td>
+        <td>{{ route[d.route.b === 'bridge' ? 'bridge' : 'page'] }}</td>
+      </tr>
+      @if (d.request.changed) {
+      <tr class="diff-changed">
+        <th scope="row">Request</th>
+        <td class="font-mono">{{ d.request.method.a }} {{ d.request.address.a }}</td>
+        <td class="font-mono">{{ d.request.method.b }} {{ d.request.address.b }}</td>
+      </tr>
+      }
+      <tr>
+        <th scope="row">Time</th>
+        <td class="tabular-nums">{{ d.duration.a === undefined ? 'not recorded' : formatDuration(d.duration.a) }}</td>
+        <td class="tabular-nums">{{ d.duration.b === undefined ? 'not recorded' : formatDuration(d.duration.b) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="diff-gaps type-footnote">{{ words.gaps[0] }} {{ words.gaps[1] }}</p>
+</section>
+
+<section class="diff-part" aria-labelledby="diff-body">
+  <h4 id="diff-body" class="type-footnote">Body</h4>
+  @switch (d.body.kind) { @case ("same") {
+  <p class="type-callout">The bodies are the same.</p>
+  } @case ("not-kept") {
+  <p class="type-callout">{{ words.noBodies }}</p>
+  } @case ("text") {
+  <p class="type-callout"
+    >The bodies differ, first at line {{ d.body.line }}. They are not JSON, so they are not compared by path.</p
+  >
+  } @case ("json") {
+  <ul class="diff-paths type-mono-body font-mono">
+    @for (change of d.body.changes; track $index) {
+    <li class="diff-path diff-{{ change.kind }}">
+      <span class="diff-kind type-footnote font-sans">{{ kindWord(change) }}</span>
+      <span class="diff-at">{{ change.path }}</span>
+      @if (change.a !== undefined) {<span class="diff-a"><span class="sr-only">A: </span>{{ change.a }}</span>} @if
+      (change.b !== undefined) {<span class="diff-b"><span class="sr-only">B: </span>{{ change.b }}</span>}
+    </li>
+    }
+  </ul>
+  @if (d.body.more) {
+  <p class="type-footnote">and {{ d.body.more }} more.</p>
+  } } }
+</section>
+
+<section class="diff-part" aria-labelledby="diff-headers">
+  <h4 id="diff-headers" class="type-footnote">Response headers</h4>
+  @if (!d.headers.length) {
+  <p class="type-callout">No header differs.</p>
+  } @else {
+  <ul class="diff-list">
+    @for (change of d.headers; track change.name) {
+    <li class="type-callout">
+      <span class="diff-kind type-footnote">{{ kindWord(change) }}</span>
+      <span class="font-mono">{{ change.name }}</span>: <span class="font-mono">{{ values(change.a) }}</span> to
+      <span class="font-mono">{{ values(change.b) }}</span>
+    </li>
+    }
+  </ul>
+  }
+</section>
+
+<section class="diff-part" aria-labelledby="diff-sent">
+  <h4 id="diff-sent" class="type-footnote">Sent</h4>
+  @if (d.requestBody.changed) {
+  <p class="type-callout">The body sent differs.</p>
+  <ul class="diff-paths type-mono-body font-mono">
+    <li class="diff-path">
+      <span class="diff-a">{{ d.requestBody.a ?? '(none)' }}</span>
+      <span class="diff-b">{{ d.requestBody.b ?? '(none)' }}</span>
+    </li>
+  </ul>
+  } @else {
+  <p class="type-callout">The body sent is the same.</p>
+  } @if (!d.requestHeaders.length) {
+  <p class="type-callout">No header differs.</p>
+  } @else {
+  <ul class="diff-list">
+    @for (change of d.requestHeaders; track change.name) {
+    <li class="type-callout">
+      <span class="diff-kind type-footnote">{{ kindWord(change) }}</span>
+      <span class="font-mono">{{ change.name }}</span>: <span class="font-mono">{{ values(change.a) }}</span> to
+      <span class="font-mono">{{ values(change.b) }}</span>
+    </li>
+    }
+  </ul>
+  }
+</section>
+<p class="diff-masked type-footnote">{{ words.masked }}</p>

@@ -41,7 +41,11 @@ test.describe("Environments", () => {
 test("a click on an environment variable's chip opens the environments with that variable shown", async ({ page }) => {
   await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
   await expect(page.getByRole("region", { name: "Environments", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: /^host environment/ }).click();
+  await page.getByRole("button", { name: /^host Environment/ }).click();
+  await page
+    .getByRole("dialog", { name: "Variable host" })
+    .getByRole("button", { name: "Show host in its environment" })
+    .click();
   const dialog = page.getByRole("region", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("input[placeholder='Name']")).toHaveValue("host");
@@ -261,5 +265,5 @@ test("a variable switched off keeps its value and is not used", async ({ page })
   await expect(again.getByPlaceholder("Value", { exact: true })).toHaveValue("example.com");
   await again.getByRole("checkbox", { name: "Use host" }).check();
   await closeEnvironments(page);
-  await expect(page.getByRole("button", { name: /^host environment/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^host Environment/ })).toBeVisible();
 });

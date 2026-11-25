@@ -215,10 +215,37 @@ export const compare = {
   menuItem: "Compare with...",
   first: "Compare with this",
   comparing: (a: string, b: string) => `Comparing ${a} with ${b}`,
+  gone: "That entry is no longer in history.",
+  chosen: "Compare the two",
+  fromTab: "Compare this response with...",
   noBodies: "Bodies were not kept for this entry, so only status and headers are compared.",
   gaps: ["Timings: not recorded.", "Tests: not recorded.", "Body: not recorded."],
   nothingDiffers: "Nothing differs.",
   masked: "Secret values are masked in both.",
+} as const;
+
+/** A variable as its popover says it: the scope it comes from, and what it holds. A secret is never read, so never shown. */
+export const variableCard = {
+  scopes: {
+    environment: "Environment",
+    collection: "Collection",
+    folder: "Folder",
+    global: "Global",
+    secret: "Secret",
+    dynamic: "Dynamic",
+    missing: "Missing",
+    local: "Script",
+    data: "Data file",
+  },
+  value: "Value",
+  source: "Set in",
+  hides: "Hides the value in",
+  secretValue: "*** (a vault secret, read only when the request is sent)",
+  dynamicValue: "New value each send",
+  noValue: "No value",
+  notSet: "Not set in any scope.",
+  docs: "Where a value comes from",
+  close: "Close",
 } as const;
 
 export const statusBar = {

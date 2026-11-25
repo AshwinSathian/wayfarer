@@ -7,20 +7,24 @@ import { HistoryRecord, IdbCore } from "./idb-core";
  * but its host. Kept for the whole session in every tab, so it is small; a row that is opened or exported reads its
  * entry by id (`get`).
  */
-export type HistorySummary = Pick<PastRequest, "id" | "createdAt" | "durationMs" | "error" | "model" | "sentFrom"> & {
+export type HistorySummary = Pick<
+  PastRequest,
+  "id" | "createdAt" | "durationMs" | "error" | "model" | "route" | "sentFrom"
+> & {
   sent: Pick<PastRequest["sent"], "method" | "url">;
   response?: Pick<NonNullable<PastRequest["response"]>, "status">;
   record?: { host: string };
 };
 
 function summaryOf(entry: PastRequest): HistorySummary {
-  const { id, createdAt, durationMs, error, model, sentFrom, sent, response, record } = entry;
+  const { id, createdAt, durationMs, error, model, route, sentFrom, sent, response, record } = entry;
   return {
     id,
     createdAt,
     durationMs,
     error,
     model,
+    route,
     sentFrom,
     sent: { method: sent.method, url: sent.url },
     ...(response && { response: { status: response.status } }),

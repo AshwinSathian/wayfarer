@@ -50,8 +50,9 @@
 >
   @if (selected(); as variable) {
   <p class="var-pop-title type-callout"
-    ><span class="font-mono font-semibold">{{ variable.name }}</span>
-    <span class="text-label-secondary">{{ words.scopes[variable.source] }}</span></p
+    ><span class="font-mono font-semibold">{{ variable.name }}</span>&ngsp;<span class="text-label-secondary"
+      >{{ words.scopes[variable.source] }}</span
+    ></p
   >
   <dl class="var-pop-facts type-footnote">
     <dt>{{ words.value }}</dt>

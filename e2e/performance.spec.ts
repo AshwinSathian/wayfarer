@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { ECHO } from "./support/echo";
 
 // P7.2: what the page sends first holds none of the large libraries, and
 // typing stays quick with several tabs open.
@@ -113,4 +114,103 @@ test("typing into the address with five tabs open answers each key within 100 ms
     inp,
     `the slowest key interactions (ms): ${worst.slice(0, 10).map(Math.round).join(", ")}`,
   ).toBeLessThanOrEqual(100);
+});
+
+// BB3: a budget on the first interaction and on a large body. Method: the production build, headless Chromium at 1440 x
+// 900, five runs on a 2026 laptop (Apple M4 Pro); each budget is about 3x the slowest of the five runs (ms), so a CI
+// runner's noise does not fail it and a real regression (a body parsed on the main thread) does.
+//   key (a character typed into the address)        13-17      budget 100
+//   send (Send to a 200, from the echo server)       124-168    budget 500
+//   input (slowest first click or key, to handled)   3-4        budget 100 (INP's "good" is 200)
+//   5 MB JSON drawn in the viewer                    509-527    budget 1500; longest task 56-59, budget 200
+//   1 MB text drawn in the viewer                    408-504    budget 1500; longest task 227-246, budget 750
+// Long Tasks and Event Timing are Chromium's: the other engines skip it. By hand with e2e.yml, like every browser test.
+const BUDGET = { firstKey: 100, send: 500, firstInput: 100, drawn: 1500, longTaskJson: 200, longTaskText: 750 };
+
+interface Probe {
+  longTasks: number[];
+  inputs: number[];
+}
+
+async function probe(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const record: Probe = { longTasks: [], inputs: [] };
+    (window as unknown as { __probe: Probe }).__probe = record;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) record.longTasks.push(entry.duration);
+    }).observe({ type: "longtask", buffered: true });
+    if ("PerformanceEventTiming" in window)
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as PerformanceEventTiming[])
+          if (entry.interactionId) record.inputs.push(entry.processingEnd - entry.startTime);
+      }).observe({ type: "event", durationThreshold: 16 } as PerformanceObserverInit);
+  });
+}
+
+const read = (page: Page): Promise<Probe> => page.evaluate(() => (window as unknown as { __probe: Probe }).__probe);
+
+test.describe("performance budget (BB3)", () => {
+  test.beforeEach(async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "Long Tasks and Event Timing are Chromium's");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await probe(page);
+  });
+
+  test("the address takes a typed character and Send answers, and the first click and key are handled, within the budget", async ({
+    page,
+  }) => {
+    await page.goto("/app/");
+    const address = page.locator("input.address-url");
+    await expect(address).toBeVisible();
+    await expect(address).toBeFocused();
+    const keyStart = Date.now();
+    await page.keyboard.press("h");
+    await expect(address).toHaveValue("h");
+    const firstKey = Date.now() - keyStart;
+    await address.fill(`${ECHO}/echo`);
+    const sendStart = Date.now();
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    const send = Date.now() - sendStart;
+    await page.waitForTimeout(300);
+    const { inputs } = await read(page);
+    const firstInput = Math.max(0, ...inputs);
+    console.log(
+      `BB3 first interaction: key ${firstKey} ms, send ${send} ms, slowest input ${Math.round(firstInput)} ms`,
+    );
+    expect(firstKey, "a typed character reaches the field").toBeLessThanOrEqual(BUDGET.firstKey);
+    expect(send, "Send to a 200").toBeLessThanOrEqual(BUDGET.send);
+    expect(firstInput, "the slowest of the first click and key, input delay and processing").toBeLessThanOrEqual(
+      BUDGET.firstInput,
+    );
+  });
+
+  for (const [kind, shown, longTask] of [
+    ["json", ".monaco-editor", BUDGET.longTaskJson],
+    ["text", "pre", BUDGET.longTaskText],
+  ] as const) {
+    test(`a ${kind === "json" ? 5 : 1} MB ${kind} response is drawn within the budget and no task freezes the page`, async ({
+      page,
+    }) => {
+      test.setTimeout(120_000);
+      await page.goto("/app/");
+      await page.locator("input.address-url").fill(`${ECHO}/big-${kind}/${kind === "json" ? 5 : 1}`);
+      await expect(page.locator("input.address-url")).toHaveValue(/big-/);
+      await page.evaluate(() => void ((window as unknown as { __probe: Probe }).__probe.longTasks.length = 0));
+      const start = Date.now();
+      await page.getByRole("button", { name: "Send request" }).click();
+      await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 60_000 });
+      await expect(page.locator(`app-response-viewer ${shown}`).first()).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText(/line 0:|"item-0"/).first()).toBeVisible({ timeout: 60_000 });
+      const drawn = Date.now() - start;
+      await page.waitForTimeout(500);
+      const { longTasks } = await read(page);
+      const longest = Math.max(0, ...longTasks);
+      console.log(`BB3 large ${kind}: drawn ${drawn} ms, longest task ${Math.round(longest)} ms`);
+      expect(drawn, "from Send to the body on screen").toBeLessThanOrEqual(BUDGET.drawn);
+      expect(longest, `the longest task (ms), all: ${longTasks.map(Math.round).join(", ")}`).toBeLessThanOrEqual(
+        longTask,
+      );
+    });
+  }
 });

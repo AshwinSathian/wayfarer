@@ -140,7 +140,9 @@ test("@claim:C-021 visual assertions on status, headers, body and duration repor
   await expect(page.locator(".test-result-fail")).toHaveCount(1);
 });
 
-test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow-Origin", async ({ page }) => {
+test("@claim:C-023 @claim:C-105 phase timings are withheld when the server omits Timing-Allow-Origin", async ({
+  page,
+}) => {
   await page.goto("/app/");
   // Allows the (preflighted) request but sends no Timing-Allow-Origin.
   await page.locator("input.address-url").fill(`${ECHO}/cors/no-expose?c023=${Date.now()}`);
@@ -149,8 +151,8 @@ test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow
   const timingsTab = page.locator("app-response-viewer").getByRole("tab", { name: "Timings" });
   await timingsTab.click();
   const timings = page.getByRole("tabpanel", { name: "Timings" });
-  await expect(timings.getByText("CORS-limited timings")).toBeVisible();
-  for (const phase of ["DNS", "Connect", "TLS", "TTFB", "Content"]) {
+  await expect(timings.getByText("Total only: this server does not share timing.")).toBeVisible();
+  for (const phase of ["DNS", "TCP", "TLS", "TTFB", "Content"]) {
     await expect(timings.getByText(phase, { exact: true })).toHaveCount(0);
   }
 });

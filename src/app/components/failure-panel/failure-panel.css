@@ -1,0 +1,24 @@
+/* No box and no hue: the glyph and the words carry it, and the panel is ink (DQ11). */
+.failure-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.failure-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.failure-cause,
+.failure-next,
+.failure-reported {
+  margin: 0;
+}
+
+.failure-reported .font-mono {
+  overflow-wrap: anywhere;
+}

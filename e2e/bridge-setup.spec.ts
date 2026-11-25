@@ -38,26 +38,27 @@ test("a failed send with no bridge paired sets the bridge up in place, and Send 
     await expect(record.locator(".record-route")).toHaveText(
       "Sent from this page to 127.0.0.1:4300. No Local Bridge is paired.",
     );
-    await expect(record.getByRole("button", { name: "Send through the Local Bridge" })).toHaveCount(0);
+    const panel = page.getByRole("region", { name: "Why there was no response" });
+    await expect(panel.getByRole("button", { name: "Send through the Local Bridge" })).toHaveCount(0);
 
-    await expect(record.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
-    await record.getByRole("button", { name: "Copy the command" }).click();
-    await expect(record.locator(".bridge-setup-said")).toHaveText("Copied npx wayfarer-bridge.");
+    await expect(panel.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
+    await panel.getByRole("button", { name: "Copy the command" }).click();
+    await expect(panel.locator(".bridge-setup-said")).toHaveText("Copied npx wayfarer-bridge.");
     expect(await page.evaluate(() => (window as unknown as { __clipboard: string[] }).__clipboard)).toEqual([
       "npx wayfarer-bridge",
     ]);
 
-    await record.getByLabel("Pairing code", { exact: true }).fill("WRONG-0000");
-    await record.getByRole("button", { name: "Pair" }).click();
-    await expect(record.locator(".bridge-setup-said")).toHaveText(
+    await panel.getByLabel("Pairing code", { exact: true }).fill("WRONG-0000");
+    await panel.getByRole("button", { name: "Pair" }).click();
+    await expect(panel.locator(".bridge-setup-said")).toHaveText(
       "That is not the code the bridge shows. After three wrong codes the bridge waits a minute.",
     );
-    await record.getByLabel("Pairing code", { exact: true }).fill(bridge.pairingCode);
-    await record.getByRole("button", { name: "Pair" }).click();
-    await expect(record.locator(".bridge-setup-said")).toHaveText("Paired: the token is saved.");
+    await panel.getByLabel("Pairing code", { exact: true }).fill(bridge.pairingCode);
+    await panel.getByRole("button", { name: "Pair" }).click();
+    await expect(panel.locator(".bridge-setup-said")).toHaveText("Paired: the token is saved.");
     await expect(routeItem).toHaveText("Route: Auto");
 
-    await record.getByRole("button", { name: "Send again" }).click();
+    await panel.getByRole("button", { name: "Send again" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
     await expect(page.locator(".record-toggle")).toHaveText("Record");
   } finally {
@@ -83,8 +84,9 @@ test("with a bridge paired, a failed send offers to send through it and says not
   await send(page);
   const record = page.getByRole("region", { name: "Exchange record" });
   await expect(record.locator(".record-route")).toHaveText("Sent from this page to 127.0.0.1:9.");
-  await expect(record.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
-  await expect(record.locator(".bridge-command")).toHaveCount(0);
+  const panel = page.getByRole("region", { name: "Why there was no response" });
+  await expect(panel.getByRole("button", { name: "Send through the Local Bridge" })).toBeVisible();
+  await expect(panel.locator(".bridge-command")).toHaveCount(0);
 });
 
 test.describe("on a phone", () => {
@@ -96,9 +98,9 @@ test.describe("on a phone", () => {
     await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/cors/none?id=${randomUUID()}`);
     await send(page);
-    const record = page.getByRole("region", { name: "Exchange record" });
-    await expect(record).toContainText("The Local Bridge runs on a computer: open Wayfarer on one");
-    await expect(record.locator(".bridge-command")).toHaveCount(0);
-    await expect(record.getByLabel("Pairing code", { exact: true })).toHaveCount(0);
+    const panel = page.getByRole("region", { name: "Why there was no response" });
+    await expect(panel).toContainText("The Local Bridge runs on a computer: open Wayfarer on one");
+    await expect(panel.locator(".bridge-command")).toHaveCount(0);
+    await expect(panel.getByLabel("Pairing code", { exact: true })).toHaveCount(0);
   });
 });

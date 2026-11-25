@@ -136,13 +136,13 @@ async function bridgeStarted(page: Page): Promise<void> {
   await ready(page);
 }
 
-/** From the failure's record: Copy the command, the code the bridge printed, Pair, Send again. */
+/** From the failure panel: Copy the command, the code the bridge printed, Pair, Send again. */
 async function pairInPlace(user: User): Promise<void> {
-  const record = user.page.getByRole("region", { name: "Exchange record" });
-  await user.click(button(record, "Copy the command"));
-  await user.type(record.getByLabel("Pairing code", { exact: true }), bridge?.pairingCode ?? "");
-  await user.click(button(record, "Pair"));
-  await user.click(button(record, "Send again"));
+  const panel = user.page.getByRole("region", { name: "Why there was no response" });
+  await user.click(button(panel, "Copy the command"));
+  await user.type(panel.getByLabel("Pairing code", { exact: true }), bridge?.pairingCode ?? "");
+  await user.click(button(panel, "Pair"));
+  await user.click(button(panel, "Send again"));
 }
 
 const TASKS: Task[] = [
@@ -234,12 +234,14 @@ const TASKS: Task[] = [
     id: "5b",
     name: "Find why a request failed: DNS",
     before: bridgeStarted,
-    // The cause is named by the bridge's own words in the record: the name does not resolve.
+    // The cause is named in the failure panel: the name does not resolve.
     do: async (user) => {
       await user.type(address(user.page), "http://no-such-host.invalid/");
       await user.click(send(user.page));
       await pairInPlace(user);
-      await expect(user.page.locator(".record-failure")).toContainText("ENOTFOUND", { timeout: 15_000 });
+      await expect(user.page.locator(".failure-panel")).toContainText("Could not find no-such-host.invalid", {
+        timeout: 15_000,
+      });
     },
     after: () => bridge?.stop(),
   },

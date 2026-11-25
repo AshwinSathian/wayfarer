@@ -17,7 +17,7 @@ import {
 import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest, recordHeadline } from "@wayfarer/core";
+import { PastRequest, recordHeadline, type FailureAction } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
@@ -130,6 +130,8 @@ export class Composer {
   readonly newRequest = output<void>();
   /** A run asked for the Local Bridge's settings (U-014): the shell holds Settings. */
   readonly openBridge = output<void>();
+  /** A failed send's "Raise the timeout": the request timeout is in Settings, which the shell holds. */
+  readonly openSettings = output<void>();
 
   /**
    * Threaded down from App via AppShell — the same signal that drives the
@@ -265,6 +267,30 @@ export class Composer {
     this.view.onActiveTabChange("scripts");
     this.appRef.tick();
     this.host.querySelector<HTMLElement>(".composer-pane [ngTab][value='scripts'], .scripts-section-header")?.focus();
+  }
+
+  /** The one thing a failure panel offers (S4b3). */
+  protected onFailureAction(action: FailureAction): void {
+    switch (action) {
+      case "retry":
+        void this.sendRequest();
+        return;
+      case "bridge":
+        void this.sendRequest({ route: "bridge" });
+        return;
+      case "bridge-settings":
+        this.openBridge.emit();
+        return;
+      case "timeout":
+        this.openSettings.emit();
+        return;
+      case "request-settings":
+        this.view.mobilePane.set("request");
+        this.view.onActiveTabChange("settings");
+        this.appRef.tick();
+        this.host.querySelector<HTMLElement>(".composer-pane [ngTab][value='settings']")?.focus();
+        return;
+    }
   }
 
   loadPastRequest(request: PastRequest): void {

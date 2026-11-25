@@ -368,10 +368,32 @@ pre,
   animation: chip-pulse var(--dur-pulse) var(--ease-in-out) 2;
 }
 
-/* ── Timing waterfall ────────────────────────────────────── */
-.timing-bar-fill {
-  background: var(--ink);
+/* ── Timing strip (S4b3) ─────────────────────────────────── */
+/* The phases drawn against the whole, in two inks that alternate: ink only, since hue means protocol (DQ11). A gap
+   of the panel's own colour parts them. */
+.timing-strip {
+  display: flex;
+  gap: 2px;
+  height: 0.75rem;
+  overflow: hidden;
   border-radius: var(--radius-full);
+  background: var(--fill-secondary);
+}
+.timing-segment {
+  flex: 0 1 auto;
+  min-width: 2px;
+}
+.timing-swatch {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--radius-xs);
+}
+.timing-tone-0 {
+  background: var(--ink);
+}
+.timing-tone-1 {
+  background: var(--label-secondary);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

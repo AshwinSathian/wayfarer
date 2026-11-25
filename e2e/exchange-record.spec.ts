@@ -102,7 +102,9 @@ test("with a masked header: a credential typed by hand is listed as masked", asy
   expect(record.masked).toBe("Masked with *** in what is kept: Authorization and the response body.");
 });
 
-test("a failed send opens the record with what the browser reported and what to do", async ({ page }) => {
+test("a failed send opens the record, and the failure panel says what the browser reported and what to do", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
@@ -113,13 +115,16 @@ test("a failed send opens the record with what the browser reported and what to 
   const record = await readRecord(page);
   expect(record.route).toBe("Sent from this page to 127.0.0.1:9. No Local Bridge is paired.");
   expect(record.kept).toBe("History kept the request. No response came.");
-  expect(record.failure).toMatch(
-    /^What was reported: (Failed to fetch|NetworkError when attempting to fetch resource\.|Load failed)$/,
+  // What was reported is the failure panel's, behind Details; the record holds what the send did (S4b3).
+  expect(record.failure).toBeUndefined();
+  const panel = page.getByRole("region", { name: "Why there was no response" });
+  await panel.getByRole("button", { name: "Details" }).click();
+  await expect(panel.locator(".failure-reported .font-mono")).toHaveText(
+    /^(Failed to fetch|NetworkError when attempting to fetch resource\.|Load failed)$/,
   );
-  const region = page.getByRole("region", { name: "Exchange record" });
   // No bridge is paired in a new browser: it is set up in place (bridge-setup.spec.ts has the paired case).
-  await expect(region.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
-  await expect(region.getByLabel("Pairing code", { exact: true })).toBeVisible();
+  await expect(panel.locator(".bridge-command")).toHaveText("npx wayfarer-bridge");
+  await expect(panel.getByLabel("Pairing code", { exact: true })).toBeVisible();
 });
 
 for (const theme of ["light", "dark"] as const) {
@@ -334,7 +339,9 @@ test("a host the bridge cannot reach is no response, not a 502 from a server", a
     await routeThroughBridge(page, bridge);
     await page.locator("input.address-url").fill("http://no-such-host.invalid/");
     await send(page);
-    await expect(page.locator(".record-failure")).toContainText("ENOTFOUND", { timeout: 15_000 });
+    await expect(page.locator(".failure-panel")).toContainText("Could not find no-such-host.invalid", {
+      timeout: 15_000,
+    });
     await expect(page.locator(".status-badge")).toHaveCount(0);
     await expect(page.locator("app-response-viewer")).toContainText("No response");
     await expect(page.locator("app-response-viewer")).not.toContainText("502");

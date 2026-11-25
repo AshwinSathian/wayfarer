@@ -26,6 +26,7 @@ import {
 } from "../transport/transport";
 import type { VariableScope } from "../variables/resolver";
 import { runAssertions, type TestResult } from "./assertions";
+import { OFFLINE_MARK } from "./failure";
 import type { ExchangeRecord } from "./record";
 import { containsSecretPlaceholder } from "./wire";
 
@@ -160,7 +161,7 @@ const NO_RESPONSE_TEXT =
   "The request got no response. The browser does not say why: the name may not resolve, the server may " +
   "have refused the connection, or it does not allow requests from this page (CORS). Send it through " +
   "the Local Bridge to see which.";
-const OFFLINE_TEXT = "The request got no response: this browser is offline. Connect, then send it again.";
+const OFFLINE_TEXT = `The request got no response: ${OFFLINE_MARK}. Connect, then send it again.`;
 
 /** Without a page (the CLI), there is no CORS and the runtime says why. */
 const noResponseWithoutPage = (reason: string) =>

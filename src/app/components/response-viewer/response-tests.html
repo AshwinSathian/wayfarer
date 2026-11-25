@@ -1,11 +1,22 @@
 @if (ai.offers().tests && exchange().statusCode !== undefined) { @defer {
 <app-ai-tests />
-} } @if (!exchange().testResults.length) {
+} } @if (exchange().scriptsSkipped) {
+<!-- Not "no tests": the scripts that may hold them were left out, and the review is how they run (S4b3). -->
+<div class="tests-held space-y-2 py-3">
+  <p class="flex items-start gap-2 type-callout text-label-primary">
+    <app-icon name="warning" class="line-glyph icon-sm shrink-0 text-status-warning" />{{ held.headline }}
+  </p>
+  <p class="type-callout text-label-secondary">{{ held.body }}</p>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openScripts.emit()"
+    >{{ held.action }}</button
+  >
+</div>
+} @if (!exchange().testResults.length) { @if (!exchange().scriptsSkipped) {
 <p class="flex flex-wrap items-center gap-2 type-callout text-label-secondary py-3">
   <app-icon name="rule" class="icon-xs text-label-tertiary shrink-0" />This request has no tests.
   <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Add a test</button>
 </p>
-} @else {
+} } @else {
 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
 <div class="test-results">
   @for (result of exchange().testResults; track $index) {

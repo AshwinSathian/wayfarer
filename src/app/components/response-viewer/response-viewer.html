@@ -36,18 +36,20 @@
       (recordOpenChange)="recordOpenChange.emit($event)"
       (exportHar)="harSource.set($event)"
     ></div>
-    } @if (noResponse) {
-    <!-- No response (U-051, U-175): the app's words, once, in its own face; nothing in the server's place. What was
-         reported, and the action, are in the exchange record under it (D4.12). -->
+    } @if (noResponse) { @if (failedRecord(); as failed) {
+    <!-- No response (U-051, U-175, S4b3): what happened, why as far as the page can tell, and the one thing to do, in
+         the app's words; nothing in the server's place. What was reported is behind the panel's Details. -->
+    <app-failure-panel [record]="failed" (act)="failureAction.emit($event)" />
+    } @else {
     <p class="response-failure type-callout text-label-primary px-4 pt-3">{{ body.bodyText() }}</p>
-    } @if (answered || !loading()) { @if (ex.record; as rec) { @if (recordOpen()) {
+    } } @if (answered || !loading()) { @if (ex.record; as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
     <section
       id="exchange-record"
       class="exchange-record border-b border-separator px-4 py-3 type-footnote"
       aria-label="Exchange record"
     >
-      <app-exchange-record [record]="rec" (sendThroughBridge)="sendThroughBridge.emit()" />
+      <app-exchange-record [record]="rec" [failureShown]="!!failedRecord()" />
       <!-- Explain (D4.10): a status of 400 or more, with a provider and the action on (AI-1); fetched when drawn. -->
       @if (ai.offers().explain && (statusCode ?? 0) >= 400) { @defer {
       <app-ai-explain class="mt-3" />
@@ -103,15 +105,17 @@
           <button ngTab type="button" value="sent">Sent</button>
           } @if (!noResponse || ex.testResults.length) {
           <button ngTab type="button" value="tests">
-            Tests @if (ex.testResults.length) {
-            <span class="ml-2 inline-flex items-center gap-1">
-              @if (testPassCount) {
-              <span class="tab-count text-label-secondary">{{ testPassCount }}</span>
-              } @if (testFailCount) {
-              <span class="tab-count text-status-error">{{ testFailCount }}</span>
-              }
+            Tests
+            <span class="tab-badge ml-1">
+              @if (testsHeld()) {
+              <app-icon name="warning" class="icon-xs text-status-warning" /><span class="sr-only"
+                >(scripts did not run)</span
+              >
+              } @else if (ex.testResults.length) {
+              <span class="tab-count" [class]="testFailCount ? 'text-status-error' : 'text-label-secondary'"
+                >{{ ex.testResults.length }}</span
+              >@if (testFailCount) {<span class="sr-only"> ({{ testFailCount }} failed)</span>} }
             </span>
-            }
           </button>
           }
         </div>

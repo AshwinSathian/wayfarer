@@ -134,7 +134,7 @@ test("a request through a bridge that does not know the page's relay fails with 
     await page.locator("input.address-url").fill(`${ECHO}/echo?through=another-bridge`);
     await send(page);
 
-    await expect(page.locator("app-response-viewer")).toContainText("does not understand this page");
+    await expect(page.locator(".failure-headline")).toHaveText("The Local Bridge does not understand this page.");
     await expect(page.locator("app-response-viewer")).toContainText("Update the Local Bridge and reload Wayfarer");
     expect(direct).toEqual([]);
   } finally {
@@ -142,7 +142,7 @@ test("a request through a bridge that does not know the page's relay fails with 
   }
 });
 
-test("a server whose certificate nobody vouches for: refused as it is, and with verification off for the request it answers, with a red pill, a Host of the user's and the bridge's timings", async ({
+test("@claim:C-104 a server whose certificate nobody vouches for: refused as it is, and with verification off for the request it answers, with a red pill, a Host of the user's and the bridge's timings", async ({
   page,
 }) => {
   // The certificate of the bridge's own tests: for localhost, signed by an authority no machine trusts.
@@ -177,7 +177,16 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     // As it is, the bridge verifies, and says what it found.
     await send(page);
     const viewer = page.locator("app-response-viewer");
-    await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
+    const why = viewer.getByRole("region", { name: "Why there was no response" });
+    await expect(why.locator(".failure-headline")).toHaveText(
+      /^The certificate for localhost:\d+ was not accepted\.$/,
+      {
+        timeout: 15_000,
+      },
+    );
+    await expect(why.getByRole("button", { name: "Open request settings" })).toBeVisible();
+    await why.getByRole("button", { name: "Details" }).click();
+    await expect(why.locator(".failure-reported")).toContainText("unable to verify the first certificate");
     await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
 
     await openRequestSettings(page);
@@ -210,7 +219,8 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
 
     // The connection was the bridge's, and so are the timings: a TLS handshake is among them.
     await viewer.getByRole("tab", { name: "Timings" }).click();
-    await expect(viewer.getByText("CORS-limited timings")).toHaveCount(0);
+    await expect(viewer.getByText("Total only: this server does not share timing.")).toHaveCount(0);
+    await expect(viewer.getByText("Phases from the Local Bridge.")).toBeVisible();
     const bridgeTimings = ((await relay.json()) as { timings: Record<string, number> }).timings;
     expect(Object.keys(bridgeTimings).sort()).toEqual(expect.arrayContaining(["content", "tcp", "tls", "ttfb"]));
 
@@ -218,7 +228,12 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     await box.uncheck();
     await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveCount(0);
     await send(page);
-    await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
+    await expect(why.locator(".failure-headline")).toHaveText(
+      /^The certificate for localhost:\d+ was not accepted\.$/,
+      {
+        timeout: 15_000,
+      },
+    );
     await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
     expect(violations).toEqual([]);
   } finally {

@@ -47,6 +47,7 @@ test("Reset All Data also clears the bridge token and the other wayfarer: prefer
       "wayfarer:bridge",
       JSON.stringify({ route: "bridge", url: "http://127.0.0.1:7717", token: "secret" }),
     );
+    localStorage.setItem("wayfarer:first-walk", "1");
     localStorage.setItem("elsewhere", "kept");
   });
 
@@ -55,6 +56,7 @@ test("Reset All Data also clears the bridge token and the other wayfarer: prefer
   await reloaded;
 
   expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("wayfarer:first-walk"))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem("elsewhere"))).toBe("kept");
 });
 

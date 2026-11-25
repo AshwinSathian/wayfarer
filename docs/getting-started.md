@@ -21,6 +21,15 @@ An empty tab offers **Try an example**. It says first which request it sends (`G
 `jsonplaceholder.typicode.com/todos/1`, from this page), and one click sends it: the response shows beside the request,
 and the route strip says where it went. <!-- claim:C-108 -->
 
+The first time you send the example, a short walk under the strip goes through its three stops (where the request left
+from, the block that masks a secret, the host it reached), one sentence each, with **Next** and **Dismiss**. It is not
+a dialog: nothing is blocked and focus stays where it was. It is shown once: finishing it, **Dismiss** or Escape ends
+it, and the browser remembers that on this device until you reset all data. <!-- claim:C-121 -->
+
+Each place that has nothing yet (collections, history, environments, the response, the vault, secrets, tests, and a
+history entry with nothing to compare) draws the strip's path small, says in one sentence what it is for, and offers what
+to do next. <!-- claim:C-122 -->
+
 On a phone the request and the response are two panes under the address. An empty tab opens on the request, with **Try
 an example** and **Paste a cURL command** at the top of it; a send moves to the response, and the response's tabs (Body,
 Headers, Timings, Sent, Tests) all fit the width, with no sideways scrolling. A long host wraps in its own width and does

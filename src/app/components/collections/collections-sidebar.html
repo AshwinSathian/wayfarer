@@ -39,15 +39,11 @@
   <span class="ui-skeleton h-[160px] w-full" aria-hidden="true"></span>
   } @else if (!nodes().length) {
   <!-- Where the first row will be, left-aligned, with no picture (V2). -->
-  <div class="flex flex-col items-start gap-3 px-2 pt-1">
-    <h3 class="type-empty-title text-label-primary m-0">{{ empty.collections.headline }}</h3>
-    <p class="type-callout text-label-secondary m-0">{{ empty.collections.body }}</p>
-    <div class="flex flex-wrap gap-2">
-      <button uiButton="filled" class="btn-sm" type="button" (click)="handleCreateCollection()">New collection</button>
-      <!-- The one Import menu, as the header's when there are collections (audit 16). -->
-      <app-import-menu look="outlined" [extra]="folderItems" />
-    </div>
-  </div>
+  <app-empty-state class="px-2 pt-1" [headline]="empty.collections.headline" [body]="empty.collections.body">
+    <button uiButton="filled" class="btn-sm" type="button" (click)="handleCreateCollection()">New collection</button>
+    <!-- The one Import menu, as the header's when there are collections (audit 16). -->
+    <app-import-menu look="outlined" [extra]="folderItems" />
+  </app-empty-state>
   } @else {
   <!-- A right-click on a row, or Shift+F10 on it, reaches the tree first: it
        selects the row, which sets the menu's items. The menu then opens at the

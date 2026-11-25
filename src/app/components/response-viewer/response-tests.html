@@ -12,10 +12,9 @@
   >
 </div>
 } @if (!exchange().testResults.length) { @if (!exchange().scriptsSkipped) {
-<p class="flex flex-wrap items-center gap-2 type-callout text-label-secondary py-3">
-  <app-icon name="rule" class="icon-xs text-label-tertiary shrink-0" />This request has no tests.
-  <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Add a test</button>
-</p>
+<app-empty-state class="py-3" [headline]="none.headline" [body]="none.body">
+  <button uiButton="filled" class="btn-sm" type="button" (click)="openScripts.emit()">{{ none.action }}</button>
+</app-empty-state>
 } } @else {
 <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
 <div class="test-results">

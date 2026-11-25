@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import { ROUTE_OPTIONS, strip, type PastRequest, type SentView } from "@wayfarer/core";
+import { ROUTE_OPTIONS, empty, strip, type PastRequest, type SentView } from "@wayfarer/core";
+import { EmptyState } from "../shared/empty-state/empty-state";
 import { RouteStrip, type StripPreset } from "../components/composer/route-strip";
 import { ResponseSent } from "../components/response-viewer/response-sent";
 import { ExchangeDiff } from "../components/past-requests/exchange-diff";
@@ -50,6 +51,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
   // index.html's root element is the app's.
   selector: "app-root",
   imports: [
+    EmptyState,
     AccordionContent,
     AccordionPanel,
     AccordionTrigger,
@@ -243,6 +245,24 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           >
         </div>
       </section>
+
+      @if (showEmpty) {
+        <section aria-labelledby="catalogue-empty">
+          <h2 id="catalogue-empty" class="type-title-3">Empty places</h2>
+          <p class="type-callout text-label-secondary"
+            >The strip's path small, a headline, one honest sentence and the one action. Each is drawn where it lives in
+            the app.</p
+          >
+          @for (state of emptyStates; track state.name) {
+            <div class="catalogue-empty-state" [attr.data-state]="state.name">
+              <p class="type-footnote text-label-secondary">{{ state.name }}</p>
+              <app-empty-state [headline]="state.words.headline" [body]="state.words.body">
+                <button uiButton="outlined" class="btn-secondary btn-sm" type="button">{{ state.action }}</button>
+              </app-empty-state>
+            </div>
+          }
+        </section>
+      }
 
       @if (showStrips) {
         <section aria-labelledby="catalogue-strip">
@@ -836,6 +856,18 @@ export class Catalogue {
         secrets: [],
       },
     },
+  ];
+  /** The empty places are drawn on `?catalogue&empty` only. */
+  protected readonly showEmpty = new URLSearchParams(location.search).has("empty");
+  protected readonly emptyStates = [
+    { name: "No collections", words: empty.collections, action: empty.collections.actions[0] },
+    { name: "No history", words: empty.history, action: empty.history.action },
+    { name: "No environments", words: empty.environments, action: empty.environments.actions[0] },
+    { name: "No response", words: empty.response, action: empty.response.actions[0] },
+    { name: "No vault", words: empty.vault, action: empty.vault.action },
+    { name: "No secrets", words: empty.secrets, action: empty.secrets.action },
+    { name: "No tests", words: empty.tests, action: empty.tests.action },
+    { name: "No pair to compare", words: empty.diff, action: empty.diff.action },
   ];
   /** The strip's states are drawn on `?catalogue&strip` only: their scans are slow, and every other widget's share the page. */
   protected readonly showStrips = new URLSearchParams(location.search).has("strip");

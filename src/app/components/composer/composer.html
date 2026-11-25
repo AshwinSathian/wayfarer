@@ -37,6 +37,7 @@
       (sendAnyway)="sendRequest({ allowUnresolved: true })"
       (offered)="takeOffer($event)"
     />
+    <app-first-run-walk />
     <!-- The address's error and the paste's notes are said by regions there from the first render (U-062, U-075);
          what is drawn under the address is what the eye reads. Out of the flow, they take no gap of the column. -->
     <p id="address-error" class="sr-only" role="alert"
@@ -88,7 +89,7 @@
         <div ngTabPanel value="request" class="tab-pane" [preserveContent]="true"
           ><ng-template ngTabContent>
             @if (!store.draft().url) {
-            <div class="flex flex-col items-start gap-3 pb-2"><ng-container [ngTemplateOutlet]="firstRun" /></div>
+            <ng-container [ngTemplateOutlet]="firstRun" />
             }
             <app-composer-sections /></ng-template
         ></div>
@@ -172,22 +173,15 @@
 </div>
 <!-- First run (D4.2, U-022): the next step, where the status line will be (V2); a ready request is offered Send (U-095). -->
 <ng-template #noResponse>
-  <div class="flex flex-col items-start gap-3 px-4 py-2">
-    @if (store.draft().url) {
-    <h3 class="type-empty-title text-label-primary m-0">{{ empty.notSent.headline }}</h3>
-    <p class="type-callout text-label-secondary m-0"
-      ><kbd class="keycap">{{ sendKeys }}</kbd> sends it. The response appears here.</p
-    >
-    } @else {
-    <ng-container [ngTemplateOutlet]="firstRun" />
-    }
-  </div>
+  @if (store.draft().url) {
+  <app-empty-state class="px-4 py-2" [headline]="empty.notSent.headline" [body]="empty.notSent.body(sendKeys)" />
+  } @else {
+  <ng-container [ngTemplateOutlet]="firstRun" />
+  }
 </ng-template>
 <!-- The first step, once (V2): in the response where it will be, and on a phone also in the request, which is the pane it opens on. -->
 <ng-template #firstRun>
-  <h3 class="type-empty-title text-label-primary m-0">{{ empty.response.headline }}</h3>
-  <p class="type-callout text-label-secondary m-0">{{ empty.response.body }}</p>
-  <div class="flex flex-wrap gap-2">
+  <app-empty-state class="px-4 py-2" [headline]="empty.response.headline" [body]="empty.response.body">
     <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="tryExample()"
       >{{ empty.response.actions[0] }}</button
     >
@@ -199,8 +193,8 @@
       >Describe a request…</button
     >
     }
-  </div>
-  <p class="type-footnote text-label-secondary m-0">{{ exampleNote }}</p>
+    <p class="type-footnote text-label-secondary m-0 basis-full">{{ exampleNote }}</p>
+  </app-empty-state>
 </ng-template>
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>

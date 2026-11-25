@@ -1,3 +1,4 @@
+import { EmptyState } from "../../shared/empty-state/empty-state";
 import { SHORTCUTS, type Shortcut } from "../../shared/shortcuts";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UndoNotice } from "../../services/undo-notice";
@@ -64,6 +65,7 @@ export interface PaletteAction {
 @Component({
   selector: "app-collections-sidebar",
   imports: [
+    EmptyState,
     FolderDialog,
     ImportMenu,
     UiButton,

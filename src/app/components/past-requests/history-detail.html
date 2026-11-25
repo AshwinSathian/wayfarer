@@ -35,6 +35,13 @@
 <p class="detail-note type-callout">The response has no body.</p>
 } } }
 <p class="detail-gaps type-footnote">{{ words.gaps[0] }} {{ words.gaps[1] }}</p>
+@if (!others().length) {
+<app-empty-state class="mt-2" [headline]="none.headline" [body]="none.body">
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="opened.emit()"
+    >{{ none.action }}</button
+  >
+</app-empty-state>
+} @else {
 <div class="detail-compare">
   <span id="detail-compare-label" class="type-footnote">{{ words.menuItem }}</span>
   <div class="detail-compare-row">
@@ -55,3 +62,4 @@
     >
   </div>
 </div>
+}

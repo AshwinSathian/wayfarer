@@ -19,7 +19,7 @@ test("a response with no tests offers Add a test, which opens the request's Scri
   await OPEN["response-html"](page);
   const viewer = page.locator("app-response-viewer");
   await viewer.getByRole("tab", { name: /^Tests/ }).click();
-  await expect(viewer.getByText("This request has no tests.")).toBeVisible();
+  await expect(viewer.getByText("No tests on this request.")).toBeVisible();
   await viewer.getByRole("button", { name: "Add a test" }).click();
   const scripts = page.locator("app-composer").getByRole("tab", { name: /^Scripts( |$)/ });
   await expect(scripts).toBeFocused();

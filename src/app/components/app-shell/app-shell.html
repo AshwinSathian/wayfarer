@@ -514,7 +514,11 @@
 <!-- The environments and their variables. Made while open: the page holds the request and its response. -->
 
 <!-- Secrets management dialog -->
-<app-secrets-manager [(visible)]="secretsDialogVisible" (requestUnlock)="openLockDialog()"></app-secrets-manager>
+<app-secrets-manager
+  [(visible)]="secretsDialogVisible"
+  (requestUnlock)="openLockDialog()"
+  (openEnvironments)="secretsDialogVisible.set(false); openEnvironmentsTab()"
+></app-secrets-manager>
 
 <!-- The one import dialog: opened by every Import button, through ImportPipeline -->
 <app-import-dialog />

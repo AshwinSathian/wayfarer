@@ -1,3 +1,4 @@
+import { EmptyState } from "../../shared/empty-state/empty-state";
 import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from "@angular/core";
 import { empty, formatDuration } from "@wayfarer/core";
@@ -10,7 +11,7 @@ import { AiTests } from "../ai-tests/ai-tests";
 /** The Tests tab: each test's result, the scripts' times and what they wrote with `console`. */
 @Component({
   selector: "app-response-tests",
-  imports: [AiTests, Icon, JsonPipe, UiButton],
+  imports: [EmptyState, AiTests, Icon, JsonPipe, UiButton],
   host: { class: "block space-y-2 pb-4" },
   templateUrl: "./response-tests.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +23,7 @@ export class ResponseTests {
   readonly openScripts = output<void>();
   /** The scripts did not run (not reviewed): the tab says so, with the way to review them. */
   protected readonly held = empty.testsHeld;
+  protected readonly none = empty.tests;
   protected readonly testPassCount = computed(() => this.exchange().testResults.filter((r) => r.passed).length);
   protected readonly testFailCount = computed(() => this.exchange().testResults.filter((r) => !r.passed).length);
   /** How long the scripts and the request took, each by itself; shown when a script ran. */

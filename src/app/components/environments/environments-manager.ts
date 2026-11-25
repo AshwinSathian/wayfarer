@@ -1,3 +1,4 @@
+import { EmptyState } from "../../shared/empty-state/empty-state";
 import { UndoNotice } from "../../services/undo-notice";
 import {
   ChangeDetectionStrategy,
@@ -39,7 +40,17 @@ interface EnvironmentDraft {
 
 @Component({
   selector: "app-environments-manager",
-  imports: [UiInput, Icon, FormsModule, UiButton, UiTooltip, VariableRows, ImportMenu, EnvironmentExportDialog],
+  imports: [
+    EmptyState,
+    UiInput,
+    Icon,
+    FormsModule,
+    UiButton,
+    UiTooltip,
+    VariableRows,
+    ImportMenu,
+    EnvironmentExportDialog,
+  ],
   templateUrl: "./environments-manager.html",
   styleUrl: "./environments-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

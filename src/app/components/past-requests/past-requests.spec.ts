@@ -238,4 +238,54 @@ describe("PastRequests", () => {
       expect(button(/as HAR/).textContent).toContain("Export 1 as HAR…");
     });
   });
+  describe("the rail and the diff", () => {
+    const withBody = (id: number, url: string, body: string): PastRequest => ({
+      id,
+      ...historyEntry({ url, createdAt: id * 1000, status: 200 }),
+      response: { status: 200, statusText: "OK", headers: [], body: { text: body, truncated: false } },
+    });
+    const pair = [withBody(2, "https://api.test/b", '{"n":2}'), withBody(1, "https://api.test/a", '{"n":1}')];
+    const text = () => (fixture.nativeElement as HTMLElement).textContent ?? "";
+
+    beforeEach(() => {
+      stored = pair;
+      fixture.componentRef.setInput("pastRequests", pair);
+      fixture.detectChanges();
+    });
+
+    it("opens an entry in the rail as it was kept, read by its id, and tells the shell", async () => {
+      const railOpen = vi.fn();
+      component.railChange.subscribe(railOpen);
+      fixture.componentRef.setInput("openEntry", { id: 1, compare: false });
+      await vi.waitFor(() => expect(text()).toContain("Timings: not recorded."));
+      expect(text()).toContain('{"n":1}');
+      expect(railOpen).toHaveBeenLastCalledWith(true);
+    });
+
+    it("says an entry that is gone since the list was read, and opens nothing", async () => {
+      fixture.componentRef.setInput("openEntry", { id: 99, compare: false });
+      await vi.waitFor(() => expect(text()).toContain("That entry is no longer in history."));
+      expect(text()).not.toContain("Timings: not recorded.");
+    });
+
+    it("compares the two ticked entries by path and goes back to the list", async () => {
+      component.selecting.set(true);
+      fixture.detectChanges();
+      const boxes = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+        '.history-row input[type="checkbox"]',
+      );
+      boxes[0].click();
+      boxes[1].click();
+      fixture.detectChanges();
+      const compare = [...(fixture.nativeElement as HTMLElement).querySelectorAll("button")].find(
+        (button) => button.textContent === "Compare the two",
+      );
+      compare?.click();
+      await vi.waitFor(() => expect(text()).toContain("$.n"));
+      expect(text()).toContain("Secret values are masked in both.");
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(".diff-bar button")?.click();
+      fixture.detectChanges();
+      expect(text()).not.toContain("$.n");
+    });
+  });
 });

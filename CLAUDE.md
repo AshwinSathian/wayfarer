@@ -404,7 +404,7 @@ code errors.
 - The response pane (`src/app/components/response-viewer/`) draws one `ExchangeView`
   (`src/app/state/exchange-view.ts`; a code name, the user's words are "Sent" and "Response"):
   `liveExchange` from the response a tab holds, `recordedExchange` from a `PastRequest` (what
-  `TabState.showRecorded` and, later, History's detail read; it says in `notRecorded` which of body,
+  `TabState.showRecorded` and History's rail read; it says in `notRecorded` which of body,
   timings and tests the entry does not hold). `ResponseViewer` gathers its inputs into the live view;
   `ResponseStatus`, `ResponseBody`, `ResponseHeaders`, `ResponseSent`, `ResponseTimings`, `ResponseTests` and `EventList`
   take that view and nothing else, and the Body tab's formatting and search are `BodyModel`
@@ -428,6 +428,30 @@ code errors.
   exchange says "not recorded" and draws `ExchangeRecord.durationMs`: history has no phases, and giving it a
   `timings` field is a stored-data change that is not made. `SendTimings` (`exchange.ts`) is the scripts' times, a
   different thing, shown in the Tests tab.
+- History (`src/app/components/past-requests/`) is a log with a rail. A row is a `HistorySummary` (no body, no headers):
+  host and the end of the path (`addressParts`), status, time, route and age; its **Details** button reads the entry by
+  id (`HistoryRepository.get`) and opens `HistoryDetail`, the recorded `ExchangeView` (`ResponseHeaders`,
+  `ResponseSent`, the kept body in a `<pre>`; never Monaco in a drawer) beside the list from 64 em, in its place below
+  (the drawer widens by `.history-drawer.has-rail`). The search's tokens are `parseFilter` (`history-filter.ts`): a word
+  `name:value` with a name that is not a token is a word (a URL's `https:`), a token with a value it cannot read is
+  named and matches nothing. A new token is an entry there, in `FILTER_HELP` and in claim C-117. Focus goes into the
+  rail when it opens (the list may be hidden, the choice replaced), and Escape closes the rail before the drawer: with
+  focus on the body the drawer would hear it first.
+- A diff (`diffExchanges`, `packages/core/src/send/diff.ts`, drawn by `ExchangeDiff`) is computed from two history
+  entries and never stored. A live response is compared as the entry its send wrote (`TabState.historyKey`, read by id):
+  the diff takes no `BuiltRequest`, no live response and no vault, so everything in it was masked by `exchange`; keep
+  it that way, and keep `diffExchanges(stored[0], stored[1])` in the scan of `e2e/secrets-wire.spec.ts`. It compares
+  status, route, request, headers and body (JSON by path, changed before removed before added, at most
+  `MAX_PATH_CHANGES`, a value cut at 200 characters), says "not recorded" for what history does not keep (timings, test
+  results) and does not compare a body that was not kept. Two ways in: two ticked rows in Select mode, and "Compare
+  with..." in the rail (the palette's "Compare this response with..." opens the rail of the open tab's entry).
+- The variable popover is `VariableChips` (`composer/variable-chips.ts`): one small button per variable of the request
+  (`previewVariables`: the address, headers, body and auth), its card on hover and keyboard focus (`uiTooltip`) and one
+  `popover="auto"` for a click or Enter, with the scope, the value, the holder, what it hides and the buttons that
+  show it where it is set or add it (`actions`). The vault is not read: a secret is `***` (`variableCard.secretValue`)
+  and `PreviewVariable` holds no plaintext. Focus goes into the popover and back to its button on close. It is not
+  reached from inside the address field or Monaco (an input cannot hold an element; a hover provider needs
+  `monaco-loader.ts`): the row under the address lists every variable the request uses.
 - A send with no response shows `FailurePanel` (`src/app/components/failure-panel/`), made by `failurePanel`
   (`packages/core/src/send/failure.ts`) from the `ExchangeRecord` alone: a headline, a cause line, one next action
   (`FailureAction`, which `Composer.onFailureAction` does) and the browser's or the bridge's words behind Details.
@@ -736,7 +760,7 @@ code errors.
     `uiInput`, `uiCheckbox`, `ui-file`;
   - on the CDK: `ui-splitter`.
 - Built in place, without a wrapper: loading skeletons, the variable and
-  usage chips (two-line and icon-led action buttons), status and method
+  usage chips (small buttons, and the variable popover), status and method
   badges, the banners, and the top bar, `<header class="ds-toolbar">` in
   the shell (styles in `components.css`), the page's banner.
 - Where a moved widget's text or the plan says "as Material's", that is the

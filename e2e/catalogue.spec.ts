@@ -248,6 +248,16 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  test(`the diff and an entry of History, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
+    await open(page, theme, "&diff");
+    const found: string[] = [];
+    await page.locator("#catalogue-diff").scrollIntoViewIfNeeded();
+    await scanner(page, found)("diff of two entries, and an entry whose body was not kept");
+    expect(found).toEqual([]);
+  });
+
   test(`the splitter, side by side and one above the other, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
   }) => {

@@ -28,6 +28,19 @@ not squeeze the strip's summary button. <!-- claim:C-115 -->
 On a tablet, where the response goes under the request, the request keeps about a third of the height until you move the
 line between them, so a response is in view after a send. <!-- claim:C-116 -->
 
+## Look back, and compare
+
+History lists each send with its host, the end of the path, the status, where it went from and when. The search takes
+words and filters: `status:5xx`, `status:404`, `status:error`, `method:POST`, `host:example.com`, `route:bridge` and
+`slower-than:500ms`; a filter it cannot read is named, and nothing matches until it is fixed. <!-- claim:C-117 -->
+The **Details** button of a row opens the entry beside the list as it was kept: its status, response headers, the body
+when one was kept, and what was sent. It says that timings and test results are not recorded. <!-- claim:C-118 -->
+
+Two entries are compared from History: tick two with **Select…** and choose **Compare the two**, or open one, and
+choose another in **Compare with…** (the same from a tab's response, in the command palette). The comparison lists the
+status, route, request, headers and body; a JSON body is compared by path, what changed first, and a body that was not
+kept is not compared. It reads only what history kept, which has its secrets masked. <!-- claim:C-119 -->
+
 ## Keep it in a collection
 
 A request is saved into a collection. Make one with **New collection** in the sidebar, then press the save button

@@ -19,6 +19,11 @@ Only names you defined are variables. `{{constructor}}` is not one.
 
 **A name may hold any character but a brace**: `{{api/key}}`, `{{first name}}`. The spaces just inside the braces are not part of the name. A name of letters, digits, `_`, `.` and `-` that has no value is a missing variable, and the composer asks before it sends. Anything else between two pairs of braces is a variable only when you defined one with that name: a body may hold another language's templates (`{{ user.name | upper }}`), and those are sent as written without a question.
 
+Under the address, each variable of the request (in the address, a header, the body or the auth) is a small button.
+Hover over it or focus it with the keyboard to see its scope and value; click it, or press Enter, for a popover with the
+holder, what it hides and a button to show it where it is set or to add it. A variable that holds a vault secret shows
+`***`: the vault is not read to show it. <!-- claim:C-120 -->
+
 ## A value that holds a variable
 
 A value may hold `{{names}}` itself: with `url` set to `https://{{host}}/v1` and `host` set to `api.test`, `{{url}}` is `https://api.test/v1`. The two can be in different places. A value may pass through at most 10 variables.

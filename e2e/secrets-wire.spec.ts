@@ -11,6 +11,7 @@ import {
   shareLink,
 } from "./support/app";
 import { openShareLink, parseShareFragment } from "../packages/core/src/share/link";
+import { diffExchanges } from "../packages/core/src/send/diff";
 import { sentView } from "../packages/core/src/send/sent-view";
 import type { PastRequest } from "../packages/core/src/send/exchange";
 import { ECHO } from "./support/echo";
@@ -687,4 +688,62 @@ test("history is searched by URL, by method and by status", async ({ page }) => 
   await expect(drawer.getByText("No request in history matches.")).toBeVisible();
   await search.fill("");
   await expect(rows).toHaveCount(2);
+});
+
+test("@claim:C-007 @claim:C-119 @claim:C-120 the history rail, the diff of two entries and the variable popover show no vault secret, though the server sent it back", async ({
+  page,
+}) => {
+  test.slow();
+  await seedAndOpen(
+    page,
+    {},
+    { method: "GET", url: `${ECHO}/echo?run=1&token={{API_TOKEN}}`, headers: { "X-Api-Key": "{{API_TOKEN}}" } },
+  );
+  await protectVariable(page, "API_TOKEN", SECRET);
+  // The echo sends the header and the query back in its body, so history keeps a body that held the secret.
+  await sendAndEcho(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?run=2&token={{API_TOKEN}}`);
+  await sendAndEcho(page);
+  await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(2);
+
+  // The popover of the variable that holds the secret.
+  await page
+    .locator("app-variable-chips")
+    .getByRole("button", { name: /^API_TOKEN / })
+    .click();
+  const popover = await page.getByRole("dialog", { name: "Variable API_TOKEN" }).innerText();
+  expect(popover).toContain("***");
+  await page.keyboard.press("Escape");
+  const card = await page.locator("app-variable-chips").innerText();
+
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
+  await drawer.getByRole("button", { name: /^Details of GET .*run=1/ }).click();
+  const rail = drawer.getByRole("region", { name: "Entry" });
+  const parts: string[] = [];
+  for (const part of ["Response", "Headers", "Sent"]) {
+    await rail.getByRole("radio", { name: part }).click();
+    parts.push(await rail.innerText());
+  }
+  await page.keyboard.press("Escape");
+  await drawer.getByRole("button", { name: "Select…", exact: true }).click();
+  await drawer.getByRole("button", { name: "Select all", exact: true }).click();
+  await drawer.getByRole("button", { name: "Compare the two" }).click();
+  await expect(drawer.locator("app-exchange-diff")).toContainText("$.query.run");
+  const diff = await drawer.locator("app-exchange-diff").innerText();
+  expect(diff).toContain("***");
+
+  const stored = (await dumpIdb(page))["history"] as PastRequest[];
+  expect(JSON.stringify(stored)).toContain("***");
+  const searched: Record<string, string> = {
+    "the variable popover": popover,
+    "the variable buttons and their cards": card,
+    "the history rail": parts.join("\n"),
+    "the diff on the page": diff,
+    "the diff of what history keeps": JSON.stringify(diffExchanges(stored[0], stored[1])),
+  };
+  expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
+    Object.fromEntries(Object.keys(searched).map((place) => [place, []])),
+  );
 });

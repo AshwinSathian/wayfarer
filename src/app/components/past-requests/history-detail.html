@@ -6,7 +6,7 @@
   <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="opened.emit()">Open in a tab</button>
 </div>
 <h3 class="detail-title type-callout">
-  <span class="font-mono">{{ entry().sent.method }}</span> <span class="font-mono">{{ entry().sent.url }}</span>
+  <span class="font-mono">{{ entry().sent.method }}</span>&ngsp;<span class="font-mono">{{ entry().sent.url }}</span>
 </h3>
 <p class="detail-facts type-footnote">
   @if (ex.statusCode !== undefined) {

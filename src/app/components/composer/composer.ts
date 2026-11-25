@@ -261,6 +261,11 @@ export class Composer {
     if (send && !this.store.loadingState()) void this.sendRequest();
   }
 
+  /** The palette's Copy as…: only a tab that is a request has the row. */
+  copyAs(index: number): void {
+    this.addressRow()?.copyAs(index);
+  }
+
   focusUrl(): void {
     this.addressRow()?.focusUrl();
   }

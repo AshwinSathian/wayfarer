@@ -209,6 +209,9 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - A variable's button shows its scope and value on hover and keyboard focus, and its popover on a click, with the holder, what it hides and a button to show it where it is set or to add it; a vault secret, or a value that refers to one, shows as `***` and the vault is not read, locked or unlocked. <!-- claim:C-120 -->
 - The first time the example is sent, a walk under the route strip says in one sentence each where the request left from, that a secret is masked, and which host it reached; it takes no focus, Escape or Dismiss ends it, it is not shown again, and Reset all data brings it back. <!-- claim:C-121 -->
 - An empty collections list, history, environments list, response, vault, secrets list, Tests tab and history entry with nothing to compare each draw the strip's path with one sentence and offer their action (a new collection or environment also offers Import). <!-- claim:C-122 -->
+- G, then a letter, goes to History, Environments, Settings, the address, the collections, the response, a request's variables or the route strip, only where no text is being typed and no dialog is open; the keys are listed in Settings › Shortcuts, shown on the palette's rows, and can be turned off there. <!-- claim:C-123 -->
+- The command palette reaches each Settings section, Import (file, cURL command, shared link), a new environment, comparing two history entries, Clear history, Copy as cURL, fetch, Python or HTTPie, and the next and previous tab, as well as what it had. <!-- claim:C-124 -->
+- The route strip's offer, a variable's popover and a comparison of two history entries are each reached and used with the keyboard alone. <!-- claim:C-125 -->
 <!-- features:end -->
 
 </details>

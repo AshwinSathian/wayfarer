@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHORTCUTS, ariaKeysOf, keysOf, matches } from "./shortcuts";
+import { JUMPS, SHORTCUTS, ariaKeysOf, jumpOf, keysOf, matches } from "./shortcuts";
 
 const key = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init);
 
@@ -27,5 +27,15 @@ describe("shortcuts", () => {
     // ⌘K follows the layout: on Dvorak the K key sits where QWERTY has V.
     expect(matches(key({ key: "k", code: "KeyV", metaKey: true }), SHORTCUTS.palette)).toBe(true);
     expect(matches(key({ key: "v", code: "KeyK", metaKey: true }), SHORTCUTS.palette)).toBe(false);
+  });
+
+  it("write a jump as two keys, with no aria-keyshortcuts, and each jump is one letter that no other takes", () => {
+    expect(keysOf({ key: "H", after: "G" }, true)).toBe("G then H");
+    expect(keysOf({ key: "H", after: "G" }, false)).toBe("G then H");
+    expect(ariaKeysOf({ key: "H", after: "G" })).toBe("");
+    expect(jumpOf("open-history")).toEqual({ key: "H", after: "G" });
+    expect(jumpOf("nothing")).toBeUndefined();
+    expect(new Set(JUMPS.map((jump) => jump.key)).size).toBe(JUMPS.length);
+    expect(new Set(JUMPS.map((jump) => jump.command)).size).toBe(JUMPS.length);
   });
 });

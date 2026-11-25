@@ -14,7 +14,7 @@
        and the last response under it is dimmed: it is the old one, and the new one is drawn at full strength. -->
   @let ex = exchange(); @let sofar = sendingFor(); @let statusCode = ex.statusCode; @let answered = statusCode !==
   undefined || ex.isError; @let noResponse = ex.isError && statusCode === undefined;
-  <div class="response-main" [class.response-stale]="!!sofar">
+  <div class="response-main" tabindex="-1" [class.response-stale]="!!sofar">
     <!-- ── Status bar ─────────────────────────────────────── -->
     @if (loading() && (sofar || !answered)) {
     <div

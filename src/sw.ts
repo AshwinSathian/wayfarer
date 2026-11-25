@@ -14,7 +14,7 @@
 //   is up but answers nothing. Not those under oauth/: that is the OAuth
 //   callback page, which is not the app.
 // - Hashed same-origin assets are cache-first (their names change when their
-//   content does). The initial ones are precached at install; lazy chunks are
+//   content does). The initial ones, the shell's static imports included, are precached at install; lazy chunks are
 //   cached the first time they load.
 // - A new version waits until the page asks it to take over (the "Update
 //   available" banner), so a running page never mixes old and new chunks.

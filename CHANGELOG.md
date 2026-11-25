@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- The app's first screen is stored before the service worker takes over. Some of the files the first render
+  needs were only handed to the worker after it took control, so a reload made at once, with the network off,
+  could find them missing and show nothing. They are now stored with the worker's install (about 72 kB more).
+
 ## [3.6.0] - 2026-11-25
 
 A redesign around one idea: you can see where a request goes. A route strip under the address draws the path from this page to the host, with a solid block where a secret was sent and masked, and a broken path when nothing arrived. After a send, a Sent part shows what the app built, history can be filtered and compared, and a variable's button says where its value comes from. There is a new mark, new method colours with a shape each, and the same words in every place.

@@ -36,10 +36,31 @@ export function precacheList(root) {
   const extra = files.filter((f) =>
     /^monaco\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.(ico|svg)$/.test(f),
   );
+  const shell = referenced.map((f) => f.replace(/^\//, ""));
   return [
     "/",
-    ...new Set([...referenced, ...extra, ...importWorker(root, files)].map((f) => `/${f.replace(/^\//, "")}`)),
+    ...new Set([...shell, ...staticImports(root, shell), ...extra, ...importWorker(root, files)].map((f) => `/${f}`)),
   ].sort();
+}
+
+/**
+ * The chunks the shell's scripts import statically, however deep. index.html names only some of them
+ * (modulepreload); the rest load with the first render, before the worker controls a first visit's page, and
+ * were handed to it afterwards: a reload that came first found them missing offline. A dynamic `import()` is not
+ * followed: those are the lazy features, cached when first used.
+ */
+export function staticImports(root, entries) {
+  const found = new Set();
+  const walk = (file) => {
+    if (found.has(file) || !file.endsWith(".js") || !existsSync(join(root, file))) return;
+    found.add(file);
+    for (const [, imported] of readFileSync(join(root, file), "utf8").matchAll(
+      /(?:from|import)\s*["']\.\/([\w-]+\.js)["']/g,
+    ))
+      walk(imported);
+  };
+  entries.forEach(walk);
+  return [...found];
 }
 
 /**

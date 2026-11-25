@@ -1,7 +1,3 @@
-:host {
-  display: block;
-}
-
 .walk {
   display: flex;
   flex-wrap: wrap;

@@ -16,7 +16,12 @@ import { UiButton } from "../../ui/button";
   templateUrl: "./first-run-walk.html",
   styleUrl: "./first-run-walk.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { "(document:keydown.escape)": "escape($event)" },
+  host: {
+    "(document:keydown.escape)": "escape($event)",
+    // No box while there is nothing to show: an empty block would still take its gap in the composer's column.
+    "[class.block]": "shown()",
+    "[class.contents]": "!shown()",
+  },
 })
 export class FirstRunWalkPanel {
   protected readonly walk = inject(FirstRunWalk);

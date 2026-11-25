@@ -45,8 +45,9 @@ test("@claim:C-121 the first example is followed by a walk of the strip that tak
 
   await region.getByRole("button", { name: "Next" }).click();
   await expect(page.getByRole("status").filter({ hasText: "masked wherever Wayfarer keeps it" })).toHaveCount(1);
-  await expect(region.getByRole("button", { name: "Next" })).toBeFocused();
-  await region.getByRole("button", { name: "Next" }).click();
+  // From the keyboard: Safari does not focus a button on a click, so focus it, and Enter takes the next stop.
+  await region.getByRole("button", { name: "Next" }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("status").filter({ hasText: /It arrived at \S+\. The response is below\./ })).toHaveCount(
     1,
   );

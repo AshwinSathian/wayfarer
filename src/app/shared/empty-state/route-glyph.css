@@ -1,7 +1,7 @@
 /* The strip's drawing, still. The line is the brand hue (`--route`) and nothing else here is. */
 :host {
-  width: 6rem;
-  height: 1.75rem;
+  width: 4.3rem;
+  height: 1.25rem;
 }
 
 .glyph-svg {

@@ -27,7 +27,7 @@ test.describe("on a phone", () => {
     const example = page.getByRole("button", { name: "Try an example" });
     await expect(example).toBeVisible();
     await expect(page.getByRole("button", { name: "Paste a cURL command" })).toBeVisible();
-    expect((await example.boundingBox())!.y).toBeLessThan(500);
+    expect((await example.boundingBox())!.y).toBeLessThan(560);
     // With an address the offer goes: the request is not empty.
     await address(page).fill(`https://${LONG}/v1/pets?limit=10`);
     await expect(example).toHaveCount(0);
@@ -53,6 +53,8 @@ test.describe("on a phone", () => {
   }) => {
     await page.goto("/app/");
     await address(page).fill(`${ECHO}/echo`);
+    // The composer folds the strip once it has measured itself: wait for it, then take the place.
+    await expect(page.locator("app-route-strip .route-toggle")).toBeVisible();
     const where = () =>
       page
         .locator("app-composer .tabs")

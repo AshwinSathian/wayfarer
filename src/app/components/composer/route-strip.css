@@ -361,3 +361,9 @@
     white-space: nowrap;
   }
 }
+
+/* A block of its own, so that its line box does not depend on the face of the words in it: "No address yet" (sans) and a
+   host (mono) were half a pixel apart in Firefox and WebKit. */
+.route-label-host .route-host {
+  display: block;
+}

@@ -9,9 +9,7 @@ import { RouteGlyph } from "./route-glyph";
 @Component({
   selector: "app-empty-state",
   imports: [RouteGlyph],
-  template: `@if (glyph()) {
-      <app-route-glyph />
-    }
+  template: `<app-route-glyph />
     <h3 class="type-empty-title text-label-primary m-0">{{ headline() }}</h3>
     <p class="type-callout text-label-secondary m-0 max-w-prose">{{ body() }}</p>
     <div class="flex max-w-full flex-wrap gap-2 empty:hidden"><ng-content /></div>`,
@@ -21,6 +19,4 @@ import { RouteGlyph } from "./route-glyph";
 export class EmptyState {
   readonly headline = input.required<string>();
   readonly body = input.required<string>();
-  /** The strip's path, drawn small. Off where the strip itself is drawn right above: the composer's response. */
-  readonly glyph = input(true);
 }

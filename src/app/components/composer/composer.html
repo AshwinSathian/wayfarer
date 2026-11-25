@@ -176,7 +176,7 @@
   @if (store.draft().url) {
   <app-empty-state
     class="px-4 py-2"
-    [glyph]="false"
+   
     [headline]="empty.notSent.headline"
     [body]="empty.notSent.body(sendKeys)"
   />
@@ -186,7 +186,7 @@
 </ng-template>
 <!-- The first step, once (V2): in the response where it will be, and on a phone also in the request, which is the pane it opens on. -->
 <ng-template #firstRun>
-  <app-empty-state class="px-4 pb-2" [glyph]="false" [headline]="empty.response.headline" [body]="empty.response.body">
+  <app-empty-state class="px-4 pb-2" [headline]="empty.response.headline" [body]="empty.response.body">
     <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="tryExample()"
       >{{ empty.response.actions[0] }}</button
     >

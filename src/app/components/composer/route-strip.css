@@ -226,6 +226,8 @@
 /* The path with its host beside it, then one line of words and the fold, a button with its words. */
 .route-compact {
   display: grid;
+  /* A track that may be narrower than its longest word: a host of one long word wraps in the strip. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.25rem;
 }
 

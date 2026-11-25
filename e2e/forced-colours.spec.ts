@@ -30,7 +30,7 @@ const painted = (page: Page, selector: string) =>
       return kept && style.backgroundColor !== canvas && style.backgroundColor !== "rgba(0, 0, 0, 0)";
     });
 
-test("in forced colours the unsaved dot and the timing bars keep their marks", async ({ page }) => {
+test("in forced colours the unsaved dot and the timing strip keep their marks", async ({ page }) => {
   await forced(page);
 
   await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
@@ -40,8 +40,8 @@ test("in forced colours the unsaved dot and the timing bars keep their marks", a
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
   await page.locator("app-response-viewer").getByRole("tab", { name: "Timings" }).click();
-  await expect(page.locator(".timing-bar-fill").first()).toBeVisible();
-  expect(await painted(page, ".timing-bar-fill")).toBe(true);
+  await expect(page.locator(".timing-segment").first()).toBeVisible();
+  expect(await painted(page, ".timing-segment")).toBe(true);
 });
 
 test("in forced colours the storage meter keeps its edge and its fill", async ({ page }) => {

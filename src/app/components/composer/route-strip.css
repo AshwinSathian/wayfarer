@@ -180,18 +180,20 @@
 /* ── Compact: the host, a line, and one button that opens the rest ─────────── */
 .route-compact {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 0.5rem;
   min-height: 1.75rem;
 }
 
-/* The host keeps its room first, whole where it fits; the button takes what is left and wraps. */
+/* The host keeps its room first, whole where it fits, and wraps in its own width; the button, on one line, goes
+   beside it if it fits and else under it: never a column of words (a long host beside a four-line button). */
 .route-compact .route-stop {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  flex: 0 0 auto;
-  max-width: 70%;
+  flex: 0 1 auto;
+  max-width: 100%;
   min-width: 0;
   padding-top: 0.125rem;
 }
@@ -211,6 +213,7 @@
   gap: 0.25rem;
   flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
   min-height: 1.75rem;
   padding: 0.125rem 0.5rem;
   border: 1px solid var(--ctl-boundary);
@@ -222,6 +225,14 @@
   line-height: var(--type-callout-line);
   text-align: start;
   cursor: pointer;
+}
+
+/* The summary is one line, its tail the part that gives way: the whole text is the button's name. */
+.route-toggle > span:not(.sr-only) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .route-toggle:hover {
@@ -252,8 +263,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 0.5rem;
-  min-height: calc(var(--type-callout-line) + 0.25rem);
-  padding-top: 0.125rem;
+  /* A small button's height (24 px, the least a target may be), not a line's: the offer and "Send anyway" take the room
+     that is there and the page under them does not move. */
+  min-height: 1.5rem;
 }
 
 .route-problem-text,
@@ -273,6 +285,30 @@
   color: var(--label-primary);
 }
 
+.route-problem .ui-button.btn-sm {
+  min-height: 1.5rem;
+}
+
 .route-problem-glyph {
   flex: none;
+}
+
+/* An offer is one row with its button, as a problem is one line: where the window leaves the words room, they give way
+   (their tail is cut) rather than push the button under them and the page down. Narrower, or with larger text, they wrap:
+   the sentence is also the button's description. 30 em of the window is 480 px at the default size. */
+@media (min-width: 24em) {
+  .route-problem-offer {
+    flex-wrap: nowrap;
+  }
+
+  .route-problem-offer button {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .route-problem-offer .route-problem-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

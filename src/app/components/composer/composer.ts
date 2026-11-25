@@ -74,7 +74,7 @@ const STACK_BELOW_EM = 62;
  * stacking does: beside the pinned sidebar a 1,200 px window leaves it 391 px.
  */
 const COMPACT_BELOW_EM = 34;
-const STACKED_SIZES: readonly [number, number] = [40, 60];
+const STACKED_SIZES: readonly [number, number] = [32, 68];
 const STACKED_MIN: readonly [number, number] = [20, 30];
 const BESIDE_MIN: readonly [number, number] = [28, 22];
 

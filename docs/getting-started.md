@@ -37,7 +37,7 @@ The **Details** button of a row opens the entry beside the list as it was kept: 
 when one was kept, and what was sent. It says that timings and test results are not recorded. <!-- claim:C-118 -->
 
 Two entries are compared from History: tick two with **Select…** and choose **Compare the two**, or open one, and
-choose another in **Compare with…** (the same from a tab's response, in the command palette). The comparison lists the
+choose another in **Compare with...** (the same from a tab's response, in the command palette). The comparison lists the
 status, route, request, headers and body; a JSON body is compared by path, what changed first, and a body that was not
 kept is not compared. It reads only what history kept, which has its secrets masked. <!-- claim:C-119 -->
 

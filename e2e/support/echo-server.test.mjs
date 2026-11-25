@@ -296,6 +296,13 @@ test("/big/:mb streams exactly that many MiB", async () => {
   assert.equal(buf.byteLength, 2 << 20);
 });
 
+test("/big-json/:mb is valid JSON of that size, /big-text/:mb is text of that size", async () => {
+  const json = await (await get("/big-json/1")).text();
+  assert.ok(json.length > (1 << 20) - 200 && json.length <= 1 << 20);
+  assert.ok(Array.isArray(JSON.parse(json)));
+  assert.ok((await (await get("/big-text/1")).text()).length > (1 << 20) - 200);
+});
+
 test(
   "/ws echoes text in order",
   { skip: typeof WebSocket === "undefined" && "needs Node 22 global WebSocket" },

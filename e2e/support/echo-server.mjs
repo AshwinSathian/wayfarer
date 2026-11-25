@@ -31,6 +31,8 @@
 //   /oauth/issued?token=… | ?refresh_token=…   what was issued with that token, for a test to read:
 //                                  a browser does not always hand a test the body of a token answer
 //   /big/:mb                       mb MiB of bytes, streamed
+//   /big-json/:mb                  about mb MiB of JSON (an array of small objects), as application/json
+//   /big-text/:mb                  mb MiB of text lines, as text/plain
 //   /model/v1/chat/completions     a model (D4.10), OpenAI's shape: keeps the body it received, answers each action in kind
 //   /model/v1/messages             the same, Anthropic's shape
 //   /model-refuses/v1/…            401 with the provider's own message
@@ -351,6 +353,7 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     accessTokens.delete(parseForm(body).token);
     return json(res, 200, {}, cors);
   }
+  if ((m = /^\/big-(json|text)\/(\d+)$/.exec(path))) return bigText(res, m[1], clampInt(m[2], 0, MAX_BIG_MB, 0), cors);
   if ((m = /^\/big\/(\d+)$/.exec(path))) return big(res, clampInt(m[1], 0, MAX_BIG_MB, 0), cors);
   return json(res, 404, { error: "not found", path }, cors);
 }
@@ -495,6 +498,29 @@ function big(res, mb, cors) {
     res.end();
   };
   pump();
+}
+
+// Text a viewer must lay out: JSON rows of about 70 bytes, or numbered lines, up to mb MiB and not over it (5 MiB is
+// the most JSON the viewer formats). Built whole.
+function bigText(res, kind, mb, cors) {
+  const target = mb << 20;
+  const parts = [];
+  let length = 0;
+  for (let i = 0; ; i++) {
+    const row =
+      kind === "json"
+        ? `${i ? "," : "["}{"id":${i},"name":"item-${i}","tags":["a","b"],"ok":${i % 2 === 0},"score":${i % 997}}`
+        : `line ${i}: the quick brown fox jumps over the lazy dog\n`;
+    if (length + row.length + 1 > target) break;
+    parts.push(row);
+    length += row.length;
+  }
+  const body = kind === "json" ? `${parts.join("")}]` : parts.join("");
+  res.writeHead(200, {
+    ...cors,
+    "content-type": kind === "json" ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
+  });
+  res.end(res.req.method === "HEAD" ? undefined : body);
 }
 
 // Postman Echo–compatible subset used by Newman's integration collections,

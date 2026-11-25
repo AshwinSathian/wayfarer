@@ -1,0 +1,76 @@
+@let ex = exchange(); @let statusCode = ex.statusCode; @if (statusCode === undefined) {
+<!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
+<span class="status-none type-callout inline-flex items-center gap-1.5 font-semibold text-status-error"
+  ><app-icon name="warning" class="icon-xs" />No response</span
+>
+} @else {
+<span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span>
+}
+
+<!-- Status text -->
+<span class="type-callout text-label-secondary">{{ ex.statusText }}</span>
+
+@if (ex.redirectedTo; as finalUrl) {
+<span class="redirect-note type-footnote text-label-secondary min-w-0 break-all">
+  Redirected to <span class="font-mono">{{ finalUrl }}</span>
+</span>
+} @let inspData = ex.inspection;
+
+<!-- The facts wrap as one line, not one by one. -->
+<span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
+  @if (inspData && inspData.duration) {
+  <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
+  } @if (ex.contentLength) {
+  <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(ex.contentLength) }}</span>
+  }
+</span>
+
+@if (ex.tlsInsecure) {
+<span
+  class="tls-off-pill"
+  tabindex="0"
+  uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
+>
+  <app-icon name="warning" class="icon-xs" />
+  Certificate not checked
+</span>
+}
+
+<!-- Where the request went, and Export, at the line's end: on a phone a line of their own under the status and
+       its facts (V21). -->
+<div class="ml-auto flex min-w-0 max-w-full items-center gap-2">
+  @if (ex.record; as rec) {
+  <!-- It opens the record (D4.12). -->
+  <button
+    type="button"
+    uiButton
+    class="btn-plain btn-sm record-toggle"
+    uiTooltip="Exchange record"
+    aria-controls="exchange-record"
+    [attr.aria-expanded]="recordOpen()"
+    (click)="recordOpenChange.emit(!recordOpen())"
+    >{{ recordRoute(rec) }}<app-icon
+      [name]="recordOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+      class="icon-xs"
+  /></button>
+  } @else if (ex.route; as route) {
+  <span class="response-fact route-badge" uiTooltip="Route"
+    >{{ route === 'bridge' ? 'Local Bridge' : 'From this page' }}</span
+  >
+  } @if (canExport()) {
+  <!-- What the last copy did (U-050). Always there while the button is, so that a screen reader hears it change. -->
+  <span class="copy-note type-footnote text-label-secondary min-w-0" role="status">{{ copyStatus.text() }}</span>
+  <button
+    uiButton="icon"
+    class="btn-plain"
+    type="button"
+    aria-label="Export response"
+    uiTooltip="Export response"
+    ngMenuTrigger
+    #exportTrigger="ngMenuTrigger"
+    [menu]="exportMenu.menu()"
+    ><app-icon name="download" class="icon-md"
+  /></button>
+  <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
+  }
+</div>

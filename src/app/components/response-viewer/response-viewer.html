@@ -12,8 +12,8 @@
   <!-- While a request is out the last response stays (D5-e). Nothing changes for its first second (D3.7): a quick
        answer replaces it in the frame it is ready. After that the status line says it is sending, and for how long,
        and the last response under it is dimmed: it is the old one, and the new one is drawn at full strength. -->
-  @let sofar = sendingFor(); @let statusCode = responseStatusCode(); @let answered = statusCode !== undefined ||
-  isError(); @let noResponse = isError() && statusCode === undefined;
+  @let ex = exchange(); @let sofar = sendingFor(); @let statusCode = ex.statusCode; @let answered = statusCode !==
+  undefined || ex.isError; @let noResponse = ex.isError && statusCode === undefined;
   <div class="response-main" [class.response-stale]="!!sofar">
     <!-- ── Status bar ─────────────────────────────────────── -->
     @if (loading() && (sofar || !answered)) {
@@ -27,89 +27,20 @@
     </div>
     } @else if (answered) {
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
-    <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
-      @if (statusCode === undefined) {
-      <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
-      <span class="status-none type-callout inline-flex items-center gap-1.5 font-semibold text-status-error"
-        ><app-icon name="warning" class="icon-xs" />No response</span
-      >
-      } @else {
-      <span class="status-badge status-code" [class]="statusTone(statusCode)">{{ statusCode }}</span>
-      }
-
-      <!-- Status text -->
-      <span class="type-callout text-label-secondary">{{ responseStatusText() }}</span>
-
-      @if (redirectedTo(); as finalUrl) {
-      <span class="redirect-note type-footnote text-label-secondary min-w-0 break-all">
-        Redirected to <span class="font-mono">{{ finalUrl }}</span>
-      </span>
-      } @let inspData = inspectionValue();
-
-      <!-- The facts wrap as one line, not one by one. -->
-      <span class="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5">
-        @if (inspData && inspData.duration) {
-        <span class="response-fact" uiTooltip="Time">{{ formatDuration(inspData.duration) }}</span>
-        } @if (responseContentLength()) {
-        <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
-        }
-      </span>
-
-      @if (tlsInsecure()) {
-      <span
-        class="tls-off-pill"
-        tabindex="0"
-        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
-      >
-        <app-icon name="warning" class="icon-xs" />
-        Certificate not checked
-      </span>
-      }
-
-      <!-- Where the request went, and Export, at the line's end: on a phone a line of their own under the status and
-           its facts (V21). -->
-      <div class="ml-auto flex min-w-0 max-w-full items-center gap-2">
-        @if (record(); as rec) {
-        <!-- It opens the record (D4.12). -->
-        <button
-          type="button"
-          uiButton
-          class="btn-plain btn-sm record-toggle"
-          uiTooltip="Exchange record"
-          aria-controls="exchange-record"
-          [attr.aria-expanded]="recordOpen()"
-          (click)="recordOpenChange.emit(!recordOpen())"
-          >{{ recordRoute(rec) }}<app-icon
-            [name]="recordOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-            class="icon-xs"
-        /></button>
-        } @else if (route(); as route) {
-        <span class="response-fact route-badge" uiTooltip="Route"
-          >{{ route === 'bridge' ? 'Local Bridge' : 'From this page' }}</span
-        >
-        } @if (canExport) {
-        <!-- What the last copy did (U-050). Always there while the button is, so that a screen reader hears it change. -->
-        <span class="copy-note type-footnote text-label-secondary min-w-0" role="status">{{ copyStatus.text() }}</span>
-        <button
-          uiButton="icon"
-          class="btn-plain"
-          type="button"
-          aria-label="Export response"
-          uiTooltip="Export response"
-          ngMenuTrigger
-          #exportTrigger="ngMenuTrigger"
-          [menu]="exportMenu.menu()"
-          ><app-icon name="download" class="icon-md"
-        /></button>
-        <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
-        }
-      </div>
-    </div>
+    <div
+      appResponseStatus
+      class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2"
+      [exchange]="ex"
+      [loading]="loading()"
+      [recordOpen]="recordOpen()"
+      (recordOpenChange)="recordOpenChange.emit($event)"
+      (exportHar)="harSource.set($event)"
+    ></div>
     } @if (noResponse) {
     <!-- No response (U-051, U-175): the app's words, once, in its own face; nothing in the server's place. What was
          reported, and the action, are in the exchange record under it (D4.12). -->
-    <p class="response-failure type-callout text-label-primary px-4 pt-3">{{ bodyText() }}</p>
-    } @if (answered || !loading()) { @if (record(); as rec) { @if (recordOpen()) {
+    <p class="response-failure type-callout text-label-primary px-4 pt-3">{{ body.bodyText() }}</p>
+    } @if (answered || !loading()) { @if (ex.record; as rec) { @if (recordOpen()) {
     <!-- The exchange record (D4.12): what this send did. Closed after a success, open after a failure. -->
     <section
       id="exchange-record"
@@ -118,11 +49,11 @@
     >
       <app-exchange-record [record]="rec" (sendThroughBridge)="sendThroughBridge.emit()" />
       <!-- Explain (D4.10): a status of 400 or more, with a provider and the action on (AI-1); fetched when drawn. -->
-      @if (ai.offers().explain && (responseStatusCode() ?? 0) >= 400) { @defer {
+      @if (ai.offers().explain && (statusCode ?? 0) >= 400) { @defer {
       <app-ai-explain class="mt-3" />
       } }
     </section>
-    } } @if (redirects(); as hops) { @if (hops.chain.length || redirectNote()) {
+    } } @if (ex.redirects; as hops) { @if (hops.chain.length || redirectNote()) {
     <!-- The redirects followed through the Local Bridge (P5.4). A direct request has none to show: the browser follows them unseen. -->
     <section
       class="redirect-chain space-y-2 border-b border-separator px-5 py-3 type-footnote text-label-secondary"
@@ -150,7 +81,7 @@
     } }
 
     <!-- Above the tabs, whichever is open: inside Tests, a response that opened on Body never showed it (U-158). -->
-    @if (scriptsSkipped()) {
+    @if (ex.scriptsSkipped) {
     <p class="scripts-skipped type-callout text-status-warning mx-4 mt-2 flex flex-wrap items-center gap-1.5">
       <app-icon name="warning" class="icon-xs shrink-0" />This request's scripts did not run: they are not reviewed yet.
       <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Open Scripts</button>
@@ -158,7 +89,7 @@
     }
     <!-- ── Response tabs ──────────────────────────────────── -->
     <!-- With no response (U-175) there is no body, no headers and no timings: only Tests, when one ran. -->
-    @if (!noResponse || testResults().length) {
+    @if (!noResponse || ex.testResults.length) {
     <div class="response-tabs px-4 pt-1">
       <div ngTabs class="tabs">
         <div uiTabList [selectedTab]="noResponse ? 'tests' : activeTab()" (selectedTabChange)="activeTab.set($event)">
@@ -166,11 +97,11 @@
           <button ngTab type="button" value="body">Body</button>
           <button ngTab type="button" value="headers">Headers</button>
           <button ngTab type="button" value="timings">Timings</button>
-          } @if (eventCount()) {
+          } @if (ex.eventCount) {
           <button ngTab type="button" value="events">Events</button>
           }
           <button ngTab type="button" value="tests">
-            Tests @if (testResults().length) {
+            Tests @if (ex.testResults.length) {
             <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
               <span class="tab-count text-label-secondary">{{ testPassCount }}</span>
@@ -187,432 +118,46 @@
           <!-- ── Body tab ───────────────────────────────────── -->
           <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
-              <div class="space-y-3 pb-4">
-                @if ((views().length > 1 || view() === 'json') && responseStatusCode() !== undefined) {
-                <!-- One row (U-030): the view, and the field that searches or filters; it wraps only where the pane is narrow. -->
-                <div class="response-tools flex flex-wrap items-center gap-2">
-                  @if (views().length > 1) {
-                  <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
-                  <ui-select
-                    class="w-28"
-                    aria-label="View the body as"
-                    [options]="viewOptions()"
-                    [value]="view()"
-                    (valueChange)="viewOverride.set($event)"
-                  />
-                  } @if (view() === 'json') {
-                  <!-- One field (L-14): a path filters the body, any other text is searched for. The count and the
-                       arrows, with what the field is doing, wrap together. -->
-                  <div class="flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-x-2 gap-y-1">
-                    <input
-                      class="font-mono min-w-0 flex-1 basis-56"
-                      uiInput
-                      [value]="searchQuery()"
-                      (input)="onSearchQueryChange($any($event.target).value)"
-                      aria-label="Search the response, or filter it by path"
-                      placeholder="Search, or a path such as data.items[*].id"
-                      spellcheck="false"
-                      autocomplete="off"
-                    />
-                    @if (jsonFilter()) {
-                    <span class="type-footnote text-label-secondary">Filtering by path</span>
-                    } @else if (searchQuery().trim()) {
-                    <span class="flex items-center gap-1">
-                      <span class="type-footnote text-label-tertiary tabular-nums">
-                        {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{
-                        searchResult()?.count || 0 }}
-                      </span>
-                      <button
-                        uiButton="icon"
-                        class="btn-sm"
-                        type="button"
-                        aria-label="Previous search match"
-                        [disabled]="!searchResult()?.count"
-                        (click)="stepSearch(-1)"
-                        ><app-icon name="keyboard_arrow_up"
-                      /></button>
-                      <button
-                        uiButton="icon"
-                        class="btn-sm"
-                        type="button"
-                        aria-label="Next search match"
-                        [disabled]="!searchResult()?.count"
-                        (click)="stepSearch(1)"
-                        ><app-icon name="keyboard_arrow_down"
-                      /></button>
-                    </span>
-                    }
-                  </div>
-                  }
-                </div>
-                }
-                <!-- There before the filter is typed in, so a screen reader hears it (U-075). -->
-                <p class="sr-only" role="status">{{ filterMissed() ? 'Nothing in the body is at that path.' : '' }}</p>
-                @if (filterMissed()) {
-                <p class="type-footnote text-label-secondary" aria-hidden="true"
-                  >Nothing in the body is at that path.</p
-                >
-                } @if (currentSearchExcerpt) {
-                <div
-                  class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-mono-body text-label-secondary font-mono"
-                >
-                  …{{ currentSearchExcerpt }}…
-                </div>
-                } @if (responseBinary(); as binary) {
-                <div class="flex flex-wrap items-center gap-3 rounded-lg bg-canvas-panel border border-separator p-4">
-                  <p class="type-callout text-label-secondary">
-                    Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : ''
-                    }})
-                  </p>
-                  <button
-                    uiButton="filled"
-                    class="btn-secondary btn-sm"
-                    type="button"
-                    aria-label="Download response body"
-                    (click)="downloadBinary()"
-                    ><app-icon name="download" /> Download</button
-                  >
-                </div>
-                } @if (!bodyText() && !responseBinary()) {
-                <p class="type-callout text-label-secondary">The response has no body.</p>
-                } @else { @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
-                <div class="overflow-auto rounded-lg bg-canvas-panel border border-separator p-4">
-                  <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
-                </div>
-                } } @case ('hex') { @if (responseBinary(); as binary) { @if (binary.byteLength > hexViewBytes) {
-                <p class="type-footnote text-label-secondary"
-                  >The first {{ hexViewBytes }} of {{ binary.byteLength }} bytes. Download the body for the rest.</p
-                >
-                } }
-                <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
-                <pre
-                  class="hex-dump max-h-[300px] overflow-auto rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
-                  role="region"
-                  aria-label="Response body as hex"
-                  tabindex="0"
-                >
-{{ hexText() }}</pre>
-                } @case ('json') {
-                <app-json-editor
-                  name="responseJson"
-                  [readOnly]="true"
-                  [ngModel]="filteredJson() || formattedResponseBody"
-                  [ngModelOptions]="{ standalone: true }"
-                  [height]="300"
-                  [fill]="fill()"
-                ></app-json-editor>
-                } @case ('xml') {
-                <app-json-editor
-                  name="responseXml"
-                  language="xml"
-                  [readOnly]="true"
-                  [ngModel]="xmlText()"
-                  [ngModelOptions]="{ standalone: true }"
-                  [height]="300"
-                  [fill]="fill()"
-                ></app-json-editor>
-                } @case ('html') {
-                <app-html-preview [html]="bodyText()" />
-                } @default { @if (responseBodyIsJson()) {
-                <p class="type-footnote text-label-secondary"
-                  >This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p
-                >
-                }
-                <!-- The server's words, as they came: monospace, in the text's own colour. -->
-                <pre
-                  class="min-h-[160px] whitespace-pre-wrap rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
-                >
-{{ bodyText() }}</pre>
-                } } }
-              </div>
-            </ng-template></div
-          >
+              <div
+                appResponseBody
+                class="space-y-3 pb-4"
+                [exchange]="ex"
+                [model]="body"
+                [fill]="fill()"
+              ></div> </ng-template
+          ></div>
 
           <!-- ── Headers tab ────────────────────────────────── -->
           <div ngTabPanel value="headers" class="tab-pane response-headers-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
-              <div class="pb-4">
-                <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
-                @if (headersLimited()) {
-                <p class="headers-note mb-3 type-footnote text-label-secondary">
-                  The browser shows a page only some headers of a response from another origin: the CORS-safelisted ones
-                  (<span class="font-mono">Cache-Control</span>, <span class="font-mono">Content-Language</span>,
-                  <span class="font-mono">Content-Length</span>, <span class="font-mono">Content-Type</span>,
-                  <span class="font-mono">Expires</span>, <span class="font-mono">Last-Modified</span>,
-                  <span class="font-mono">Pragma</span>) and those the server names in
-                  <span class="font-mono">Access-Control-Expose-Headers</span>. The server may have sent more.
-                </p>
-                }
-                <div
-                  class="response-headers overflow-y-auto rounded-lg border border-separator"
-                  role="region"
-                  aria-label="Response headers"
-                  tabindex="0"
-                >
-                  @if (responseHeaders().length) {
-                  <table class="ds-table">
-                    <tbody>
-                      <!-- By position: a name sent twice is two rows. -->
-                      @for (header of responseHeaders(); track $index) {
-                      <tr>
-                        <th>{{ header.name }}</th>
-                        <td class="font-mono">{{ header.value || '—' }}</td>
-                      </tr>
-                      }
-                    </tbody>
-                  </table>
-                  } @else {
-                  <div class="p-5 type-callout text-label-secondary text-center"
-                    >{{ responseStatusCode() === undefined ? 'No response arrived, so there are no headers.' :
-                    headersLimited() ? "The browser let the page read none of this response's headers." : 'This response
-                    has no headers.' }}</div
-                  >
-                  }
-                </div>
-              </div>
-            </ng-template></div
-          >
+              <div appResponseHeaders class="pb-4" [exchange]="ex"></div> </ng-template
+          ></div>
 
           <!-- ── Timings tab ────────────────────────────────── -->
           <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
-              @let inspectionData = inspectionValue(); @if (!inspectionData) {
-              <!-- A line, not a dashed box around nothing (U-022). -->
-              <p class="flex items-center gap-2 type-callout text-label-secondary py-3">
-                <app-icon name="timer" class="icon-xs text-label-tertiary" />Send the request and its timings show here.
-              </p>
-              } @else {
-              <div class="space-y-5 pb-4">
-                <!-- Summary cards -->
-                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
-                    <div class="flex items-center gap-1.5 mb-2">
-                      <span class="ds-section-label">Duration</span>
-                      <span
-                        class="info-tip"
-                        tabindex="0"
-                        role="img"
-                        [attr.aria-label]="timingSummaryTooltips.duration"
-                        [uiTooltip]="timingSummaryTooltips.duration"
-                        uiTooltipPosition="above"
-                        ><app-icon name="info" class="icon-xs"
-                      /></span>
-                    </div>
-                    <div class="type-title-3 text-label-primary">{{ formatDuration(inspectionData.duration) }}</div>
-                  </div>
-                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
-                    <div class="flex items-center gap-1.5 mb-2">
-                      <span class="ds-section-label">Transfer</span>
-                      <span
-                        class="info-tip"
-                        tabindex="0"
-                        role="img"
-                        [attr.aria-label]="timingSummaryTooltips.transferSize"
-                        [uiTooltip]="timingSummaryTooltips.transferSize"
-                        uiTooltipPosition="above"
-                        ><app-icon name="info" class="icon-xs"
-                      /></span>
-                    </div>
-                    <div class="type-title-3 text-label-primary"
-                      >{{ formatBytes(inspectionData.sizes?.transferSize) }}</div
-                    >
-                  </div>
-                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
-                    <div class="flex items-center gap-1.5 mb-2">
-                      <span class="ds-section-label">Encoded</span>
-                      <span
-                        class="info-tip"
-                        tabindex="0"
-                        role="img"
-                        [attr.aria-label]="timingSummaryTooltips.encodedBodySize"
-                        [uiTooltip]="timingSummaryTooltips.encodedBodySize"
-                        uiTooltipPosition="above"
-                        ><app-icon name="info" class="icon-xs"
-                      /></span>
-                    </div>
-                    <div class="type-title-3 text-label-primary"
-                      >{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div
-                    >
-                  </div>
-                  <div class="rounded-lg bg-canvas-panel border border-separator p-4">
-                    <div class="flex items-center gap-1.5 mb-2">
-                      <span class="ds-section-label">Decoded</span>
-                      <span
-                        class="info-tip"
-                        tabindex="0"
-                        role="img"
-                        [attr.aria-label]="timingSummaryTooltips.decodedBodySize"
-                        [uiTooltip]="timingSummaryTooltips.decodedBodySize"
-                        uiTooltipPosition="above"
-                        ><app-icon name="info" class="icon-xs"
-                      /></span>
-                    </div>
-                    <div class="type-title-3 text-label-primary"
-                      >{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div
-                    >
-                  </div>
-                </div>
-
-                <!-- Waterfall -->
-                <div class="space-y-3">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1.5">
-                      <span class="ds-section-label">Waterfall</span>
-                      <span
-                        class="info-tip"
-                        tabindex="0"
-                        role="img"
-                        [attr.aria-label]="waterfallTooltip"
-                        [uiTooltip]="waterfallTooltip"
-                        uiTooltipPosition="above"
-                        ><app-icon name="info" class="icon-xs"
-                      /></span>
-                    </div>
-                    @if (inspectionData.limitedByCors) {
-                    <span class="type-footnote text-status-warning flex items-center gap-1">
-                      <app-icon name="warning" class="icon-xs" />
-                      CORS-limited timings
-                    </span>
-                    }
-                  </div>
-
-                  @if (timingBars().length) {
-                  <div class="flex flex-col gap-2.5">
-                    @for (phase of timingBars(); track phase.key) {
-                    <div class="flex items-center gap-3">
-                      <div class="flex w-24 items-center gap-1.5">
-                        <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
-                        @if (phase.tooltip) {
-                        <span
-                          class="info-tip"
-                          tabindex="0"
-                          role="img"
-                          [attr.aria-label]="phase.tooltip"
-                          [uiTooltip]="phase.tooltip"
-                          uiTooltipPosition="above"
-                          ><app-icon name="info" class="icon-xs"
-                        /></span>
-                        }
-                      </div>
-                      <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
-                        <div
-                          class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
-                          [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
-                        ></div>
-                      </div>
-                      <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatDuration(phase.duration) }}
-                      </span>
-                    </div>
-                    }
-                  </div>
-                  } @else {
-                  <div class="flex flex-col gap-2.5">
-                    @for (bar of fallbackBars(); track bar.label) {
-                    <div class="flex items-center gap-3">
-                      <div class="flex w-24 items-center gap-1.5">
-                        <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
-                      </div>
-                      <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
-                        <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
-                      </div>
-                      <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                        {{ formatDuration(bar.duration) }}
-                      </span>
-                    </div>
-                    }
-                  </div>
-                  <p class="type-footnote text-label-tertiary"> The browser reported no phases for this response. </p>
-                  }
-                </div>
-              </div>
-              }
-            </ng-template></div
-          >
+              <app-response-timings [exchange]="ex" [bars]="timingBars()" [fallback]="fallbackBars()" /> </ng-template
+          ></div>
 
           }
-          <!-- ── Tests tab ──────────────────────────────────── -->
-          @if (eventCount()) {
+          <!-- ── Events tab ─────────────────────────────────── -->
+          @if (ex.eventCount) {
           <div ngTabPanel value="events" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <app-event-list
                 class="block space-y-3 p-4"
-                [events]="events()"
-                [count]="eventCount()"
-                [note]="eventsNote()"
+                [events]="ex.events"
+                [count]="ex.eventCount"
+                [note]="ex.eventsNote"
                 (reconnect)="reconnectStream.emit()"
               /> </ng-template
           ></div>
           }
+          <!-- ── Tests tab ──────────────────────────────────── -->
           <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
-              <div class="space-y-2 pb-4">
-                <!-- Drawn only with a provider and the action on (AI-1); fetched when first drawn (D4.10). -->
-                @if (ai.offers().tests && responseStatusCode() !== undefined) { @defer {
-                <app-ai-tests />
-                } } @if (!testResults().length) {
-                <p class="flex flex-wrap items-center gap-2 type-callout text-label-secondary py-3">
-                  <app-icon name="rule" class="icon-xs text-label-tertiary shrink-0" />This request has no tests.
-                  <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Add a test</button>
-                </p>
-                } @else {
-                <!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
-                <div class="test-results">
-                  @for (result of testResults(); track $index) {
-                  <div
-                    class="test-result"
-                    [class.test-result-pass]="result.passed"
-                    [class.test-result-fail]="!result.passed"
-                  >
-                    <app-icon
-                      [name]="result.passed ? 'check_circle' : 'cancel'"
-                      class="line-glyph shrink-0 icon-sm"
-                      [class]="result.passed ? 'text-status-success' : 'text-status-error'"
-                    />
-                    <div class="flex-1 min-w-0">
-                      <div class="type-callout text-label-primary">{{ result.label }}</div>
-                      @if (!result.passed && result.error) {
-                      <div class="type-footnote text-status-error mt-0.5">{{ result.error }}</div>
-                      } @if (!result.passed && result.actual !== undefined) {
-                      <div class="type-mono-body text-label-secondary mt-0.5 font-mono"
-                        >Actual: {{ result.actual | json }}</div
-                      >
-                      }
-                    </div>
-                    <span class="type-footnote text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
-                  </div>
-                  }
-                </div>
-
-                <div class="flex items-center gap-4 pt-3 tabular-nums">
-                  <span class="type-subhead text-label-primary flex items-center gap-1.5">
-                    <app-icon name="check_circle" class="icon-xs text-status-success" />
-                    {{ testPassCount }} passed
-                  </span>
-                  <!-- Red only when something failed (U-190). -->
-                  <span
-                    class="type-subhead flex items-center gap-1.5"
-                    [class]="testFailCount ? 'text-status-error' : 'text-label-secondary'"
-                  >
-                    @if (testFailCount) {
-                    <app-icon name="cancel" class="icon-xs" />
-                    } {{ testFailCount }} failed
-                  </span>
-                </div>
-                } @if (scriptTimings()) {
-                <p class="script-timings type-footnote text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
-                } @if (scriptLogs().length) {
-                <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
-                  <h3 class="ds-section-label">Console</h3>
-                  <pre
-                    class="type-mono-body font-mono text-label-secondary rounded-lg bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
-                  >
-{{ scriptLogs().join("\n") }}</pre>
-                </section>
-                }
-              </div>
-            </ng-template></div
-          >
+              <app-response-tests [exchange]="ex" (openScripts)="openScripts.emit()" /> </ng-template
+          ></div>
         </div>
       </div>
     </div>

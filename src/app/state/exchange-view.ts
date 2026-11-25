@@ -1,4 +1,10 @@
-import { parseJson, type BinaryBody, type ExchangeRecord, type PastRequest, type ResponseEnvelope } from "@wayfarer/core";
+import {
+  parseJson,
+  type BinaryBody,
+  type ExchangeRecord,
+  type PastRequest,
+  type ResponseEnvelope,
+} from "@wayfarer/core";
 import type { SendTimings, TestResult } from "@wayfarer/core";
 import type { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import type { ResponseInspection } from "../shared/inspect/response-inspector";

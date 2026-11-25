@@ -1,4 +1,4 @@
-@let m = model(); @let ex = exchange(); @if ((m.views().length > 1 || m.view() === 'json') && ex().statusCode !==
+@let m = model(); @let ex = exchange(); @if ((m.views().length > 1 || m.view() === 'json') && ex.statusCode !==
 undefined) {
 <!-- One row (U-030): the view, and the field that searches or filters; it wraps only where the pane is narrow. -->
 <div class="response-tools flex flex-wrap items-center gap-2">
@@ -64,7 +64,7 @@ undefined) {
 <div class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-mono-body text-label-secondary font-mono">
   …{{ m.currentSearchExcerpt }}…
 </div>
-} @if (ex().binary; as binary) {
+} @if (ex.binary; as binary) {
 <div class="flex flex-wrap items-center gap-3 rounded-lg bg-canvas-panel border border-separator p-4">
   <p class="type-callout text-label-secondary">
     Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }})
@@ -78,13 +78,13 @@ undefined) {
     ><app-icon name="download" /> Download</button
   >
 </div>
-} @if (!m.bodyText() && !ex().binary) {
+} @if (!m.bodyText() && !ex.binary) {
 <p class="type-callout text-label-secondary">The response has no body.</p>
 } @else { @switch (m.view()) { @case ('image') { @if (m.imageUrl(); as url) {
 <div class="overflow-auto rounded-lg bg-canvas-panel border border-separator p-4">
   <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
 </div>
-} } @case ('hex') { @if (ex().binary; as binary) { @if (binary.byteLength > m.hexViewBytes) {
+} } @case ('hex') { @if (ex.binary; as binary) { @if (binary.byteLength > m.hexViewBytes) {
 <p class="type-footnote text-label-secondary"
   >The first {{ m.hexViewBytes }} of {{ binary.byteLength }} bytes. Download the body for the rest.</p
 >
@@ -118,7 +118,7 @@ undefined) {
 ></app-json-editor>
 } @case ('html') {
 <app-html-preview [html]="m.bodyText()" />
-} @default { @if (ex().bodyIsJson) {
+} @default { @if (ex.bodyIsJson) {
 <p class="type-footnote text-label-secondary"
   >This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p
 >

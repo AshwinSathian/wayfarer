@@ -1,6 +1,6 @@
 @let ex = exchange();
 <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
-@if (ex().headersLimited) {
+@if (ex.headersLimited) {
 <p class="headers-note mb-3 type-footnote text-label-secondary">
   The browser shows a page only some headers of a response from another origin: the CORS-safelisted ones (<span
     class="font-mono"
@@ -17,11 +17,11 @@
   aria-label="Response headers"
   tabindex="0"
 >
-  @if (ex().headers.length) {
+  @if (ex.headers.length) {
   <table class="ds-table">
     <tbody>
       <!-- By position: a name sent twice is two rows. -->
-      @for (header of ex().headers; track $index) {
+      @for (header of ex.headers; track $index) {
       <tr>
         <th>{{ header.name }}</th>
         <td class="font-mono">{{ header.value || '—' }}</td>
@@ -31,7 +31,7 @@
   </table>
   } @else {
   <div class="p-5 type-callout text-label-secondary text-center"
-    >{{ ex().statusCode === undefined ? 'No response arrived, so there are no headers.' : ex().headersLimited ? "The
+    >{{ ex.statusCode === undefined ? 'No response arrived, so there are no headers.' : ex.headersLimited ? "The
     browser let the page read none of this response's headers." : 'This response has no headers.' }}</div
   >
   }

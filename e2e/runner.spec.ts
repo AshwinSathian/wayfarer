@@ -741,6 +741,23 @@ test("a run's report says its counts once and that it is kept only until the tab
   await expect(view.getByText("The report is kept only until this tab closes or the page reloads.")).toBeVisible();
 });
 
+test("@claim:C-114 a run's rows say passed or failed with a glyph, and where each request was sent", async ({
+  page,
+}) => {
+  await seedCollection(page, [
+    { name: "Fine", url: `${ECHO}/status/200` },
+    { name: "Gone", url: "http://127.0.0.1:9/a" },
+  ]);
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+  const rows = resultRows(view);
+  await expect(rows.nth(0)).toContainText("Passed. 200");
+  await expect(rows.nth(0)).toContainText("Sent from this page");
+  await expect(rows.nth(1)).toContainText("Failed. No response");
+  await expect(view.locator(".run-summary .run-glyph")).toHaveCount(2);
+});
+
 test("a run's row opens into its exchange record: where the request went, and that the run kept it (D4.12, U-076)", async ({
   page,
 }) => {

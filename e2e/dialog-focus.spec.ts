@@ -21,9 +21,10 @@ test("a dialog closed over another leaves focus in the one under it, so Escape s
   };
   await page.goto("/app/");
   const settings = await openSettings(page, "Data and storage");
+  await settings.getByRole("button", { name: "Import", exact: true }).click();
   const [chooser] = await Promise.all([
     page.waitForEvent("filechooser"),
-    settings.getByRole("button", { name: "Import…", exact: true }).first().click(),
+    page.getByRole("menuitem", { name: "File…" }).click(),
   ]);
   await chooser.setFiles(file);
   const report = page.getByRole("dialog", { name: "Import environments" });

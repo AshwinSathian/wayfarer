@@ -25,25 +25,20 @@ async function sendAndEcho(page: Page): Promise<Echo> {
   return (await (await response).json()) as Echo;
 }
 
-/** Adds the variables in the dialog that is open, and saves. */
-async function addVariables(
-  page: Page,
-  dialogName: string | RegExp,
-  variables: Record<string, string>,
-  save = "Save variables",
-): Promise<void> {
-  const dialog = page.getByRole("dialog", { name: dialogName });
+/** Opens the globals in the Environments tab and adds the variables; the rows write as they are left. */
+async function addGlobals(page: Page, variables: Record<string, string>): Promise<void> {
+  const pane = page.getByRole("region", { name: "Environments", exact: true });
+  await pane.getByRole("button", { name: /^Globals/ }).click();
   let rows = 0;
   for (const [name, value] of Object.entries(variables)) {
-    await dialog.getByRole("button", { name: "Add variable" }).click();
+    await pane.getByRole("button", { name: "Add variable" }).click();
     rows += 1;
     // The row is drawn a frame after the click.
-    await expect(dialog.getByPlaceholder("name")).toHaveCount(rows);
-    await dialog.getByPlaceholder("name").last().fill(name);
-    await dialog.getByPlaceholder("value").last().fill(value);
+    await expect(pane.getByPlaceholder("Name", { exact: true })).toHaveCount(rows);
+    await pane.getByPlaceholder("Name", { exact: true }).last().fill(name);
+    await pane.getByPlaceholder("Value", { exact: true }).last().fill(value);
   }
-  await dialog.getByRole("button", { name: save }).click();
-  await expect(dialog).toBeHidden();
+  await pane.getByPlaceholder("Value", { exact: true }).last().blur();
 }
 
 test("a collection variable and a global reach the server, an environment's value wins, and both are kept over a reload", async ({
@@ -62,8 +57,7 @@ test("a collection variable and a global reach the server, an environment's valu
   );
 
   await openEnvironments(page);
-  await page.getByRole("button", { name: "Globals", exact: true }).click();
-  await addVariables(page, "Global variables", { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
+  await addGlobals(page, { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
   await closeEnvironments(page);
 
   // A collection's variables are in its settings tab (P4.9, D5-e), with its auth and its scripts, written as typed.

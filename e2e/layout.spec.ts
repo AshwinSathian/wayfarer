@@ -175,7 +175,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.setViewportSize({ width: 390, height: 900 });
     for (const name of [
       "Delete A much longer environment name that has to be cut somewhere",
-      "Import environments",
+      "Import",
       "Add variable",
     ]) {
       // Polled: the page is laid out again a frame or two after the window changes.

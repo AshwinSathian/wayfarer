@@ -639,6 +639,13 @@ code errors.
   to the layout, as the boxes in rem grow with it (U-153; the token test
   fails on one in px, and `e2e/text-size.spec.ts` sets Firefox's default
   size). An e2e test of a layout "from N px" therefore uses N + 20.
+- The Environments tab (S5c) is a list and a pane. The globals are the list's
+  first row and open in the pane with the rows an environment has
+  (`VariableHolder`, written through `changeGlobals`): there is no dialog for
+  them. With no environment the pane is the empty state (`empty.environments`)
+  with New environment as its one action, and Import beside it. The vault is
+  set up from where it is met (the status bar, the Secrets dialog, a variable's
+  lock) with the same words, `vaultSetup` in `strings.ts`.
 - The toolbar holds the environment, Environments, History and Settings
   (S4). The environment select ends in "New environment…", the way to the
   first one (it opens Environments at a name field: `EnvironmentsStore.newRequested`).
@@ -1497,9 +1504,17 @@ code errors.
 - A file reaches the stores by one road, `ImportPipeline`
   (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
   10 MB cap), the import worker, the report in `<app-import-dialog>`, and
-  only on Confirm the write, one transaction per collection. A new Import
-  button calls `ImportPipeline.pick`; nothing else writes what a file held.
-  The workspace restore is the one exception, and replaces everything.
+  only on Confirm the write, one transaction per collection. Import is one
+  menu, `<app-import-menu>` (`src/app/components/import/import-menu.ts`: File…,
+  cURL command…, Link…, and what a place adds through `extra`, the sidebar's
+  Folder…), wherever it is offered; it owns the hidden file input and calls
+  `ImportPipeline.pick`. A new place for Import uses that menu, not a button of
+  its own; nothing else writes what a file held. A file's Import ends with the
+  first request of the first collection it added open in the composer
+  (`ImportPipeline.addedFirst`, read by the shell; a link's Import moves focus
+  to the collection's row instead). The report's words are `importing` in
+  `strings.ts`. The workspace restore is the one exception, and replaces
+  everything.
 - An importer is a function from text to the app's model in
   `packages/core/src/import/`, reached through `importText`. It validates
   with the shared validators before it returns, fetches nothing, and throws

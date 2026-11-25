@@ -27,6 +27,19 @@ export class ImportMenu {
   readonly quiet = input(true);
   private readonly file = viewChild<ElementRef<HTMLInputElement>>("file");
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /**
+   * Aria's trigger takes Escape on its button and stops it, also with the menu closed (CLAUDE.md, Angular Aria). A
+   * dialog around the menu (Settings) must still hear it: the key goes on from the host's parent, as a new event.
+   * With the menu open, focus is in its items and not on this button, so this is only a closed menu's key.
+   */
+  protected escape(): void {
+    this.host.nativeElement.parentElement?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+    );
+  }
+
   protected readonly items = computed<UiMenuItem[]>(() => [
     { label: importing.menu[0], icon: "upload_file", command: () => this.file()?.nativeElement.click() },
     { label: importing.menu[1], icon: "terminal", command: () => this.pipeline.openPaste() },

@@ -83,6 +83,13 @@ class EnvironmentsServiceStub {
     return null;
   }
 
+  readonly globalChanges: unknown[] = [];
+
+  async changeGlobals(changes: unknown[]): Promise<never[]> {
+    this.globalChanges.push(changes);
+    return [];
+  }
+
   async deleteEnvironment(id: string): Promise<void> {
     this.deleteCalls.push(id);
   }
@@ -109,12 +116,14 @@ describe("EnvironmentsManager", () => {
     component = fixture.componentInstance;
   });
 
-  // V3 (D5-e): with no environment the list and the editor pane both said so.
-  it("with no environment, says so once: in the list, and the editor pane is empty", () => {
+  // V3 (D5-e), S5c: with no environment the pane says so once, with the one action to make one.
+  it("with no environment, says so once, in the pane, with New environment as its action", () => {
     fixture.detectChanges();
-    const empties = (fixture.nativeElement as HTMLElement).querySelectorAll(".ds-empty-state");
+    const empties = (fixture.nativeElement as HTMLElement).querySelectorAll(".env-empty");
     expect(empties.length).toBe(1);
-    expect(empties[0].closest(".env-list")).not.toBeNull();
+    expect(empties[0].closest(".env-list")).toBeNull();
+    expect(empties[0].textContent).toContain("No environments yet.");
+    expect(empties[0].querySelector("button")?.textContent).toContain("New environment");
   });
 
   it("opens the name field when the toolbar asked for a new environment, and takes the request", () => {
@@ -129,6 +138,26 @@ describe("EnvironmentsManager", () => {
     fixture.detectChanges();
     const pane = (fixture.nativeElement as HTMLElement).querySelector(".env-manager > .ds-empty-state");
     expect(pane?.textContent).toContain("Choose an environment to edit its variables.");
+  });
+
+  // S5c: the globals are a row of the list and open in the pane, not in a dialog of their own.
+  it("opens the globals in the pane from their row, in place of an environment, and writes through changeGlobals", async () => {
+    envService.setEnvironments([makeEnv("e1")]);
+    envService.setActive(makeEnv("e1"));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    root.querySelector<HTMLButtonElement>('[data-env="globals"] .env-item-select')?.click();
+    fixture.detectChanges();
+    expect(component.globalsOpen()).toBe(true);
+    expect(component.selectedId()).toBeNull();
+    expect(root.querySelector(".env-editor h3")?.textContent).toContain("Globals");
+    expect(root.querySelector("#env-name-input")).toBeNull();
+    await component.globalsHolder().write([{ key: "region", value: "eu" }]);
+    expect(envService.globalChanges).toEqual([[{ key: "region", value: "eu" }]]);
+    root.querySelector<HTMLButtonElement>('[data-env="e1"] .env-item-select')?.click();
+    fixture.detectChanges();
+    expect(component.globalsOpen()).toBe(false);
+    expect(component.selectedId()).toBe("e1");
   });
 
   describe("selecting an environment", () => {

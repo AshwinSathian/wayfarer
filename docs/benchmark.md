@@ -80,8 +80,7 @@ What each task ends on, and how it gets there:
   before the clock. For CORS the bridge's 200 names the cause (the server
   answers; the page could not read it); for DNS the record quotes the
   bridge: `getaddrinfo ENOTFOUND no-such-host.invalid`.
-- **5c.** The status line says 401, and the record, opened, says no vault
-  secret was filled: the cause, without a guess.
+- **5c.** The status line says 401, and the record, opened, says nothing was filled from the vault: the cause, without a guess.
 - **6.** Wayfarer had no sharing yet (phase T): Copy as cURL, which says
   "Copied as cURL." The teammate sends it with another tool. (Since 3.1.0,
   Share… sends a whole collection as a file or an encrypted link, see

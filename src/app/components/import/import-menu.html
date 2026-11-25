@@ -5,6 +5,7 @@
   ngMenuTrigger
   #trigger="ngMenuTrigger"
   [menu]="menu.menu()"
+  (keydown.escape)="escape()"
   >Import<app-icon name="keyboard_arrow_down" class="icon-xs"
 /></button>
 <ui-menu #menu [trigger]="trigger" [items]="items()" />

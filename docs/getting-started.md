@@ -33,6 +33,9 @@ after a reload. <!-- claim:C-094 -->
 Postman, Insomnia and OpenAPI files come in through Import in the sidebar, which shows what the file holds before
 anything is stored. <!-- claim:C-054 --> [Import](import.md) has the details.
 
+A collection runs from its menu (**Run…**). The table marks each request passed or failed with a glyph as well as a
+colour, and says whether it was sent from this page or through the Local Bridge. <!-- claim:C-114 -->
+
 ## Move the address into an environment
 
 An environment is a set of variables you switch between, such as Staging and Production. Open **Environments** in the

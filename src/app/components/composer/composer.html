@@ -174,12 +174,7 @@
 <!-- First run (D4.2, U-022): the next step, where the status line will be (V2); a ready request is offered Send (U-095). -->
 <ng-template #noResponse>
   @if (store.draft().url) {
-  <app-empty-state
-    class="px-4 py-2"
-   
-    [headline]="empty.notSent.headline"
-    [body]="empty.notSent.body(sendKeys)"
-  />
+  <app-empty-state class="px-4 py-2" [headline]="empty.notSent.headline" [body]="empty.notSent.body(sendKeys)" />
   } @else {
   <ng-container [ngTemplateOutlet]="firstRun" />
   }

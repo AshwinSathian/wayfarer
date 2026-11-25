@@ -14,7 +14,7 @@ describe("the mark after a request tab's name", () => {
   }
 
   it("is a count, or nothing", async () => {
-    expect((await slot(3)).textContent?.trim()).toBe("3");
+    expect((await slot(3)).querySelector(".tab-count")?.textContent).toBe("3");
     expect((await slot(null)).textContent?.trim()).toBe("");
   });
 

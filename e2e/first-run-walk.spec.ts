@@ -64,6 +64,15 @@ test("@claim:C-121 the first example is followed by a walk of the strip that tak
   await expect(region).toHaveCount(0);
 });
 
+test("the strip's host is on one line at 1440 px, not broken inside its name", async ({ page }) => {
+  await tryExample(page);
+  await expect(walk(page)).toBeVisible();
+  const lines = await page
+    .locator("app-route-strip .route-label-host .route-host")
+    .evaluate((el) => el.getClientRects().length);
+  expect(lines).toBe(1);
+});
+
 test("Escape ends the walk, and Dismiss does too", async ({ page }) => {
   await tryExample(page);
   await expect(walk(page)).toBeVisible();

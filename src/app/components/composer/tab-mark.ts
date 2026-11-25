@@ -10,7 +10,7 @@ export type TabMarkValue = number | "held" | null;
  * as a header is added or a body chosen. Scripts held back (U-158) put the panel's warning glyph in the same slot,
  * and say so after the name for a screen reader ("Scripts (not reviewed)"). The digit is drawn for the eye only: a
  * screen reader hears words ("Body (1 set)", "Tests (2 run, 1 failed)"), not a number stuck to the name. The slot holds
- * three characters, and a count over 99 is "99+".
+ * two digits, and a count over 99 is "99+".
  */
 @Component({
   selector: "app-tab-mark",

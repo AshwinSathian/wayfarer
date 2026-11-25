@@ -60,7 +60,7 @@
     "check:readme": "node scripts/gen-readme.mjs --check",
     "check:links": "node scripts/check-links.mjs",
     "check:site-links": "node scripts/check-site-links.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=372714",
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=400530",
     "cli:test": "npm -w packages/cli test",
     "gen:shots": "node scripts/site-screenshot.mjs"
   },

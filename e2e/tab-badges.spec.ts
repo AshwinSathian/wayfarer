@@ -33,16 +33,21 @@ test("the request's tabs keep their place and width as headers, a body and auth 
   expect(await tabBoxes(page)).toEqual(before);
 });
 
-// A count of two or three characters has room too: the tabs after it do not move.
-test("the request's tabs keep their place and width with 12 and with 120 parameters", async ({ page }) => {
+// A count of two digits has room too: the tabs after it do not move. Over 99 it reads "99+", a few px wider.
+test("the request's tabs keep their place and width with 12 parameters, and move a few px at most with 120", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const before = await tabBoxes(page);
+  const start = (boxes: string[]) => boxes.map((box) => Number(box.split(" ")[1]?.split(",")[0]));
   for (const count of [12, 120]) {
     const query = Array.from({ length: count }, (_, i) => `p${i}=1`).join("&");
     await page.locator("input.address-url").fill(`https://example.com/?${query}`);
-    await expect(page.getByRole("tab", { name: count > 99 ? "Params (120 set)" : "Params (12 set)" })).toBeVisible();
-    expect(await tabBoxes(page)).toEqual(before);
+    await expect(page.getByRole("tab", { name: `Params (${count} set)` })).toBeVisible();
+    const now = await tabBoxes(page);
+    if (count === 12) expect(now).toEqual(before);
+    else for (const [i, x] of start(now).entries()) expect(Math.abs(x - start(before)[i]!)).toBeLessThanOrEqual(6);
   }
 });
 

@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-11-25
+
+The redesign of 3.6.0, with one fix. 3.6.0 was tagged but never put on the site: its smoke test of loading the app offline failed on a preview, which led to this fix.
+
 ### Fixed
 
 - The app's first screen is stored before the service worker takes over. Some of the files the first render

@@ -176,7 +176,6 @@ export {
   formatDuration,
   recordHeadline,
   recordLines,
-  recordRoute,
   type ExchangeRecord,
   type RecordPart,
 } from "./send/record";

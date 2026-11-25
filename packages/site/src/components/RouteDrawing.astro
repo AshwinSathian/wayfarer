@@ -1,0 +1,31 @@
+---
+/**
+ * The route strip as the app draws it (src/app/components/composer/route-strip.*), for the landing: an origin, a block
+ * on the line where a secret is named, the host. Drawn from the same tokens (`--route`, `--ink`) and the words the app
+ * says (packages/core/src/strings.ts), so that what the page shows is what the app says. One string to a screen reader.
+ */
+interface Props {
+  /** What the request carries, as a secret's name. */
+  secret: string;
+  method: string;
+  host: string;
+}
+const { secret, method, host } = Astro.props;
+const label = `From this page. Uses secret: ${secret}. ${method} ${host}.`;
+---
+
+<div class="route" role="img" aria-label={label}>
+  <div class="route-track" aria-hidden="true">
+    <span class="route-line"></span>
+    <svg width="20" height="20" viewBox="0 0 20 20" focusable="false"><circle cx="10" cy="10" r="6"></circle></svg>
+    <svg class="route-block" width="20" height="20" viewBox="0 0 20 20" focusable="false">
+      <rect x="0" y="4" width="20" height="12" rx="2"></rect>
+    </svg>
+    <svg width="20" height="20" viewBox="0 0 20 20" focusable="false"><circle cx="10" cy="10" r="8"></circle></svg>
+  </div>
+  <div class="route-labels" aria-hidden="true">
+    <p class="route-from">From this page</p>
+    <p class="route-secret">Uses secret: {secret}</p>
+    <p class="route-host"><span>{method}</span><code>{host}</code></p>
+  </div>
+</div>

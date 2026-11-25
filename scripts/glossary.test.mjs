@@ -126,7 +126,7 @@ const BANNED = [
     name: "Postman",
     re: /\bpostman\b/i,
     where:
-      /^(docs\/(import|export|postman-compatibility|getting-started|scripts|auth|cli|collections-schema|graphql|trust-center)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/(compare|index\.astro|llms\.txt\.ts)|lib\/rivals\.ts|components\/CompareClose)|packages\/core\/src\/(import|export)\/|packages\/core\/src\/(ai\/model-call|send\/exchange)\.ts|src\/app\/components\/(import[\w-]*\/|collections\/export-dialog\.(html|ts)|environments\/environment-export-dialog\.html))/,
+      /^(docs\/(import|export|postman-compatibility|getting-started|scripts|auth|cli|collections-schema|graphql|trust-center)\.md|docs\/benchmark|README\.md|packages\/site\/src\/(pages\/(compare|llms\.txt\.ts)|lib\/rivals\.ts|components\/CompareClose)|packages\/core\/src\/(import|export)\/|packages\/core\/src\/(ai\/model-call|send\/exchange)\.ts|src\/app\/components\/(import[\w-]*\/|collections\/export-dialog\.(html|ts)|environments\/environment-export-dialog\.html))/,
   },
   { name: "Create vault", re: /\bcreate vault\b/i },
   { name: "No vault", re: /\bno vault\b(?! yet\.)/i },

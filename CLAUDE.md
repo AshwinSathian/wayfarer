@@ -134,6 +134,16 @@ code errors.
   installed app's icons copied from that folder into the app's build
   (`angular.json`'s assets). A brand file is written from the tokens
   (`npm run gen:tokens`, `npm run gen:brand`), never by hand.
+- The landing's first screen is the product (S7): the route strip drawn by
+  `RouteDrawing.astro` from the app's tokens (`--route`, `--ink`) and the
+  words of `packages/core/src/strings.ts`, beside the headline, and the
+  app's picture starting above the fold at 1440 by 900 and 390 by 844
+  (`e2e/site.spec.ts`). The landing names no other product outside its
+  comparison table, whose cells carry source and date; the glossary's
+  Postman allowance is for the file format in the docs, the compare pages
+  and the importers, no longer `index.astro`. The pictures are
+  `scripts/site-screenshot.mjs`'s and the clips `scripts/site-record.mjs`'s,
+  from the real app: take both again when a screen they show changes.
 - A sentence of the site that says what Wayfarer does names its claims
   (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.astro`;
   a blog post's `<!-- claims C-NNN -->`), out of sight: it draws a

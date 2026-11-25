@@ -53,6 +53,8 @@
   --color-on-action: var(--on-ink);
   --color-action-soft: var(--fill-selected);
   --color-ok: var(--status-success-text);
+  --color-route: var(--route);
+  --color-route-text: var(--route-text);
   --color-code-bg: var(--canvas-panel);
   --color-code-ink: var(--label-primary);
   --color-code-muted: var(--label-secondary);
@@ -332,6 +334,74 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--canvas-panel);
+}
+
+/* --- The route strip, drawn as the app draws it: a line, an origin, a block where a secret is named, the host. The line
+   is the brand hue; the words are the labels'. Its box is as wide as its words need, never a column of them. ---------- */
+
+.route {
+  max-width: 28rem;
+}
+.route-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 1.25rem;
+}
+.route-track svg {
+  position: relative;
+  flex: none;
+  fill: var(--route);
+}
+.route-track .route-block {
+  fill: var(--ink);
+}
+.route-line {
+  position: absolute;
+  inset-inline: 0.625rem;
+  top: 50%;
+  border-top: 2px solid var(--route);
+  transform: translateY(-1px);
+}
+.route-labels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: var(--type-site-small-size);
+  line-height: var(--type-site-small-line);
+}
+.route-labels p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.route-from {
+  color: var(--route-text);
+}
+.route-secret {
+  text-align: center;
+  color: var(--label-secondary);
+}
+.route-host {
+  text-align: end;
+}
+.route-host span {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  color: var(--label-secondary);
+}
+.route-host code {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+@media (forced-colors: active) {
+  .route-track svg {
+    fill: CanvasText;
+  }
 }
 
 /* --- Tables of facts: no lines, every second row one tone off the page ------------------------------------- */

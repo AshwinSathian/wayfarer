@@ -5,7 +5,8 @@
 //
 // - `app.jpg`: the still the site's structured data names (structured-data.ts).
 // - `shots/hero-<theme>.<1x|2x>.avif`: the landing's first picture, a request sent from an imported collection.
-// - `shots/import-<theme>.avif`, `shots/review-<theme>.avif`, `shots/run-<theme>.avif`: the Postman move, a step each.
+// - `shots/import-<theme>.avif`, `shots/review-<theme>.avif`, `shots/run-<theme>.avif`: bringing a collection, a step each.
+// - `shots/sent-<theme>.avif`, `shots/popover-<theme>.avif`, `shots/diff-<theme>.avif`: what a send leaves behind.
 //
 // Usage: npm run build && npm run gen:shots   (serves dist/deploy itself on PORT, default 4571; needs ffmpeg with
 // libsvtav1 on the PATH, as gen:recordings does)
@@ -168,7 +169,7 @@ async function shots(browser, theme, scale, work) {
     buffer: Buffer.from(JSON.stringify(COLLECTION)),
   });
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await dialog.getByText("Its requests go to:").waitFor();
+  await dialog.getByText(/ go to:$/).waitFor();
   const importPng = await take("import", dialog);
   await dialog.getByRole("button", { name: "Import and review scripts…" }).click();
   const review = page.getByRole("dialog", { name: "Review scripts" });
@@ -191,6 +192,43 @@ async function shots(browser, theme, scale, work) {
   await page.getByText(/^Imported /).waitFor({ state: "hidden", timeout: 15_000 });
   const heroPng = await take("hero");
 
+  // The Sent part: what the app built and sent, as History keeps it.
+  await page.locator("app-response-viewer").getByRole("tab", { name: "Sent" }).click();
+  await page.locator(".sent-request").waitFor();
+  const sentPng = await take("sent", page.locator("app-response-viewer"));
+  // A variable's popover: where its value comes from.
+  await page
+    .locator("app-variable-chips")
+    .getByRole("button", { name: /^token / })
+    .click();
+  await page.locator(".var-popover").waitFor();
+  const popoverPng = await take("popover", page.locator("app-composer"));
+  await page.keyboard.press("Escape");
+  // History, two entries compared: a second send, then the drawer's Compare.
+  await tree.getByText("List orders", { exact: true }).click();
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.locator(".status-badge").filter({ hasText: "200" }).waitFor();
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "History", exact: true });
+  await drawer.getByRole("button", { name: "Select…", exact: true }).click();
+  await drawer
+    .getByRole("checkbox", { name: /orders/ })
+    .first()
+    .check();
+  await drawer
+    .getByRole("checkbox", { name: /orders/ })
+    .nth(1)
+    .check();
+  await drawer.getByRole("button", { name: "Compare the two" }).click();
+  await drawer.locator("app-exchange-diff").waitFor();
+  const diffPng = await take("diff", drawer);
+  for (let i = 0; i < 3 && (await drawer.isVisible()); i++) {
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+  }
+  await drawer.waitFor({ state: "hidden" });
+  await tree.getByText("Create order", { exact: true }).click();
+
   await tree.getByText("Storefront API", { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Run…" }).click();
   const view = page.locator("app-run-view");
@@ -201,7 +239,7 @@ async function shots(browser, theme, scale, work) {
     .waitFor({ timeout: 15_000 });
   const runPng = await take("run", view);
   await context.close();
-  return { importPng, reviewPng, heroPng, runPng };
+  return { importPng, reviewPng, heroPng, runPng, sentPng, popoverPng, diffPng };
 }
 
 const server = startServer("dist/deploy", PORT);
@@ -218,6 +256,9 @@ try {
       avif(taken.importPng, `${OUT}/shots/import-${theme}.avif`, "960:720:0:190");
       avif(taken.reviewPng, `${OUT}/shots/review-${theme}.avif`, "1100:825:0:300");
       avif(taken.runPng, `${OUT}/shots/run-${theme}.avif`, "1100:825:0:0");
+      avif(taken.sentPng, `${OUT}/shots/sent-${theme}.avif`, "1088:860:0:0");
+      avif(taken.popoverPng, `${OUT}/shots/popover-${theme}.avif`, "1000:420:0:410");
+      avif(taken.diffPng, `${OUT}/shots/diff-${theme}.avif`, "1984:1750:0:0");
       if (theme === "dark") {
         execFileSync("ffmpeg", [
           "-y",

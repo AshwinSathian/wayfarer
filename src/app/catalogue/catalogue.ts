@@ -707,7 +707,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     .catalogue-strip-state {
       margin-top: 12px;
     }
-    .catalogue-strip-state[data-state="Folded"] {
+    .catalogue-strip-state[data-state^="Folded"] {
       max-width: 340px;
     }
     .catalogue-split-stacked {
@@ -900,6 +900,29 @@ export class Catalogue {
         },
       },
       { name: "Sent, secrets masked", preset: { input: { ...base, record } } },
+      // A reply of any status reached the host: a whole path. No response is a broken one.
+      {
+        name: "Sent, a 404",
+        preset: { input: { ...base, record: { ...record, secrets: [], status: { code: 404, text: "Not Found" } } } },
+      },
+      {
+        name: "Sent, no response",
+        preset: {
+          input: {
+            ...base,
+            record: {
+              ...record,
+              secrets: [],
+              status: undefined,
+              failure: {
+                kind: "network" as const,
+                reported: "Failed to fetch",
+                summary: "The request got no response.",
+              },
+            },
+          },
+        },
+      },
       {
         name: "Missing variable",
         preset: { input: base, problem: { kind: "missing", text: strip.missingVariable("token", "Staging") } },
@@ -913,6 +936,25 @@ export class Catalogue {
         preset: { input: { ...base, host: "" }, problem: { kind: "empty", text: strip.needsAddress } },
       },
       { name: "Folded", compact: true, preset: { input: { ...base, secrets: ["API key"], variables: 2 } } },
+      {
+        name: "Folded, no response",
+        compact: true,
+        preset: {
+          input: {
+            ...base,
+            record: {
+              ...record,
+              secrets: [],
+              status: undefined,
+              failure: {
+                kind: "network" as const,
+                reported: "Failed to fetch",
+                summary: "The request got no response.",
+              },
+            },
+          },
+        },
+      },
     ];
   })();
 

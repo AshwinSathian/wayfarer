@@ -21,3 +21,20 @@ test("at a default text size of 32 px a 1,440 px window is laid out as a 720 px 
   expect((await page.locator("input.address-url").boundingBox())?.width).toBeGreaterThan(400);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
 });
+
+// The same with the browser's default size at 32 px and a 320 px window: the layout is 160 px of text-width wide.
+test("at a default text size of 32 px a 320 px window has nothing past it: the address row's buttons wrap, the toolbar wraps", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== "firefox", "only Firefox lets a test set the browser's text size");
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto("/app/");
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe("32px");
+  const send = page.getByRole("button", { name: "Send request" });
+  await expect(send).toBeVisible();
+  const box = (await send.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(320);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});

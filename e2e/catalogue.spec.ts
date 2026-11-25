@@ -1313,6 +1313,13 @@ test("route strip: the folded strip's button opens and closes the rest with Ente
   expect(await page.locator('[data-state="Sent, secrets masked"] [role="group"]').getAttribute("aria-label")).toBe(
     "Sent from this page. 200 OK, 340 ms. GET api.example.com. 2 secrets sent, masked in history and exports.",
   );
+  // A reply of any status is a whole path; no response is a broken one, in the wide and in the folded strip.
+  await expect(page.locator('[data-state="Sent, a 404"] .route-track')).not.toHaveClass(/is-broken/);
+  await expect(page.locator('[data-state="Sent, no response"] .route-track')).toHaveClass(/is-broken/);
+  await expect(page.locator('[data-state="Folded, no response"] .route-track')).toHaveClass(/is-broken/);
+  expect(await page.locator('[data-state="Sent, no response"] [role="group"]').getAttribute("aria-label")).toBe(
+    "Not delivered: tried from this page. The request got no response. GET api.example.com.",
+  );
 });
 
 test("spinner: named only on its own, takes no focus, and is a ring in forced colours and with reduced motion", async ({

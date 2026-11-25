@@ -37,6 +37,7 @@ export const strip = {
   sendAnyway: "Send anyway",
   // The collapsed strip: one button, named by the whole strip.
   showAll: "Show the whole route",
+  hideAll: "Hide the route",
 } as const;
 
 /** After a send, from the record. */
@@ -46,6 +47,14 @@ export const sent = {
   afterNoAnswer: "Sent through the Local Bridge after the page got no answer",
   // Never "not sent": C-007's wording is that a secret is masked where it is kept.
   secrets: (n: number) => `${n} ${n === 1 ? "secret" : "secrets"} sent, masked in history and exports`,
+  // A send that got no response: how far it got, said in a word that is not "sent". Whether the server saw it is not
+  // known to a page (a refused connection and a timeout look alike), so it is "tried", never "failed to arrive".
+  notDelivered: "Not delivered",
+  noAnswer: "No answer",
+  stopped: "Stopped",
+  triedFromPage: "tried from this page",
+  triedThroughBridge: "tried through the Local Bridge",
+  triedAfterNoAnswer: "tried the Local Bridge after the page got no answer",
   inFlight: "Sending…",
   historyKept: "History kept this request. No response came.",
 } as const;

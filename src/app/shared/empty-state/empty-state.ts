@@ -9,14 +9,18 @@ import { RouteGlyph } from "./route-glyph";
 @Component({
   selector: "app-empty-state",
   imports: [RouteGlyph],
-  template: `<app-route-glyph />
+  template: `@if (glyph()) {
+      <app-route-glyph />
+    }
     <h3 class="type-empty-title text-label-primary m-0">{{ headline() }}</h3>
     <p class="type-callout text-label-secondary m-0 max-w-prose">{{ body() }}</p>
-    <div class="flex flex-wrap gap-2 empty:hidden"><ng-content /></div>`,
+    <div class="flex max-w-full flex-wrap gap-2 empty:hidden"><ng-content /></div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "empty-state flex flex-col items-start gap-3 min-w-0" },
 })
 export class EmptyState {
   readonly headline = input.required<string>();
   readonly body = input.required<string>();
+  /** The strip's path, drawn small. Off where the strip itself is drawn right above: the composer's response. */
+  readonly glyph = input(true);
 }

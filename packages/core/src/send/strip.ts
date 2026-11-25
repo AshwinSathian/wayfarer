@@ -37,10 +37,14 @@ export interface StripView {
   facts: string;
   /** After a send. */
   sent: boolean;
+  /** After a send that got no response: the path is drawn broken, short of the host. A reply of any status is whole. */
+  broken: boolean;
   /** The whole strip, as one sentence list. */
   text: string;
-  /** What the collapsed strip's button says: the parts that are not the route and the host, else the route. */
-  summary: string;
+  /** The folded strip's one line of words: the route, the secrets and what else the request has, set apart by " · ". */
+  line: string;
+  /** The host is a real one: an address that is not one yet is drawn as words, not as a value. */
+  hasHost: boolean;
 }
 
 const sentence = (parts: readonly string[]) =>
@@ -62,8 +66,20 @@ export function stripView(input: StripInput): StripView {
   let route: string;
   let secrets: string;
   if (record) {
-    route =
-      record.route === "bridge" ? (input.route === "auto" ? sent.afterNoAnswer : sent.throughBridge) : sent.fromPage;
+    const viaBridge = record.route === "bridge";
+    const afterNoAnswer = viaBridge && input.route === "auto";
+    if (record.status) {
+      route = viaBridge ? (afterNoAnswer ? sent.afterNoAnswer : sent.throughBridge) : sent.fromPage;
+    } else {
+      const kind = record.failure?.kind;
+      const lead = kind === "timeout" ? sent.noAnswer : kind === "aborted" ? sent.stopped : sent.notDelivered;
+      const tried = viaBridge
+        ? afterNoAnswer
+          ? sent.triedAfterNoAnswer
+          : sent.triedThroughBridge
+        : sent.triedFromPage;
+      route = `${lead}: ${tried}`;
+    }
     secrets = record.secrets.length ? sent.secrets(record.secrets.length) : "";
   } else {
     route =
@@ -87,8 +103,10 @@ export function stripView(input: StripInput): StripView {
     secrets,
     facts,
     sent: !!record,
+    broken: !!record && !record.status,
     text: sentence([route, outcome, input.host ? `${input.method} ${input.host}` : host, secrets, facts]),
-    summary: [secrets, facts].filter(Boolean).join(", ") || route,
+    line: [route, secrets, facts].filter(Boolean).join(" · "),
+    hasHost: !!input.host,
   };
 }
 

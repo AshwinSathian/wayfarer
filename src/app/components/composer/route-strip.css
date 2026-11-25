@@ -18,6 +18,30 @@
   fill: var(--ink);
 }
 
+/* A path that got no response: the host's node is an outline, dashed, in the ink; the line stops before it and a cross
+   stands in the gap. Shape, not hue: the line's colour is the same, and it is only shorter. */
+.route-node-hollow {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 3 2.5;
+  color: var(--ink);
+}
+
+.route-break {
+  position: absolute;
+  top: 0;
+  inset-inline-end: calc(var(--route-node) * 1.5);
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.is-broken .route-rail {
+  inset-inline-end: calc(var(--route-node) * 3);
+}
+
 /* The line: a border, so that forced colours keep it. In flight a segment of the line moves along it. */
 .route-rail {
   position: absolute;
@@ -69,6 +93,15 @@
     fill: CanvasText;
   }
 
+  .route-node-hollow {
+    fill: none;
+    stroke: CanvasText;
+  }
+
+  .route-break {
+    stroke: CanvasText;
+  }
+
   :host(.is-running) .route-rail::after {
     background: Highlight;
   }
@@ -82,14 +115,16 @@
   gap: 1.5rem;
 }
 
+/* The path takes the room of the request's column, its host at the column's end under the address row's own end:
+   it was a block of 24 rem that ended wherever it ended. */
 .route-wide {
-  flex: 0 1 24rem;
+  flex: 1 1 24rem;
   min-width: 0;
 }
 
 .route-facts-side {
   display: none;
-  flex: 1 1 0;
+  flex: 0 1 14rem;
   min-width: 0;
   margin: 0;
   padding-top: 0.125rem;
@@ -176,69 +211,79 @@
   font-family: var(--font-mono);
   font-variant-ligatures: none;
   font-size: var(--type-mono-body-size);
+  /* One line height whichever face the words are in, so that "No address yet" and a host are the same height. */
+  line-height: var(--type-callout-line);
   overflow-wrap: break-word;
 }
 
-/* ── Compact: the host, a line, and one button that opens the rest ─────────── */
+/* No address yet is words, not a value the user typed. */
+.route-host.route-host-none {
+  font-family: var(--font-sans);
+  color: var(--label-secondary);
+}
+
+/* ── Compact: two rows, in the wide strip's order ─────────── */
+/* The path with its host beside it, then one line of words and the fold, a button with its words. */
 .route-compact {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.route-compact-path {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 0.5rem;
-  min-height: 1.75rem;
+  gap: 0.25rem 0.75rem;
 }
 
-/* The host keeps its room first, whole where it fits, and wraps in its own width; the button, on one line, goes
-   beside it if it fits and else under it: never a column of words (a long host beside a four-line button). */
-.route-compact .route-stop {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  flex: 0 1 auto;
+/* The path keeps its length while the host has room beside it, and shrinks to the row when the text is large. */
+.route-compact-track {
+  flex: 0 1 7.5rem;
+  min-width: 5rem;
   max-width: 100%;
-  min-width: 0;
   padding-top: 0.125rem;
 }
 
-.route-compact .route-rail {
-  position: relative;
-  inset: auto;
-  flex: 1 1 0.5rem;
-  min-width: 0.5rem;
-  align-self: flex-start;
-  margin-top: 0.875rem;
+.route-compact-path .route-host {
+  flex: 1 1 8rem;
+  min-width: 0;
+  padding-top: 0.0625rem;
+}
+
+.route-compact-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.route-compact-text {
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-size: var(--type-callout-size);
+  line-height: var(--type-callout-line);
+  color: var(--route-text);
 }
 
 .route-toggle {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
+  /* Its words wrap when the text is large and the row is not: it is never wider than the strip. */
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
-  min-height: 1.75rem;
-  padding: 0.125rem 0.5rem;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  text-align: start;
   border: 1px solid var(--ctl-boundary);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--label-secondary);
+  color: var(--label-primary);
   font: inherit;
   font-size: var(--type-callout-size);
   line-height: var(--type-callout-line);
-  text-align: start;
   cursor: pointer;
-}
-
-/* The summary is one line, its tail the part that gives way: the whole text is the button's name. */
-.route-toggle > span:not(.sr-only) {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.route-toggle:hover {
-  color: var(--label-primary);
 }
 
 .route-stack {

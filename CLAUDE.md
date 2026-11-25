@@ -320,14 +320,25 @@ code errors.
   button from 24 em of window up: its words are cut at the tail before the
   button goes under them; narrower, or with larger text, they wrap. Below 34 em of the
   composer's own width (`Composer.compact`, from the `ResizeObserver` that
-  stacks the response, not a window breakpoint) it is the host and one
-  `button` with `aria-expanded` whose text is the whole strip. The host takes
-  its own width and wraps in it; the button is one line (its tail cut) beside
-  the host or under it, never a column of words. It is drawn
-  after the mark: an origin, a block on the line when a secret is named, the
-  host, in one shape at most 24 rem wide at the left (the same drawing at every
-  width, so a 400 px crop holds all of it; variables and scripts sit beside it
-  from a 70 em window, else under it); its colours are `--route` and
+  stacks the response, not a window breakpoint) it is two rows in the wide
+  strip's order: the path (the same drawing, 7.5 rem, its row wrapping at
+  larger text) with the host beside it, then one line of words ("Sent from
+  this page · 1 variable") and the fold, a `button` with words ("Show the whole
+  route", `aria-expanded`) whose accessible name is those words and then the
+  whole strip. The words wrap and the button is never wider than the strip. It
+  is drawn after the mark: an origin, a block on the line when a secret is
+  named, the host, in one shape (the same drawing at every width, so a 400 px
+  crop holds all of it) that takes the width of the request's column in the
+  wide form, its host under its end; variables and scripts sit beside it from
+  a 70 em window, else under it. A send that got no response draws the path
+  broken (`StripView.broken`): the line stops three nodes short of the host,
+  a cross stands in the gap and the host's node is a dashed outline, in the
+  ink, so that it is told from a whole path by shape and not hue; the words
+  are "Not delivered: tried from this page" ("No answer" for a timeout,
+  "Stopped" for a stop). A reply of any status, a 404 or a 500, is a whole
+  path (the request reached the host); the status line carries its class
+  (`statusMark`: a glyph of its own shape and a word). "No address yet" is
+  words, not a value: the sans face. Its colours are `--route` and
   `--route-text`. Do not give the strip `container-type`: in Firefox it left
   a select's list "not stable" for good (accessibility.spec). The strip is not drawn
   for a run, Environments or a collection's settings. A new thing a request

@@ -48,7 +48,7 @@
         }
         <span class="palette-label">{{ item.label }}</span>
         @if (item.detail) {
-        <span class="palette-detail type-footnote">{{ item.detail }}</span>
+        <span class="palette-detail type-footnote" [class.palette-detail-words]="!item.method">{{ item.detail }}</span>
         } @if (item.keys) {
         <kbd class="keycap palette-keys" aria-hidden="true">{{ keysOf(item.keys) }}</kbd>
         }

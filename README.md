@@ -186,7 +186,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - Every control the keyboard can reach shows that it has focus: its box looks different focused than at rest, with no focus ring drawn (in forced colours, an outline in the system's highlight colour, since they take shadows away). <!-- claim:C-097 -->
 - The status bar says "Not backed up" until a backup was made and then how long ago it was; the only thing kept for it is that time, in `localStorage`. <!-- claim:C-098 -->
 - The command palette lists a few commands in each group with what you ran last on top, and finds a saved request by its name, address or method; choosing one opens it and sends nothing. <!-- claim:C-099 -->
-- Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge. <!-- claim:C-100 -->
+- Under the address, a strip says where the request will leave from and to which host, and after a send which road it took: from this page or through the Local Bridge. A send that got no response is drawn as a broken path, the line stopping short of the host with a cross and the host hollow, and says it was not delivered; a reply of any status, a 404 or a 500 too, is a whole path. <!-- claim:C-100 -->
 - The strip names the vault secrets a request uses without reading the vault, and after a send says how many were sent, masked in history and exports. <!-- claim:C-101 -->
 - After a send, the Sent part shows the method line, the address, the headers the app set and the body of the request, and says that a browser adds its own headers (Host, User-Agent and others) that a page cannot see; through the Local Bridge it says the bridge adds headers of its own. <!-- claim:C-102 -->
 - In the Sent part a vault secret, an OAuth 2.0 token, a cookie of the jar and a credential are `***`, as they are in history and exports, and a vault secret is named by the variable that held it, never by its value; it is masked where the app keeps and shows the request, and it went out as its value. <!-- claim:C-103 -->
@@ -212,6 +212,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - G, then a letter, goes to History, Environments, Settings, the address, the collections, the response, a request's variables or the route strip, only where no text is being typed or chosen from (a field, an editor, a menu, a list or the tree) and no dialog is open; the keys are listed in Settings › Shortcuts, shown on the palette's rows, and can be turned off there. <!-- claim:C-123 -->
 - The command palette reaches each Settings section, Import (file, cURL command, shared link), a new environment, comparing two history entries, Clear history, Copy as cURL, fetch, Python or HTTPie, and the next and previous tab, as well as what it had. <!-- claim:C-124 -->
 - The route strip's offer, a variable's popover and a comparison of two history entries are each reached and used with the keyboard alone. <!-- claim:C-125 -->
+- The response's status line draws each class of status with a glyph of its own shape and a word for a screen reader, so that a 200, a 404 and a 500 are told apart without their colour. <!-- claim:C-126 -->
 <!-- features:end -->
 
 </details>

@@ -1,0 +1,145 @@
+@let inspectionData = exchange().inspection; @if (!inspectionData) {
+<!-- A line, not a dashed box around nothing (U-022). -->
+<p class="flex items-center gap-2 type-callout text-label-secondary py-3">
+  <app-icon name="timer" class="icon-xs text-label-tertiary" />Send the request and its timings show here.
+</p>
+} @else {
+<div class="space-y-5 pb-4">
+  <!-- Summary cards -->
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-lg bg-canvas-panel border border-separator p-4">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="ds-section-label">Duration</span>
+        <span
+          class="info-tip"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="summaryTooltips.duration"
+          [uiTooltip]="summaryTooltips.duration"
+          uiTooltipPosition="above"
+          ><app-icon name="info" class="icon-xs"
+        /></span>
+      </div>
+      <div class="type-title-3 text-label-primary">{{ formatDuration(inspectionData.duration) }}</div>
+    </div>
+    <div class="rounded-lg bg-canvas-panel border border-separator p-4">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="ds-section-label">Transfer</span>
+        <span
+          class="info-tip"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="summaryTooltips.transferSize"
+          [uiTooltip]="summaryTooltips.transferSize"
+          uiTooltipPosition="above"
+          ><app-icon name="info" class="icon-xs"
+        /></span>
+      </div>
+      <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
+    </div>
+    <div class="rounded-lg bg-canvas-panel border border-separator p-4">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="ds-section-label">Encoded</span>
+        <span
+          class="info-tip"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="summaryTooltips.encodedBodySize"
+          [uiTooltip]="summaryTooltips.encodedBodySize"
+          uiTooltipPosition="above"
+          ><app-icon name="info" class="icon-xs"
+        /></span>
+      </div>
+      <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
+    </div>
+    <div class="rounded-lg bg-canvas-panel border border-separator p-4">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="ds-section-label">Decoded</span>
+        <span
+          class="info-tip"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="summaryTooltips.decodedBodySize"
+          [uiTooltip]="summaryTooltips.decodedBodySize"
+          uiTooltipPosition="above"
+          ><app-icon name="info" class="icon-xs"
+        /></span>
+      </div>
+      <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
+    </div>
+  </div>
+
+  <!-- Waterfall -->
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span class="ds-section-label">Waterfall</span>
+        <span
+          class="info-tip"
+          tabindex="0"
+          role="img"
+          [attr.aria-label]="waterfallTooltip"
+          [uiTooltip]="waterfallTooltip"
+          uiTooltipPosition="above"
+          ><app-icon name="info" class="icon-xs"
+        /></span>
+      </div>
+      @if (inspectionData.limitedByCors) {
+      <span class="type-footnote text-status-warning flex items-center gap-1">
+        <app-icon name="warning" class="icon-xs" />
+        CORS-limited timings
+      </span>
+      }
+    </div>
+
+    @if (bars().length) {
+    <div class="flex flex-col gap-2.5">
+      @for (phase of bars(); track phase.key) {
+      <div class="flex items-center gap-3">
+        <div class="flex w-24 items-center gap-1.5">
+          <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
+          @if (phase.tooltip) {
+          <span
+            class="info-tip"
+            tabindex="0"
+            role="img"
+            [attr.aria-label]="phase.tooltip"
+            [uiTooltip]="phase.tooltip"
+            uiTooltipPosition="above"
+            ><app-icon name="info" class="icon-xs"
+          /></span>
+          }
+        </div>
+        <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
+          <div
+            class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
+            [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
+          ></div>
+        </div>
+        <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
+          {{ formatDuration(phase.duration) }}
+        </span>
+      </div>
+      }
+    </div>
+    } @else {
+    <div class="flex flex-col gap-2.5">
+      @for (bar of fallback(); track bar.label) {
+      <div class="flex items-center gap-3">
+        <div class="flex w-24 items-center gap-1.5">
+          <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
+        </div>
+        <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
+          <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
+        </div>
+        <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
+          {{ formatDuration(bar.duration) }}
+        </span>
+      </div>
+      }
+    </div>
+    <p class="type-footnote text-label-tertiary"> The browser reported no phases for this response. </p>
+    }
+  </div>
+</div>
+}

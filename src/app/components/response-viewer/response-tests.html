@@ -1,0 +1,56 @@
+@if (ai.offers().tests && exchange().statusCode !== undefined) { @defer {
+<app-ai-tests />
+} } @if (!exchange().testResults.length) {
+<p class="flex flex-wrap items-center gap-2 type-callout text-label-secondary py-3">
+  <app-icon name="rule" class="icon-xs text-label-tertiary shrink-0" />This request has no tests.
+  <button uiButton class="btn-sm" type="button" (click)="openScripts.emit()">Add a test</button>
+</p>
+} @else {
+<!-- Plain rows: the glyph alone carries the hue (V5); a card per passing test made green a texture. -->
+<div class="test-results">
+  @for (result of exchange().testResults; track $index) {
+  <div class="test-result" [class.test-result-pass]="result.passed" [class.test-result-fail]="!result.passed">
+    <app-icon
+      [name]="result.passed ? 'check_circle' : 'cancel'"
+      class="line-glyph shrink-0 icon-sm"
+      [class]="result.passed ? 'text-status-success' : 'text-status-error'"
+    />
+    <div class="flex-1 min-w-0">
+      <div class="type-callout text-label-primary">{{ result.label }}</div>
+      @if (!result.passed && result.error) {
+      <div class="type-footnote text-status-error mt-0.5">{{ result.error }}</div>
+      } @if (!result.passed && result.actual !== undefined) {
+      <div class="type-mono-body text-label-secondary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
+      }
+    </div>
+    <span class="type-footnote text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
+  </div>
+  }
+</div>
+
+<div class="flex items-center gap-4 pt-3 tabular-nums">
+  <span class="type-subhead text-label-primary flex items-center gap-1.5">
+    <app-icon name="check_circle" class="icon-xs text-status-success" />
+    {{ testPassCount() }} passed
+  </span>
+  <!-- Red only when something failed (U-190). -->
+  <span
+    class="type-subhead flex items-center gap-1.5"
+    [class]="testFailCount() ? 'text-status-error' : 'text-label-secondary'"
+  >
+    @if (testFailCount()) {
+    <app-icon name="cancel" class="icon-xs" />
+    } {{ testFailCount() }} failed
+  </span>
+</div>
+} @if (scriptTimings()) {
+<p class="script-timings type-footnote text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
+} @if (exchange().scriptLogs.length) {
+<section class="script-console space-y-1.5 pt-3" aria-label="Script console">
+  <h3 class="ds-section-label">Console</h3>
+  <pre
+    class="type-mono-body font-mono text-label-secondary rounded-lg bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
+  >
+{{ exchange().scriptLogs.join("\n") }}</pre>
+</section>
+}

@@ -172,14 +172,7 @@ export {
 export { runOutcome } from "./send/run";
 export { previewAddress, previewValid, previewVariables, type PreviewVariable } from "./send/preview";
 export { addressProblem, stripView, type AddressProblem, type StripInput } from "./send/strip";
-export {
-  formatDuration,
-  recordHeadline,
-  recordLines,
-  recordRoute,
-  type ExchangeRecord,
-  type RecordPart,
-} from "./send/record";
+export { formatDuration, recordHeadline, recordLines, type ExchangeRecord, type RecordPart } from "./send/record";
 export {
   META_GLOBALS_KEY,
   META_STATE_KEY,

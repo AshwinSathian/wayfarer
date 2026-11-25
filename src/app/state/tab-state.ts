@@ -2,7 +2,6 @@ import { computed, signal } from "@angular/core";
 import {
   emptyRequest,
   newId,
-  parseJson,
   type BinaryBody,
   type Draft,
   type RequestContent,
@@ -18,6 +17,7 @@ import type { ExchangeRecord, SendTimings } from "@wayfarer/core";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
+import { recordedExchange } from "./exchange-view";
 import { RunState } from "./run-state";
 import { SocketState } from "./socket-state";
 
@@ -223,19 +223,17 @@ export class TabState {
     this.lastTestResults.set([]);
     this.lastScriptLogs.set([]);
     this.lastTimings.set(null);
-    const response = entry.response;
-    const text = response?.body?.text ?? "";
-    const isError = !response || response.status < 200 || response.status >= 300;
-    this.responseIsError.set(isError);
-    this.responseStatusCode.set(response?.status);
-    this.responseStatusText.set(response?.statusText);
-    this.responseHeadersView.set((response?.headers ?? []).map(([name, value]) => ({ name, value })));
-    this.responseContentType.set(response?.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1] ?? "");
-    this.responseBodyIsJson.set(!!text && parseJson(text).ok);
-    this.responseData.set(isError ? "" : text);
-    this.responseError.set(isError ? text || entry.error || "" : "");
-    this.responseRoute.set(entry.route);
-    this.record.set(entry.record ?? null);
+    const view = recordedExchange(entry);
+    this.responseIsError.set(view.isError);
+    this.responseStatusCode.set(view.statusCode);
+    this.responseStatusText.set(view.statusText);
+    this.responseHeadersView.set(view.headers);
+    this.responseContentType.set(view.contentType);
+    this.responseBodyIsJson.set(view.bodyIsJson);
+    this.responseData.set(view.data);
+    this.responseError.set(view.error);
+    this.responseRoute.set(view.route);
+    this.record.set(view.record);
     this.recordOpen.set(open && !!entry.record);
   }
 

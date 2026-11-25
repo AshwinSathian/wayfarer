@@ -67,3 +67,20 @@ test.describe("on a phone", () => {
     expect(await where(), "the request's tabs did not move").toBe(before);
   });
 });
+
+test.describe("on a tablet", () => {
+  test.use({ serviceWorkers: "block", viewport: { width: 820, height: 1180 } });
+
+  test("@claim:C-116 the response under the request starts in the upper 60% of an 820 px tablet's window, and the request pane is not mostly empty", async ({
+    page,
+  }) => {
+    await page.goto("/app/");
+    await address(page).fill(`${ECHO}/content/json`);
+    await send(page);
+    await expect(page.locator(".status-badge")).toBeVisible({ timeout: 15_000 });
+    const top = (await page.locator(".response-pane").boundingBox())!.y;
+    expect(top, "the response starts above 60% of the window").toBeLessThan(1180 * 0.6);
+    const body = page.locator("app-response-viewer .tab-panes").first();
+    expect((await body.boundingBox())!.y, "the response's body is on screen").toBeLessThan(1180 - 200);
+  });
+});

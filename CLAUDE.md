@@ -1553,6 +1553,8 @@ code errors.
   template, and the Response pane keeps it. The response's tab bar takes 10 px
   each side of a label below 30 em of window (`tabs.css`), so its five tabs fit
   at 390 px without scrolling; the 24 px height is kept.
+- Stacked (the response under the request), the split starts at 32/68 (`STACKED_SIZES`): at 820 px a
+  taller composer pane was mostly empty and put the response near the fold (C-116).
 - `parse(buildCurl(request))` is the request (the fast-check property in
   `curl.spec.ts`). A change to `buildCurl` or to the parser keeps it.
 - A file that is not JSON is read as YAML by `parseYaml`

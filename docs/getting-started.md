@@ -25,6 +25,8 @@ On a phone the request and the response are two panes under the address. An empt
 an example** and **Paste a cURL command** at the top of it; a send moves to the response, and the response's tabs (Body,
 Headers, Timings, Sent, Tests) all fit the width, with no sideways scrolling. A long host wraps in its own width and does
 not squeeze the strip's summary button. <!-- claim:C-115 -->
+On a tablet, where the response goes under the request, the request keeps about a third of the height until you move the
+line between them, so a response is in view after a send. <!-- claim:C-116 -->
 
 ## Keep it in a collection
 

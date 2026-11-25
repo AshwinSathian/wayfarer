@@ -104,7 +104,8 @@ for (const { name, width, text } of [
           tabStrip: y(".request-tab-strip"),
           tabs: y("app-composer .tabs"),
           response: y(".response-pane") ?? y("app-composer .tab-panes"),
-          page: document.documentElement.scrollWidth,
+          // Sideways overflow, not the width: a scrollbar that comes with a taller page is not a move.
+          page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
       });
     await expect(strip(page).locator(".route-problem-text")).toHaveText("Enter an address to send.");

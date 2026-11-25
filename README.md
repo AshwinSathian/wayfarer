@@ -202,6 +202,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md), generated f
 - The global variables are the first row of the Environments list and open in the same pane as an environment's variables, written as they are left; with no environment, the pane says what one is for and offers one action to make it. <!-- claim:C-113 -->
 - A collection run's table marks each row passed or failed with a glyph, as well as its colour, and says where its request was sent: from this page or through the Local Bridge. <!-- claim:C-114 -->
 - On a phone, an empty tab opens on the request with "Try an example" and "Paste a cURL command" at the top of it; after a send the response shows with all its tabs inside the window, and a long host does not squeeze the route strip's summary button. <!-- claim:C-115 -->
+- On a tablet, with the response under the request, the response starts in the upper part of the window after a send: the request keeps about a third of the height until you move the line. <!-- claim:C-116 -->
 <!-- features:end -->
 
 </details>

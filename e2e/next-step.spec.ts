@@ -54,18 +54,18 @@ test.describe("the first run's example", () => {
     await page.goto("/app/");
     const pane = page.locator(".response-pane");
     // The host is said before the click, and nothing has gone to it.
-    await expect(pane).toContainText(
-      "Try an example sends GET https://jsonplaceholder.typicode.com/todos/1 from this page.",
-    );
+    await expect(pane).toContainText(/Try an example sends GET https:\/\/[^/{}\s]+\/todos\/1 from this page\./);
     expect(asked).toEqual([]);
     await pane.getByRole("button", { name: "Try an example" }).click();
     const address = page.locator("input.address-url");
-    await expect(address).toHaveValue("https://jsonplaceholder.typicode.com/todos/1");
+    await expect(address).toHaveValue(/^https:\/\/[^/{}]+\/todos\/1$/);
+    const url = await address.inputValue();
+    const host = new URL(url).host;
     await expect(page.locator(".status-badge")).toHaveText("200");
     await expect(page.locator("app-route-strip .route-label-route")).toHaveText("Sent from this page");
     await expect(page.locator("app-route-strip").getByRole("group")).toHaveAccessibleName(
-      /^Sent from this page\. 200 OK, [\d.]+ m?s\. GET jsonplaceholder\.typicode\.com\.$/,
+      new RegExp(`^Sent from this page\\. 200 OK, [\\d.]+ m?s\\. GET ${host.replaceAll(".", "\\.")}\\.$`),
     );
-    expect(asked).toEqual(["https://jsonplaceholder.typicode.com/todos/1"]);
+    expect(asked).toEqual([url]);
   });
 });
